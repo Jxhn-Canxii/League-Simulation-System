@@ -1,0 +1,186 @@
+export const eliminationFormatter = (type) => {
+    switch (type) {
+        case 1:
+            return 'Single Elimination'
+            break;
+        case 2:
+            return 'Single Round Robin'
+            break;
+        case 3:
+            return 'Double Round Robin'
+            break;
+        default:
+            return 'Invalid'
+            break;
+    }
+    // <option value="0">Select Type</option>
+    // <option value="1">Single Elimination</option>
+    // <option value="2">Single Round Robin</option>
+    // <option value="3">Double Round Robin</option>
+};
+export const roundNameFormatter = (round) => {
+    if (typeof round === 'number') {
+        return `Round # ${round}`;
+    }
+
+    switch (round) {
+        case 'round_of_32':
+            return 'Conference Round of 16'
+            break;
+        case 'round_of_16':
+            return 'Conference Quarterfinals'
+            break;
+        case 'quarter_finals':
+            return 'Conference Semi-Finals'
+            break;
+        case 'semi_finals':
+            return 'Conference Finals'
+            break;
+        case 'interconference_semi_finals':
+            return 'Semi-Finals'
+            break;
+        case 'finals':
+            return 'The Finals'
+            break;
+        default:
+            return round;
+            break;
+    }
+}
+export const roundGridFormatter = (round,start) => {
+    if(start == 32){
+        switch (round) {
+            case 'round_of_32':
+                return 3;
+                 break;
+            case 'round_of_16':
+               return 4;
+                break;
+            case 'quarter_finals':
+                return 5;
+                break;
+            case 'semi_finals':
+                return 6;
+                break;
+            case 'interconference_semi_finals':
+                return 7;
+                break;
+            case 'finals':
+                return 8;
+                break;
+            default:
+                return 2;
+                break;
+        }
+    }else{
+        switch (round) {
+            case 'round_of_16':
+                return 4;
+                 break;
+            case 'quarter_finals':
+                return 5;
+                break;
+            case 'semi_finals':
+                return 6;
+            case 'interconference_semi_finals':
+                return 7;
+                break;
+            case 'finals':
+                return 8;
+                break;
+            default:
+                return 2;
+                break;
+        }
+    }
+
+}
+export const roundStatusFormatter = (round,start) => {
+    let newRound;
+    if(start == 32){
+        switch (round) {
+            case 'start':
+                newRound = 'round_of_32';
+                break;
+            case 'round_of_32':
+                newRound = 'round_of_16';
+                break;
+            case 'round_of_16':
+                newRound = 'quarter_finals';
+                break;
+            case 'quarter_finals':
+                newRound = 'semi_finals';
+                break;
+            case 'semi_finals':
+                newRound = 'interconference_semi_finals';
+                break;
+            case 'interconference_semi_finals':
+                newRound = 'finals';
+                break;
+            default:
+                newRound = 'invalid';
+                break;
+        }
+    }
+    else if(start == 16){
+        switch (round) {
+            case 'start':
+                newRound = 'round_of_16';
+                break;
+            case 'round_of_16':
+                newRound = 'quarter_finals';
+                break;
+            case 'quarter_finals':
+                newRound = 'semi_finals';
+                break;
+            case 'semi_finals':
+                newRound = 'interconference_semi_finals';
+                break;
+            case 'interconference_semi_finals':
+                newRound = 'finals';
+                break;
+            default:
+                newRound = 'invalid';
+                break;
+        }
+    }
+    else if(start == 8){
+        switch (round) {
+            case 'start':
+                newRound = 'quarter_finals';
+                break;
+            case 'quarter_finals':
+                newRound = 'semi_finals';
+                break;
+            case 'semi_finals':
+                newRound = 'interconference_semi_finals';
+                break;
+            case 'interconference_semi_finals':
+                newRound = 'finals';
+                break;
+            default:
+                newRound = 'invalid';
+                break;
+        }
+    }
+
+    return newRound;
+}
+
+export const generateRandomKey = () => {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const length = 10; // You can adjust the length of the key as needed
+    let result = '';
+    for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return result;
+};
+export const moneyFormatter = (amount) => {
+    // Check if amount is not a valid number
+    if (isNaN(amount) || amount === null || amount === undefined) {
+        return ''; // Return empty string
+    }
+    // Convert amount to number and format with commas for thousands separator
+    return Number(amount).toLocaleString('en-US', {maximumFractionDigits: 2});
+}

@@ -1,0 +1,546 @@
+<template>
+    <div>
+        <Head title="Seasons" />
+
+        <AuthenticatedLayout>
+            <template #header> Seasons </template>
+            <div
+                class="inline-block min-w-full overflow-auto shadow rounded p-2"
+            >
+                <div
+                    class="flex overflow-hidden justify-end gap-5 p-2"
+                >
+                    <button
+                        @click.prevent="isAddModalOpen = true"
+                        v-bind:class="{
+                            'opacity-25': isAddModalOpen,
+                        }"
+                        v-bind:disabled="isAddModalOpen"
+                        class="px-2 py-2 bg-blue-500 rounded font-bold text-md float-end text-white shadow"
+                    >
+                        <i class="fa fa-calendar-plus"></i> New Season
+                    </button>
+                </div>
+                <div
+                    class="flex overflow-hidden gap-5 p-2"
+                >
+                    <input
+                        type="text"
+                        v-model="search_seasons.search"
+                        @input.prevent="fetchSeasons(1)"
+                        id="LeagueName"
+                        placeholder="Enter season name"
+                        class="mt-1 p-2 text-md shadow border rounded-md w-full"
+                    />
+                </div>
+                <table class="w-full whitespace-no-wrap">
+                    <thead>
+                        <tr
+                            class="border-b text-nowrap bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
+                        >
+                            <th
+                                class="border-b-2 border-gray-200 bg-gray-100 px-2 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
+                            >
+                                Season
+                            </th>
+                            <th
+                                class="border-b-2 border-gray-200 bg-gray-100 px-2 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
+                            >
+                                Conference
+                            </th>
+                            <th
+                                class="border-b-2 border-gray-200 bg-gray-100 px-2 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
+                            >
+                                Finals Champion
+                            </th>
+                            <th
+                                class="border-b-2 border-gray-200 bg-gray-100 px-2 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
+                            >
+                                Conference
+                            </th>
+                            <th
+                                class="border-b-2 border-gray-200 bg-gray-100 px-2 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
+                            >
+                                Finals Runner Up
+                            </th>
+                            <th
+                                class="border-b-2 border-gray-200 bg-gray-100 px-2 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
+                            >
+                                Regular Champion
+                            </th>
+                            <th
+                                class="border-b-2 border-gray-200 bg-gray-100 px-2 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
+                            >
+                                Worst
+                            </th>
+                            <th
+                                class="border-b-2 border-gray-200 bg-gray-100 px-2 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
+                            >
+                                Action
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr
+                        v-for="season in seasons.seasons"
+                        v-if="seasons.total_pages"
+                        :key="season.id"
+                        :class="[
+                            season.finals_winner_id === season.champion_id ? 'bg-stone-700 text-yellow-400 font-extrabold' : '',
+                            season.winner_conference_name === season.loser_conference_name ? 'bg-slate-600 text-yellow-500 font-extrabold' : '',
+                            'bg-gray-50 border'
+                        ]"
+                        >
+
+                            <td
+                                class="border-b px-2 py-2 text-xs"
+                            >
+                                <p
+                                    class="whitespace-no-wrap uppercase"
+                                >
+                                    {{ season.name }}
+                                </p>
+                            </td>
+                            <td
+                                class="border-b border-gray-200 px-2 py-2 text-xs"
+                            >
+                                <span class="bg-yellow-500 text-white shadow px-2 py-1 inline-block rounded-full text-xs font-semibold">{{ season.winner_conference_name ?? "TBD" }}</span>
+                            </td>
+                            <td
+                                class="border-b border-gray-200 px-2 py-2 text-xs"
+                            >
+                                <p
+                                    class="whitespace-no-wrap uppercase text-nowrap"
+                                >
+                                    {{ season.finals_winner_name ?? "TBD" }}
+                                    (
+                                    {{
+                                        season.finals_winner_score >
+                                        season.finals_loser_score
+                                            ? season.finals_winner_score
+                                            : season.finals_loser_score
+                                    }}
+                                    )
+                                </p>
+                            </td>
+                            <td
+                                class="border-b border-gray-200 px-2 py-2 text-xs"
+                            >
+                                <span class="bg-gray-500 text-white shadow px-2 py-1 inline-block rounded-full text-xs font-semibold">{{ season.loser_conference_name ?? "TBD" }}</span>
+                            </td>
+                            <td
+                                class="border-b border-gray-200 px-2 py-2 text-xs"
+                            >
+                                <p
+                                    class="whitespace-no-wrap uppercase text-nowrap"
+                                >
+                                    {{ season.finals_loser_name ?? "TBD" }}
+                                    ({{
+                                        season.finals_winner_score <
+                                        season.finals_loser_score
+                                            ? season.finals_winner_score
+                                            : season.finals_loser_score
+                                    }})
+                                </p>
+                            </td>
+                            <td
+                                class="border-b border-gray-200 px-2 py-2 text-xs"
+                            >
+                                <p
+                                    class="whitespace-no-wrap uppercase text-nowrap"
+                                >
+                                    {{
+                                        season.type == 1
+                                            ? "n/a"
+                                            : season.champion_name
+                                    }}
+                                </p>
+                            </td>
+                            <td
+                                class="border-b border-gray-200 px-2 py-2 text-xs"
+                            >
+                                <p
+                                    class="whitespace-no-wrap uppercase text-nowrap"
+                                >
+                                    {{
+                                        season.type == 1
+                                            ? "n/a"
+                                            : season.weakest_name
+                                    }}
+                                </p>
+                            </td>
+                            <td
+                                class="border-b float-center border-gray-200 px-2 py-2 text-xs"
+                            >
+                                <button
+                                    @click.prevent="
+                                        (isViewModalOpen = true),
+                                            (season_id = season.id)
+                                    "
+                                    v-bind:class="{
+                                        'opacity-25': isViewModalOpen,
+                                    }"
+                                    v-bind:disabled="isViewModalOpen"
+                                    class="px-2 py-2 bg-blue-500 mb-4 rounded font-bold text-md float-center text-white shadow"
+                                >
+                                    <i class="fa fa-list"></i> Season
+                                </button>
+                            </td>
+                        </tr>
+                        <tr v-else>
+                            <td
+                                colspan="8"
+                                class="border-b text-center font-bold text-lg border-gray-200 bg-white px-2 py-2"
+                            >
+                                <p class="text-red-500 whitespace-no-wrap">
+                                    No Data Found!
+                                </p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div
+                    class="flex justify-start font-bold p-2 bg-white"
+                    v-if="seasons.total_pages > 1"
+                >
+                    <button
+                        @click="fetchSeasons(seasons.current_page - 1)"
+                        :disabled="seasons.current_page === 1"
+                        class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50"
+                    >
+                        Previous
+                    </button>
+                    <button
+                        v-for="pageNumber in seasons.total_pages"
+                        :key="pageNumber"
+                        @click="fetchSeasons(pageNumber)"
+                        :disabled="seasons.current_page === pageNumber"
+                        class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50"
+                    >
+                        {{ pageNumber }}
+                    </button>
+                    <button
+                        @click="fetchSeasons(seasons.current_page + 1)"
+                        :disabled="seasons.current_page === seasons.total_pages"
+                        class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50"
+                    >
+                        Next
+                    </button>
+                </div>
+            </div>
+            <Modal :show="isViewModalOpen" :maxWidth="'fullscreen'">
+                <button
+                    class="flex float-end bg-gray-100 p-3"
+                    @click.prevent="(isViewModalOpen = false), fetchSeasons()"
+                >
+                    <i class="fa fa-times text-black-600"></i>
+                </button>
+                <div
+                    class="bg-white overflow-hidden shadow-sm sm:rounded-lg min-h-screen p-2"
+                >
+                    <div class="w-full mb-2 flex overflow-x-auto border-b-2">
+                        <ul class="flex flex-wrap">
+                            <li
+                                @click="changeTab('Regular')"
+                                :class="{
+                                    'text-blue-500 border-b-2 border-blue-500':
+                                        currentTab === 'Regular',
+                                }"
+                                class="whitespace-nowrap group flex items-center px-3 py-2 cursor-pointer relative flex-shrink-0 max-w-xs"
+                            >
+                                <i
+                                    class="fa fa-trophy mr-2 text-gray-500 group-hover:text-blue-500"
+                                    title="Regular Season"
+                                ></i>
+                                <span
+                                    hidden
+                                    class="text-truncate hidden sm:inline md:inline"
+                                    >Regular Season</span
+                                >
+                                <!-- Warning Badge Notification Counter -->
+                                <span
+                                    hidden
+                                    class="bg-red-500 text-white rounded-full h-4 w-4 text-center m-1 text-xs"
+                                    >6</span
+                                >
+                            </li>
+                            <li
+                                @click="changeTab('Playoffs')"
+                                :class="{
+                                    'text-blue-500 border-b-2 border-blue-500':
+                                        currentTab === 'Playoffs',
+                                }"
+                                class="whitespace-nowrap group flex items-center px-3 py-2 cursor-pointer relative flex-shrink-0 max-w-xs"
+                            >
+                                <i
+                                    class="fa fa-diagram-project mr-2 text-gray-500 group-hover:text-blue-500"
+                                    title="Playoffs"
+                                ></i>
+                                <span
+                                    class="text-truncate hidden sm:inline md:inline"
+                                    >Playoffs</span
+                                >
+                                <!-- Warning Badge Notification Counter -->
+                                <span
+                                    hidden
+                                    class="bg-red-500 text-white rounded-full h-4 w-4 text-center m-1 text-xs"
+                                    >6</span
+                                >
+                            </li>
+                        </ul>
+                    </div>
+                    <!-- Modify the existing content based on the currentTab -->
+                    <div
+                        v-if="currentTab === 'Regular' && season_id != 0"
+                        class="min-w-screen overflow-x-auto"
+                    >
+                        <Seasons :season_id="season_id" />
+                    </div>
+                    <div
+                        v-if="currentTab === 'Playoffs' && season_id != 0"
+                        class="min-w-screen overflow-x-auto"
+                    >
+                        <Playoffs :season_id="season_id" />
+                    </div>
+                </div>
+            </Modal>
+            <Modal :show="isAddModalOpen" :maxWidth="'2xl'">
+                <button
+                    class="flex float-end bg-gray-100 p-3"
+                    @click.prevent="isAddModalOpen = false"
+                >
+                    <i class="fa fa-times text-black-600"></i>
+                </button>
+                <div class="grid grid-cols-1 gap-6 p-6">
+                    <h2 class="text-lg font-semibold text-gray-800">
+                        New Seasons
+                    </h2>
+                    <form class="mt-4" @submit.prevent="create()">
+                        <div class="mb-4">
+                            <label
+                                for="FloorNo"
+                                class="block text-sm font-medium text-gray-700"
+                                >Name</label
+                            >
+                            <input
+                                type="text"
+                                id="FloorNo"
+                                v-model="form.season_name"
+                                minlength="1"
+                                placeholder="Input Season Name"
+                                name="FloorNo"
+                                class="mt-1 p-2 border rounded-md w-full"
+                            />
+                            <InputError
+                                class="mt-2"
+                                :message="form.errors.season_name"
+                            />
+                        </div>
+                        <div class="mb-4">
+                            <label
+                                for="FloorNo"
+                                class="block text-sm font-medium text-gray-700"
+                                >Type</label
+                            >
+                            <select
+                                name=""
+                                id=""
+                                class="mt-1 p-2 border rounded-md w-full bg-gray-200"
+                                v-model="form.type"
+                                disabled
+                            >
+                                <option value="0">Select Type</option>
+                                <option value="1" disabled>Single Elimination</option>
+                                <option value="2">Single Round Robin</option>
+                                <option value="3">Double Round Robin</option>
+                            </select>
+                            <InputError
+                                class="mt-2"
+                                :message="form.errors.type"
+                            />
+                        </div>
+                        <div class="mb-4">
+                            <label
+                                for="FloorNo"
+                                class="block text-sm font-medium text-gray-700"
+                                >Start Playoffs</label
+                            >
+                            <select
+                                name=""
+                                id=""
+                                class="mt-1 p-2 border rounded-md w-full bg-gray-200"
+                                v-model="form.start"
+                                disabled
+                            >
+                                <option value="0">Select Start</option>
+                                <option value="8" disabled>on Quarter Finals</option>
+                                <option value="16">on Round of 16</option>
+                            </select>
+                            <InputError
+                                class="mt-2"
+                                :message="form.errors.type"
+                            />
+                        </div>
+                        <div class="mb-4">
+                            <label
+                                for="FloorNo"
+                                class="block text-sm font-medium text-gray-700"
+                                >Match Type</label
+                            >
+                            <select
+                                name=""
+                                id=""
+                                class="mt-1 p-2 border rounded-md w-full bg-gray-200"
+                                v-model="form.match_type"
+                                disabled
+                            >
+                                <option value="0">Select Match Type</option>
+                                <option value="1">by Conference</option>
+                                <option value="2" disabled>All Teams</option>
+                            </select>
+                            <InputError
+                                class="mt-2"
+                                :message="form.errors.type"
+                            />
+                        </div>
+                        <div class="mb-4">
+                            <label
+                                for="FloorNo"
+                                class="block text-sm font-medium text-gray-700"
+                                >League</label
+                            >
+                            <select
+                                name=""
+                                id=""
+                                class="mt-1 p-2 border rounded-md w-full bg-gray-200"
+                                v-model="form.league_id"
+                                disabled
+                            >
+                                <option value="0">Select League</option>
+                                <option
+                                    :value="league.id"
+                                    v-for="league in leagues_dropdown"
+                                    :key="league.id"
+                                >
+                                    {{ league.name }}
+                                </option>
+                            </select>
+                            <InputError
+                                class="mt-2"
+                                :message="form.errors.league_id"
+                            />
+                        </div>
+                        <!-- Add more form fields as needed -->
+
+                        <div class="flex items-center">
+                            <button
+                                type="submit"
+                                class="bg-blue-500 text-white font-bold py-2 px-4 rounded"
+                            >
+                                Submit
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </Modal>
+        </AuthenticatedLayout>
+    </div>
+</template>
+
+<script setup>
+import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
+import { Head, useForm } from "@inertiajs/vue3";
+import Modal from "@/Components/Modal.vue";
+import { roundNameFormatter, roundGridFormatter } from "@/Utility/Formatter.js";
+import { ref, onMounted } from "vue";
+import Seasons from "@/Pages/Seasons/Season.vue";
+import Playoffs from "@/Pages/Seasons/Playoffs.vue";
+import Swal from "sweetalert2";
+import axios from "axios";
+
+const isAddModalOpen = ref(false);
+const isViewModalOpen = ref(false);
+const seasons = ref([]);
+const leagues_dropdown = ref([]);
+const season_id = ref(0);
+const isHide = ref(false);
+const currentTab = ref("Regular"); // Set the default tab
+const search_seasons = ref({
+    current_page: 1,
+    total_pages: 0,
+    total: 0,
+    search: "",
+    change_key: "",
+});
+const form = useForm({
+    type: 3,
+    start: 16,
+    league_id: 1,
+    seasons_id: 0,
+    conference_id: 0,
+    match_type: 1,
+    errors: [],
+});
+const fetchSeasons = async (page = 1) => {
+    try {
+        search_seasons.value.current_page = page;
+        const response = await axios.post(
+            route("seasons.list"),
+            search_seasons.value
+        );
+        seasons.value = response.data;
+    } catch (error) {
+        console.error("Error fetching seasons:", error);
+    }
+};
+const leagueDropdown = async () => {
+    try {
+        const response = await axios.get(route("leagues.dropdown"));
+        if (!response) {
+            throw new Error("Failed to fetch leagues");
+        }
+        leagues_dropdown.value = await response.data; // Parse JSON response and assign it to the leagues array
+    } catch (error) {
+        console.error("Error fetching leagues:", error);
+    }
+};
+const create = async () => {
+    if (form.league_id == 0) {
+        Swal.fire({
+            title: "Warning!",
+            text: "Please assign league!",
+            icon: "warning",
+        });
+        return false;
+    } else {
+        try {
+            isHide.value = true;
+            const response = await axios.post(route("schedule.create"), form);
+            isAddModalOpen.value = false;
+            Swal.fire({
+                icon: "success",
+                title: "Success!",
+                text: response.data.message, // Assuming the response contains a 'message' field
+            });
+            form.reset("name", "type", "league_id");
+            fetchSeasons();
+            isHide.value = false;
+        } catch (error) {
+            console.error("Error creating schedule:", error);
+            // Show error message using Swal2 if needed
+            Swal.fire({
+                icon: "error",
+                title: "Error!",
+                text: error.response.data.message,
+            });
+        }
+    }
+};
+const changeTab = (tab) => {
+    currentTab.value = tab;
+};
+onMounted(() => {
+    fetchSeasons();
+    leagueDropdown();
+});
+</script>
