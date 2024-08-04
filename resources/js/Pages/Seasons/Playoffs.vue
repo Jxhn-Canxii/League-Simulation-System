@@ -428,7 +428,7 @@ const getConferenceClass = (home_conference, away_conference) => {
 
     // Check if the home and away conferences are different
     if (home_conference !== away_conference) {
-        return 'bg-gray-200'; // Color when conferences do not match
+        return 'bg-yellow-100'; // Color when conferences do not match
     }
 
     // Return the Tailwind class for the home conference
