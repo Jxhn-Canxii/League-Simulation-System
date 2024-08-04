@@ -23,7 +23,7 @@ WITH team_games AS (
     LEFT JOIN
         conferences ON teams.conference_id = conferences.id
     WHERE
-        schedules.round NOT IN ('round_of_32', 'round_of_16', 'quarter_finals', 'semi_finals', 'finals')
+        schedules.round NOT IN ('round_of_32', 'round_of_16', 'quarter_finals', 'semi_finals', 'interconference_semi_finals', 'finals')
 ),
 streaks AS (
     SELECT
@@ -103,7 +103,7 @@ team_rankings AS (
     LEFT JOIN
         conferences ON teams.conference_id = conferences.id
     WHERE
-        schedules.round NOT IN ('round_of_32', 'round_of_16', 'quarter_finals', 'semi_finals', 'finals')
+        schedules.round NOT IN ('round_of_32', 'round_of_16', 'quarter_finals', 'semi_finals', 'interconference_semi_finals', 'finals')
     GROUP BY
         teams.id, teams.name, teams.acronym, teams.conference_id, conferences.name, schedules.season_id
 ),
@@ -126,7 +126,7 @@ playoff_appearances AS (
     JOIN
         schedules ON teams.id = schedules.home_id OR teams.id = schedules.away_id
     WHERE
-        schedules.round IN ('round_of_32', 'round_of_16', 'quarter_finals', 'semi_finals', 'finals')
+        schedules.round IN ('round_of_32', 'round_of_16', 'quarter_finals', 'semi_finals', 'interconference_semi_finals', 'finals')
     GROUP BY
         teams.id
 ),
