@@ -55,9 +55,11 @@
                             class="col-span-1"
                         >
                             <div
-                                class="bg-white shadow-md rounded-md overflow-hidden"
+                                class="shadow-md rounded-md overflow-hidden"
                             >
-                                <div class="px-4 py-5 sm:px-6">
+                                <div
+                                :class="getConferenceClass(match.home_team.conference,match.away_team.conference)"
+                                class="px-4 py-5 sm:px-6">
                                     <h3
                                         class="text-xs font-extrabold text-nowrap uppercase leading-6 text-gray-800"
                                     >
@@ -73,7 +75,7 @@
                                         {{ roundNameFormatter(roundName) }}
                                     </p>
                                 </div>
-                                <div class="border-t border-gray-200 flex justify-between">
+                                <div class="border-gray-200 flex justify-between">
                                     <div class="bg-white px-4 text-nowrap text-gray-600 text-xs py-3">
                                         {{ match.home_team.conference }} #{{ match.home_team.conference_rank }} vs {{ match.away_team.conference }} #{{ match.away_team.conference_rank }}
                                     </div>
@@ -415,6 +417,24 @@ const simulateGame = async (id,type,index,round) => {
         });
     }
 };
+const getConferenceClass = (home_conference, away_conference) => {
+    // Define Tailwind classes for each conference
+    const conferenceClasses = {
+        'North': 'bg-blue-100',
+        'South': 'bg-green-100',
+        'East': 'bg-yellow-100',
+        'West': 'bg-red-100',
+    };
+
+    // Check if the home and away conferences are different
+    if (home_conference !== away_conference) {
+        return 'bg-gray-200'; // Color when conferences do not match
+    }
+
+    // Return the Tailwind class for the home conference
+    return conferenceClasses[home_conference] || 'bg-gray-100'; // Default color if conference is not found
+};
+
 watch(() => props.season_id, async (n, o) => {
     if (n !== o) {
         await fetchSeasonInfo(o);
