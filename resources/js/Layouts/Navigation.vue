@@ -18,6 +18,12 @@
                 </template>
                 Dashboard
             </nav-link>
+            <nav-link :href="route('transactions.index')" :active="route().current('transactions.index')">
+                <template #icon>
+                    <i class="fa fa-list"></i>
+                </template>
+                Transactions
+            </nav-link>
             <nav-link :href="route('seasons.index')" :active="route().current('seasons.index')">
                 <template #icon>
                     <i class="fa fa-calendar"></i>

@@ -285,6 +285,81 @@
                         </div>
                 </div>
             </div>
+            <div class="grid grid-cols-2 gap-6 mt-4">
+                <div
+                class="bg-white inline-block min-w-full overflow-hidden rounded shadow p-2"
+            >
+            <h3 class="text-md font-semibold text-gray-800">All Time Top Scorer</h3>
+                <input
+                    type="text"
+                    v-model="search_scorers.search"
+                    @input.prevent="fetchScorers()"
+                    id="LeagueName"
+                    placeholder="Enter team name"
+                    class="mt-1 mb-2 p-2 border rounded w-full"
+                />
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b bg-gray-50 text-left  text-nowrap text-xs font-semibold uppercase tracking-wide text-gray-500">
+                            <th class="border-b-2 border-gray-200 bg-gray-100 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                                Player
+                            </th>
+                            <th class="border-b-2 border-gray-200 bg-gray-100 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                                Current Team
+                            </th>
+                            <th class="border-b-2 border-gray-200 bg-gray-100 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                                All-time Score
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="player in scorers.data" v-if="scorers.total_pages" :key="player.id" class="text-gray-700">
+                            <td class="border-b border-gray-200 bg-white px-3 py-3 text-xs">
+                                <p class="text-gray-900 whitespace-no-wrap uppercase">{{ player.player_name }}</p>
+                            </td>
+                            <td class="border-b border-gray-200 bg-white px-3 py-3 text-xs">
+                                <p class="text-gray-900 whitespace-no-wrap uppercase">{{ player.team_name }}</p>
+                            </td>
+                            <td class="border-b border-gray-200 bg-white text-center px-3 py-3 text-xs">
+                                <p class="text-gray-900 whitespace-no-wrap uppercase">{{ moneyFormatter(player.total_score) }}</p>
+                            </td>
+                        </tr>
+                        <tr v-else>
+                            <td colspan="4" class="border-b text-center font-bold text-lg border-gray-200 bg-white px-3 py-3">
+                                <p class="text-red-500 whitespace-no-wrap">No Data Found!</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="flex justify-start font-bold p-2 text-xs overflow-auto" v-if="scorers.total > 1">
+                    <button
+                        @click="fetchScorers(scorers.current_page - 1)"
+                        :disabled="scorers.current_page === 1"
+                        class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50"
+                    >
+                        Previous
+                    </button>
+                    <button
+                        v-for="pageNumber in scorers.total_pages"
+                        :key="pageNumber"
+                        @click="fetchScorers(pageNumber)"
+                        :disabled="scorers.current_page === pageNumber"
+                        class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50"
+                    >
+                        {{ pageNumber }}
+                    </button>
+                    <button
+                        @click="fetchScorers(scorers.current_page + 1)"
+                        :disabled="
+                        scorers.current_page === scorers.total_pages
+                        "
+                        class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50"
+                    >
+                        Next
+                    </button>
+                </div>
+                </div>
+            </div>
         </div>
     </AuthenticatedLayout>
 </template>
@@ -296,6 +371,7 @@ import { ref, onMounted } from "vue";
 import { roundNameFormatter,generateRandomKey, moneyFormatter } from "@/Utility/Formatter";
 
 const champions = ref([]);
+const scorers = ref([]);
 const top_scorers = ref([]);
 const recent_results = ref([]);
 const rivals = ref([]);
@@ -313,6 +389,13 @@ const search_topscorers = ref({
     total: 0,
     search: '',
 });
+const search_scorers = ref({
+    current_page: 1,
+    total_pages: 0,
+    total: 0,
+    search: '',
+});
+
 const fetchChampions = async (page = 1) => {
     try {
         search_champions.value.current_page = page;
@@ -327,10 +410,20 @@ const fetchTopScorers = async (page = 1) => {
     try {
         search_topscorers.value.current_page = page;
         search_topscorers.value.change_key = change_key.value;
-        const response = await axios.post(route("dashboard.topscorer"),search_topscorers.value);
+        const response = await axios.post(route("dashboard.team.topscorer"),search_topscorers.value);
         top_scorers.value = response.data;
 } catch (error) {
         console.error("Error fetching champions:", error);
+    }
+};
+const fetchScorers = async (page = 1) => {
+    try {
+        search_scorers.value.current_page = page;
+        search_scorers.value.change_key = change_key.value;
+        const response = await axios.post(route("dashboard.player.topscorer"),search_scorers.value);
+        scorers.value = response.data;
+} catch (error) {
+        console.error("Error fetching top scorer of all time:", error);
     }
 };
 const fetchMostPlayoffAppearance = async () => {
@@ -366,6 +459,7 @@ onMounted(()=>{
     fetchMostPlayoffAppearance();
     fetchRecentResults();
     fetchRivalry();
+    fetchScorers();
     setKey();
 });
 </script>

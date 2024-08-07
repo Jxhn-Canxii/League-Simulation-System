@@ -398,10 +398,17 @@
                     >
                         Team Season History
                     </button>
+                    <button
+                    :class="['px-4 py-2', currentTab === 'roster' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700']"
+                    @click="currentTab = 'roster'"
+                >
+                    Team Roster
+                </button>
                 </div>
                 <div class="mt-4">
                     <TeamInfo v-if="currentTab === 'info'" :team_id="isTeamModalOpen" />
                     <TeamHistory v-if="currentTab === 'history'" :team_id="isTeamModalOpen" />
+                    <TeamRoster v-if="currentTab === 'roster'" :team_id="isTeamModalOpen" />
                 </div>
             </Modal>
         </AuthenticatedLayout>
@@ -419,23 +426,17 @@ import Swal from "sweetalert2";
 import axios from "axios";
 import TeamHistory from "./TeamHistory.vue";
 import TeamInfo from "./TeamInfo.vue";
+import TeamRoster from "./TeamRoster.vue";
 
 const isAddModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const isTeamModalOpen = ref(false);
+const isTeamRosterModalOpen = ref(false);
 const currentTab  = ref('info');
+const currentRosterTab = ref('roster');
 const leagues = ref(false);
 const conferences = ref(false);
-const team_info = ref(false);
-const team_season_standings = ref(false);
-const team_season_finals = ref(false);
-const team_last_season = ref(false);
-const team_matches = ref(false);
-const team_rivals = ref(false);
-const team_head_2_head = ref(false);
-const searchQuery = ref("");
 const currentPage = ref(1);
-const pageSize = 10;
 const teams = ref([]);
 
 const search_teams = ref({

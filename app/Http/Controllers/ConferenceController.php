@@ -76,27 +76,50 @@ class ConferenceController extends Controller
     }
     public function seasonschedules(Request $request)
     {
-        // Retrieve the season_id from the request
+        // Retrieve the season_id and conference_id from the request
         $seasonId = $request->season_id;
         $conferenceId = $request->conference_id;
 
+        // Retrieve schedules excluding certain rounds
         $schedules = DB::table('schedule_view')
             ->where('season_id', $seasonId)
             ->where('conference_id', $conferenceId)
             ->whereNotIn('round', ['round_of_16', 'quarter_finals', 'semi_finals', 'finals'])
             ->get();
 
+        // Check if all non-final rounds are simulated
         $allRoundsSimulated = DB::table('schedule_view')
             ->where('season_id', $seasonId)
             ->where('conference_id', $conferenceId)
             ->whereNotIn('round', ['round_of_16', 'quarter_finals', 'semi_finals', 'finals'])
             ->where('status', 1)
             ->doesntExist(); // Use doesntExist() to check if no records match
+
+        // Count distinct rounds
+        $distinctRoundsCount = DB::table('schedule_view')
+            ->where('season_id', $seasonId)
+            ->where('conference_id', $conferenceId)
+            ->whereNotIn('round', ['round_of_16', 'quarter_finals', 'semi_finals', 'finals'])
+            ->distinct('round')
+            ->count('round');
+
+        // Retrieve distinct rounds
+        $rounds = DB::table('schedule_view')
+            ->where('season_id', $seasonId)
+            ->where('conference_id', $conferenceId)
+            ->whereNotIn('round', ['round_of_16', 'quarter_finals', 'semi_finals', 'finals'])
+            ->distinct('round')
+            ->pluck('round'); // Get a list of distinct rounds
+
         return response()->json([
             'schedules' => $schedules,
             'is_simulated' => $allRoundsSimulated,
+            'distinct_rounds_count' => $distinctRoundsCount,
+            'rounds' => $rounds, // Include the list of rounds in the response
         ]);
     }
+
+
     public function seasonsplayoffs(Request $request)
     {
         // Retrieve the season_id from the request

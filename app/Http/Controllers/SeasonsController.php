@@ -72,18 +72,31 @@ class SeasonsController extends Controller
                          ->select('seasons.*', 'winner_conference.name as winner_conference_name', 'loser_conference.name as loser_conference_name', 'weakest_conference.name as weakest_conference_name', 'champion_conference.name as champion_conference_name')
                          ->get();
 
+        $isNewSeason = $this->is_new_season();
         // Create the response array
         $response = [
             'seasons' => $seasons,
             'total_pages' => $totalPages,
             'current_page' => $currentPage,
             'total_count' => $totalCount,
+            'is_new_season' => $isNewSeason,
         ];
 
         // Return the seasons data along with pagination information as a JSON response
         return response()->json($response);
     }
+    private function is_new_season(){
+        $teamIds = DB::table('teams')
+            ->leftJoin('players', 'teams.id', '=', 'players.team_id')
+            ->select('teams.id')
+            ->groupBy('teams.id')
+            ->havingRaw('COUNT(players.id) < 12')
+            ->pluck('id');
 
+        $teamsCount = $teamIds->count();
+
+        return $teamsCount == 0;
+    }
     public function seasonsperleague(Request $request)
     {
         // Validate the incoming request

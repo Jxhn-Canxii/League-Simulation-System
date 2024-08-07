@@ -184,6 +184,11 @@
                                                 </span>
                                             </dd>
                                         </div>
+                                        <div
+                                        class="bg-gray-200 px-4 py-1 flex justify-end sm:gap-4 sm:px-6"
+                                        >
+                                            <a href="#" class="text-sm text-blue-500 underline font-bold" @click.prevent="isGameResultModalOpen = match.game_id">View Result</a>
+                                        </div>
                                     </dl>
                                 </div>
                             </div>
@@ -262,6 +267,17 @@
             <TeamComparison :home_id="comparison.home_id" :away_id="comparison.away_id" :season_id="comparison.season_id" />
         </div>
     </Modal>
+    <Modal :show="isGameResultModalOpen" :maxWidth="'4xl'">
+        <button
+            class="flex float-end bg-gray-100 p-3"
+            @click.prevent="isGameResultModalOpen = false"
+        >
+            <i class="fa fa-times text-black-600"></i>
+        </button>
+        <div class="mt-4">
+            <GameResults :game_id="isGameResultModalOpen" />
+        </div>
+    </Modal>
 </template>
 
 <script setup>
@@ -280,9 +296,12 @@ import {
 import TeamHistory from "../Teams/TeamHistory.vue";
 import TeamInfo from "../Teams/TeamInfo.vue";
 import TeamComparison from "../Teams/TeamComparison.vue";
+import GameResults from "./GameResults.vue";
+
 const isAddModalOpen = ref(false);
 const isTeamModalOpen = ref(false);
 const isTeamComparisonModalOpen  = ref(false);
+const isGameResultModalOpen = ref(false);
 const currentTab = ref("history");
 const change_key = ref(localStorage.getItem("season-key"));
 const isHide = ref(false);

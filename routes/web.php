@@ -8,6 +8,8 @@ use App\Http\Controllers\LeaguesController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\SeasonsController;
 use App\Http\Controllers\ConferenceController;
+use App\Http\Controllers\PlayersController;
+use App\Http\Controllers\TransactionsController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -38,10 +40,10 @@ Route::middleware('auth')->group(function () {
         Route::get('', [DashboardController::class, 'index'])->name('dashboard');
         Route::post('champions', [DashboardController::class, 'champions'])->name('dashboard.champions');
         Route::post('recent', [DashboardController::class, 'recent'])->name('dashboard.recent');
-        Route::post('topscorerteams', [DashboardController::class, 'topscorerteams'])->name('dashboard.topscorer');
+        Route::post('topscorerteams', [DashboardController::class, 'topscorerteams'])->name('dashboard.team.topscorer');
         Route::post('rivals', [DashboardController::class, 'get_rivalries'])->name('dashboard.rivalries');
         Route::post('playoff_appearances', [DashboardController::class, 'playoff_appearances'])->name('dashboard.playoff.appearances');
-
+        Route::post('topscorerplayers', [DashboardController::class, 'topscorerplayers'])->name('dashboard.player.topscorer');
 
     });
 
@@ -101,6 +103,24 @@ Route::middleware('auth')->group(function () {
         Route::post('conferenceschedules', [ConferenceController::class, 'seasonschedules'])->name('conferences.schedules');
         Route::post('conferenceplayoffs', [ConferenceController::class, 'seasonsplayoffs'])->name('conferences.playoffs');
         Route::post('leagueconference', [ConferenceController::class, 'leagueconference'])->name('conference.season.dropdown');
+
+    });
+
+    Route::prefix('players/')->group(function(){
+        Route::post('list', [PlayersController::class, 'listPlayers'])->name('players.list');
+        Route::post('add', [PlayersController::class, 'addPlayer'])->name('players.add');
+        Route::post('add-freeagent', [PlayersController::class, 'addFreeAgentPlayer'])->name('players.add.free.agent');
+        Route::post('waive', [PlayersController::class, 'waivePlayer'])->name('players.waive');
+        Route::post('extend-contract', [PlayersController::class, 'extendContract'])->name('players.contract.extend');
+        Route::post('/box-score', [PlayersController::class, 'getBoxScore'])->name('game.boxscore');
+        Route::post('/top-10-players', [PlayersController::class, 'getBestPlayersInConference'])->name('top.players.conference.season');
+        Route::post('/free-agents', [PlayersController::class, 'getFreeAgents'])->name('players.free.agents');
+        Route::post('/player-performance', [PlayersController::class, 'getPlayerPerformance'])->name('players.season.performance');
+    });
+    Route::prefix('transactions/')->group(function(){
+        Route::get('', [TransactionsController::class, 'index'])->name('transactions.index');
+        Route::post('/assign-team-free-agents', [TransactionsController::class, 'assignPlayerToRandomTeam'])->name('assign.freeagent.teams');
+        Route::post('/auto-assign-team-free-agents', [TransactionsController::class, 'assignRemainingFreeAgents'])->name('auto.assign.freeagent.teams');
 
     });
     Route::prefix('users/')->group(function(){

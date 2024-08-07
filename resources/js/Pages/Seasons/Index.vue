@@ -5,10 +5,11 @@
         <AuthenticatedLayout>
             <template #header> Seasons </template>
             <div
-                class="inline-block min-w-full overflow-auto shadow rounded p-2"
+                class="inline-block min-w-full bg-white overflow-auto shadow rounded p-2"
             >
                 <div
                     class="flex overflow-hidden justify-end gap-5 p-2"
+                    v-if="seasons.is_new_season"
                 >
                     <button
                         @click.prevent="isAddModalOpen = true"
@@ -19,6 +20,21 @@
                         class="px-2 py-2 bg-blue-500 rounded font-bold text-md float-end text-white shadow"
                     >
                         <i class="fa fa-calendar-plus"></i> New Season
+                    </button>
+                </div>
+                <div
+                class="flex overflow-hidden justify-end gap-5 p-2"
+                v-else
+                >
+                    <button
+                        @click.prevent="isPlayerSigningModalOpen = true"
+                        v-bind:class="{
+                            'opacity-25': isPlayerSigningModalOpen,
+                        }"
+                        v-bind:disabled="isPlayerSigningModalOpen"
+                        class="px-2 py-2 bg-red-500 rounded font-bold text-md float-end text-white shadow"
+                    >
+                        <i class="fa fa-users"></i> Player Signings
                     </button>
                 </div>
                 <div
@@ -47,6 +63,11 @@
                                 class="border-b-2 border-gray-200 bg-gray-100 px-2 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
                             >
                                 Conference
+                            </th>
+                            <th
+                                class="border-b-2 border-gray-200 bg-gray-100 px-2 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
+                            >
+                                Finals MVP
                             </th>
                             <th
                                 class="border-b-2 border-gray-200 bg-gray-100 px-2 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
@@ -106,6 +127,15 @@
                             >
                                 <span class="bg-yellow-500 text-white shadow px-2 py-1 inline-block rounded-full text-xs font-semibold">{{ season.winner_conference_name ?? "TBD" }}</span>
                             </td>
+                            <td
+                            class="border-b border-gray-200 px-2 py-2 text-xs"
+                        >
+                            <p
+                                class="whitespace-no-wrap uppercase text-nowrap"
+                            >
+                                {{ season.finals_mvp ?? "TBD" }}
+                            </p>
+                        </td>
                             <td
                                 class="border-b border-gray-200 px-2 py-2 text-xs"
                             >
@@ -189,7 +219,7 @@
                         </tr>
                         <tr v-else>
                             <td
-                                colspan="8"
+                                colspan="9"
                                 class="border-b text-center font-bold text-lg border-gray-200 bg-white px-2 py-2"
                             >
                                 <p class="text-red-500 whitespace-no-wrap">
@@ -305,13 +335,16 @@
                 </div>
             </Modal>
             <Modal :show="isAddModalOpen" :maxWidth="'2xl'">
+                <div v-if="isProcessing" class="fixed inset-0 bg-black top-50 left-50 text-white text-center text-sm bg-opacity-50 z-40">
+                    Preparing Schedule...
+                </div>
                 <button
                     class="flex float-end bg-gray-100 p-3"
                     @click.prevent="isAddModalOpen = false"
                 >
                     <i class="fa fa-times text-black-600"></i>
                 </button>
-                <div class="grid grid-cols-1 gap-6 p-6">
+                <div class="relative grid grid-cols-1 gap-6 p-6">
                     <h2 class="text-lg font-semibold text-gray-800">
                         New Seasons
                     </h2>
@@ -435,12 +468,25 @@
                         <div class="flex items-center">
                             <button
                                 type="submit"
+                                :disabled="isProcessing"
+                                :class="isProcessing ? 'opacity-50' : ''"
                                 class="bg-blue-500 text-white font-bold py-2 px-4 rounded"
                             >
                                 Submit
                             </button>
                         </div>
                     </form>
+                </div>
+            </Modal>
+            <Modal :show="isPlayerSigningModalOpen" :maxWidth="'6xl'">
+                <button
+                    class="flex float-end bg-gray-100 p-3"
+                    @click.prevent="isPlayerSigningModalOpen = false"
+                >
+                    <i class="fa fa-times text-black-600"></i>
+                </button>
+                <div class="mt-4 p-3 block">
+                    <FreeAgents @newSeason="handleNewSeason"/>
                 </div>
             </Modal>
         </AuthenticatedLayout>
@@ -455,15 +501,17 @@ import { roundNameFormatter, roundGridFormatter } from "@/Utility/Formatter.js";
 import { ref, onMounted } from "vue";
 import Seasons from "@/Pages/Seasons/Season.vue";
 import Playoffs from "@/Pages/Seasons/Playoffs.vue";
+import FreeAgents from "./FreeAgents.vue";
 import Swal from "sweetalert2";
 import axios from "axios";
 
 const isAddModalOpen = ref(false);
 const isViewModalOpen = ref(false);
+const isPlayerSigningModalOpen = ref(false);
 const seasons = ref([]);
 const leagues_dropdown = ref([]);
 const season_id = ref(0);
-const isHide = ref(false);
+const isProcessing = ref(false);
 const currentTab = ref("Regular"); // Set the default tab
 const search_seasons = ref({
     current_page: 1,
@@ -493,6 +541,12 @@ const fetchSeasons = async (page = 1) => {
         console.error("Error fetching seasons:", error);
     }
 };
+const handleNewSeason = (newSeason) =>{
+    if(newSeason){
+        isPlayerSigningModalOpen.value = false;
+        fetchSeasons();
+    }
+}
 const leagueDropdown = async () => {
     try {
         const response = await axios.get(route("leagues.dropdown"));
@@ -514,7 +568,7 @@ const create = async () => {
         return false;
     } else {
         try {
-            isHide.value = true;
+            isProcessing.value = true;
             const response = await axios.post(route("schedule.create"), form);
             isAddModalOpen.value = false;
             Swal.fire({
@@ -523,8 +577,8 @@ const create = async () => {
                 text: response.data.message, // Assuming the response contains a 'message' field
             });
             form.reset("name", "type", "league_id");
+            isProcessing.value = false;
             fetchSeasons();
-            isHide.value = false;
         } catch (error) {
             console.error("Error creating schedule:", error);
             // Show error message using Swal2 if needed
