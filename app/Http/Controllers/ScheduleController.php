@@ -127,8 +127,14 @@ class ScheduleController extends Controller
                 }
             }
 
-            // Randomly add 2 or 0 to injury_prone_percentage
-            $player->injury_prone_percentage += (rand(0, 1) * 2);
+           // Determine if the player should have an injury_prone_percentage of 0
+            if (rand(1, 100) <= 80) {
+                $player->injury_prone_percentage = 0;
+            } else {
+                // Assign a random value between 1 and 100
+                $player->injury_prone_percentage = rand(1, 100);
+            }
+
 
             // Save the updated player data
             $player->save();
@@ -744,12 +750,6 @@ class ScheduleController extends Controller
                 $schedule->status = 2; // Marking the game as completed
                 $schedule->save();
             }
-
-            // Check if all rounds for the given conference have been simulated
-            $allRoundsSimulated = Schedules::where('season_id', $seasonId)
-                ->where('conference_id', $conferenceId)
-                ->where('status', 1)
-                ->doesntExist();
 
             // Check if all rounds have been simulated for the season
             $allRoundsSimulatedForSeason = Schedules::where('season_id', $seasonId)

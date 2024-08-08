@@ -5,47 +5,61 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Player;
 use App\Models\Schedules;
+use App\Models\Seasons;
+use App\Models\Teams;
 use App\Models\PlayerGameStats;
 use Carbon\Carbon;
-
+use Illuminate\Support\Facades\DB;
 class PlayersController extends Controller
 {
     public function listPlayers(Request $request)
     {
         $request->validate([
             'team_id' => 'required|exists:teams,id',
-            'season_id' => 'nullable|string', // Validate season_id as a string to accommodate 'all'
+            'season_id' => 'nullable|integer', // Validate season_id as nullable integer
         ]);
 
         $teamId = $request->team_id;
         $seasonId = $request->season_id;
 
         // Determine the season_id to use
-        if ($seasonId === 'all') {
-            // Fetch stats for all seasons if 'all' is specified
-            $statsQuery = PlayerGameStats::where('team_id', $teamId);
+        if (is_null($seasonId) || $seasonId == 0) {
+            // Get the latest season_id if null or 0
+            $seasonId = DB::table('seasons')->orderBy('id', 'desc')->value('id');
+            $activeFilter = 1; // Filter by active players when season_id is 0
         } else {
-            // If season_id is not provided or is 0, get the latest season_id
-            if (is_null($seasonId) || $seasonId == 0) {
-                $seasonId = \DB::table('seasons')->orderBy('id', 'desc')->value('id');
-            }
-
-            // Fetch stats for the specified season
-            $statsQuery = PlayerGameStats::where('season_id', $seasonId)
-                ->where('team_id', $teamId);
+            // Use the provided season_id and don't filter by active status
+            $activeFilter = null;
         }
 
-        // Fetch players for the specified team and ensure they are active
-        $players = Player::where('team_id', $teamId)
-                         ->where('is_active', 1) // Filter only active players
-                         ->get();
+        // Get distinct player_ids from player_game_stats for the given team_id and season_id
+        $playerIds = DB::table('player_game_stats')
+            ->where('team_id', $teamId)
+            ->where('season_id', $seasonId)
+            ->distinct()
+            ->pluck('player_id');
+
+        // Fetch players for the specified player_ids
+        $query = DB::table('players')
+            ->whereIn('id', $playerIds);
+
+        // Apply active status filter if needed
+        if ($activeFilter !== null) {
+            $query->where('is_active', $activeFilter);
+        }
+
+        $players = $query->get();
 
         // Initialize an array to hold player stats
         $playerStats = [];
 
         foreach ($players as $player) {
             // Fetch player game stats
-            $stats = $statsQuery->where('player_id', $player->id)->get();
+            $stats = DB::table('player_game_stats')
+                ->where('player_id', $player->id)
+                ->where('team_id', $teamId)
+                ->where('season_id', $seasonId)
+                ->get();
 
             // Calculate totals
             $totalPoints = $stats->sum('points');
@@ -70,7 +84,7 @@ class PlayersController extends Controller
             $playerStats[] = [
                 'player_id' => $player->id,
                 'name' => $player->name,
-                'age' => $player->age, // Include additional player details if needed
+                'age' => $player->age,
                 'role' => $player->role,
                 'is_active' => $player->is_active,
                 'total_points' => $totalPoints,
@@ -109,9 +123,10 @@ class PlayersController extends Controller
 
         return response()->json([
             'players' => $playerStats,
+            'season_id' => $seasonId,
+            'team_id' => $teamId,
         ]);
     }
-
     public function getFreeAgents(Request $request)
     {
         // Get pagination parameters from the request
@@ -164,6 +179,53 @@ class PlayersController extends Controller
             'free_agents' => $freeAgents,
         ]);
     }
+    public function getAllPlayers(Request $request)
+    {
+        // Get pagination parameters from the request
+        $perPage = $request->input('per_page', 10); // Number of items per page
+        $currentPage = $request->input('current_page', 1); // Current page number
+        $search = $request->input('search', ''); // Search term
+
+        // Calculate the offset for the query
+        $offset = ($currentPage - 1) * $perPage;
+
+        // Build the query with optional search filter and join with teams
+        $query = DB::table('players')
+            ->select('players.id as player_id', 'players.name', 'players.age', 'players.role', 'players.is_active', 'players.contract_years', DB::raw("IF(players.team_id = 0, 'none', teams.name) as team_name"))
+            ->leftJoin('teams', 'players.team_id', '=', 'teams.id');
+
+        // Apply search filter if provided
+        if ($search) {
+            $query->where('players.name', 'like', "%{$search}%");
+        }
+
+        // Add sorting by is_active status, then by role priority
+        $query->orderBy('players.is_active', 'desc') // Active players first
+            ->orderByRaw("FIELD(players.role, 'star player', 'starter', 'role player', 'bench')");
+
+        // Get total number of records
+        $total = $query->count();
+
+        // Fetch the paginated data
+        $freeAgents = $query->offset($offset)
+            ->limit($perPage)
+            ->get();
+
+        // Calculate total pages
+        $totalPages = (int) ceil($total / $perPage);
+
+        return response()->json([
+            'current_page' => $currentPage,
+            'total_pages' => $totalPages,
+            'total' => $total,
+            'search' => $search,
+            'free_agents' => $freeAgents,
+        ]);
+    }
+
+
+
+
     // Add a player to a team with random attributes
     public function addPlayer(Request $request)
     {

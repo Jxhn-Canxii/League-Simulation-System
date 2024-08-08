@@ -13,14 +13,23 @@
         <!-- Divider -->
         <hr class="my-4 border-t border-gray-200" />
         <!-- Add Player Button -->
-        <div class="flex justify-end">
-            <button
-                @click="showAddPlayerModal = true"
-                class="px-4 py-2 bg-green-500 text-white rounded mb-4 text-sm"
-            >
-                <i class="fa fa-user"></i> Add Player
-            </button>
+        <div class="flex justify-between items-center mb-4">
+            <div>
+                <select v-model="season_id" @change="seasonBehavior()" class="mt-1 block w-full sm:w-auto border-gray-300 rounded-md shadow-sm sm:text-sm">
+                    <option value="0">Latest</option>
+                    <option v-for="(season, ss) in seasons" :key="season.season_id" :value="season.season_id">{{ season.name }}</option>
+                </select>
+            </div>
+            <div>
+                <button
+                    @click="showAddPlayerModal = true"
+                    class="ml-4 px-4 py-2 bg-green-500 text-white rounded text-sm flex items-center"
+                >
+                    <i class="fa fa-user mr-2"></i> Add Player
+                </button>
+            </div>
         </div>
+
         <!-- Players Table -->
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200 text-xs">
@@ -105,6 +114,7 @@
                     <tr
                         v-for="(player, index) in team_roster.players"
                         :key="player.player_id"
+                        v-if="team_roster.players?.length > 0"
                         class="hover:bg-gray-100"
                     >
                         <td class="px-2 py-1 whitespace-nowrap border">
@@ -179,6 +189,12 @@
                                 Extend Contract
                             </button>
                         </td>
+                    </tr>
+                    <tr
+                        v-else
+                        class="hover:bg-gray-100"
+                    >
+                        <td class="px-2 py-1 whitespace-nowrap border text-center font-bold text-red-500" colspan="13">***No Players Found***</td>
                     </tr>
                 </tbody>
             </table>
@@ -301,7 +317,8 @@ const additionalYears = ref(1);
 const newPlayerName = ref("");
 const team_roster = ref([]);
 const team_info = ref([]);
-
+const seasons = ref([]);
+const season_id = ref(0);
 watch(
     () => props.team_id,
     async (newId, oldId) => {
@@ -314,6 +331,7 @@ watch(
 onMounted(() => {
     fetchTeamInfo(props.team_id);
     fetchTeamRoster(props.team_id);
+    seasonsDropdown();
 });
 
 const fetchTeamInfo = async (id) => {
@@ -329,15 +347,29 @@ const fetchTeamInfo = async (id) => {
 
 const fetchTeamRoster = async (id) => {
     try {
+        team_roster.value = [];
         const response = await axios.post(route("players.list"), {
             team_id: id,
+            season_id: season_id.value,
         });
         team_roster.value = response.data;
     } catch (error) {
         console.error("Error fetching team info:", error);
     }
 };
-
+const seasonsDropdown = async () => {
+    try {
+        const response = await axios.post(route("seasons.dropdown"), {
+            season_id: season_id.value,
+        });
+        seasons.value = response.data;
+    } catch (error) {
+        console.error("Error fetching team info:", error);
+    }
+};
+const seasonBehavior = () => {
+    fetchTeamRoster(props.team_id); // Refresh team info
+}
 const addPlayer = async () => {
     try {
         const response = await axios.post(route("players.add"), {

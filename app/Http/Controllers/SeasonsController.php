@@ -242,6 +242,19 @@ class SeasonsController extends Controller
             'playoffs' => $playoffs,
         ]);
     }
+    public function getseasonsdropdown ()
+    {
+        // Fetch all seasons with their id and name, ordered by the latest season_id
+        $seasons = DB::table('seasons')
+            ->select('id as season_id', 'name')
+            ->orderBy('id', 'desc') // Order by season_id in descending order
+            ->get();
+
+        // Return the data as JSON response
+        return response()->json($seasons);
+    }
+
+
     public function seasonschedules(Request $request)
     {
         // Retrieve the season_id from the request

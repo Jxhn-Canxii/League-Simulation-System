@@ -20,9 +20,9 @@
             </nav-link>
             <nav-link :href="route('transactions.index')" :active="route().current('transactions.index')">
                 <template #icon>
-                    <i class="fa fa-list"></i>
+                    <i class="fa fa-users"></i>
                 </template>
-                Transactions
+                Players
             </nav-link>
             <nav-link :href="route('seasons.index')" :active="route().current('seasons.index')">
                 <template #icon>

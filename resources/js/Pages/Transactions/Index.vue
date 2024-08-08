@@ -1,49 +1,34 @@
 <template>
-    <Head title="Transactions" />
+    <Head title="Players" />
 
     <AuthenticatedLayout>
         <template #header>
-            Transactions
+            Players
         </template>
 
         <div class="overflow-hidden shadow-sm sm:rounded-lg min-h-screen p-3">
             <div class="grid grid-cols-1 gap-6">
 
                 <div class="bg-white inline-block min-w-full overflow-hidden rounded shadow p-2">
-                    <h3 class="text-md font-semibold text-gray-800">Free Agents List</h3>
+                    <h3 class="text-md font-semibold text-gray-800">Player List</h3>
                     <input
-                        v-if="false"
                         type="text"
                         v-model="search.search"
-                        @input="fetchFreeAgent()"
+                        @input="fetchAllPlayers()"
                         id="LeagueName"
                         placeholder="Enter Player name"
                         class="mt-1 mb-2 p-2 border rounded w-full"
                     />
-                    <div class="flex justify-end">
-                        <button
-                            @click="showAddPlayerModal = true"
-                            class="px-4 py-2 bg-green-500 text-white rounded mb-4 text-sm"
-                        >
-                            <i class="fa fa-user"></i> Add Player
-                        </button>
-                    </div>
-                    <div v-if="data.free_agents.length === 0" class="text-center text-gray-500">No free agents found.</div>
+                    <div v-if="data.free_agents.length === 0" class="text-center text-gray-500">No player found.</div>
                     <div v-else class="overflow-x-auto mt-4">
                         <table class="min-w-full divide-y divide-gray-200 text-xs">
                             <thead class="bg-gray-50 text-nowrap">
                                 <tr>
                                     <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                    <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Current Team</th>
+                                    <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Remaining Contract</th>
                                     <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Age</th>
                                     <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                                    <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Games Played">GP</th>
-                                    <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Points Per Game">PPG</th>
-                                    <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Rebounds Per Game">RPG</th>
-                                    <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Assists Per Game">APG</th>
-                                    <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Steals Per Game">SPG</th>
-                                    <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Blocks Per Game">BPG</th>
-                                    <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Turnovers Per Game">TOPG</th>
-                                    <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Fouls Per Game">FPG</th>
                                     <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                     <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
@@ -51,27 +36,27 @@
                             <tbody class="bg-white divide-y divide-gray-200">
                                 <tr v-for="player in data.free_agents" :key="player.player_id" class="hover:bg-gray-100">
                                     <td class="px-2 py-1 whitespace-nowrap border">{{ player.name }}</td>
+                                    <td class="px-2 py-1 whitespace-nowrap border">{{ player.team_name ?? '-' }}</td>
+                                    <td class="px-2 py-1 whitespace-nowrap border">{{ player.contract_years ?? 0 }} yrs.</td>
                                     <td class="px-2 py-1 whitespace-nowrap border">{{ player.age }}</td>
                                     <td class="px-2 py-1 whitespace-nowrap border">
                                         <span :class="roleClasses(player.role)" class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium">
                                             {{ player.role }}
                                         </span>
                                     </td>
-                                    <td class="px-2 py-1 whitespace-nowrap border">{{ player.games_played || 0 }}</td>
-                                    <td class="px-2 py-1 whitespace-nowrap border">{{ parseFloat(player.average_points_per_game || 0).toFixed(1) }}</td>
-                                    <td class="px-2 py-1 whitespace-nowrap border">{{ parseFloat(player.average_rebounds_per_game || 0).toFixed(1) }}</td>
-                                    <td class="px-2 py-1 whitespace-nowrap border">{{ parseFloat(player.average_assists_per_game || 0).toFixed(1) }}</td>
-                                    <td class="px-2 py-1 whitespace-nowrap border">{{ parseFloat(player.average_steals_per_game || 0).toFixed(1) }}</td>
-                                    <td class="px-2 py-1 whitespace-nowrap border">{{ parseFloat(player.average_blocks_per_game || 0).toFixed(1) }}</td>
-                                    <td class="px-2 py-1 whitespace-nowrap border">{{ parseFloat(player.average_turnovers_per_game || 0).toFixed(1) }}</td>
-                                    <td class="px-2 py-1 whitespace-nowrap border">{{ parseFloat(player.average_fouls_per_game || 0).toFixed(1) }}</td>
                                     <td class="px-2 py-1 whitespace-nowrap border">
                                         <span v-if="player.is_active" class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Active</span>
-                                        <span v-else class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Waived</span>
+                                        <span v-else class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Waived/Free Agent</span>
                                     </td>
                                     <td class="px-2 py-1 whitespace-nowrap border">
-                                        <button @click="assignTeams(player.player_id)" class="px-2 py-1 bg-blue-500 text-white rounded-l text-xs">Assign New Team</button>
+                                        <button
+                                        @click="showPlayerProfile(player)"
+                                        class="px-2 py-1 bg-blue-500 text-white rounded-l text-xs"
+                                    >
+                                        View Profile
+                                    </button>
                                     </td>
+
                                 </tr>
                             </tbody>
                         </table>
@@ -79,42 +64,33 @@
 
                     <!-- Pagination Controls -->
                     <div v-if="data.total > 0" class="flex justify-start font-bold p-2 text-xs overflow-auto">
-                        <button @click="fetchFreeAgent(data.current_page - 1)" :disabled="data.current_page === 1" class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50">Previous</button>
-                        <button v-for="pageNumber in data.total_pages" :key="pageNumber" @click="fetchFreeAgent(pageNumber)" :disabled="data.current_page === pageNumber" class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50">{{ pageNumber }}</button>
-                        <button @click="fetchFreeAgent(data.current_page + 1)" :disabled="data.current_page === data.total_pages" class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50">Next</button>
+                        <button @click="fetchAllPlayers(data.current_page - 1)" :disabled="data.current_page === 1" class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50">Previous</button>
+                        <button v-for="pageNumber in data.total_pages" :key="pageNumber" @click="fetchAllPlayers(pageNumber)" :disabled="data.current_page === pageNumber" class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50">{{ pageNumber }}</button>
+                        <button @click="fetchAllPlayers(data.current_page + 1)" :disabled="data.current_page === data.total_pages" class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50">Next</button>
                     </div>
                 </div>
             </div>
         </div>
-        <Modal :show="showAddPlayerModal" :maxWidth="'sm'">
+        <Modal :show="showPlayerProfileModal" :maxWidth="'6xl'">
             <button
                 class="flex float-end bg-gray-100 p-3"
-                @click.prevent="showAddPlayerModal = false"
+                @click.prevent="showPlayerProfileModal = false"
             >
                 <i class="fa fa-times text-black-600"></i>
             </button>
-            <div class="grid grid-cols-1 gap-6 p-6">
-                <h2 class="text-lg font-semibold text-gray-800">Add Player(Free Agent)</h2>
-                <div>
-                    <label
-                        for="player_name"
-                        class="block text-sm font-medium text-gray-700"
-                        >Player Name</label
-                    >
-                    <input
-                        v-model="newPlayerName"
-                        id="player_name"
-                        type="text"
-                        required
-                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm sm:text-sm"
-                    />
+            <div class="p-6 block">
+                <!-- Image Section -->
+                <div class="ml-6">
+                    <h2 class="text-lg font-semibold text-gray-800">
+                        Player Profile
+                    </h2>
+                    <div class="mt-4">
+                        <p><strong>Name:</strong> {{ selectedPlayer.name }}</p>
+                        <p><strong>Age:</strong> {{ selectedPlayer.age }}</p>
+                        <p><strong>Role:</strong> {{ selectedPlayer.role }}</p>
+                    </div>
                 </div>
-                <button
-                    @click="addPlayer()"
-                    class="px-4 py-2 bg-green-500 text-white rounded"
-                >
-                    Add Player
-                </button>
+                <PlayerPerformance :key="selectedPlayer.player_id" :player_id="selectedPlayer.player_id" />
             </div>
         </Modal>
     </AuthenticatedLayout>
@@ -127,9 +103,9 @@ import { ref, onMounted } from "vue";
 import axios from 'axios'; // Ensure axios is imported
 import Swal from "sweetalert2";
 import Modal from "@/Components/Modal.vue";
-
-const showAddPlayerModal = ref(false);
-const newPlayerName = ref("");
+import PlayerPerformance from '../Teams/PlayerPerformance.vue';
+const showPlayerProfileModal = ref(false);
+const selectedPlayer = ref([]);
 const data = ref({
     free_agents: [],
     current_page: 1,
@@ -144,37 +120,19 @@ const search = ref({
 });
 const teams = ref([]);
 
-const addPlayer = async () => {
-    try {
-        const response = await axios.post(route("players.add.free.agent"), {
-            name: newPlayerName.value,
-        });
-        newPlayerName.value = ""; // Clear the input
-        showAddPlayerModal.value = false; // Close the modal
-        Swal.fire({
-            icon: "success",
-            title: "Success!",
-            text: response.data.message, // Assuming the response contains a 'message' field
-        });
-        fetchFreeAgent(); // Refresh free agent list
-    } catch (error) {
-        console.error("Error adding player:", error);
-        Swal.fire({
-            icon: "error",
-            title: "Error!",
-            text: error.response.data.message, // Assuming the response contains a 'message' field
-        });
-    }
-};
 
-const fetchFreeAgent = async (page = 1) => {
+const fetchAllPlayers = async (page = 1) => {
     try {
         search.value.current_page = page;
-        const response = await axios.post(route("players.free.agents"), search.value);
+        const response = await axios.post(route("players.list.all"), search.value);
         data.value = response.data;
     } catch (error) {
         console.error("Error fetching free agents:", error);
     }
+};
+const showPlayerProfile = (player) => {
+    selectedPlayer.value = player;
+    showPlayerProfileModal.value = true;
 };
 
 const assignTeams = async (player_id) => {
@@ -199,7 +157,7 @@ const assignTeams = async (player_id) => {
                 title: 'Success!',
                 text: response.data.message, // Assuming the response contains a 'message' field
             });
-            fetchFreeAgent();
+            fetchAllPlayers();
         } else {
             // Show cancellation message if canceled
             Swal.fire({
@@ -234,6 +192,6 @@ const roleClasses = (role) => {
 };
 
 onMounted(() => {
-    fetchFreeAgent();
+    fetchAllPlayers();
 });
 </script>

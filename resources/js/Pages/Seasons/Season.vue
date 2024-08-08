@@ -481,6 +481,12 @@
             >
                 Team Season History
             </button>
+            <button
+                :class="['px-4 py-2', currentTab === 'roster' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700']"
+                @click="currentTab = 'roster'"
+            >
+                Team Roster
+            </button>
         </div>
         <div class="mt-4">
             <TeamInfo v-if="currentTab === 'info'" :team_id="isTeamModalOpen" />
@@ -488,6 +494,7 @@
                 v-if="currentTab === 'history'"
                 :team_id="isTeamModalOpen"
             />
+            <TeamRoster v-if="currentTab === 'roster'" :team_id="isTeamModalOpen" />
         </div>
     </Modal>
     <Modal :show="isGameResultModalOpen" :maxWidth="'4xl'">
@@ -510,6 +517,7 @@ import Swal from "sweetalert2";
 import axios from "axios";
 import TeamInfo from "../Teams/TeamInfo.vue";
 import TeamHistory from "../Teams/TeamHistory.vue";
+import TeamRoster from "../Teams/TeamRoster.vue";
 import TopPlayers from "./TopPlayers.vue";
 import Modal from "@/Components/Modal.vue";
 import { roundNameFormatter } from "@/Utility/Formatter";

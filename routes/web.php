@@ -85,6 +85,8 @@ Route::middleware('auth')->group(function () {
         Route::post('seasoninfo', [SeasonsController::class, 'seasoninfo'])->name('seasons.info');
         Route::post('seasonsperleague', [SeasonsController::class, 'seasonsperleague'])->name('league.seasons');
         Route::post('seasonsperleaguepaginate', [SeasonsController::class, 'seasonsperleaguepaginate'])->name('league.seasons.paginate');
+        Route::post('seasonsdropdown', [SeasonsController::class, 'getseasonsdropdown'])->name('seasons.dropdown');
+
     });
     Route::prefix('leagues/')->group(function(){
         Route::get('', [LeaguesController::class, 'index'])->name('leagues.index');
@@ -115,6 +117,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/box-score', [PlayersController::class, 'getBoxScore'])->name('game.boxscore');
         Route::post('/top-10-players', [PlayersController::class, 'getBestPlayersInConference'])->name('top.players.conference.season');
         Route::post('/free-agents', [PlayersController::class, 'getFreeAgents'])->name('players.free.agents');
+        Route::post('/all-players', [PlayersController::class, 'getAllPlayers'])->name('players.list.all');
         Route::post('/player-performance', [PlayersController::class, 'getPlayerPerformance'])->name('players.season.performance');
     });
     Route::prefix('transactions/')->group(function(){

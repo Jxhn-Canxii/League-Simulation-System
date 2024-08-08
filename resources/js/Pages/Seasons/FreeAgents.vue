@@ -21,7 +21,7 @@
                     placeholder="Enter Player name"
                     class="mt-1 mb-2 p-2 border rounded w-full"
                 />
-                <div class="flex justify-end">
+                <div class="block">
                     <button
                         @click="assignTeamsAuto()"
                          class="px-4 py-2 bg-rose-500 text-white rounded mb-4 text-sm"

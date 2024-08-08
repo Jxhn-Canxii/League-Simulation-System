@@ -31,4 +31,11 @@ class Seasons extends Model
         'created_at',
         'updated_at',
     ];
+
+    // Season.php
+        public static function latestSeason()
+        {
+            return self::orderBy('id', 'desc')->first();
+        }
+
 }
