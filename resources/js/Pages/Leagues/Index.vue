@@ -4,7 +4,7 @@
 
         <AuthenticatedLayout>
             <template #header> Leagues </template>
-            <div class="inline-block min-w-full overflow-hidden shadow p-2 rounded">
+            <div class="inline-block min-w-full bg-white overflow-hidden shadow p-2 rounded">
                 <button @click.prevent="isAddModalOpen = true"
                     v-bind:class="{ 'opacity-25': isAddModalOpen }"
                     v-bind:disabled="isAddModalOpen"

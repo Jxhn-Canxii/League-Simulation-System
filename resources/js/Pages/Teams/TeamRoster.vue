@@ -115,6 +115,7 @@
                         v-for="(player, index) in team_roster.players"
                         :key="player.player_id"
                         v-if="team_roster.players?.length > 0"
+                        @click.prevent="showPlayerProfile(player)"
                         class="hover:bg-gray-100"
                     >
                         <td class="px-2 py-1 whitespace-nowrap border">
@@ -171,14 +172,8 @@
                         </td>
                         <td class="px-2 py-1 whitespace-nowrap border">
                             <button
-                                @click="showPlayerProfile(player)"
-                                class="px-2 py-1 bg-blue-500 text-white rounded-l text-xs"
-                            >
-                                View Profile
-                            </button>
-                            <button
                                 @click="waivePlayer(player.player_id)"
-                                class="px-2 py-1 bg-red-500 text-white text-xs"
+                                class="px-2 py-1 bg-red-500 text-white text-xs rounded-l"
                             >
                                 Waive
                             </button>
