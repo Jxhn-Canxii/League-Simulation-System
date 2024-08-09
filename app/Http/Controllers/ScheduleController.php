@@ -550,7 +550,7 @@ class ScheduleController extends Controller
 
         if ($alreadySimulated) {
             return response()->json([
-                'error' => 'This round '.($round + 1).'has already been simulated.',
+                'error' => 'This round '.($round + 1).' has already been simulated.',
             ], 400);
         }
 
