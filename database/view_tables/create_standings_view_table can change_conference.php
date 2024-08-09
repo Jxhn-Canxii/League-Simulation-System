@@ -93,9 +93,7 @@ team_rankings AS (
                             WHEN schedules.away_id = teams.id THEN schedules.away_score - schedules.home_score
                             ELSE 0
                         END), 0)) AS score_difference,
-        schedules.season_id,
-        RANK() OVER (PARTITION BY schedules.season_id, teams.conference_id ORDER BY wins DESC, score_difference DESC) AS conference_rank,
-        RANK() OVER (PARTITION BY schedules.season_id ORDER BY wins DESC, score_difference DESC) AS overall_rank
+        schedules.season_id
     FROM
         teams
     LEFT JOIN
@@ -107,13 +105,33 @@ team_rankings AS (
     GROUP BY
         teams.id, teams.name, teams.acronym, teams.conference_id, conferences.name, schedules.season_id
 ),
+ranked_team_rankings AS (
+    SELECT
+        team_id,
+        team_name,
+        team_acronym,
+        conference_id,
+        conference_name,
+        wins,
+        losses,
+        total_home_score,
+        total_away_score,
+        home_ppg,
+        away_ppg,
+        score_difference,
+        season_id,
+        RANK() OVER (PARTITION BY season_id, conference_id ORDER BY wins DESC, score_difference DESC) AS conference_rank,
+        RANK() OVER (PARTITION BY season_id ORDER BY wins DESC, score_difference DESC) AS overall_rank
+    FROM
+        team_rankings
+),
 rank_counts AS (
     SELECT
         team_id,
-        SUM(CASE WHEN overall_rank = 1 THEN 1 ELSE 0 END) AS overall_1_rank,
-        SUM(CASE WHEN conference_rank = 1 THEN 1 ELSE 0 END) AS conference_1_rank
+        SUM(CASE WHEN overall_rank = 1 THEN 1 ELSE 0 END) AS overall_rank,
+        SUM(CASE WHEN conference_rank = 1 THEN 1 ELSE 0 END) AS conference_rank
     FROM
-        team_rankings
+        ranked_team_rankings
     GROUP BY
         team_id
 ),
@@ -168,10 +186,10 @@ SELECT
         WHEN latest_streak.game_result = 'L' THEN CONCAT('L', latest_streak.streak_length)
         ELSE NULL
     END AS streak_status,
-    COALESCE(rank_counts.overall_1_rank, 0) AS overall_1_rank,
-    COALESCE(rank_counts.conference_1_rank, 0) AS conference_1_rank
+    COALESCE(rank_counts.overall_rank, 0) AS overall_1_rank,
+    COALESCE(rank_counts.conference_rank, 0) AS conference_1_rank
 FROM
-    (SELECT * FROM team_rankings) AS standings
+    (SELECT * FROM ranked_team_rankings) AS standings
 LEFT JOIN
     latest_streak ON standings.team_id = latest_streak.team_id AND standings.season_id = latest_streak.season_id
 LEFT JOIN

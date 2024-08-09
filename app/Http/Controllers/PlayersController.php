@@ -147,7 +147,7 @@ class PlayersController extends Controller
 
         // Build the query with optional search filter
         $query = Player::select('id as player_id', 'name', 'age', 'role', 'is_active', 'contract_years', 'team_id')
-            ->where('contract_years', 0)
+            ->where('team_id', 0)
             ->where('is_active', 1);
 
         // Apply search filter if provided

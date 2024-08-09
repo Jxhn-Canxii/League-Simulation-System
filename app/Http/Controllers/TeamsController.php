@@ -202,10 +202,24 @@ class TeamsController extends Controller
         // Fetch data from database with pagination
         $seasonHistory = DB::table('standings_view')
             ->select(
-                'standings_view.*',
+                'standings_view.team_id',
+                'standings_view.team_name',
+                'standings_view.team_acronym',
+                'standings_view.conference_id',
+                'standings_view.conference_name',
+                'standings_view.wins',
+                'standings_view.losses',
+                'standings_view.total_home_score',
+                'standings_view.total_away_score',
+                'standings_view.home_ppg',
+                'standings_view.away_ppg',
+                'standings_view.score_difference',
+                'standings_view.season_id',
+                'standings_view.overall_rank',
+                'standings_view.conference_rank',
                 'seasons.name as season_name',
                 DB::raw('CASE WHEN standings_view.overall_rank <= CASE WHEN seasons.start_playoffs = 16 THEN 16 ELSE 32 END THEN TRUE ELSE FALSE END AS isPlayoffQualified'),
-                DB::raw('MAX(schedules.id) as last_round_played_id'),
+                DB::raw('MAX(schedules.id) as last_round_played') // Adjusted to get the last round
             )
             ->join('seasons', 'seasons.id', '=', 'standings_view.season_id')
             ->leftJoin('schedules', function ($join) use ($teamId) {
@@ -216,15 +230,34 @@ class TeamsController extends Controller
                     });
             })
             ->where('standings_view.team_id', $teamId)
-            ->groupBy('standings_view.season_id', 'seasons.id', 'seasons.name', 'standings_view.overall_rank', 'isPlayoffQualified')
+            ->groupBy(
+                'standings_view.team_id',
+                'standings_view.team_name',
+                'standings_view.team_acronym',
+                'standings_view.conference_id',
+                'standings_view.conference_name',
+                'standings_view.wins',
+                'standings_view.losses',
+                'standings_view.total_home_score',
+                'standings_view.total_away_score',
+                'standings_view.home_ppg',
+                'standings_view.away_ppg',
+                'standings_view.score_difference',
+                'standings_view.season_id',
+                'standings_view.overall_rank',
+                'standings_view.conference_rank',
+                'seasons.name'
+            )
             ->orderBy('standings_view.season_id', 'desc')
             ->offset($offset)
             ->limit($itemsPerPage)
             ->get();
 
+
+
         // Process the collection and append round information
         foreach ($seasonHistory as $season) {
-            $roundInfo = $this->getLastRoundPlayed($season->last_round_played_id, $teamId);
+            $roundInfo = $this->getLastRoundPlayed($season->last_round_played, $teamId);
             $season->round_info = $roundInfo;
         }
 

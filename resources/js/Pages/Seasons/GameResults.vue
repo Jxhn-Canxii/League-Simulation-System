@@ -9,7 +9,7 @@
         <div class="flex-1 text-center mb-2 lg:mb-0">
           <div class="bg-gray-200 p-2 rounded-lg">
             <p class="text-xs font-semibold text-yellow-500">Liga Dos {{ isNaN(gameDetails?.round) ? 'Playoffs' : 'Regular Season' }}</p>
-            <p class="text-xs font-semibold">Round: {{ roundNameFormatter(gameDetails?.round) }}</p>
+            <p class="text-xs font-semibold">Round: {{ roundNameFormatter(isNaN(gameDetails?.round) ? gameDetails?.round : parseFloat(gameDetails?.round) + 1) }}</p>
             <p class="text-xs font-semibold">Game ID: {{ gameDetails?.game_id }}</p>
           </div>
         </div>

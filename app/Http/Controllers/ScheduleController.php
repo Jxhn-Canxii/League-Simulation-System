@@ -77,7 +77,7 @@ class ScheduleController extends Controller
             return response()->json([
                 'message' => 'Failed to create game schedule.',
                 'error' => 'Error creating season and schedule: ' . $e->getMessage(),
-                'season_id' => $season->id,
+                'season_id' =>$request->season_name,
             ], 500);
         }
     }
@@ -117,6 +117,7 @@ class ScheduleController extends Controller
             // Check for retirement
             if ($player->age >= $player->retirement_age) {
                 $player->is_active = 0;
+                $player->team_id = 0;
             } else {
                 // Adjust role if player is near retirement
                 if ($player->age >= ($player->retirement_age - 3)) { // Near retirement
@@ -550,7 +551,7 @@ class ScheduleController extends Controller
 
         if ($alreadySimulated) {
             return response()->json([
-                'error' => 'This round has already been simulated.',
+                'error' => 'This round '.($round + 1).' has already been simulated.',
             ], 400);
         }
 
@@ -1232,8 +1233,14 @@ class ScheduleController extends Controller
             $playerGameStats = [];
             foreach ($schedule as $match) {
                 // Fetch players for home and away teams
-                $homeTeamPlayers = Player::where('team_id', $match['home_id'])->get();
-                $awayTeamPlayers = Player::where('team_id', $match['away_id'])->get();
+                $homeTeamPlayers = Player::where('team_id', $match['home_id'])
+                    ->where('is_active', 1)
+                    ->get();
+
+                $awayTeamPlayers = Player::where('team_id', $match['away_id'])
+                    ->where('is_active', 1)
+                    ->get();
+
 
                 // Create player game stats entries for home team players
                 foreach ($homeTeamPlayers as $player) {

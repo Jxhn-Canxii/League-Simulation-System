@@ -95,7 +95,7 @@
                                     >
                                         <div
                                             v-if="!isHide || activeIndex != mm"
-                                            class="bg-white px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
+                                            class="bg-white px-4 py-3 flex justify-between sm:gap-4 sm:px-6"
                                         >
                                             <button
                                                 @click="
@@ -111,6 +111,7 @@
                                                 Simulate Game {{ match.home_team.score ==  match.away_team.score && (match.home_team.score != 0 &&
                                                     match.away_team.score != 0) ? '(Overtime)' : '' }}
                                             </button>
+                                            <a href="#" class="text-sm text-green-500 underline font-bold" @click.prevent="isGameResultModalOpen = match.game_id">View Result</a>
                                         </div>
                                         <div
                                             v-else
@@ -185,9 +186,9 @@
                                             </dd>
                                         </div>
                                         <div
-                                        class="bg-gray-200 px-4 py-1 flex justify-end sm:gap-4 sm:px-6"
+                                         class="bg-white px-4 py-3 text-center text-nowrap sm:grid sm:grid-cols-1 sm:gap-4 sm:px-6"
                                         >
-                                            <a href="#" class="text-sm text-blue-500 underline font-bold" @click.prevent="isGameResultModalOpen = match.game_id">View Result</a>
+                                            <a href="#" class="text-sm text-green-500 underline font-bold" @click.prevent="isGameResultModalOpen = match.game_id">View Result</a>
                                         </div>
                                     </dl>
                                 </div>
