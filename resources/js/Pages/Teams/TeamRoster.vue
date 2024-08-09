@@ -21,12 +21,12 @@
                 </select>
             </div>
             <div>
-                <button
+                <!-- <button
                     @click="showAddPlayerModal = true"
                     class="ml-4 px-4 py-2 bg-green-500 text-white rounded text-sm flex items-center"
                 >
                     <i class="fa fa-user mr-2"></i> Add Player
-                </button>
+                </button> -->
             </div>
         </div>
 
@@ -127,7 +127,7 @@
                         <td class="px-2 py-1 whitespace-nowrap border">
                             <span
                                 :class="roleClasses(player.role)"
-                                class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium"
+                                class="inline-flex items-center capitalize px-2.5 py-0.5 rounded text-xs font-medium"
                             >
                                 {{ player.role }}
                             </span>
