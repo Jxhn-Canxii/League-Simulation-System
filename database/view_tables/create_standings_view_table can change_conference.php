@@ -110,8 +110,8 @@ team_rankings AS (
 rank_counts AS (
     SELECT
         team_id,
-        SUM(CASE WHEN overall_rank = 1 THEN 1 ELSE 0 END) AS overall_1_rank,
-        SUM(CASE WHEN conference_rank = 1 THEN 1 ELSE 0 END) AS conference_1_rank
+        SUM(CASE WHEN overall_rank = 1 THEN 1 ELSE 0 END) AS overall_rank,
+        SUM(CASE WHEN conference_rank = 1 THEN 1 ELSE 0 END) AS conference_rank
     FROM
         team_rankings
     GROUP BY
