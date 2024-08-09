@@ -114,7 +114,7 @@
                         >
 
                             <td
-                                class="border-b px-2 py-2 text-xs"
+                                class="border-b px-2 py-2 text-xs text-nowrap"
                             >
                                 <p
                                     class="whitespace-no-wrap uppercase"

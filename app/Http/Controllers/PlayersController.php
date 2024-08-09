@@ -26,10 +26,6 @@ class PlayersController extends Controller
         if (is_null($seasonId) || $seasonId == 0) {
             // Get the latest season_id if null or 0
             $seasonId = DB::table('seasons')->orderBy('id', 'desc')->value('id');
-            $activeFilter = 1; // Filter by active players when season_id is 0
-        } else {
-            // Use the provided season_id and don't filter by active status
-            $activeFilter = null;
         }
 
         // Get distinct player_ids from player_game_stats for the given team_id and season_id
@@ -40,15 +36,9 @@ class PlayersController extends Controller
             ->pluck('player_id');
 
         // Fetch players for the specified player_ids
-        $query = DB::table('players')
-            ->whereIn('id', $playerIds);
-
-        // Apply active status filter if needed
-        if ($activeFilter !== null) {
-            $query->where('is_active', $activeFilter);
-        }
-
-        $players = $query->get();
+        $players = DB::table('players')
+            ->whereIn('id', $playerIds)
+            ->get();
 
         // Initialize an array to hold player stats
         $playerStats = [];
@@ -80,6 +70,14 @@ class PlayersController extends Controller
             $averageTurnoversPerGame = $gamesPlayed > 0 ? $totalTurnovers / $gamesPlayed : 0;
             $averageFoulsPerGame = $gamesPlayed > 0 ? $totalFouls / $gamesPlayed : 0;
 
+            // Determine player status
+            $status = $player->team_id == $teamId ? 1 : 2;
+
+            // Update status to 'free agent' if the player is inactive and status is 'transfer'
+            if ($player->is_active == 0 && $status == 2) {
+                $status = 0;
+            }
+
             // Append player with stats and details in one row
             $playerStats[] = [
                 'player_id' => $player->id,
@@ -87,6 +85,7 @@ class PlayersController extends Controller
                 'age' => $player->age,
                 'role' => $player->role,
                 'is_active' => $player->is_active,
+                'status' => $status,
                 'total_points' => $totalPoints,
                 'total_rebounds' => $totalRebounds,
                 'total_assists' => $totalAssists,
@@ -127,6 +126,7 @@ class PlayersController extends Controller
             'team_id' => $teamId,
         ]);
     }
+
     public function getFreeAgents(Request $request)
     {
         // Get pagination parameters from the request
@@ -147,7 +147,7 @@ class PlayersController extends Controller
 
         // Build the query with optional search filter
         $query = Player::select('id as player_id', 'name', 'age', 'role', 'is_active', 'contract_years', 'team_id')
-            ->where('team_id', 0)
+            ->where('contract_years', 0)
             ->where('is_active', 1);
 
         // Apply search filter if provided
@@ -421,12 +421,13 @@ class PlayersController extends Controller
         $playerStats = \DB::table('player_game_stats')
             ->where('game_id', $game_id)
             ->join('players', 'player_game_stats.player_id', '=', 'players.id')
+            ->join('teams', 'player_game_stats.team_id', '=', 'teams.id') // Join with teams to get team names
             ->select(
-                'players.id as player_id',
-                'players.name as player_name',
-                'players.team_id as player_team_id',
-                'players.role as player_role', // Added role to determine the player role
                 'player_game_stats.player_id',
+                'players.name as player_name',
+                'player_game_stats.team_id',
+                'teams.name as team_name',
+                'players.role as player_role',
                 'player_game_stats.points',
                 'player_game_stats.assists',
                 'player_game_stats.rebounds',
@@ -434,64 +435,102 @@ class PlayersController extends Controller
                 'player_game_stats.blocks',
                 'player_game_stats.turnovers',
                 'player_game_stats.fouls',
-                'player_game_stats.minutes' // Added minutes
+                'player_game_stats.minutes'
             )
-            ->get();
+            ->get()
+            ->keyBy('player_id');
 
-        // Determine the best player of the game based on points
-        $bestPlayer = $playerStats->sortByDesc('points')->first();
+        // Fetch all players that might be relevant to the game (ignoring team_id here)
+        $players = \DB::table('players')
+            ->whereIn('id', $playerStats->pluck('player_id')->toArray())
+            ->get()
+            ->keyBy('id');
 
-        // Fetch best player details
-        if ($bestPlayer) {
-            $bestPlayerDetails = \DB::table('players')
-                ->join('teams', 'players.team_id', '=', 'teams.id')
-                ->where('players.id', $bestPlayer->player_id)
-                ->select('players.name as player_name', 'teams.name as team_name', 'players.team_id')
-                ->first();
-        }
+        // Determine the best player based on overall stats
+        $bestPlayer = $playerStats->sort(function ($a, $b) {
+            $aStats = $a->points + $a->assists + $a->rebounds + $a->steals + $a->blocks;
+            $bStats = $b->points + $b->assists + $b->rebounds + $b->steals + $b->blocks;
+            return $bStats <=> $aStats;
+        })->first();
 
-        // Split player stats into home and away teams
-        $homeTeamPlayers = $playerStats->filter(function ($player) use ($game) {
-            return $player->player_team_id == $game->home_id;
-        })->sortByDesc('points'); // Sort by points for home team
+        // Determine the winning team
+        $winningTeamId = $game->home_score > $game->away_score ? $game->home_id : $game->away_id;
 
-        $awayTeamPlayers = $playerStats->filter(function ($player) use ($game) {
-            return $player->player_team_id == $game->away_id;
-        })->sortByDesc('points'); // Sort by points for away team
+        // Filter player stats for the winning team
+        $winningTeamPlayersStats = $playerStats->filter(function ($stat) use ($winningTeamId) {
+            return $stat->team_id == $winningTeamId;
+        });
 
-        // Convert home team player stats to an array
-        $homeTeamPlayersArray = $homeTeamPlayers->map(function ($player) {
+        // Determine the best player of the winning team
+        $bestWinningTeamPlayer = $winningTeamPlayersStats->sort(function ($a, $b) {
+            $aStats = $a->points + $a->assists + $a->rebounds + $a->steals + $a->blocks;
+            $bStats = $b->points + $b->assists + $b->rebounds + $b->steals + $b->blocks;
+            return $bStats <=> $aStats;
+        })->first();
+
+        // Fetch player details for the best player of the winning team if exists
+        $bestWinningTeamPlayerDetails = $bestWinningTeamPlayer ? [
+            'name' => $bestWinningTeamPlayer->player_name,
+            'team' => $bestWinningTeamPlayer->team_name,
+            'points' => $bestWinningTeamPlayer->points,
+            'assists' => $bestWinningTeamPlayer->assists,
+            'rebounds' => $bestWinningTeamPlayer->rebounds,
+            'steals' => $bestWinningTeamPlayer->steals,
+            'blocks' => $bestWinningTeamPlayer->blocks,
+            'turnovers' => $bestWinningTeamPlayer->turnovers,
+            'fouls' => $bestWinningTeamPlayer->fouls,
+            'role' => $bestWinningTeamPlayer->player_role,
+            'minutes' => $bestWinningTeamPlayer->minutes,
+        ] : null;
+
+        // Split player stats into home and away teams, using the game team IDs
+        $homeTeamPlayers = $players->filter(function ($player) use ($game, $playerStats) {
+            $playerStat = $playerStats->get($player->id);
+            return $playerStat && $playerStat->team_id == $game->home_id;
+        });
+
+        $awayTeamPlayers = $players->filter(function ($player) use ($game, $playerStats) {
+            $playerStat = $playerStats->get($player->id);
+            return $playerStat && $playerStat->team_id == $game->away_id;
+        });
+
+        // Convert home team player stats to an array, including those with no recorded stats
+        $homeTeamPlayersArray = $homeTeamPlayers->map(function ($player) use ($playerStats) {
+            $stats = $playerStats->get($player->id);
+
             return [
-                'player_id' => $player->player_id,
-                'name' => $player->player_name,
-                'role' => $player->player_role, // Include player role
-                'points' => $player->points,
-                'assists' => $player->assists,
-                'rebounds' => $player->rebounds,
-                'steals' => $player->steals,
-                'blocks' => $player->blocks,
-                'turnovers' => $player->turnovers,
-                'fouls' => $player->fouls,
-                'minutes' => $player->minutes, // Include minutes
+                'player_id' => $player->id,
+                'name' => $player->name,
+                'role' => $player->role,
+                'points' => $stats ? $stats->points : 0,
+                'assists' => $stats ? $stats->assists : 0,
+                'rebounds' => $stats ? $stats->rebounds : 0,
+                'steals' => $stats ? $stats->steals : 0,
+                'blocks' => $stats ? $stats->blocks : 0,
+                'turnovers' => $stats ? $stats->turnovers : 0,
+                'fouls' => $stats ? $stats->fouls : 0,
+                'minutes' => $stats ? $stats->minutes : 'DNP',
             ];
-        })->values()->toArray(); // Convert to array
+        })->values()->toArray();
 
-        // Convert away team player stats to an array
-        $awayTeamPlayersArray = $awayTeamPlayers->map(function ($player) {
+        // Convert away team player stats to an array, including those with no recorded stats
+        $awayTeamPlayersArray = $awayTeamPlayers->map(function ($player) use ($playerStats) {
+            $stats = $playerStats->get($player->id);
+
             return [
-                'player_id' => $player->player_id,
-                'name' => $player->player_name,
-                'role' => $player->player_role, // Include player role
-                'points' => $player->points,
-                'assists' => $player->assists,
-                'rebounds' => $player->rebounds,
-                'steals' => $player->steals,
-                'blocks' => $player->blocks,
-                'turnovers' => $player->turnovers,
-                'fouls' => $player->fouls,
-                'minutes' => $player->minutes, // Include minutes
+                'player_id' => $player->id,
+                'name' => $player->name,
+                'role' => $player->role,
+                'points' => $stats ? $stats->points : 0,
+                'assists' => $stats ? $stats->assists : 0,
+                'rebounds' => $stats ? $stats->rebounds : 0,
+                'steals' => $stats ? $stats->steals : 0,
+                'blocks' => $stats ? $stats->blocks : 0,
+                'turnovers' => $stats ? $stats->turnovers : 0,
+                'fouls' => $stats ? $stats->fouls : 0,
+                'minutes' => $stats ? $stats->minutes : 'DNP',
             ];
-        })->values()->toArray(); // Convert to array
+        })->values()->toArray();
 
         // Format data for box score
         $boxScore = [
@@ -511,19 +550,8 @@ class PlayersController extends Controller
                 'home' => $homeTeamPlayersArray,
                 'away' => $awayTeamPlayersArray,
             ],
-            'best_player' => $bestPlayer ? [
-                'name' => $bestPlayerDetails->player_name,
-                'team' => $bestPlayerDetails->team_name,
-                'points' => $bestPlayer->points,
-                'assists' => $bestPlayer->assists,
-                'rebounds' => $bestPlayer->rebounds,
-                'steals' => $bestPlayer->steals,
-                'blocks' => $bestPlayer->blocks,
-                'turnovers' => $bestPlayer->turnovers,
-                'fouls' => $bestPlayer->fouls,
-                'role' => $bestPlayer->player_role, // Include role for best player
-                'minutes' => $bestPlayer->minutes, // Include minutes for best player
-            ] : null
+            'best_player' => $bestWinningTeamPlayerDetails,
+            'total_players_played' => $playerStats->count(),
         ];
 
         return response()->json([

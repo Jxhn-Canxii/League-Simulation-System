@@ -477,6 +477,7 @@ class ScheduleController extends Controller
                 ->first();
 
             $finalsMVP = $mvpPlayer ? $mvpPlayer->name : '';
+            $finalsMVPId = $mvpPlayer ? $mvpPlayer->player_id : '';
 
             $seasonUpdateData = [
                 'finals_winner_id' => $winnerId,
@@ -486,6 +487,7 @@ class ScheduleController extends Controller
                 'finals_winner_score' => $winnerId === $gameData->home_team_id ? $homeScore : $awayScore,
                 'finals_loser_score' => $winnerId === $gameData->home_team_id ? $awayScore : $homeScore,
                 'finals_mvp' => $finalsMVP,
+                'finals_mvp_id' => $finalsMVPId,
             ];
 
             $this->updateActivePlayers();
