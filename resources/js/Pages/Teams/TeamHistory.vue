@@ -16,7 +16,6 @@
                         <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Conference Champions</th>
                         <th class="px-2 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">National Rank</th>
                         <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">National Champions</th>
-                        <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Playoffs Qualified?</th>
                         <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Round Played</th>
                         <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">National Finals</th>
                     </tr>
@@ -54,14 +53,6 @@
                             </span>
                             <span v-else class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
                                 No Awards
-                            </span>
-                        </td>
-                        <td class="px-2 py-3 whitespace-nowrap border">
-                            <span v-if="season.isPlayoffQualified" class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                                Playoff Qualified
-                            </span>
-                            <span v-else class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
-                                Not Qualified
                             </span>
                         </td>
                         <td class="px-2 py-3 whitespace-nowrap border">
