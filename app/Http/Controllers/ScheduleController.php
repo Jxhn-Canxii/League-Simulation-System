@@ -1233,8 +1233,14 @@ class ScheduleController extends Controller
             $playerGameStats = [];
             foreach ($schedule as $match) {
                 // Fetch players for home and away teams
-                $homeTeamPlayers = Player::where('team_id', $match['home_id'])->get();
-                $awayTeamPlayers = Player::where('team_id', $match['away_id'])->get();
+                $homeTeamPlayers = Player::where('team_id', $match['home_id'])
+                    ->where('is_active', 1)
+                    ->get();
+
+                $awayTeamPlayers = Player::where('team_id', $match['away_id'])
+                    ->where('is_active', 1)
+                    ->get();
+
 
                 // Create player game stats entries for home team players
                 foreach ($homeTeamPlayers as $player) {
