@@ -77,7 +77,7 @@ class ScheduleController extends Controller
             return response()->json([
                 'message' => 'Failed to create game schedule.',
                 'error' => 'Error creating season and schedule: ' . $e->getMessage(),
-                'season_id' => $season->id,
+                'season_id' =>$request->season_name,
             ], 500);
         }
     }
