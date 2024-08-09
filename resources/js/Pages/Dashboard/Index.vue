@@ -318,7 +318,7 @@
                                 <p class="text-gray-900 whitespace-no-wrap uppercase">{{ player.player_name }}</p>
                             </td>
                             <td class="border-b border-gray-200 bg-white px-3 py-3 text-xs">
-                                <p class="text-gray-900 whitespace-no-wrap uppercase">{{ player.team_name }}</p>
+                                <p class="text-gray-900 whitespace-no-wrap uppercase">{{ player.team_name ?? '-' }}</p>
                             </td>
                             <td class="border-b border-gray-200 bg-white text-center px-3 py-3 text-xs">
                                 <p class="text-gray-900 whitespace-no-wrap uppercase">{{ moneyFormatter(player.total_score) }}</p>

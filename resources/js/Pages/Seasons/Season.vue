@@ -3,7 +3,7 @@
 <div v-if="isHide" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-500">
     <div class="bg-white p-6 rounded-md shadow-lg max-w-4xl w-full">
         <h2 class="text-lg font-semibold text-gray-800 mb-2 text-left">
-            {{ season_info?.seasons[0]?.name }} Standings
+            {{ season_info?.seasons[0].name ?? '' }} Standings
         </h2>
         <div class="grid grid-cols-1 gap-6">
             <div class="block">
@@ -165,7 +165,7 @@
             <!-- Standings UI (Left Side) -->
             <div class="md:col-span-3 sm:col-span-1 overflow-y-auto">
                 <h2 class="text-lg font-semibold text-gray-800 mb-2">
-                    {{ season_info?.seasons[0]?.name }} Standings
+                    {{ season_info?.seasons[0].name ?? '' }} Standings
                 </h2>
                 <table
                     class="min-w-full divide-y divide-gray-200"
@@ -259,7 +259,7 @@
                                 </span> -->
                                     <span
                                         v-if="team.conference_1_rank > 0"
-                                        class="flex items-center justify-center w-5 h-5 bg-red-500 text-black text-xs rounded-full"
+                                        class="flex items-center justify-center w-6 h-6 bg-red-500 text-black text-sm rounded-full"
                                         title="#1 Conference Rank"
                                     >
                                         {{ team.conference_1_rank }}
@@ -593,6 +593,7 @@ const fetchConferenceStandings = async (id) => {
         console.error("Error fetching season standings:", error);
     }
 };
+
 const fetchConferenceSchedules = async (id) => {
     try {
         const response = await axios.post(route("conferences.schedules"), {

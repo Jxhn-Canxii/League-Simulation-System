@@ -22,10 +22,7 @@
                         <i class="fa fa-calendar-plus"></i> New Season
                     </button>
                 </div>
-                <div
-                class="flex overflow-hidden justify-end gap-5 p-2"
-                v-else
-                >
+                <div class="flex overflow-hidden justify-end gap-5 p-2" v-else>
                     <button
                         @click.prevent="isPlayerSigningModalOpen = true"
                         v-bind:class="{
@@ -37,9 +34,7 @@
                         <i class="fa fa-users"></i> Player Signings
                     </button>
                 </div>
-                <div
-                    class="flex overflow-hidden gap-5 p-2"
-                >
+                <div class="flex overflow-hidden gap-5 p-2">
                     <input
                         type="text"
                         v-model="search_seasons.search"
@@ -62,12 +57,12 @@
                             <th
                                 class="border-b-2 border-gray-200 bg-gray-100 px-2 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
                             >
-                                Conference
+                                Finals MVP
                             </th>
                             <th
                                 class="border-b-2 border-gray-200 bg-gray-100 px-2 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
                             >
-                                Finals MVP
+                                Conference
                             </th>
                             <th
                                 class="border-b-2 border-gray-200 bg-gray-100 px-2 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
@@ -103,39 +98,45 @@
                     </thead>
                     <tbody>
                         <tr
-                        v-for="season in seasons.seasons"
-                        v-if="seasons.total_pages"
-                        :key="season.id"
-                        :class="[
-                            season.finals_winner_id === season.champion_id ? 'bg-stone-700 text-yellow-400 font-extrabold' : '',
-                            season.winner_conference_name === season.loser_conference_name ? 'bg-slate-600 text-yellow-500 font-extrabold' : '',
-                            'bg-gray-50 border'
-                        ]"
+                            v-for="season in seasons.seasons"
+                            v-if="seasons.total_pages"
+                            :key="season.id"
+                            :class="[
+                                season.finals_winner_id === season.champion_id
+                                    ? 'bg-stone-700 text-yellow-400 font-extrabold'
+                                    : '',
+                                season.winner_conference_name ===
+                                season.loser_conference_name
+                                    ? 'bg-slate-600 text-yellow-500 font-extrabold'
+                                    : '',
+                                'bg-gray-50 border',
+                            ]"
                         >
+                            <td class="border-b px-2 py-2 text-xs text-nowrap">
+                                <p class="whitespace-no-wrap uppercase">
+                                    {{ season.name }}
+                                </p>
+                            </td>
 
                             <td
-                                class="border-b px-2 py-2 text-xs text-nowrap"
+                                class="border-b border-gray-200 px-2 py-2 text-xs"
                             >
                                 <p
-                                    class="whitespace-no-wrap uppercase"
+                                    class="whitespace-no-wrap uppercase text-nowrap"
                                 >
-                                    {{ season.name }}
+                                    {{ season.finals_mvp ?? "TBD" }}
                                 </p>
                             </td>
                             <td
                                 class="border-b border-gray-200 px-2 py-2 text-xs"
                             >
-                                <span class="bg-yellow-500 text-white shadow px-2 py-1 inline-block rounded-full text-xs font-semibold">{{ season.winner_conference_name ?? "TBD" }}</span>
+                                <span
+                                    class="bg-yellow-500 text-white shadow px-2 py-1 inline-block rounded-full text-xs font-semibold"
+                                    >{{
+                                        season.winner_conference_name ?? "TBD"
+                                    }}</span
+                                >
                             </td>
-                            <td
-                            class="border-b border-gray-200 px-2 py-2 text-xs"
-                        >
-                            <p
-                                class="whitespace-no-wrap uppercase text-nowrap"
-                            >
-                                {{ season.finals_mvp ?? "TBD" }}
-                            </p>
-                        </td>
                             <td
                                 class="border-b border-gray-200 px-2 py-2 text-xs"
                             >
@@ -156,7 +157,12 @@
                             <td
                                 class="border-b border-gray-200 px-2 py-2 text-xs"
                             >
-                                <span class="bg-gray-500 text-white shadow px-2 py-1 inline-block rounded-full text-xs font-semibold">{{ season.loser_conference_name ?? "TBD" }}</span>
+                                <span
+                                    class="bg-gray-500 text-white shadow px-2 py-1 inline-block rounded-full text-xs font-semibold"
+                                    >{{
+                                        season.loser_conference_name ?? "TBD"
+                                    }}</span
+                                >
                             </td>
                             <td
                                 class="border-b border-gray-200 px-2 py-2 text-xs"
@@ -335,7 +341,10 @@
                 </div>
             </Modal>
             <Modal :show="isAddModalOpen" :maxWidth="'2xl'">
-                <div v-if="isProcessing" class="fixed inset-0 bg-black top-50 left-50 text-white text-center text-sm bg-opacity-50 z-40">
+                <div
+                    v-if="isProcessing"
+                    class="fixed inset-0 bg-black top-50 left-50 text-white text-center text-sm bg-opacity-50 z-40"
+                >
                     Preparing Schedule...
                 </div>
                 <button
@@ -383,7 +392,9 @@
                                 disabled
                             >
                                 <option value="0">Select Type</option>
-                                <option value="1" disabled>Single Elimination</option>
+                                <option value="1" disabled>
+                                    Single Elimination
+                                </option>
                                 <option value="2">Single Round Robin</option>
                                 <option value="3">Double Round Robin</option>
                             </select>
@@ -406,7 +417,9 @@
                                 disabled
                             >
                                 <option value="0">Select Start</option>
-                                <option value="8" disabled>on Quarter Finals</option>
+                                <option value="8" disabled>
+                                    on Quarter Finals
+                                </option>
                                 <option value="16">on Round of 16</option>
                             </select>
                             <InputError
@@ -486,7 +499,7 @@
                     <i class="fa fa-times text-black-600"></i>
                 </button>
                 <div class="mt-4 p-3 block">
-                    <FreeAgents @newSeason="handleNewSeason"/>
+                    <FreeAgents @newSeason="handleNewSeason" />
                 </div>
             </Modal>
         </AuthenticatedLayout>
@@ -541,12 +554,12 @@ const fetchSeasons = async (page = 1) => {
         console.error("Error fetching seasons:", error);
     }
 };
-const handleNewSeason = (newSeason) =>{
-    if(newSeason){
+const handleNewSeason = (newSeason) => {
+    if (newSeason) {
         isPlayerSigningModalOpen.value = false;
         fetchSeasons();
     }
-}
+};
 const leagueDropdown = async () => {
     try {
         const response = await axios.get(route("leagues.dropdown"));
