@@ -290,7 +290,7 @@ class PlayersController extends Controller
     public function addFreeAgentPlayer(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|unique:players,name',
         ]);
 
         // Check if the team already has 12 players
