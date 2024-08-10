@@ -427,6 +427,7 @@ class PlayersController extends Controller
             ->select(
                 'player_game_stats.player_id',
                 'players.name as player_name',
+                'players.is_rookie as is_rookie',
                 'player_game_stats.team_id',
                 'teams.name as team_name',
                 'players.role as player_role',
@@ -504,6 +505,7 @@ class PlayersController extends Controller
                 'player_id' => $player->id,
                 'name' => $player->name,
                 'role' => $player->role,
+                'is_rookie' => $player->is_rookie,
                 'points' => $stats ? $stats->points : 0,
                 'assists' => $stats ? $stats->assists : 0,
                 'rebounds' => $stats ? $stats->rebounds : 0,
@@ -523,6 +525,7 @@ class PlayersController extends Controller
                 'player_id' => $player->id,
                 'name' => $player->name,
                 'role' => $player->role,
+                'is_rookie' => $player->is_rookie,
                 'points' => $stats ? $stats->points : 0,
                 'assists' => $stats ? $stats->assists : 0,
                 'rebounds' => $stats ? $stats->rebounds : 0,

@@ -43,7 +43,7 @@
             </thead>
             <tbody>
               <tr v-for="player in sortedHomePlayers" :key="player.name" @click.prevent="showPlayerProfileModal = player" :class="{'bg-yellow-100': top5HomePlayers.includes(player.name)}" class="border-b">
-                <td class="py-1 px-3 text-xs">{{ player.name }}</td>
+                <td class="py-1 px-3 text-xs">{{ player.name }}<sup>{{ player.is_rookie ? 'R':'V'}}</sup></td>
                 <td class="py-1 px-3 text-xs">
                   <span :class="roleBadgeClass(player.role)">{{ player.role }}</span>
                 </td>
@@ -83,7 +83,7 @@
             </thead>
             <tbody>
               <tr v-for="player in sortedAwayPlayers" :key="player.name" @click.prevent="showPlayerProfileModal = player" :class="{'bg-yellow-100': top5AwayPlayers.includes(player.name)}" class="border-b">
-                <td class="py-1 px-3 text-xs">{{ player.name }}</td>
+                <td class="py-1 px-3 text-xs">{{ player.name }} <sup>{{ player.is_rookie ? 'R':'V'}}</sup></td>
                 <td class="py-1 px-3 text-xs">
                   <span :class="roleBadgeClass(player.role)">{{ player.role }}</span>
                 </td>
