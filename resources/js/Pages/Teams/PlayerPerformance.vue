@@ -17,6 +17,7 @@
                 <p><strong>Name:</strong> {{ playoff_performance.player_details.player_name ?? '-' }}</p>
                 <p><strong>Team:</strong> {{ playoff_performance.player_details.team_name ?? '-' }}</p>
                 <p><strong>Role:</strong> <span :class="roleClasses(playoff_performance.player_details.role)">{{ playoff_performance.player_details.role }}</span></p>
+                <p><strong>Contract Status:</strong> {{ playoff_performance.player_details.contract_years+' years left' ?? 'Unsigned' }}</p>
             </div>
 
             <!-- Playoff Performance Section -->
