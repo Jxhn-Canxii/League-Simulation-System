@@ -34,6 +34,12 @@
                     >
                         <i class="fa fa-user"></i> Add Player
                     </button>
+                    <button
+                        @click.prevent="addMultiplePlayers(50)"
+                        class="px-4 py-2 bg-green-700 text-white rounded mb-4 text-sm"
+                    >
+                        <i class="fa fa-user"></i> Add Player From Api
+                    </button>
                 </div>
                 <div
                     v-if="data.free_agents.length === 0"
@@ -276,7 +282,7 @@
                     />
                 </div>
                 <button
-                    @click="addPlayer()"
+                    @click="addPlayerV1()"
                     class="px-4 py-2 bg-green-500 text-white rounded"
                 >
                     Add Player
@@ -310,7 +316,7 @@ const search = ref({
 });
 const teams = ref([]);
 const emits = defineEmits(["newSeason"]);
-const addPlayer = async () => {
+const addPlayerV1 = async () => {
     try {
         const response = await axios.post(route("players.add.free.agent"), {
             name: newPlayerName.value,
@@ -329,6 +335,63 @@ const addPlayer = async () => {
             icon: "error",
             title: "Error!",
             text: error.response.data.message, // Assuming the response contains a 'message' field
+        });
+    }
+};
+const fetchRandomFullName = async () => {
+    try {
+        const response = await axios.get('https://randomuser.me/api/?inc=name&gender=male');
+        const { first, last } = response.data.results[0].name; // Extract first and last name
+        return `${first} ${last}`; // Return full name
+    } catch (error) {
+        console.error("Error fetching random player name:", error);
+        return "Unknown Player"; // Fallback name
+    }
+};
+
+const addPlayer = async (name) => {
+    try {
+        const response = await axios.post(route("players.add.free.agent"), {
+            name: name,
+        });
+        return response.data.message; // Return success message for logging
+    } catch (error) {
+        console.error("Error adding player:", error.response.data.message);
+        throw new Error(error.response.data.message); // Throw error to be caught in Promise.all
+    }
+};
+
+const addMultiplePlayers = async (count) => {
+    try {
+        const promises = [];
+
+        for (let i = 0; i < count; i++) {
+            const randomFullName = await fetchRandomFullName(); // Fetch random full name
+            promises.push(addPlayer(randomFullName)); // Add the promise to the array
+        }
+
+        // Wait for all promises to resolve
+        const results = await Promise.all(promises);
+
+        // Notify success
+        Swal.fire({
+            icon: "success",
+            title: "Success!",
+            text: `Successfully added ${count} players.`,
+        });
+
+        // Optionally log results
+        results.forEach((message, index) => {
+            console.log(`Player ${index + 1}: ${message}`);
+        });
+
+        fetchFreeAgent(); // Refresh free agent list
+    } catch (error) {
+        console.error("Error adding multiple players:", error);
+        Swal.fire({
+            icon: "error",
+            title: "Error!",
+            text: error.message, // Show the first error message encountered
         });
     }
 };
@@ -386,9 +449,9 @@ const assignTeams = async (player_id) => {
     } catch (error) {
         console.error("Error assigning team:", error);
         Swal.fire({
-            icon: "error",
-            title: "Oops...",
-            text: "Something went wrong!",
+            icon: "warning",
+            title: "Warning!",
+            text: error.response.data.message,
         });
     }
 };

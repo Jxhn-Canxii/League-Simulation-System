@@ -119,7 +119,7 @@
                         class="hover:bg-gray-100"
                     >
                         <td class="px-2 py-1 whitespace-nowrap border">
-                            {{ player.name }}
+                            {{ player.name }}<sup>{{ player.is_rookie ? 'R':'V'}}</sup>
                         </td>
                         <td class="px-2 py-1 whitespace-nowrap border">
                             {{ player.age }}

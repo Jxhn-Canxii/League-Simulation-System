@@ -86,6 +86,7 @@ class PlayersController extends Controller
                 'age' => $player->age,
                 'role' => $player->role,
                 'is_active' => $player->is_active,
+                'is_rookie' => $player->is_rookie,
                 'status' => $status,
                 'total_points' => $totalPoints,
                 'total_rebounds' => $totalRebounds,
