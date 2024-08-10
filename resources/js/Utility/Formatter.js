@@ -37,7 +37,7 @@ export const roundNameFormatter = (round) => {
             return 'Conference Finals'
             break;
         case 'interconference_semi_finals':
-            return 'Semi-Finals'
+            return 'The Big 4'
             break;
         case 'finals':
             return 'The Finals'

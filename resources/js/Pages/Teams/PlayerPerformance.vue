@@ -28,7 +28,7 @@
                     <p><strong>Conference Quarter Finals:</strong> {{ playoff_performance.playoff_performance.round_of_16 ?? 0 }}</p>
                     <p><strong>Conference Semi Finals:</strong> {{ playoff_performance.playoff_performance.quarter_finals ?? 0  }}</p>
                     <p><strong>Conference Finals:</strong> {{ playoff_performance.playoff_performance.semi_finals ?? 0  }}</p>
-                    <p><strong>Big 4:</strong> {{ playoff_performance.playoff_performance.interconference_semi_finals ?? 0  }}</p>
+                    <p><strong>The Big 4:</strong> {{ playoff_performance.playoff_performance.interconference_semi_finals ?? 0  }}</p>
                     <p><strong>The Finals:</strong> {{ playoff_performance.playoff_performance.finals ?? 0  }}</p>
                     <p><strong>Finals MVP Count:</strong> {{ playoff_performance.playoff_performance.finals_mvp_count ?? 0  }}</p>
                 </div>
