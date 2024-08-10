@@ -106,7 +106,7 @@ class ScheduleController extends Controller
         foreach ($players as $player) {
             // Deduct contract_years by 1
             $player->contract_years -= 1;
-
+            $player->is_rookie = 0;
             // Check if contract_years is 0 and update team_id to 0
             if ($player->contract_years <= 0) {
                 $player->contract_years = 0; // Ensure contract_years is exactly 0

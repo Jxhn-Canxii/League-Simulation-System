@@ -22,6 +22,7 @@ class Player extends Model
         'contract_years',
         'contract_expires_at',
         'is_active',
+        'is_rookie',
         'role', // Add this line
     ];
 

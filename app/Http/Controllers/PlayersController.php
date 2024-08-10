@@ -337,6 +337,7 @@ class PlayersController extends Controller
             'contract_expires_at' => $contractExpiresAt,
             'is_active' => true,
             'role' => $role,
+            'is_rookie' => true,
         ]);
 
         return response()->json([
@@ -764,7 +765,7 @@ class PlayersController extends Controller
         $playerDetails = \DB::table('players')
             ->join('teams', 'players.team_id', '=', 'teams.id', 'left') // Join teams table to get team details
             ->where('players.id', $playerId)
-            ->select('players.id as player_id', 'players.name as player_name', 'teams.name as team_name', 'players.role','players.contract_years')
+            ->select('players.id as player_id', 'players.name as player_name', 'teams.name as team_name', 'players.role','players.contract_years','players.is_rookie')
             ->first();
 
         if (!$playerDetails) {

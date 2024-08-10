@@ -17,6 +17,7 @@
                 <p><strong>Name:</strong> {{ playoff_performance.player_details.player_name ?? '-' }}</p>
                 <p><strong>Team:</strong> {{ playoff_performance.player_details.team_name ?? '-' }}</p>
                 <p><strong>Role:</strong> <span :class="roleClasses(playoff_performance.player_details.role)">{{ playoff_performance.player_details.role }}</span></p>
+                <p><strong>Experience:</strong> <span :class="playerExpStatusClass(playoff_performance.player_details.is_rookie)">{{playerExpStatusText(playoff_performance.player_details.is_rookie) }}</span></p>
                 <p><strong>Contract Status:</strong> {{ playoff_performance.player_details.contract_years+' years left' ?? 'Unsigned' }}</p>
             </div>
 
@@ -214,6 +215,13 @@ const playerStatusClass = (isActive) => {
 
 const playerStatusText = (isActive) => {
     return isActive ? "Active" : "Waived";
+};
+const playerExpStatusClass = (isRookie) => {
+    return isRookie ? "bg-gray-100 text-gray-800" : "bg-red-100 text-red-800";
+};
+
+const playerExpStatusText = (isRookie) => {
+    return isRookie ? "Veteran" : "Rookie";
 };
 </script>
 
