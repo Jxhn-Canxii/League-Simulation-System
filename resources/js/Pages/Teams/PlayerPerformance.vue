@@ -44,14 +44,14 @@
                     <h4 class="text-sm font-semibold text-gray-600 mb-2">MVP Seasons</h4>
                     <div v-for="(season, index) in playoff_performance.mvp_seasons" :key="index" class="flex items-center mb-2">
                         <i class="fa fa-medal text-yellow-500 mr-2"></i>
-                        <p class="text-sm">{{ season.season_name }}: {{ season.count }}</p>
+                        <p class="text-sm">{{ season }}: ({{playoff_performance.mvp_seasons.length ?? 0 }})</p>
                     </div>
                 </div>
                 <div v-if="playoff_performance.championships?.length > 0">
                     <h4 class="text-sm font-semibold text-gray-600 mb-2">Championships</h4>
                     <div v-for="(season, index) in playoff_performance.championships" :key="index" class="flex items-center mb-2">
                         <i class="fa fa-trophy text-green-500 mr-2"></i>
-                        <p class="text-sm">{{ season.season_name }}: {{ season.count }}</p>
+                        <p class="text-sm">{{ season.season_name }}: ({{playoff_performance.championships?.length ?? 0 }})</p>
                     </div>
                 </div>
             </div>
