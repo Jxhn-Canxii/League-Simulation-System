@@ -762,7 +762,7 @@ class PlayersController extends Controller
 
         // Fetch player and team details
         $playerDetails = \DB::table('players')
-            ->join('teams', 'players.team_id', '=', 'teams.id','left') // Join teams table to get team details
+            ->join('teams', 'players.team_id', '=', 'teams.id', 'left') // Join teams table to get team details
             ->where('players.id', $playerId)
             ->select('players.id as player_id', 'players.name as player_name', 'teams.name as team_name', 'players.role')
             ->first();
@@ -782,8 +782,7 @@ class PlayersController extends Controller
                 \DB::raw('SUM(CASE WHEN schedules.round = "quarter_finals" THEN 1 ELSE 0 END) as quarter_finals'),
                 \DB::raw('SUM(CASE WHEN schedules.round = "semi_finals" THEN 1 ELSE 0 END) as semi_finals'),
                 \DB::raw('SUM(CASE WHEN schedules.round = "interconference_semi_finals" THEN 1 ELSE 0 END) as interconference_semi_finals'),
-                \DB::raw('SUM(CASE WHEN schedules.round = "finals" THEN 1 ELSE 0 END) as finals'),
-                \DB::raw('SUM(CASE WHEN seasons.finals_mvp_id = player_game_stats.player_id THEN 1 ELSE 0 END) as finals_mvp_count')
+                \DB::raw('SUM(CASE WHEN schedules.round = "finals" THEN 1 ELSE 0 END) as finals')
             )
             ->where('player_game_stats.player_id', $playerId)
             ->first();
@@ -795,13 +794,37 @@ class PlayersController extends Controller
             'semi_finals' => 0,
             'interconference_semi_finals' => 0,
             'finals' => 0,
-            'finals_mvp_count' => 0,
         ];
+
+        // Fetch MVP count and seasons
+        $mvpData = \DB::table('seasons')
+            ->join('player_game_stats', 'seasons.id', '=', 'player_game_stats.season_id')
+            ->where('player_game_stats.player_id', $playerId)
+            ->whereColumn('seasons.finals_mvp_id', 'player_game_stats.player_id')
+            ->select('seasons.name as season_name')
+            ->get();
+
+        $mvpCount = $mvpData->count();
+
+        // Fetch championship count and season names
+        $championships = \DB::table('seasons')
+            ->join('player_game_stats', 'seasons.id', '=', 'player_game_stats.season_id')
+            ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id')
+            ->select('seasons.name as season_name', \DB::raw('COUNT(DISTINCT seasons.id) as championship_count'))
+            ->where('player_game_stats.player_id', $playerId)
+            ->where('schedules.round', 'finals')
+            ->whereColumn('seasons.id', 'player_game_stats.season_id')
+            ->groupBy('seasons.name')
+            ->get();
 
         return response()->json([
             'player_details' => $playerDetails,
             'playoff_performance' => $playoffPerformance,
+            'mvp_count' => $mvpCount,
+            'mvp_seasons' => $mvpData,
+            'championships' => $championships,
         ]);
     }
+
 
 }

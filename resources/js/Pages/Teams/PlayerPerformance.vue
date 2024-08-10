@@ -30,10 +30,29 @@
                     <p><strong>Conference Finals:</strong> {{ playoff_performance.playoff_performance.semi_finals ?? 0  }}</p>
                     <p><strong>The Big 4:</strong> {{ playoff_performance.playoff_performance.interconference_semi_finals ?? 0  }}</p>
                     <p><strong>The Finals:</strong> {{ playoff_performance.playoff_performance.finals ?? 0  }}</p>
-                    <p><strong>Finals MVP Count:</strong> {{ playoff_performance.playoff_performance.finals_mvp_count ?? 0  }}</p>
+                    <p><strong>Finals MVP Count:</strong> {{ playoff_performance.mvp_count ?? 0  }}</p>
                 </div>
                 <div v-else>
                     <p>No playoff performance data available.</p>
+                </div>
+            </div>
+            <div class="awards mb-6 flex-1">
+                <h3 class="text-md font-semibold text-gray-700 mb-2">
+                    Awards
+                </h3>
+                <div v-if="playoff_performance.mvp_seasons?.length > 0">
+                    <h4 class="text-sm font-semibold text-gray-600 mb-2">MVP Seasons</h4>
+                    <div v-for="(season, index) in playoff_performance.mvp_seasons" :key="index" class="flex items-center mb-2">
+                        <i class="fa fa-medal text-yellow-500 mr-2"></i>
+                        <p class="text-sm">{{ season.season_name }}: {{ season.count }}</p>
+                    </div>
+                </div>
+                <div v-if="playoff_performance.championships?.length > 0">
+                    <h4 class="text-sm font-semibold text-gray-600 mb-2">Championships</h4>
+                    <div v-for="(season, index) in playoff_performance.championships" :key="index" class="flex items-center mb-2">
+                        <i class="fa fa-trophy text-green-500 mr-2"></i>
+                        <p class="text-sm">{{ season.season_name }}: {{ season.count }}</p>
+                    </div>
                 </div>
             </div>
         </div>
