@@ -325,7 +325,7 @@
 
                 <div class="flex mt-4">
                     <TopPlayers
-                        v-if="season_info?.seasons && season_schedules.is_simulated"
+                        v-if="season_info?.seasons && season_info?.seasons[0].status == 8"
                         :season_id="season_info.seasons[0].id"
                         :conference_id="activeConferenceTab"
                         :key="topPlayersKey"
