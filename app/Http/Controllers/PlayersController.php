@@ -10,6 +10,7 @@ use App\Models\Teams;
 use App\Models\PlayerGameStats;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+
 class PlayersController extends Controller
 {
     public function listPlayers(Request $request)
@@ -294,8 +295,8 @@ class PlayersController extends Controller
 
         // Check if the team already has 12 players
         $playerCount = Player::where('team_id', $request->team_id)
-                     ->where('is_active', 1) // Ensure players are active
-                     ->count();
+            ->where('is_active', 1) // Ensure players are active
+            ->count();
 
         if ($playerCount >= 12) {
             return response()->json([
@@ -664,7 +665,7 @@ class PlayersController extends Controller
         ]);
     }
 
-    public function getPlayerPerformance(Request $request)
+    public function getPlayerSeasonPerformance(Request $request)
     {
         // Validate the request data
         $request->validate([
@@ -748,6 +749,58 @@ class PlayersController extends Controller
 
         return response()->json([
             'player_stats' => $formattedPlayerStats,
+        ]);
+    }
+    public function getPlayerPlayoffPerformance(Request $request)
+    {
+        // Validate the request data
+        $request->validate([
+            'player_id' => 'required|exists:players,id',
+        ]);
+
+        $playerId = $request->player_id;
+
+        // Fetch player and team details
+        $playerDetails = \DB::table('players')
+            ->join('teams', 'players.team_id', '=', 'teams.id','left') // Join teams table to get team details
+            ->where('players.id', $playerId)
+            ->select('players.id as player_id', 'players.name as player_name', 'teams.name as team_name', 'players.role')
+            ->first();
+
+        if (!$playerDetails) {
+            return response()->json([
+                'error' => 'Player not found.',
+            ], 404);
+        }
+
+        // Fetch playoff performance
+        $playoffPerformance = \DB::table('player_game_stats')
+            ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id')
+            ->join('seasons', 'player_game_stats.season_id', '=', 'seasons.id')
+            ->select(
+                \DB::raw('SUM(CASE WHEN schedules.round = "round_of_16" THEN 1 ELSE 0 END) as round_of_16'),
+                \DB::raw('SUM(CASE WHEN schedules.round = "quarter_finals" THEN 1 ELSE 0 END) as quarter_finals'),
+                \DB::raw('SUM(CASE WHEN schedules.round = "semi_finals" THEN 1 ELSE 0 END) as semi_finals'),
+                \DB::raw('SUM(CASE WHEN schedules.round = "interconference_semi_finals" THEN 1 ELSE 0 END) as interconference_semi_finals'),
+                \DB::raw('SUM(CASE WHEN schedules.round = "finals" THEN 1 ELSE 0 END) as finals'),
+                \DB::raw('SUM(CASE WHEN seasons.finals_mvp_id = player_game_stats.player_id THEN 1 ELSE 0 END) as finals_mvp_count')
+            )
+            ->where('player_game_stats.player_id', $playerId)
+            ->first();
+
+        // Set default values if no performance data
+        $playoffPerformance = $playoffPerformance ?: (object)[
+            'round_of_16' => 0,
+            'quarter_finals' => 0,
+            'semi_finals' => 0,
+            'interconference_semi_finals' => 0,
+            'finals' => 0,
+            'finals_mvp_count' => 0,
+        ];
+
+        return response()->json([
+            'player_details' => $playerDetails,
+            'playoff_performance' => $playoffPerformance,
         ]);
     }
 

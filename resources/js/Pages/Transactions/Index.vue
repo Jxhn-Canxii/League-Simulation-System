@@ -79,17 +79,6 @@
                 <i class="fa fa-times text-black-600"></i>
             </button>
             <div class="p-6 block">
-                <!-- Image Section -->
-                <div class="ml-6">
-                    <h2 class="text-lg font-semibold text-gray-800">
-                        Player Profile
-                    </h2>
-                    <div class="mt-4">
-                        <p><strong>Name:</strong> {{ selectedPlayer.name }}</p>
-                        <p><strong>Age:</strong> {{ selectedPlayer.age }}</p>
-                        <p><strong>Role:</strong> {{ selectedPlayer.role }}</p>
-                    </div>
-                </div>
                 <PlayerPerformance :key="selectedPlayer.player_id" :player_id="selectedPlayer.player_id" />
             </div>
         </Modal>

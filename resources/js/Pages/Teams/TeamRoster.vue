@@ -103,11 +103,11 @@
                         >
                             Status
                         </th>
-                        <th
+                        <!-- <th
                             class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
                         >
                             Actions
-                        </th>
+                        </th> -->
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -176,7 +176,7 @@
                                 Free Agent
                             </span>
                         </td>
-                        <td class="px-2 py-1 whitespace-nowrap border">
+                        <!-- <td class="px-2 py-1 whitespace-nowrap border">
                             <button
                                 @click="waivePlayer(player.player_id)"
                                 class="px-2 py-1 bg-red-500 text-white text-xs rounded-l"
@@ -189,7 +189,7 @@
                             >
                                 Extend Contract
                             </button>
-                        </td>
+                        </td> -->
                     </tr>
                     <tr
                         v-else
@@ -281,16 +281,6 @@
             </button>
             <div class="p-6 block">
                 <!-- Image Section -->
-                <div class="ml-6">
-                    <h2 class="text-lg font-semibold text-gray-800">
-                        Player Profile
-                    </h2>
-                    <div class="mt-4">
-                        <p><strong>Name:</strong> {{ selectedPlayer.name }}</p>
-                        <p><strong>Age:</strong> {{ selectedPlayer.age }}</p>
-                        <p><strong>Role:</strong> {{ selectedPlayer.role }}</p>
-                    </div>
-                </div>
                 <PlayerPerformance :key="selectedPlayer.player_id" :player_id="selectedPlayer.player_id" />
             </div>
         </Modal>

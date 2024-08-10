@@ -118,7 +118,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/top-10-players', [PlayersController::class, 'getBestPlayersInConference'])->name('top.players.conference.season');
         Route::post('/free-agents', [PlayersController::class, 'getFreeAgents'])->name('players.free.agents');
         Route::post('/all-players', [PlayersController::class, 'getAllPlayers'])->name('players.list.all');
-        Route::post('/player-performance', [PlayersController::class, 'getPlayerPerformance'])->name('players.season.performance');
+        Route::post('/player-season-performance', [PlayersController::class, 'getPlayerSeasonPerformance'])->name('players.season.performance');
+        Route::post('/player-play-off-performance', [PlayersController::class, 'getPlayerPlayoffPerformance'])->name('players.playoff.performance');
     });
     Route::prefix('transactions/')->group(function(){
         Route::get('', [TransactionsController::class, 'index'])->name('transactions.index');
