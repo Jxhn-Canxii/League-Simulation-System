@@ -7,44 +7,44 @@
         <!-- Divider -->
         <hr class="my-4 border-t border-gray-200" />
 
-        <!-- Player Details Section -->
-        <div class="player-details mb-6" v-if="playoff_performance.player_details">
-            <h3 class="text-md font-semibold text-gray-700 mb-2">
-                Player Details
-            </h3>
-            <p><strong>Name:</strong> {{ playoff_performance.player_details.player_name }}</p>
-            <p><strong>Team:</strong> {{ playoff_performance.player_details.team_name ?? '-' }}</p>
-            <p><strong>Role:</strong> <span :class="roleClasses(playoff_performance.player_details.role)">{{ playoff_performance.player_details.role }}</span></p>
+        <!-- Player Profile and Playoff Performance in One Row -->
+        <div class="flex flex-col md:flex-row gap-6">
+            <!-- Player Details Section -->
+            <div class="player-details mb-6 flex-1" v-if="playoff_performance.player_details">
+                <h3 class="text-md font-semibold text-gray-700 mb-2">
+                    Player Details
+                </h3>
+                <p><strong>Name:</strong> {{ playoff_performance.player_details.player_name ?? '-' }}</p>
+                <p><strong>Team:</strong> {{ playoff_performance.player_details.team_name ?? '-' }}</p>
+                <p><strong>Role:</strong> <span :class="roleClasses(playoff_performance.player_details.role)">{{ playoff_performance.player_details.role }}</span></p>
+            </div>
+
+            <!-- Playoff Performance Section -->
+            <div class="playoff-performance mb-6 flex-1">
+                <h3 class="text-md font-semibold text-gray-700 mb-2">
+                    Playoff Performance
+                </h3>
+                <div v-if="playoff_performance.playoff_performance">
+                    <p><strong>Conference Quarter Finals:</strong> {{ playoff_performance.playoff_performance.round_of_16 ?? 0 }}</p>
+                    <p><strong>Conference Semi Finals:</strong> {{ playoff_performance.playoff_performance.quarter_finals ?? 0  }}</p>
+                    <p><strong>Conference Finals:</strong> {{ playoff_performance.playoff_performance.semi_finals ?? 0  }}</p>
+                    <p><strong>Big 4:</strong> {{ playoff_performance.playoff_performance.interconference_semi_finals ?? 0  }}</p>
+                    <p><strong>The Finals:</strong> {{ playoff_performance.playoff_performance.finals ?? 0  }}</p>
+                    <p><strong>Finals MVP Count:</strong> {{ playoff_performance.playoff_performance.finals_mvp_count ?? 0  }}</p>
+                </div>
+                <div v-else>
+                    <p>No playoff performance data available.</p>
+                </div>
+            </div>
         </div>
 
         <!-- Divider -->
         <hr class="my-4 border-t border-gray-200" />
-
-        <!-- Playoff Performance -->
-        <div class="playoff-performance mb-6">
-            <h3 class="text-md font-semibold text-gray-700 mb-2">
-                Playoff Performance
-            </h3>
-            <div v-if="playoff_performance.playoff_performance">
-                <p><strong>Conference Quarter Finals:</strong> {{ playoff_performance.playoff_performance.round_of_16 ?? 0 }}</p>
-                <p><strong>Conference Semi Finals:</strong> {{ playoff_performance.playoff_performance.quarter_finals ?? 0  }}</p>
-                <p><strong>Conference Finals:</strong> {{ playoff_performance.playoff_performance.semi_finals ?? 0  }}</p>
-                <p><strong>Big 4:</strong> {{ playoff_performance.playoff_performance.interconference_semi_finals ?? 0  }}</p>
-                <p><strong>The Finals:</strong> {{ playoff_performance.playoff_performance.finals ?? 0  }}</p>
-                <p><strong>Finals MVP Count:</strong> {{ playoff_performance.playoff_performance.finals_mvp_count ?? 0  }}</p>
-            </div>
-            <div v-else>
-                <p>No playoff performance data available.</p>
-            </div>
-        </div>
 
         <!-- Season Performance Table -->
         <h2 class="text-sm font-semibold text-gray-800">
             Player Season Logs
         </h2>
-
-        <!-- Divider -->
-        <hr class="my-4 border-t border-gray-200" />
 
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200 text-xs">
