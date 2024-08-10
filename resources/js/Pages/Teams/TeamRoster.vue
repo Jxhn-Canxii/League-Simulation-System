@@ -21,12 +21,12 @@
                 </select>
             </div>
             <div>
-                <button
+                <!-- <button
                     @click="showAddPlayerModal = true"
                     class="ml-4 px-4 py-2 bg-green-500 text-white rounded text-sm flex items-center"
                 >
                     <i class="fa fa-user mr-2"></i> Add Player
-                </button>
+                </button> -->
             </div>
         </div>
 
@@ -115,6 +115,7 @@
                         v-for="(player, index) in team_roster.players"
                         :key="player.player_id"
                         v-if="team_roster.players?.length > 0"
+                        @click.prevent="showPlayerProfile(player)"
                         class="hover:bg-gray-100"
                     >
                         <td class="px-2 py-1 whitespace-nowrap border">
@@ -126,7 +127,7 @@
                         <td class="px-2 py-1 whitespace-nowrap border">
                             <span
                                 :class="roleClasses(player.role)"
-                                class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium"
+                                class="inline-flex items-center capitalize px-2.5 py-0.5 rounded text-xs font-medium"
                             >
                                 {{ player.role }}
                             </span>
@@ -157,28 +158,28 @@
                         </td>
                         <td class="px-2 py-1 whitespace-nowrap border">
                             <span
-                                v-if="player.is_active == 1"
+                                v-if="player.status == 1"
                                 class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800"
                             >
                                 Active
                             </span>
                             <span
-                                v-else
+                                v-else-if="player.status == 2"
                                 class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800"
                             >
-                                Waived
+                                Transferred
+                            </span>
+                            <span
+                                v-else
+                                class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"
+                            >
+                                Free Agent
                             </span>
                         </td>
                         <td class="px-2 py-1 whitespace-nowrap border">
                             <button
-                                @click="showPlayerProfile(player)"
-                                class="px-2 py-1 bg-blue-500 text-white rounded-l text-xs"
-                            >
-                                View Profile
-                            </button>
-                            <button
                                 @click="waivePlayer(player.player_id)"
-                                class="px-2 py-1 bg-red-500 text-white text-xs"
+                                class="px-2 py-1 bg-red-500 text-white text-xs rounded-l"
                             >
                                 Waive
                             </button>

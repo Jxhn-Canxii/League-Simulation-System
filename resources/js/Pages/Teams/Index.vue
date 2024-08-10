@@ -5,7 +5,7 @@
         <AuthenticatedLayout>
             <template #header> Teams </template>
             <div
-                class="inline-block min-w-full overflow-hidden rounded shadow p-2"
+                class="inline-block min-w-full bg-white overflow-hidden rounded shadow p-2"
             >
                 <button
                     @click.prevent="isAddModalOpen = true"
