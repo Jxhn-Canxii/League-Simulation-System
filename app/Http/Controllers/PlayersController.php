@@ -798,9 +798,7 @@ class PlayersController extends Controller
 
         // Fetch MVP count and seasons
         $mvpData = \DB::table('seasons')
-            ->join('player_game_stats', 'seasons.id', '=', 'player_game_stats.season_id')
-            ->where('player_game_stats.player_id', $playerId)
-            ->whereColumn('seasons.finals_mvp_id', 'player_game_stats.player_id')
+            ->where('seasons.finals_mvp_id', $playerId)
             ->select('seasons.name as season_name')
             ->get();
 
@@ -821,10 +819,11 @@ class PlayersController extends Controller
             'player_details' => $playerDetails,
             'playoff_performance' => $playoffPerformance,
             'mvp_count' => $mvpCount,
-            'mvp_seasons' => $mvpData,
+            'mvp_seasons' => $mvpData->pluck('season_name'),
             'championships' => $championships,
         ]);
     }
+
 
 
 }
