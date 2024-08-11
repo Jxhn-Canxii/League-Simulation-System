@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 
 class PlayersController extends Controller
 {
-    public function listPlayers(Request $request)
+    public function listPlayersV1(Request $request)
     {
         $request->validate([
             'team_id' => 'required|exists:teams,id',
@@ -61,6 +61,126 @@ class PlayersController extends Controller
             $totalTurnovers = $stats->sum('turnovers');
             $totalFouls = $stats->sum('fouls');
             $gamesPlayed = $stats->count();
+
+            // Calculate averages
+            $averagePointsPerGame = $gamesPlayed > 0 ? $totalPoints / $gamesPlayed : 0;
+            $averageReboundsPerGame = $gamesPlayed > 0 ? $totalRebounds / $gamesPlayed : 0;
+            $averageAssistsPerGame = $gamesPlayed > 0 ? $totalAssists / $gamesPlayed : 0;
+            $averageStealsPerGame = $gamesPlayed > 0 ? $totalSteals / $gamesPlayed : 0;
+            $averageBlocksPerGame = $gamesPlayed > 0 ? $totalBlocks / $gamesPlayed : 0;
+            $averageTurnoversPerGame = $gamesPlayed > 0 ? $totalTurnovers / $gamesPlayed : 0;
+            $averageFoulsPerGame = $gamesPlayed > 0 ? $totalFouls / $gamesPlayed : 0;
+
+            // Determine player status
+            $status = $player->team_id == $teamId ? 1 : 2;
+
+            // Update status to 'free agent' if the player is inactive and status is 'transfer'
+            if ($player->is_active == 0 && $status == 2) {
+                $status = 0;
+            }
+
+            // Append player with stats and details in one row
+            $playerStats[] = [
+                'player_id' => $player->id,
+                'name' => $player->name,
+                'age' => $player->age,
+                'role' => $player->role,
+                'is_active' => $player->is_active,
+                'is_rookie' => $player->is_rookie,
+                'status' => $status,
+                'total_points' => $totalPoints,
+                'total_rebounds' => $totalRebounds,
+                'total_assists' => $totalAssists,
+                'total_steals' => $totalSteals,
+                'total_blocks' => $totalBlocks,
+                'total_turnovers' => $totalTurnovers,
+                'total_fouls' => $totalFouls,
+                'games_played' => $gamesPlayed,
+                'average_points_per_game' => $averagePointsPerGame,
+                'average_rebounds_per_game' => $averageReboundsPerGame,
+                'average_assists_per_game' => $averageAssistsPerGame,
+                'average_steals_per_game' => $averageStealsPerGame,
+                'average_blocks_per_game' => $averageBlocksPerGame,
+                'average_turnovers_per_game' => $averageTurnoversPerGame,
+                'average_fouls_per_game' => $averageFoulsPerGame,
+            ];
+        }
+
+        // Define role-based priority
+        $rolePriority = [
+            'star player' => 1,
+            'starter' => 2,
+            'role player' => 3,
+            'bench' => 4,
+        ];
+
+        // Sort players by role and then by points
+        usort($playerStats, function ($a, $b) use ($rolePriority) {
+            if ($rolePriority[$a['role']] === $rolePriority[$b['role']]) {
+                return $b['total_points'] <=> $a['total_points'];
+            }
+            return $rolePriority[$a['role']] <=> $rolePriority[$b['role']];
+        });
+
+        return response()->json([
+            'players' => $playerStats,
+            'season_id' => $seasonId,
+            'team_id' => $teamId,
+        ]);
+    }
+    public function listPlayers(Request $request)
+    {
+        $request->validate([
+            'team_id' => 'required|exists:teams,id',
+            'season_id' => 'nullable|integer', // Validate season_id as nullable integer
+        ]);
+
+        $teamId = $request->team_id;
+        $seasonId = $request->season_id;
+
+        // Determine the season_id to use
+        if (is_null($seasonId) || $seasonId == 0) {
+            // Get the latest season_id if null or 0
+            $seasonId = DB::table('seasons')->orderBy('id', 'desc')->value('id');
+        }
+
+        // Get distinct player_ids from player_game_stats for the given team_id and season_id
+        $playerIds = DB::table('player_game_stats')
+            ->where('team_id', $teamId)
+            ->where('season_id', $seasonId)
+            ->distinct()
+            ->pluck('player_id');
+
+        // Fetch players for the specified player_ids
+        $players = DB::table('players')
+            ->whereIn('id', $playerIds)
+            ->get();
+
+        // Initialize an array to hold player stats
+        $playerStats = [];
+
+        foreach ($players as $player) {
+            // Fetch player game stats
+            $stats = DB::table('player_game_stats')
+                ->where('player_id', $player->id)
+                ->where('team_id', $teamId)
+                ->where('season_id', $seasonId)
+                ->get();
+
+            // Filter games where player minutes are greater than 0
+            $filteredStats = $stats->filter(function ($stat) {
+                return $stat->minutes > 0; // Assuming 'minutes' is the column indicating minutes played
+            });
+
+            // Calculate totals
+            $totalPoints = $filteredStats->sum('points');
+            $totalRebounds = $filteredStats->sum('rebounds');
+            $totalAssists = $filteredStats->sum('assists');
+            $totalSteals = $filteredStats->sum('steals');
+            $totalBlocks = $filteredStats->sum('blocks');
+            $totalTurnovers = $filteredStats->sum('turnovers');
+            $totalFouls = $filteredStats->sum('fouls');
+            $gamesPlayed = $filteredStats->count();
 
             // Calculate averages
             $averagePointsPerGame = $gamesPlayed > 0 ? $totalPoints / $gamesPlayed : 0;
@@ -769,7 +889,7 @@ class PlayersController extends Controller
         $playerDetails = \DB::table('players')
             ->join('teams', 'players.team_id', '=', 'teams.id', 'left') // Join teams table to get team details
             ->where('players.id', $playerId)
-            ->select('players.id as player_id', 'players.name as player_name', 'teams.name as team_name', 'players.role','players.contract_years','players.is_rookie')
+            ->select('players.id as player_id', 'players.name as player_name', 'teams.name as team_name', 'players.role', 'players.contract_years', 'players.is_rookie')
             ->first();
 
         if (!$playerDetails) {
@@ -811,34 +931,34 @@ class PlayersController extends Controller
 
         // Fetch championship count and season names
         $championships = \DB::table('seasons')
-        ->join('player_game_stats', 'seasons.id', '=', 'player_game_stats.season_id')
-        ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id')
-        ->join('teams', 'player_game_stats.team_id', '=', 'teams.id')
-        ->select('seasons.name as season_name','seasons.finals_winner_name as championship_team')
-        ->where('player_game_stats.player_id', $playerId)
-        ->where('schedules.round', 'finals')
-        ->whereColumn('seasons.id', 'player_game_stats.season_id')
-        ->whereExists(function ($query) use ($playerId) {
-            $query->select(\DB::raw(1))
-                ->from('schedules as s')
-                ->join('player_game_stats as pg', 's.game_id', '=', 'pg.game_id')
-                ->where('pg.team_id', '=', \DB::raw('player_game_stats.team_id'))
-                ->where('s.round', 'finals')
-                ->where('pg.player_id', $playerId)
-                ->whereColumn('pg.season_id', 'player_game_stats.season_id')
-                ->where(function ($q) {
-                    $q->where(function ($q) {
-                        $q->whereColumn('s.home_id', 'player_game_stats.team_id')
-                          ->whereColumn('s.home_score', '>', 's.away_score');
-                    })
-                    ->orWhere(function ($q) {
-                        $q->whereColumn('s.away_id', 'player_game_stats.team_id')
-                          ->whereColumn('s.away_score', '>', 's.home_score');
+            ->join('player_game_stats', 'seasons.id', '=', 'player_game_stats.season_id')
+            ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id')
+            ->join('teams', 'player_game_stats.team_id', '=', 'teams.id')
+            ->select('seasons.name as season_name', 'seasons.finals_winner_name as championship_team')
+            ->where('player_game_stats.player_id', $playerId)
+            ->where('schedules.round', 'finals')
+            ->whereColumn('seasons.id', 'player_game_stats.season_id')
+            ->whereExists(function ($query) use ($playerId) {
+                $query->select(\DB::raw(1))
+                    ->from('schedules as s')
+                    ->join('player_game_stats as pg', 's.game_id', '=', 'pg.game_id')
+                    ->where('pg.team_id', '=', \DB::raw('player_game_stats.team_id'))
+                    ->where('s.round', 'finals')
+                    ->where('pg.player_id', $playerId)
+                    ->whereColumn('pg.season_id', 'player_game_stats.season_id')
+                    ->where(function ($q) {
+                        $q->where(function ($q) {
+                            $q->whereColumn('s.home_id', 'player_game_stats.team_id')
+                                ->whereColumn('s.home_score', '>', 's.away_score');
+                        })
+                            ->orWhere(function ($q) {
+                                $q->whereColumn('s.away_id', 'player_game_stats.team_id')
+                                    ->whereColumn('s.away_score', '>', 's.home_score');
+                            });
                     });
-                });
-        })
-        ->groupBy('seasons.name','seasons.finals_winner_name')
-        ->get();
+            })
+            ->groupBy('seasons.name', 'seasons.finals_winner_name')
+            ->get();
 
 
 
@@ -850,7 +970,4 @@ class PlayersController extends Controller
             'championships' => $championships,
         ]);
     }
-
-
-
 }
