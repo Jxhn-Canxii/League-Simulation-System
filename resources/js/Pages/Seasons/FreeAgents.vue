@@ -381,7 +381,10 @@ const addMultiplePlayers = async (count) => {
 
         for (let i = 0; i < count; i++) {
             const randomFullName = await fetchRandomFullName(); // Fetch random full name
-            promises.push(addPlayer(randomFullName)); // Add the promise to the array
+            if(randomFullName != null){
+                promises.push(addPlayer(randomFullName)); // Add the promise to the array
+            }
+
         }
 
         // Wait for all promises to resolve
@@ -536,9 +539,9 @@ const assignTeamsAuto = async () => {
     } catch (error) {
         console.error("Error assigning team:", error);
         Swal.fire({
-            icon: "error",
-            title: "Oops...",
-            text: "Something went wrong!",
+            icon: "warning",
+            title: "Warning!",
+            text: error.response.data.message,
         });
     }
 };
