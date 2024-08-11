@@ -354,7 +354,7 @@ class ScheduleController extends Controller
 
         // Allocate minutes to players, considering injuries
         foreach ($homeTeamPlayers as $index => $player) {
-            if (rand(1, 100) <= $player->injury_percentage) {
+            if (rand(1, 100) <= $player->injury_prone_percentage) {
                 // Player is injured
                 $homeMinutes[$player->id] = 0; // DNP
             } else {
@@ -364,7 +364,7 @@ class ScheduleController extends Controller
         }
 
         foreach ($awayTeamPlayers as $index => $player) {
-            if (rand(1, 100) <= $player->injury_percentage) {
+            if (rand(1, 100) <= $player->injury_prone_percentage) {
                 // Player is injured
                 $awayMinutes[$player->id] = 0; // DNP
             } else {
@@ -618,7 +618,7 @@ class ScheduleController extends Controller
 
                 // Distribute minutes to players considering injury status
                 foreach ($homePlayers as $index => $player) {
-                    if (rand(1, 100) <= $player->injury_percentage) {
+                    if (rand(1, 100) <= $player->injury_prone_percentage) {
                         // Player is injured
                         $homeMinutes[$player->id] = 0; // DNP
                     } else {
@@ -628,7 +628,7 @@ class ScheduleController extends Controller
                 }
 
                 foreach ($awayPlayers as $index => $player) {
-                    if (rand(1, 100) <= $player->injury_percentage) {
+                    if (rand(1, 100) <= $player->injury_prone_percentage) {
                         // Player is injured
                         $awayMinutes[$player->id] = 0; // DNP
                     } else {

@@ -47,7 +47,7 @@
                 <td class="py-1 px-3 text-xs">
                   <span :class="roleBadgeClass(player.role)">{{ player.role }}</span>
                 </td>
-                <td class="py-1 px-3 text-xs">{{ player.minutes }}</td>
+                <td class="py-1 px-3 text-xs">{{ player.minutes > 0 ? player.minutes : 'DNP' }}</td>
                 <td class="py-1 px-3 text-xs">{{ player.points }}</td>
                 <td class="py-1 px-3 text-xs">{{ player.rebounds }}</td>
                 <td class="py-1 px-3 text-xs">{{ player.assists }}</td>
@@ -87,7 +87,7 @@
                 <td class="py-1 px-3 text-xs">
                   <span :class="roleBadgeClass(player.role)">{{ player.role }}</span>
                 </td>
-                <td class="py-1 px-3 text-xs">{{ player.minutes }}</td>
+                <td class="py-1 px-3 text-xs">{{ player.minutes > 0 ? player.minutes : 'DNP' }}</td>
                 <td class="py-1 px-3 text-xs">{{ player.points }}</td>
                 <td class="py-1 px-3 text-xs">{{ player.rebounds }}</td>
                 <td class="py-1 px-3 text-xs">{{ player.assists }}</td>
