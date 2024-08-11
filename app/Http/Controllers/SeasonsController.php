@@ -61,7 +61,7 @@ class SeasonsController extends Controller
         $totalPages = ceil($totalCount / $perPage);
 
         // Get the current page from the request, default to 1 if not provided
-        $currentPage = $request->current_page ?? 1;
+        $currentPage = $request->page_num ?? 1;
 
         // Calculate the offset for pagination
         $offset = ($currentPage - 1) * $perPage;

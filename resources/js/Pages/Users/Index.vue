@@ -38,7 +38,7 @@
 
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import Pagination from '@/Components/Pagination.vue'
+import Pagination from '@/Components/Paginator.vue'
 import { Head } from '@inertiajs/vue3';
 
 const props = defineProps({

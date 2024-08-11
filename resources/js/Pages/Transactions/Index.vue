@@ -30,11 +30,10 @@
                                     <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Age</th>
                                     <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Role</th>
                                     <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
-                                <tr v-for="player in data.free_agents" :key="player.player_id" class="hover:bg-gray-100">
+                                <tr v-for="player in data.free_agents" :key="player.player_id" @click.prevent="showPlayerProfile(player)" class="hover:bg-gray-100">
                                     <td class="px-2 py-1 whitespace-nowrap border">{{ player.name }}</td>
                                     <td class="px-2 py-1 whitespace-nowrap border">{{ player.team_name ?? '-' }}</td>
                                     <td class="px-2 py-1 whitespace-nowrap border">{{ player.contract_years ?? 0 }} yrs.</td>
@@ -48,26 +47,22 @@
                                         <span v-if="player.is_active" class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Active</span>
                                         <span v-else class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Waived/Free Agent</span>
                                     </td>
-                                    <td class="px-2 py-1 whitespace-nowrap border">
-                                        <button
-                                        @click="showPlayerProfile(player)"
-                                        class="px-2 py-1 bg-blue-500 text-white rounded-l text-xs"
-                                    >
-                                        View Profile
-                                    </button>
-                                    </td>
-
                                 </tr>
                             </tbody>
                         </table>
                     </div>
 
                     <!-- Pagination Controls -->
-                    <div v-if="data.total > 0" class="flex justify-start font-bold p-2 text-xs overflow-auto">
-                        <button @click="fetchAllPlayers(data.current_page - 1)" :disabled="data.current_page === 1" class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50">Previous</button>
-                        <button v-for="pageNumber in data.total_pages" :key="pageNumber" @click="fetchAllPlayers(pageNumber)" :disabled="data.current_page === pageNumber" class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50">{{ pageNumber }}</button>
-                        <button @click="fetchAllPlayers(data.current_page + 1)" :disabled="data.current_page === data.total_pages" class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50">Next</button>
+                    <div class="flex w-full overflow-auto">
+                        <Paginator
+                            v-if="data.total"
+                            :page_number="search.page_num"
+                            :total_rows="data.total ?? 0"
+                            :itemsperpage="search.itemsperpage"
+                            @page_num="handlePagination"
+                        />
                     </div>
+
                 </div>
             </div>
         </div>
@@ -92,6 +87,7 @@ import { ref, onMounted } from "vue";
 import axios from 'axios'; // Ensure axios is imported
 import Swal from "sweetalert2";
 import Modal from "@/Components/Modal.vue";
+import Paginator from "@/Components/Paginator.vue";
 import PlayerPerformance from '../Teams/PlayerPerformance.vue';
 const showPlayerProfileModal = ref(false);
 const selectedPlayer = ref([]);
@@ -102,22 +98,26 @@ const data = ref({
     total: 0,
 });
 const search = ref({
-    current_page: 1,
+    page_num: 1,
     total_pages: 0,
     total: 0,
     search: '',
+    itemsperpage: 10,
 });
 const teams = ref([]);
 
 
-const fetchAllPlayers = async (page = 1) => {
+const fetchAllPlayers = async () => {
     try {
-        search.value.current_page = page;
         const response = await axios.post(route("players.list.all"), search.value);
         data.value = response.data;
     } catch (error) {
         console.error("Error fetching free agents:", error);
     }
+};
+const handlePagination = (page_num) => {
+    search.value.page_num = page_num;
+    fetchAllPlayers();
 };
 const showPlayerProfile = (player) => {
     selectedPlayer.value = player;

@@ -120,6 +120,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/all-players', [PlayersController::class, 'getAllPlayers'])->name('players.list.all');
         Route::post('/player-season-performance', [PlayersController::class, 'getPlayerSeasonPerformance'])->name('players.season.performance');
         Route::post('/player-play-off-performance', [PlayersController::class, 'getPlayerPlayoffPerformance'])->name('players.playoff.performance');
+        Route::post('/player-main-performance', [PlayersController::class, 'getPlayerMainPerformance'])->name('players.main.performance');
+        Route::post('/player-game-logs', [PlayersController::class, 'getPlayerGameLogs'])->name('players.game.logs');
     });
     Route::prefix('transactions/')->group(function(){
         Route::get('', [TransactionsController::class, 'index'])->name('transactions.index');

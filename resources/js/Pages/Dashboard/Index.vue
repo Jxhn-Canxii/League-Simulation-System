@@ -63,32 +63,14 @@
                     </tbody>
                 </table>
 
-                <div class="flex justify-start font-bold p-2 text-xs overflow-auto" v-if="top_scorers.total > 1">
-                    <button
-                        @click="fetchTopScorers(top_scorers.current_page - 1)"
-                        :disabled="top_scorers.current_page === 1"
-                        class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50"
-                    >
-                        Previous
-                    </button>
-                    <button
-                        v-for="pageNumber in top_scorers.total_pages"
-                        :key="pageNumber"
-                        @click="fetchTopScorers(pageNumber)"
-                        :disabled="top_scorers.current_page === pageNumber"
-                        class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50"
-                    >
-                        {{ pageNumber }}
-                    </button>
-                    <button
-                        @click="fetchTopScorers(top_scorers.current_page + 1)"
-                        :disabled="
-                            top_scorers.current_page === top_scorers.total_pages
-                        "
-                        class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50"
-                    >
-                        Next
-                    </button>
+                <div class="flex w-full overflow-auto">
+                    <Paginator
+                        v-if="top_scorers.total"
+                        :page_number="search_topscorers.page_num"
+                        :total_rows="top_scorers.total ?? 0"
+                        :itemsperpage="search_topscorers.itemsperpage"
+                        @page_num="handleTopScorerPagination"
+                    />
                 </div>
                 </div>
                 <div
@@ -146,32 +128,14 @@
                         </tr>
                     </tbody>
                 </table>
-                <div class="flex justify-start font-bold p-2 text-xs overflow-auto" v-if="champions.total > 1">
-                    <button
-                        @click="fetchChampions(champions.current_page - 1)"
-                        :disabled="champions.current_page === 1"
-                        class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50"
-                    >
-                        Previous
-                    </button>
-                    <button
-                        v-for="pageNumber in champions.total_pages"
-                        :key="pageNumber"
-                        @click="fetchChampions(pageNumber)"
-                        :disabled="champions.current_page === pageNumber"
-                        class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50"
-                    >
-                        {{ pageNumber }}
-                    </button>
-                    <button
-                        @click="fetchChampions(champions.current_page + 1)"
-                        :disabled="
-                            champions.current_page === champions.total_pages
-                        "
-                        class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50"
-                    >
-                        Next
-                    </button>
+                <div class="flex w-full overflow-auto">
+                    <Paginator
+                        v-if="champions.total"
+                        :page_number="search_champions.page_num"
+                        :total_rows="champions.total ?? 0"
+                        :itemsperpage="search_champions.itemsperpage"
+                        @page_num="handleChampionsPagination"
+                    />
                 </div>
                 </div>
             </div>
@@ -331,32 +295,14 @@
                         </tr>
                     </tbody>
                 </table>
-                <div class="flex justify-start font-bold p-2 text-xs overflow-auto" v-if="scorers.total > 1">
-                    <button
-                        @click="fetchScorers(scorers.current_page - 1)"
-                        :disabled="scorers.current_page === 1"
-                        class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50"
-                    >
-                        Previous
-                    </button>
-                    <button
-                        v-for="pageNumber in scorers.total_pages"
-                        :key="pageNumber"
-                        @click="fetchScorers(pageNumber)"
-                        :disabled="scorers.current_page === pageNumber"
-                        class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50"
-                    >
-                        {{ pageNumber }}
-                    </button>
-                    <button
-                        @click="fetchScorers(scorers.current_page + 1)"
-                        :disabled="
-                        scorers.current_page === scorers.total_pages
-                        "
-                        class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50"
-                    >
-                        Next
-                    </button>
+                <div class="flex w-full overflow-auto">
+                    <Paginator
+                        v-if="scorers.total"
+                        :page_number="search_scorers.page_num"
+                        :total_rows="scorers.total ?? 0"
+                        :itemsperpage="search_scorers.itemsperpage"
+                        @page_num="handleScorersPagination"
+                    />
                 </div>
                 </div>
             </div>
@@ -369,6 +315,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Head } from '@inertiajs/vue3';
 import { ref, onMounted } from "vue";
 import { roundNameFormatter,generateRandomKey, moneyFormatter } from "@/Utility/Formatter";
+import Paginator from "@/Components/Paginator.vue";
 
 const champions = ref([]);
 const scorers = ref([]);
@@ -378,19 +325,19 @@ const rivals = ref([]);
 const playoffs = ref([]);
 const change_key = ref(localStorage.getItem('chanpions-key'));
 const search_champions = ref({
-    current_page: 1,
+    page_num: 1,
     total_pages: 0,
     total: 0,
     search: '',
 });
 const search_topscorers = ref({
-    current_page: 1,
+    page_num: 1,
     total_pages: 0,
     total: 0,
     search: '',
 });
 const search_scorers = ref({
-    current_page: 1,
+    page_num: 1,
     total_pages: 0,
     total: 0,
     search: '',
@@ -398,33 +345,39 @@ const search_scorers = ref({
 
 const fetchChampions = async (page = 1) => {
     try {
-        search_champions.value.current_page = page;
-        search_champions.value.change_key = change_key.value;
         const response = await axios.post(route("dashboard.champions"),search_champions.value);
         champions.value = response.data;
 } catch (error) {
         console.error("Error fetching champions:", error);
     }
 };
+const handleChampionsPagination = (page_num) => {
+    search_champions.value.page_num = page_num;
+    fetchChampions();
+};
 const fetchTopScorers = async (page = 1) => {
     try {
-        search_topscorers.value.current_page = page;
-        search_topscorers.value.change_key = change_key.value;
         const response = await axios.post(route("dashboard.team.topscorer"),search_topscorers.value);
         top_scorers.value = response.data;
 } catch (error) {
         console.error("Error fetching champions:", error);
     }
 };
+const handleTopScorerPagination = (page_num) => {
+    search_topscorers.value.page_num = page_num;
+    fetchTopScorers();
+};
 const fetchScorers = async (page = 1) => {
     try {
-        search_scorers.value.current_page = page;
-        search_scorers.value.change_key = change_key.value;
         const response = await axios.post(route("dashboard.player.topscorer"),search_scorers.value);
         scorers.value = response.data;
 } catch (error) {
         console.error("Error fetching top scorer of all time:", error);
     }
+};
+const handleScorersPagination = (page_num) => {
+    search_scorers.value.page_num = page_num;
+    fetchScorers();
 };
 const fetchMostPlayoffAppearance = async () => {
     try {

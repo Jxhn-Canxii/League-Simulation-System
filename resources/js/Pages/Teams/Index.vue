@@ -125,35 +125,16 @@
                         </tr>
                     </tbody>
                 </table>
-                <div
-                    class="flex justify-start font-bold p-2 bg-white"
-                    v-if="teams.total_pages > 1"
-                >
-                    <button
-                        @click="fetchTeams(teams.current_page - 1)"
-                        :disabled="teams.current_page === 1"
-                        class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50"
-                    >
-                        Previous
-                    </button>
-                    <button
-                        v-for="pageNumber in teams.total_pages"
-                        :key="pageNumber"
-                        @click="fetchTeams(pageNumber)"
-                        :disabled="teams.current_page === pageNumber"
-                        class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50"
-                    >
-                        {{ pageNumber }}
-                    </button>
-                    <button
-                        @click="fetchTeams(teams.current_page + 1)"
-                        :disabled="teams.current_page === teams.total_pages"
-                        class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50"
-                    >
-                        Next
-                    </button>
-                </div>
             </div>
+            <div class="flex w-full overflow-auto">
+                <Paginator
+                  v-if="teams.total_count"
+                  :page_number="search_teams.page_num"
+                  :total_rows="teams.total_count ?? 0"
+                  :itemsperpage="search_teams.itemsperpage"
+                  @page_num="handlePagination"
+                />
+              </div>
             <Modal :show="isAddModalOpen" :maxWidth="'2xl'">
                 <button
                     class="flex float-end bg-gray-100 p-3"
@@ -419,6 +400,7 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Head, useForm } from "@inertiajs/vue3";
 import Modal from "@/Components/Modal.vue";
+import Paginator from "@/Components/Paginator.vue";
 import InputError from "@/Components/InputError.vue";
 import { roundNameFormatter } from "@/Utility/Formatter";
 import { ref, onMounted } from "vue";
@@ -431,7 +413,6 @@ import TeamRoster from "./TeamRoster.vue";
 const isAddModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const isTeamModalOpen = ref(false);
-const isTeamRosterModalOpen = ref(false);
 const currentTab  = ref('info');
 const currentRosterTab = ref('roster');
 const leagues = ref(false);
@@ -440,10 +421,11 @@ const currentPage = ref(1);
 const teams = ref([]);
 
 const search_teams = ref({
-    current_page: 1,
+    page_num: 1,
     total_pages: 0,
     total: 0,
     search: "",
+    itemsperpage: 10,
 });
 const form = useForm({
     id: 0,
@@ -456,25 +438,17 @@ onMounted(() => {
     fetchTeams();
     leagueDropdown();
 });
-const fetchTeams = async (page = 1) => {
+const fetchTeams = async () => {
     try {
-        search_teams.value.current_page = page;
         const response = await axios.post(route("teams.list"), search_teams.value);
         teams.value = response.data;
     } catch (error) {
         console.error("Error fetching teams:", error);
     }
 };
-const nextPage = () => {
-    if (currentPage.value < totalPages.value) {
-        currentPage.value++;
-    }
-};
-
-const previousPage = () => {
-    if (currentPage.value > 1) {
-        currentPage.value--;
-    }
+const handlePagination = (page_num) => {
+    search_teams.value.page_num = page_num ?? 1;
+    fetchTeams();
 };
 const leagueDropdown = async () => {
     try {

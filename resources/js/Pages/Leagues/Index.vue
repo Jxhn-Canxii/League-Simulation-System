@@ -57,21 +57,14 @@
                         </tr>
                     </tbody>
                 </table>
-                <div class="flex justify-start font-bold" v-if="liga.total_pages > 1">
-                    <button @click="fetchLeagues(liga.current_page - 1)" :disabled="liga.current_page === 1"
-                        class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50">
-                        Previous
-                    </button>
-                    <button v-for="pageNumber in liga.total_pages" :key="pageNumber"
-                        @click="fetchLeagues(pageNumber)" :disabled="liga.current_page === pageNumber"
-                        class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50">
-                        {{ pageNumber }}
-                    </button>
-                    <button @click="fetchLeagues(liga.current_page + 1)"
-                        :disabled="liga.current_page === liga.total_pages"
-                        class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50">
-                        Next
-                    </button>
+                <div class="flex w-full overflow-auto">
+                    <Paginator
+                        v-if="liga.total_count"
+                        :page_number="search_liga.page_num"
+                        :total_rows="liga.total_count ?? 0"
+                        :itemsperpage="search_liga.itemsperpage"
+                        @page_num="handlePagination"
+                    />
                 </div>
             </div>
             <Modal :show="isAddModalOpen" :maxWidth="'2xl'">
@@ -135,6 +128,7 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Head, useForm } from "@inertiajs/vue3";
 import Modal from "@/Components/Modal.vue";
+import Paginator from "@/Components/Paginator.vue";
 import InputError from "@/Components/InputError.vue";
 import { ref, onMounted } from "vue";
 import Swal from "sweetalert2";
@@ -146,7 +140,7 @@ const leagues = ref([]);
 const liga = ref([]);
 const conferences = ref([]);
 const search_liga = ref({
-    current_page: 1,
+    page_num: 1,
     total_pages: 0,
     total: 0,
     search: '',
@@ -159,13 +153,16 @@ const form = useForm({
 
 const fetchLeagues = async (page = 1) => {
     try {
-        search_liga.value.current_page = page;
         const response = await axios.post(route("leagues.list"), search_liga.value);
         liga.value = response.data;
 
     } catch (error) {
         console.error("Error fetching leagues:", error);
     }
+};
+const handlePagination = (page_num) => {
+    search_liga.value.page_num = page_num;
+    fetchLeagues();
 };
 const fetchConference = async (league_id) => {
     try {

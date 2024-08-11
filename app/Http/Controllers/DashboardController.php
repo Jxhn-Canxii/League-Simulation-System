@@ -18,7 +18,7 @@ class DashboardController extends Controller
     {
         // Retrieve pagination parameters from the request
         $perPage = $request->input('per_page', 10); // Default per page to 10 if not provided
-        $page = $request->input('current_page', 1); // Default page to 1 if not provided
+        $page = $request->input('page_num', 1); // Default page to 1 if not provided
 
         $offset = ($page - 1) * $perPage;
 
@@ -128,7 +128,7 @@ class DashboardController extends Controller
     {
         // Extracting per_page and current_page from request
         $perPage = $request->input('per_page', 10); // Default per page to 10 if not provided
-        $page = $request->input('current_page', 1); // Default page to 1 if not provided
+        $page = $request->input('page_num', 1); // Default page to 1 if not provided
 
         // Calculating the offset to skip records
         $offset = ($page - 1) * $perPage;
@@ -168,7 +168,7 @@ class DashboardController extends Controller
     {
         // Extracting per_page and current_page from request
         $perPage = $request->input('per_page', 10); // Default per page to 10 if not provided
-        $page = $request->input('current_page', 1); // Default page to 1 if not provided
+        $page = $request->input('page_num', 1); // Default page to 1 if not provided
 
         // Calculating the offset to skip records
         $offset = ($page - 1) * $perPage;

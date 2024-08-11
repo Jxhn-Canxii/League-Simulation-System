@@ -235,34 +235,15 @@
                         </tr>
                     </tbody>
                 </table>
-                <div
-                    class="flex justify-start font-bold p-2 bg-white"
-                    v-if="seasons.total_pages > 1"
-                >
-                    <button
-                        @click="fetchSeasons(seasons.current_page - 1)"
-                        :disabled="seasons.current_page === 1"
-                        class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50"
-                    >
-                        Previous
-                    </button>
-                    <button
-                        v-for="pageNumber in seasons.total_pages"
-                        :key="pageNumber"
-                        @click="fetchSeasons(pageNumber)"
-                        :disabled="seasons.current_page === pageNumber"
-                        class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50"
-                    >
-                        {{ pageNumber }}
-                    </button>
-                    <button
-                        @click="fetchSeasons(seasons.current_page + 1)"
-                        :disabled="seasons.current_page === seasons.total_pages"
-                        class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50"
-                    >
-                        Next
-                    </button>
-                </div>
+                <div class="flex w-full overflow-auto">
+                    <Paginator
+                      v-if="seasons.total_count"
+                      :page_number="search_seasons.page_num"
+                      :total_rows="seasons.total_count ?? 0"
+                      :itemsperpage="search_seasons.itemsperpage"
+                      @page_num="handlePagination"
+                    />
+                  </div>
             </div>
             <Modal :show="isViewModalOpen" :maxWidth="'fullscreen'">
                 <button
@@ -511,6 +492,7 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Head, useForm } from "@inertiajs/vue3";
 import Modal from "@/Components/Modal.vue";
 import { roundNameFormatter, roundGridFormatter } from "@/Utility/Formatter.js";
+import Paginator from "@/Components/Paginator.vue";
 import { ref, onMounted } from "vue";
 import Seasons from "@/Pages/Seasons/Season.vue";
 import Playoffs from "@/Pages/Seasons/Playoffs.vue";
@@ -532,6 +514,7 @@ const search_seasons = ref({
     total: 0,
     search: "",
     change_key: "",
+    itemsperpage: 10,
 });
 const form = useForm({
     type: 3,
@@ -553,6 +536,10 @@ const fetchSeasons = async (page = 1) => {
     } catch (error) {
         console.error("Error fetching seasons:", error);
     }
+};
+const handlePagination = (page_num) => {
+    search_seasons.value.page_num = page_num ?? 1;
+    fetchSeasons();
 };
 const handleNewSeason = (newSeason) => {
     if (newSeason) {

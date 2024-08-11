@@ -304,8 +304,8 @@ class PlayersController extends Controller
     public function getAllPlayers(Request $request)
     {
         // Get pagination parameters from the request
-        $perPage = $request->input('per_page', 10); // Number of items per page
-        $currentPage = $request->input('current_page', 1); // Current page number
+        $perPage = $request->input('itemsperpage', 10); // Number of items per page
+        $currentPage = $request->input('page_num', 1); // Current page number
         $search = $request->input('search', ''); // Search term
 
         // Calculate the offset for the query
@@ -790,7 +790,7 @@ class PlayersController extends Controller
         ]);
     }
 
-    public function getPlayerSeasonPerformance(Request $request)
+    public function getPlayerPlayoffPerformance(Request $request)
     {
         // Validate the request data
         $request->validate([
@@ -799,11 +799,12 @@ class PlayersController extends Controller
 
         $playerId = $request->player_id;
 
-        // Fetch player stats for the given player across all seasons and teams
+        // Fetch player stats for the given player across specified playoff rounds
         $playerStats = \DB::table('player_game_stats')
             ->join('players', 'player_game_stats.player_id', '=', 'players.id')
             ->join('teams', 'player_game_stats.team_id', '=', 'teams.id')
             ->join('seasons', 'player_game_stats.season_id', '=', 'seasons.id') // Join with seasons table
+            ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id') // Join with schedules table
             ->select(
                 'players.id as player_id',
                 'players.name as player_name',
@@ -822,6 +823,7 @@ class PlayersController extends Controller
                 \DB::raw('COUNT(DISTINCT CASE WHEN player_game_stats.minutes > 0 THEN player_game_stats.game_id END) as games_played') // Exclude DNP games
             )
             ->where('player_game_stats.player_id', $playerId)
+            ->whereIn('schedules.round', ['round_of_16', 'quarter_finals', 'semi_finals', 'interconference_semi_finals', 'finals']) // Filter by playoff rounds
             ->groupBy('players.id', 'players.name', 'players.team_id', 'teams.name', 'teams.conference_id', 'player_game_stats.season_id', 'seasons.name')
             ->orderBy('player_game_stats.season_id', 'desc') // Sort by season_id in descending order
             ->get();
@@ -876,7 +878,96 @@ class PlayersController extends Controller
             'player_stats' => $formattedPlayerStats,
         ]);
     }
-    public function getPlayerPlayoffPerformance(Request $request)
+    public function getPlayerSeasonPerformance(Request $request)
+    {
+        // Validate the request data
+        $request->validate([
+            'player_id' => 'required|exists:players,id',
+        ]);
+
+        $playerId = $request->player_id;
+
+        // Fetch player stats for the given player excluding the specified playoff rounds
+        $playerStats = \DB::table('player_game_stats')
+            ->join('players', 'player_game_stats.player_id', '=', 'players.id')
+            ->join('teams', 'player_game_stats.team_id', '=', 'teams.id')
+            ->join('seasons', 'player_game_stats.season_id', '=', 'seasons.id') // Join with seasons table
+            ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id') // Join with schedules table
+            ->select(
+                'players.id as player_id',
+                'players.name as player_name',
+                'players.team_id',
+                'teams.name as team_name',
+                'teams.conference_id',
+                'player_game_stats.season_id',
+                'seasons.name as season_name', // Select season name
+                \DB::raw('SUM(player_game_stats.points) as total_points'),
+                \DB::raw('SUM(player_game_stats.rebounds) as total_rebounds'),
+                \DB::raw('SUM(player_game_stats.assists) as total_assists'),
+                \DB::raw('SUM(player_game_stats.steals) as total_steals'),
+                \DB::raw('SUM(player_game_stats.blocks) as total_blocks'),
+                \DB::raw('SUM(player_game_stats.turnovers) as total_turnovers'),
+                \DB::raw('SUM(player_game_stats.fouls) as total_fouls'),
+                \DB::raw('COUNT(DISTINCT CASE WHEN player_game_stats.minutes > 0 THEN player_game_stats.game_id END) as games_played') // Exclude DNP games
+            )
+            ->where('player_game_stats.player_id', $playerId)
+            ->whereNotIn('schedules.round', ['round_of_16', 'quarter_finals', 'semi_finals', 'interconference_semi_finals', 'finals']) // Exclude specific playoff rounds
+            ->groupBy('players.id', 'players.name', 'players.team_id', 'teams.name', 'teams.conference_id', 'player_game_stats.season_id', 'seasons.name')
+            ->orderBy('player_game_stats.season_id', 'desc') // Sort by season_id in descending order
+            ->get();
+
+        if ($playerStats->isEmpty()) {
+            return response()->json([
+                'error' => 'No stats found for the given player.',
+            ], 404);
+        }
+
+        // Initialize an array to hold formatted player stats
+        $formattedPlayerStats = [];
+
+        foreach ($playerStats as $stats) {
+            // Calculate averages
+            $averagePointsPerGame = $stats->games_played > 0 ? $stats->total_points / $stats->games_played : 0;
+            $averageReboundsPerGame = $stats->games_played > 0 ? $stats->total_rebounds / $stats->games_played : 0;
+            $averageAssistsPerGame = $stats->games_played > 0 ? $stats->total_assists / $stats->games_played : 0;
+            $averageStealsPerGame = $stats->games_played > 0 ? $stats->total_steals / $stats->games_played : 0;
+            $averageBlocksPerGame = $stats->games_played > 0 ? $stats->total_blocks / $stats->games_played : 0;
+            $averageTurnoversPerGame = $stats->games_played > 0 ? $stats->total_turnovers / $stats->games_played : 0;
+            $averageFoulsPerGame = $stats->games_played > 0 ? $stats->total_fouls / $stats->games_played : 0;
+
+            // Append player with stats and team name
+            $formattedPlayerStats[] = [
+                'player_id' => $stats->player_id,
+                'player_name' => $stats->player_name,
+                'team_name' => $stats->team_name,
+                'team_id' => $stats->team_id,
+                'conference_id' => $stats->conference_id,
+                'season_id' => $stats->season_id,
+                'season_name' => $stats->season_name, // Add season name
+                'total_points' => $stats->total_points,
+                'total_rebounds' => $stats->total_rebounds,
+                'total_assists' => $stats->total_assists,
+                'total_steals' => $stats->total_steals,
+                'total_blocks' => $stats->total_blocks,
+                'total_turnovers' => $stats->total_turnovers,
+                'total_fouls' => $stats->total_fouls,
+                'games_played' => $stats->games_played,
+                'average_points_per_game' => $averagePointsPerGame,
+                'average_rebounds_per_game' => $averageReboundsPerGame,
+                'average_assists_per_game' => $averageAssistsPerGame,
+                'average_steals_per_game' => $averageStealsPerGame,
+                'average_blocks_per_game' => $averageBlocksPerGame,
+                'average_turnovers_per_game' => $averageTurnoversPerGame,
+                'average_fouls_per_game' => $averageFoulsPerGame,
+            ];
+        }
+
+        return response()->json([
+            'player_stats' => $formattedPlayerStats,
+        ]);
+    }
+
+    public function getPlayerMainPerformance(Request $request)
     {
         // Validate the request data
         $request->validate([
@@ -951,16 +1042,28 @@ class PlayersController extends Controller
                             $q->whereColumn('s.home_id', 'player_game_stats.team_id')
                                 ->whereColumn('s.home_score', '>', 's.away_score');
                         })
-                            ->orWhere(function ($q) {
-                                $q->whereColumn('s.away_id', 'player_game_stats.team_id')
-                                    ->whereColumn('s.away_score', '>', 's.home_score');
-                            });
+                        ->orWhere(function ($q) {
+                            $q->whereColumn('s.away_id', 'player_game_stats.team_id')
+                                ->whereColumn('s.away_score', '>', 's.home_score');
+                        });
                     });
             })
             ->groupBy('seasons.name', 'seasons.finals_winner_name')
             ->get();
 
-
+        // Fetch career high stats
+        $careerHighs = \DB::table('player_game_stats')
+            ->select(
+                \DB::raw('MAX(points) as career_high_points'),
+                \DB::raw('MAX(rebounds) as career_high_rebounds'),
+                \DB::raw('MAX(assists) as career_high_assists'),
+                \DB::raw('MAX(steals) as career_high_steals'),
+                \DB::raw('MAX(blocks) as career_high_blocks'),
+                \DB::raw('MAX(turnovers) as career_high_turnovers'),
+                \DB::raw('MAX(fouls) as career_high_fouls')
+            )
+            ->where('player_id', $playerId)
+            ->first();
 
         return response()->json([
             'player_details' => $playerDetails,
@@ -968,6 +1071,163 @@ class PlayersController extends Controller
             'mvp_count' => $mvpCount,
             'mvp_seasons' => $mvpData->pluck('season_name'),
             'championships' => $championships,
+            'career_highs' => $careerHighs,
         ]);
     }
+
+    public function getPlayerGameLogsV1(Request $request)
+    {
+        // Validate the request data
+        $request->validate([
+            'player_id' => 'required|exists:players,id',
+            'season_id' => 'required|exists:seasons,id',
+            'page_num' => 'required|integer|min:1',
+            'itemsperpage' => 'required|integer|min:1',
+        ]);
+
+        $playerId = $request->player_id;
+        $seasonId = $request->season_id;
+        $page = $request->page_num;
+        $perPage = $request->itemsperpage;
+
+        // Calculate offset
+        $offset = ($page - 1) * $perPage;
+
+        // Fetch player game logs for the given player and season with pagination
+        $playerGameLogs = \DB::table('player_game_stats')
+            ->join('players', 'player_game_stats.player_id', '=', 'players.id')
+            ->join('teams as player_team', 'player_game_stats.team_id', '=', 'player_team.id') // Join with player's team
+            ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id') // Join with schedules table
+            ->join('seasons', 'schedules.season_id', '=', 'seasons.id') // Join with seasons table
+            ->leftJoin('teams as home_team', 'schedules.home_id', '=', 'home_team.id') // Join with home team
+            ->leftJoin('teams as away_team', 'schedules.away_id', '=', 'away_team.id') // Join with away team
+            ->select(
+                'player_game_stats.id as stat_id', // Include player_game_stats.id in the select
+                'player_game_stats.game_id',
+                'player_team.name as team_name',
+                \DB::raw('CASE
+                    WHEN player_game_stats.team_id = schedules.home_id THEN home_team.name
+                    ELSE away_team.name
+                END as opponent_team_name'), // Determine opponent team name
+                'schedules.round as round', // Add round info
+                'seasons.name as season_name', // Include season name
+                \DB::raw('player_game_stats.points as game_points'),
+                \DB::raw('player_game_stats.rebounds as game_rebounds'),
+                \DB::raw('player_game_stats.assists as game_assists'),
+                \DB::raw('player_game_stats.steals as game_steals'),
+                \DB::raw('player_game_stats.blocks as game_blocks'),
+                \DB::raw('player_game_stats.turnovers as game_turnovers'),
+                \DB::raw('player_game_stats.fouls as game_fouls'),
+                'player_game_stats.minutes as game_minutes',
+                \DB::raw('(CASE
+                    WHEN player_game_stats.team_id = schedules.home_id THEN
+                        (CASE WHEN schedules.home_score > schedules.away_score THEN "Win" ELSE "Loss" END)
+                    ELSE
+                        (CASE WHEN schedules.away_score > schedules.home_score THEN "Win" ELSE "Loss" END)
+                END) as game_result') // Determine win/loss
+            )
+            ->where('player_game_stats.player_id', $playerId)
+            ->where('player_game_stats.season_id', $seasonId)
+            ->orderBy('player_game_stats.id', 'desc') // Order by player_game_stats.id in descending order
+            ->offset($offset)
+            ->limit($perPage)
+            ->get();
+
+        // Fetch total count of records for pagination info
+        $totalRecords = \DB::table('player_game_stats')
+            ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id') // Join with schedules table
+            ->where('player_game_stats.player_id', $playerId)
+            ->where('player_game_stats.season_id', $seasonId)
+            ->count();
+
+        // Prepare pagination metadata
+        $totalPages = ceil($totalRecords / $perPage);
+
+        // Prepare response
+        return response()->json([
+            'current_page' => $page,
+            'total_pages' => $totalPages,
+            'total_records' => $totalRecords,
+            'game_logs' => $playerGameLogs,
+        ]);
+    }
+    public function getPlayerGameLogs(Request $request)
+{
+    // Validate the request data
+    $request->validate([
+        'player_id' => 'required|exists:players,id',
+        'season_id' => 'required|exists:seasons,id',
+        'page_num' => 'required|integer|min:1',
+        'itemsperpage' => 'required|integer|min:1',
+    ]);
+
+    $playerId = $request->player_id;
+    $seasonId = $request->season_id;
+    $page = $request->page_num;
+    $perPage = $request->itemsperpage;
+
+    // Calculate offset
+    $offset = ($page - 1) * $perPage;
+
+    // Fetch player game logs for the given player and season with pagination
+    $playerGameLogs = \DB::table('player_game_stats')
+        ->join('players', 'player_game_stats.player_id', '=', 'players.id')
+        ->join('teams as player_team', 'player_game_stats.team_id', '=', 'player_team.id') // Join with player's team to get team name
+        ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id') // Join with schedules table
+        ->join('seasons', 'schedules.season_id', '=', 'seasons.id') // Join with seasons table
+        ->leftJoin('teams as home_team', 'schedules.home_id', '=', 'home_team.id') // Join with home team
+        ->leftJoin('teams as away_team', 'schedules.away_id', '=', 'away_team.id') // Join with away team
+        ->select(
+            'player_game_stats.id as stat_id', // Include player_game_stats.id in the select
+            'player_game_stats.game_id',
+            'player_team.name as team_name', // Player's team name
+            \DB::raw('CASE
+                WHEN player_game_stats.team_id = schedules.home_id THEN away_team.name
+                ELSE home_team.name
+            END as opponent_team_name'), // Determine opponent team name
+            'schedules.round as round', // Add round info
+            'seasons.name as season_name', // Include season name
+            \DB::raw('player_game_stats.points as game_points'),
+            \DB::raw('player_game_stats.rebounds as game_rebounds'),
+            \DB::raw('player_game_stats.assists as game_assists'),
+            \DB::raw('player_game_stats.steals as game_steals'),
+            \DB::raw('player_game_stats.blocks as game_blocks'),
+            \DB::raw('player_game_stats.turnovers as game_turnovers'),
+            \DB::raw('player_game_stats.fouls as game_fouls'),
+            'player_game_stats.minutes as game_minutes',
+            \DB::raw('(CASE
+                WHEN player_game_stats.team_id = schedules.home_id THEN
+                    (CASE WHEN schedules.home_score > schedules.away_score THEN "Win" ELSE "Loss" END)
+                ELSE
+                    (CASE WHEN schedules.away_score > schedules.home_score THEN "Win" ELSE "Loss" END)
+            END) as game_result') // Determine win/loss
+        )
+        ->where('player_game_stats.player_id', $playerId)
+        ->where('player_game_stats.season_id', $seasonId)
+        ->orderBy('player_game_stats.id', 'desc') // Order by player_game_stats.id in descending order
+        ->offset($offset)
+        ->limit($perPage)
+        ->get();
+
+    // Fetch total count of records for pagination info
+    $totalRecords = \DB::table('player_game_stats')
+        ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id') // Join with schedules table
+        ->where('player_game_stats.player_id', $playerId)
+        ->where('player_game_stats.season_id', $seasonId)
+        ->count();
+
+    // Prepare pagination metadata
+    $totalPages = ceil($totalRecords / $perPage);
+
+    // Prepare response
+    return response()->json([
+        'current_page' => $page,
+        'total_pages' => $totalPages,
+        'total_records' => $totalRecords,
+        'game_logs' => $playerGameLogs,
+    ]);
+}
+
+
+
 }
