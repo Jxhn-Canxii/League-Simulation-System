@@ -131,7 +131,7 @@ class ScheduleController extends Controller
             }
 
            // Determine if the player should have an injury_prone_percentage of 0
-            if (rand(1, 100) <= 80) {
+            if (rand(1, 100) <= 50) {
                 // Assign a random value between 1 and 100
                 $player->injury_prone_percentage = rand(1, 100);
             } else {

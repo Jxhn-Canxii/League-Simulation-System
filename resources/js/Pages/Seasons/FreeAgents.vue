@@ -21,25 +21,31 @@
                     placeholder="Enter Player name"
                     class="mt-1 mb-2 p-2 border rounded w-full"
                 />
-                <div class="block">
-                    <button
-                        @click="assignTeamsAuto()"
-                         class="px-4 py-2 bg-rose-500 text-white rounded mb-4 text-sm"
-                    >
-                    <i class="fa fa-users"></i> Distribute Free Agents
-                    </button>
-                    <button
-                        @click="showAddPlayerModal = true"
-                        class="px-4 py-2 bg-green-500 text-white rounded mb-4 text-sm"
-                    >
-                        <i class="fa fa-user"></i> Add Player
-                    </button>
-                    <button
-                        @click.prevent="addMultiplePlayers(50)"
-                        class="px-4 py-2 bg-green-700 text-white rounded mb-4 text-sm"
-                    >
-                        <i class="fa fa-user"></i> Add Player From Api
-                    </button>
+                <div class="flex justify-between">
+
+                    <div>
+                        <button
+                            @click="assignTeamsAuto()"
+                            class="px-4 py-2 bg-rose-500 text-white rounded mb-4 text-sm"
+                        >
+                        <i class="fa fa-users"></i> Distribute Free Agents
+                        </button>
+                    </div>
+                    <div>
+                        <button
+                            @click="showAddPlayerModal = true"
+                            class="px-4 py-2 bg-green-500 text-white rounded mb-4 mr-2 text-sm"
+                        >
+                            <i class="fa fa-user"></i> Add Rookie Player
+                        </button>
+                        <button
+                            @click.prevent="addMultiplePlayers(50)"
+                            class="px-4 py-2 bg-green-700 text-white rounded mb-4 text-sm"
+                        >
+                            <i class="fa fa-user"></i> Add Rookie Player From Api
+                        </button>
+                    </div>
+
                 </div>
                 <div
                     v-if="data.free_agents.length === 0"
@@ -340,12 +346,20 @@ const addPlayerV1 = async () => {
 };
 const fetchRandomFullName = async () => {
     try {
-        const response = await axios.get('https://randomuser.me/api/?inc=name&gender=male');
+        const response = await axios.get('https://randomuser.me/api/?inc=name&gender=male'); // API URL for random male user
         const { first, last } = response.data.results[0].name; // Extract first and last name
-        return `${first} ${last}`; // Return full name
+
+        // Function to check if a name contains only English alphabet letters
+        const isEnglishReadable = (name) => /^[A-Za-z]+$/.test(name);
+
+        if (isEnglishReadable(first) && isEnglishReadable(last)) {
+            return `${first} ${last}`; // Return full name if valid
+        } else {
+            return null; // Return null if the name is not valid
+        }
     } catch (error) {
         console.error("Error fetching random player name:", error);
-        return "Unknown Player"; // Fallback name
+        return null; // Return null on error
     }
 };
 
