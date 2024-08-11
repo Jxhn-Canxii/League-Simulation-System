@@ -557,8 +557,8 @@ const fetchSeasons = async (page = 1) => {
 const handleNewSeason = (newSeason) => {
     if (newSeason) {
         isPlayerSigningModalOpen.value = false;
-        fetchSeasons();
     }
+    fetchSeasons();
 };
 const leagueDropdown = async () => {
     try {

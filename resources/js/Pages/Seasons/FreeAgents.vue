@@ -543,6 +543,7 @@ const assignTeamsAuto = async () => {
             title: "Warning!",
             text: error.response.data.message,
         });
+        emits("newSeason", true);
     }
 };
 const roleClasses = (role) => {
