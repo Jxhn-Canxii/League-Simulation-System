@@ -169,8 +169,9 @@
                             v-for="(player, index) in game_logs.game_logs"
                             :key="index"
                             :class="{
-                                'bg-green-100': player.game_result === 'Win',
-                                'bg-red-100': player.game_result === 'Loss'
+                                'bg-green-200': player.game_result === 'Win' && player.game_minutes > 0,
+                                'bg-red-200': player.game_result === 'Loss' && player.game_minutes > 0,
+                                'bg-slate-200': player.game_minutes == 0,
                             }"
                             class="hover:bg-gray-100"
                         >
@@ -178,7 +179,7 @@
                             <td class="px-2 py-1 whitespace-nowrap border">{{ player.team_name }}</td>
                             <td class="px-2 py-1 whitespace-nowrap border">{{ player.opponent_team_name }}</td>
                             <td class="px-2 py-1 whitespace-nowrap border">{{ roundNameFormatter(isNaN(parseFloat(player.round)) ? player.round : parseFloat(player.round) + 1) }}</td>
-                            <td class="px-2 py-1 whitespace-nowrap border">{{ player.game_minutes }}</td>
+                            <td class="px-2 py-1 whitespace-nowrap border">{{ player.game_minutes == 0 ? 'DNP' : player.game_minutes }}</td>
                             <td class="px-2 py-1 whitespace-nowrap border">{{ player.game_points.toFixed(1) }}</td>
                             <td class="px-2 py-1 whitespace-nowrap border">{{ player.game_rebounds.toFixed(1) }}</td>
                             <td class="px-2 py-1 whitespace-nowrap border">{{ player.game_assists.toFixed(1) }}</td>
