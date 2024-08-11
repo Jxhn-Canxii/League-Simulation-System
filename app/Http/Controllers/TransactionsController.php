@@ -174,13 +174,13 @@ class TransactionsController extends Controller
     {
         switch ($role) {
             case 'star player':
-                return 5;
+                return rand(3,7);
             case 'starter':
-                return 3;
+                return rand(1,5);
             case 'role player':
-                return 2;
+                return rand(1,3);
             case 'bench':
-                return 1;
+                return rand(1,2);
             default:
                 return 1;
         }
