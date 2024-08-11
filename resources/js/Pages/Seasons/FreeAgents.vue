@@ -48,7 +48,7 @@
 
                 </div>
                 <div
-                    v-if="data.free_agents.length === 0"
+                    v-if="data.free_agents?.length === 0"
                     class="text-center text-gray-500"
                 >
                     No free agents found.
@@ -232,34 +232,15 @@
                 </div>
 
                 <!-- Pagination Controls -->
-                <div
-                    v-if="data.total > 0"
-                    class="flex justify-start font-bold p-2 text-xs overflow-auto"
-                >
-                    <button
-                        @click="fetchFreeAgent(data.current_page - 1)"
-                        :disabled="data.current_page === 1"
-                        class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50"
-                    >
-                        Previous
-                    </button>
-                    <button
-                        v-for="pageNumber in data.total_pages"
-                        :key="pageNumber"
-                        @click="fetchFreeAgent(pageNumber)"
-                        :disabled="data.current_page === pageNumber"
-                        class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50"
-                    >
-                        {{ pageNumber }}
-                    </button>
-                    <button
-                        @click="fetchFreeAgent(data.current_page + 1)"
-                        :disabled="data.current_page === data.total_pages"
-                        class="px-3 py-1 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50"
-                    >
-                        Next
-                    </button>
-                </div>
+                <div class="flex w-full overflow-auto">
+                    <Paginator
+                      v-if="data.total"
+                      :page_number="search.page_num"
+                      :total_rows="data.total ?? 0"
+                      :itemsperpage="search.itemsperpage"
+                      @page_num="handlePagination"
+                    />
+                  </div>
             </div>
         </div>
         <Modal :show="showAddPlayerModal" :maxWidth="'sm'">
@@ -305,20 +286,16 @@ import { ref, onMounted } from "vue";
 import axios from "axios"; // Ensure axios is imported
 import Swal from "sweetalert2";
 import Modal from "@/Components/Modal.vue";
-
+import Paginator from "@/Components/Paginator.vue";
 const showAddPlayerModal = ref(false);
 const newPlayerName = ref("");
-const data = ref({
-    free_agents: [],
-    current_page: 1,
-    total_pages: 0,
-    total: 0,
-});
+const data = ref([]);
 const search = ref({
-    current_page: 1,
+    page_num: 1,
     total_pages: 0,
     total: 0,
     search: "",
+    itemsperpage: 10,
 });
 const teams = ref([]);
 const emits = defineEmits(["newSeason"]);
@@ -415,7 +392,6 @@ const addMultiplePlayers = async (count) => {
 
 const fetchFreeAgent = async (page = 1) => {
     try {
-        search.value.current_page = page;
         const response = await axios.post(
             route("players.free.agents"),
             search.value
@@ -425,7 +401,10 @@ const fetchFreeAgent = async (page = 1) => {
         console.error("Error fetching free agents:", error);
     }
 };
-
+const handlePagination = (page_num) => {
+    search.value.page_num = page_num ?? 1;
+    fetchFreeAgent();
+};
 const assignTeams = async (player_id) => {
     try {
         // Show confirmation dialog

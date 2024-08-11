@@ -252,8 +252,8 @@ class PlayersController extends Controller
     public function getFreeAgents(Request $request)
     {
         // Get pagination parameters from the request
-        $perPage = $request->input('per_page', 10); // Number of items per page
-        $currentPage = $request->input('current_page', 1); // Current page number
+        $perPage = $request->input('itemsperpage', 10); // Number of items per page
+        $currentPage = $request->input('page_num', 1); // Current page number
         $search = $request->input('search', ''); // Search term
 
         // Calculate the offset for the query
