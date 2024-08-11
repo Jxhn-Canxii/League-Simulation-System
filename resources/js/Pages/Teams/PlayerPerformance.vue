@@ -86,13 +86,23 @@
                         <p class="text-sm">{{ season }}</p>
                     </div>
                 </div>
+                <div v-if="main_performance.conference_championships?.length > 0">
+                    <h4 class="text-sm font-semibold text-gray-600 mb-2">
+                        Conference Championships
+                        {{ main_performance.conference_championships?.length > 0 ? "(" + main_performance.conference_championships?.length + ")" : "" }}
+                    </h4>
+                    <div v-for="(season, index) in main_performance.conference_championships" :key="index" class="flex items-center mb-2">
+                        <i class="fa fa-ribbon text-yellow-500 mr-2"></i>
+                        <p class="text-sm">{{ season.season_name }} ({{ season.championship_team }})</p>
+                    </div>
+                </div>
                 <div v-if="main_performance.championships?.length > 0">
                     <h4 class="text-sm font-semibold text-gray-600 mb-2">
                         Championships
                         {{ main_performance.championships?.length > 0 ? "(" + main_performance.championships?.length + ")" : "" }}
                     </h4>
                     <div v-for="(season, index) in main_performance.championships" :key="index" class="flex items-center mb-2">
-                        <i class="fa fa-trophy text-green-500 mr-2"></i>
+                        <i class="fa fa-trophy text-yellow-500 mr-2"></i>
                         <p class="text-sm">{{ season.season_name }} ({{ season.championship_team }})</p>
                     </div>
                 </div>

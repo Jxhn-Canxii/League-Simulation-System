@@ -1051,6 +1051,46 @@ class PlayersController extends Controller
             ->groupBy('seasons.name', 'seasons.finals_winner_name')
             ->get();
 
+            $conference_championships = \DB::table('seasons')
+    ->join('player_game_stats', 'seasons.id', '=', 'player_game_stats.season_id')
+    ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id')
+    ->join('teams as team', 'player_game_stats.team_id', '=', 'team.id') // Join with player’s team
+    ->join('teams as home_team', 'schedules.home_id', '=', 'home_team.id') // Join with home team
+    ->join('teams as away_team', 'schedules.away_id', '=', 'away_team.id') // Join with away team
+    ->select(
+        'seasons.name as season_name',
+        \DB::raw('CASE
+            WHEN (schedules.home_id = team.id AND schedules.home_score > schedules.away_score) THEN home_team.name
+            WHEN (schedules.away_id = team.id AND schedules.away_score > schedules.home_score) THEN away_team.name
+            ELSE NULL
+        END as championship_team')
+    )
+    ->where('player_game_stats.player_id', $playerId)
+    ->where('schedules.round', 'semi_finals')
+    ->whereColumn('seasons.id', 'player_game_stats.season_id')
+    ->whereExists(function ($query) use ($playerId) {
+        $query->select(\DB::raw(1))
+            ->from('schedules as s')
+            ->join('player_game_stats as pg', 's.game_id', '=', 'pg.game_id')
+            ->where('pg.team_id', '=', \DB::raw('player_game_stats.team_id'))
+            ->where('s.round', 'semi_finals')
+            ->where('pg.player_id', $playerId)
+            ->whereColumn('pg.season_id', 'player_game_stats.season_id')
+            ->where(function ($q) {
+                $q->where(function ($q) {
+                    $q->whereColumn('s.home_id', 'player_game_stats.team_id')
+                        ->whereColumn('s.home_score', '>', 's.away_score');
+                })
+                ->orWhere(function ($q) {
+                    $q->whereColumn('s.away_id', 'player_game_stats.team_id')
+                        ->whereColumn('s.away_score', '>', 's.home_score');
+                });
+            });
+    })
+    ->groupBy('seasons.name', 'team.id', 'home_team.name', 'away_team.name', 'schedules.home_id', 'schedules.away_id', 'schedules.home_score', 'schedules.away_score')
+    ->get();
+
+
         // Fetch career high stats
         $careerHighs = \DB::table('player_game_stats')
             ->select(
@@ -1071,6 +1111,7 @@ class PlayersController extends Controller
             'mvp_count' => $mvpCount,
             'mvp_seasons' => $mvpData->pluck('season_name'),
             'championships' => $championships,
+            'conference_championships' => $conference_championships,
             'career_highs' => $careerHighs,
         ]);
     }

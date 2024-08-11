@@ -6,7 +6,7 @@
             Dashboard
         </template>
 
-        <div class="overflow-hidden shadow-sm sm:rounded-lg min-h-screen p-3">
+        <div class="inline-block min-w-full bg-white overflow-hidden shadow p-2 rounded">
             <div class="grid grid-cols-2 gap-6">
                     <TeamScoringRankings />
                     <Championships />
@@ -16,9 +16,7 @@
             </div>
             <div class="grid grid-cols-1 gap-6 mt-4">
                 <TopPlayoffTeams />
-            </div>
-            <div class="grid grid-cols-1 gap-6 mt-4">
-               <Rivals />
+                <Rivals />
             </div>
             <div class="grid grid-cols-2 gap-6 mt-4">
                 <PlayerScoringRankings />

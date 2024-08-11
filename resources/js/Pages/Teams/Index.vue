@@ -125,16 +125,16 @@
                         </tr>
                     </tbody>
                 </table>
+                <div class="flex w-full overflow-auto">
+                    <Paginator
+                        v-if="teams.total_count"
+                        :page_number="search_teams.page_num"
+                        :total_rows="teams.total_count ?? 0"
+                        :itemsperpage="search_teams.itemsperpage"
+                        @page_num="handlePagination"
+                    />
+                </div>
             </div>
-            <div class="flex w-full overflow-auto">
-                <Paginator
-                  v-if="teams.total_count"
-                  :page_number="search_teams.page_num"
-                  :total_rows="teams.total_count ?? 0"
-                  :itemsperpage="search_teams.itemsperpage"
-                  @page_num="handlePagination"
-                />
-              </div>
             <Modal :show="isAddModalOpen" :maxWidth="'2xl'">
                 <button
                     class="flex float-end bg-gray-100 p-3"
