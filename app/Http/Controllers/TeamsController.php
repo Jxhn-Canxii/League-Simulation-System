@@ -187,7 +187,7 @@ class TeamsController extends Controller
     {
         $teamId = $request->team_id;
         $page = $request->page_num ?? 1;
-        $itemsPerPage = $request->items_per_page ?? 10;
+        $itemsPerPage = $request->itemsperpage ?? 10;
 
         $teamSeasonHistory = $this->getSeasonHistory($teamId, $page, $itemsPerPage);
 

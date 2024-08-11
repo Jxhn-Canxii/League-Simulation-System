@@ -76,15 +76,15 @@
             </table>
         </div>
         <!-- Pagination Controls -->
-        <div class="mt-4 flex justify-between items-center" v-if="totalPages > 0">
-            <button @click="prevPage" :disabled="currentPage === 1" class="px-4 py-2 bg-blue-500 text-white rounded">
-                Previous
-            </button>
-            <span>Page {{ currentPage }} of {{ totalPages }}</span>
-            <button @click="nextPage" :disabled="currentPage === totalPages" class="px-4 py-2 bg-blue-500 text-white rounded">
-                Next
-            </button>
-        </div>
+        <div class="flex w-full overflow-auto">
+            <Paginator
+              v-if="team_history.total_items"
+              :page_number="search.page_num"
+              :total_rows="team_history.total_items ?? 0"
+              :itemsperpage="search.itemsperpage"
+              @page_num="handlePagination"
+            />
+          </div>
         <Modal :show="showTooltip" :maxWidth="'sm'">
             <button class="flex float-end bg-gray-100 p-3" @click.prevent="showTooltip = false">
                 <i class="fa fa-times text-black-600"></i>
@@ -108,6 +108,7 @@ import InputError from "@/Components/InputError.vue";
 import { roundNameFormatter } from "@/Utility/Formatter";
 import { ref, onMounted, computed, watch } from "vue";
 import Modal from "@/Components/Modal.vue";
+import Paginator from "@/Components/Paginator.vue";
 import Swal from "sweetalert2";
 import axios from "axios";
 
@@ -118,63 +119,30 @@ const props = defineProps({
     }
 });
 const showTooltip = ref(false);
-const team_history = ref({
-    history: [],
-    total_items: 0,
-    items_per_page: 10,
-    current_page: 1,
-    total_pages: 0
-});
+const team_history = ref([]);
 
-const currentPage = ref(1);
-const itemsPerPage = ref(10);
-const totalPages = ref(1);
-watch(() => props.team_id, async (n, o) => {
-    if (n !== o) {
-        await fetchDataForTeam(n, currentPage.value, itemsPerPage.value);
-    }
+const search = ref({
+    page_num: 1,
+    search: "",
+    itemsperpage: 10,
 });
+;
 onMounted(() => {
-    fetchDataForTeam(props.team_id, currentPage.value, itemsPerPage.value);
+    fetchTeamHistory();
 });
-const fetchDataForTeam = async (id, page, itemsPerPage) => {
+const fetchTeamHistory = async () => {
     try {
-        await fetchTeamHistory(id, page, itemsPerPage);
-    } catch (error) {
-        console.error("Error fetching data for team:", error);
-    }
-};
-const fetchTeamHistory = async (id, page, itemsPage) => {
-    try {
-        const response = await axios.post(route("teams.season.history"), {
-            team_id: id,
-            page_num: page,
-            items_per_page: itemsPage
-        });
+        search.value.team_id = props.team_id;
+        const response = await axios.post(route("teams.season.history"),search.value);
         team_history.value = response.data;
-        currentPage.value = response.data.current_page;
-        itemsPerPage.value = response.data.items_per_page;
-        console.log(response.data.total_pages)
-        totalPages.value = response.data.total_pages;
     } catch (error) {
         console.error("Error fetching team info:", error);
     }
 };
-
-const prevPage = () => {
-    if (currentPage.value > 1) {
-        currentPage.value--;
-        fetchDataForTeam(props.team_id, currentPage.value, itemsPerPage.value);
-    }
-};
-
-const nextPage = () => {
-    if (currentPage.value < team_history.value.total_pages) {
-        currentPage.value++;
-        fetchDataForTeam(props.team_id, currentPage.value, itemsPerPage.value);
-    }
-};
-
+const handlePagination = (page_num) => {
+    search.value.page_num = page_num ?? 1;
+    fetchTeamHistory();
+}
 const isNumberChecker = (round) => {
     return !isNaN(round) && !isNaN(parseFloat(round));
 };
