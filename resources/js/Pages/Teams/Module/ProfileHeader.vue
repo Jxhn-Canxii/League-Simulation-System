@@ -8,7 +8,7 @@
             Player Details
         </h3>
         <p>
-            <strong>Name:</strong> {{ main_performance.player_details.player_name ?? "-" }}
+            <strong>Name:</strong> {{ main_performance.player_details.player_name ?? "-" }} ,{{ main_performance.player_details.age ?? "N/A" }}
         </p>
         <p>
             <strong>Team:</strong> {{ main_performance.player_details.team_name ?? "-" }}
