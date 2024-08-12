@@ -194,7 +194,7 @@ export const playerStatusText = (isActive) => {
 export const playerExpStatusClass = (experience) => {
     if (parseFloat(experience) == 0) {
         return "bg-green-100 text-green-800"; // Rookie
-    } else if (parseFloat(experience) == 1) {
+    } else if (parseFloat(experience) == 2) {
         return "bg-red-100 text-red-800"; // Sophomore
     }
     else if (parseFloat(experience) > 2) {
@@ -208,7 +208,7 @@ export const playerExpStatusClass = (experience) => {
 export const playerExpStatusText = (experience) => {
     if (parseFloat(experience) == 1) {
         return "Rookie";
-    } else if (parseFloat(experience) === 2) {
+    } else if (parseFloat(experience) == 2) {
         return "Sophomore";
     } else if (parseFloat(experience) > 2) {
         return "Veteran";
