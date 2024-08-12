@@ -30,12 +30,14 @@
                 <p>
                     <strong>Season Experience:</strong>
                     <span :class="playerExpStatusClass(season_logs.player_stats?.length)">
-                        {{ playerExpStatusText(season_logs.player_stats?.length) }} {{ season_logs.player_stats?.length ?? 0 }}
+                        {{ playerExpStatusText(season_logs.player_stats?.length) }} ({{ season_logs.player_stats?.length ?? 0 }})
                     </span>
                 </p>
                 <p>
                     <strong>Playoff Experience:</strong>
-                    {{ playoff_logs.player_stats?.length ?? 0 }}
+                    <span :class="playerExpStatusClass(playoff_logs.player_stats?.length)">
+                        {{ playerExpStatusText(playoff_logs.player_stats?.length) }} ({{ playoff_logs.player_stats?.length ?? 0 }})
+                    </span>
                 </p>
                 <p>
                     <strong>Contract Status:</strong>
@@ -323,6 +325,7 @@ import { ref, onMounted, watch } from "vue";
 import axios from "axios";
 import PlayerGameLogs from "./PlayerGameLogs.vue";
 import Modal from "@/Components/Modal.vue";
+import { roleClasses, playerExpStatusClass,playerExpStatusText,playerStatusClass,playerStatusText } from "@/Utility/Formatter";
 const props = defineProps({
     player_id: {
         type: Number,
@@ -372,37 +375,6 @@ const fetchPlayerSeasonPerformance = async () => {
     } catch (error) {
         console.error("Error fetching player season performance:", error);
     }
-};
-
-// Helper functions
-const roleClasses = (role) => {
-    switch (role) {
-        case "starter":
-            return "bg-blue-100 text-blue-800";
-        case "star player":
-            return "bg-yellow-100 text-yellow-800";
-        case "role player":
-            return "bg-green-100 text-green-800";
-        case "bench":
-            return "bg-gray-100 text-gray-800";
-        default:
-            return "bg-gray-200 text-gray-800"; // Default case
-    }
-};
-
-const playerStatusClass = (isActive) => {
-    return isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800";
-};
-
-const playerStatusText = (isActive) => {
-    return isActive ? "Active" : "Waived";
-};
-const playerExpStatusClass = (isRookie) => {
-    return !isRookie ? "bg-gray-100 text-gray-800" : "bg-red-100 text-red-800";
-};
-
-const playerExpStatusText = (isRookie) => {
-    return !isRookie ? "Veteran" : "Rookie";
 };
 </script>
 

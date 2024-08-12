@@ -184,3 +184,68 @@ export const moneyFormatter = (amount) => {
     // Convert amount to number and format with commas for thousands separator
     return Number(amount).toLocaleString('en-US', {maximumFractionDigits: 2});
 }
+export const playerStatusClass = (isActive) => {
+    return isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800";
+};
+
+export const playerStatusText = (isActive) => {
+    return isActive ? "Active" : "Waived";
+};
+export const playerExpStatusClass = (experience) => {
+    if (parseFloat(experience) == 0) {
+        return "bg-green-100 text-green-800"; // Rookie
+    } else if (parseFloat(experience) == 1) {
+        return "bg-red-100 text-red-800"; // Sophomore
+    }
+    else if (parseFloat(experience) > 2) {
+        return "bg-yellow-100 text-yellow-800"; // Sophomore
+    }
+    else {
+        return "text-gray-800"; // Veteran
+    }
+};
+
+export const playerExpStatusText = (experience) => {
+    if (parseFloat(experience) == 1) {
+        return "Rookie";
+    } else if (parseFloat(experience) === 2) {
+        return "Sophomore";
+    } else if (parseFloat(experience) > 2) {
+        return "Veteran";
+    }
+    else {
+        return "None";
+    }
+};
+
+// Helper functions
+export const roleClasses = (role) => {
+    switch (role) {
+        case "starter":
+            return "bg-blue-100 text-blue-800";
+        case "star player":
+            return "bg-yellow-100 text-yellow-800";
+        case "role player":
+            return "bg-green-100 text-green-800";
+        case "bench":
+            return "bg-gray-100 text-gray-800";
+        default:
+            return "bg-gray-200 text-gray-800"; // Default case
+    }
+};
+  // Function to determine badge class based on role
+export const roleBadgeClass = (role) => {
+    switch(role) {
+      case 'star player':
+        return 'bg-red-500 text-white rounded-full px-2 py-1 text-xs';
+      case 'starter':
+        return 'bg-blue-500 text-white rounded-full px-2 py-1 text-xs';
+      case 'role player':
+        return 'bg-green-500 text-white rounded-full px-2 py-1 text-xs';
+      case 'bench':
+        return 'bg-gray-500 text-white rounded-full px-2 py-1 text-xs';
+      default:
+        return 'bg-gray-300 text-gray-800 rounded-full px-2 py-1 text-xs';
+    }
+  };
+
