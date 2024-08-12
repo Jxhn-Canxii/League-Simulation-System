@@ -50,9 +50,7 @@ import { ref, onMounted } from "vue";
 import { roundNameFormatter,generateRandomKey, moneyFormatter } from "@/Utility/Formatter";
 import Paginator from "@/Components/Paginator.vue";
 
-
 const recent_results = ref([]);
-
 
 const fetchRecentResults = async () => {
     try {

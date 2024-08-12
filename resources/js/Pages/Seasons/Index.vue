@@ -499,7 +499,7 @@ import axios from "axios";
 
 import Seasons from "@/Pages/Seasons/Module/Season.vue";
 import Playoffs from "@/Pages/Seasons/Module/Playoffs.vue";
-import FreeAgents from "./Module/FreeAgents.vue";
+import FreeAgents from "@/Pages/Seasons/Module/FreeAgents.vue";
 
 const isAddModalOpen = ref(false);
 const isViewModalOpen = ref(false);

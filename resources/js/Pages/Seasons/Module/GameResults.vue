@@ -145,8 +145,10 @@
   import axios from 'axios';
   import { roundNameFormatter } from "@/Utility/Formatter";
   import Modal from "@/Components/Modal.vue";
-  import TeamRoster from '../Teams/Module/TeamRoster.vue';
-  import PlayerPerformance from '../Teams/Module/PlayerPerformance.vue';
+
+  import TeamRoster from "@/Pages/Teams/Module/TeamRoster.vue";
+  import PlayerPerformance from "@/Pages/Teams/Module/PlayerPerformance.vue";
+
   const props = defineProps({
     game_id: {
       type: Number,
