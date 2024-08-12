@@ -406,9 +406,9 @@ import { roundNameFormatter } from "@/Utility/Formatter";
 import { ref, onMounted } from "vue";
 import Swal from "sweetalert2";
 import axios from "axios";
-import TeamHistory from "./TeamHistory.vue";
-import TeamInfo from "./TeamInfo.vue";
-import TeamRoster from "./TeamRoster.vue";
+import TeamHistory from "./Module/TeamHistory.vue";
+import TeamInfo from "./Module/TeamInfo.vue";
+import TeamRoster from "./Module/TeamRoster.vue";
 
 const isAddModalOpen = ref(false);
 const isEditModalOpen = ref(false);

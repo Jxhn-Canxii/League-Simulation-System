@@ -31,10 +31,10 @@ import { Head } from '@inertiajs/vue3';
 import { ref, onMounted } from "vue";
 import { roundNameFormatter,generateRandomKey, moneyFormatter } from "@/Utility/Formatter";
 import Paginator from "@/Components/Paginator.vue";
-import TeamScoringRankings from './TeamScoringRankings.vue';
-import Championships from './Championships.vue';
-import Last12Games from './Last12Games.vue';
-import PlayerScoringRankings from './PlayerScoringRankings.vue';
-import Rivals from './Rivals.vue';
-import TopPlayoffTeams from './TopPlayoffTeams.vue';
+import TeamScoringRankings from './Module/TeamScoringRankings.vue';
+import Championships from './Module/Championships.vue';
+import Last12Games from './Module/Last12Games.vue';
+import PlayerScoringRankings from './Module/PlayerScoringRankings.vue';
+import Rivals from './Module/Rivals.vue';
+import TopPlayoffTeams from './Module/TopPlayoffTeams.vue';
 </script>

@@ -294,9 +294,9 @@ import {
     roundStatusFormatter,
 } from "@/Utility/Formatter.js";
 
-import TeamHistory from "../Teams/TeamHistory.vue";
-import TeamInfo from "../Teams/TeamInfo.vue";
-import TeamComparison from "../Teams/TeamComparison.vue";
+import TeamHistory from "../Teams/Module/TeamHistory.vue";
+import TeamInfo from "../Teams/Module/TeamInfo.vue";
+import TeamComparison from "../Teams/Module/TeamComparison.vue";
 import GameResults from "./GameResults.vue";
 
 const isAddModalOpen = ref(false);

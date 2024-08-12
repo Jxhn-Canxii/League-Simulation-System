@@ -522,13 +522,15 @@ import { useForm } from "@inertiajs/vue3";
 import { ref, onMounted, watch, computed } from "vue";
 import Swal from "sweetalert2";
 import axios from "axios";
-import TeamInfo from "../Teams/TeamInfo.vue";
-import TeamHistory from "../Teams/TeamHistory.vue";
-import TeamRoster from "../Teams/TeamRoster.vue";
-import TopPlayers from "./TopPlayers.vue";
 import Modal from "@/Components/Modal.vue";
 import { roundNameFormatter } from "@/Utility/Formatter";
+
+import TeamInfo from "../Teams/Module/TeamInfo.vue";
+import TeamHistory from "../Teams/Module/TeamHistory.vue";
+import TeamRoster from "../Teams/Module/TeamRoster.vue";
+import TopPlayers from "./TopPlayers.vue";
 import GameResults from "./GameResults.vue";
+
 const season_info = ref(false);
 const season_conference = ref(false);
 const season_standings = ref(false);

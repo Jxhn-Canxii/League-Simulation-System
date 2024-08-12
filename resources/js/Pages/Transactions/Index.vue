@@ -88,7 +88,9 @@ import axios from 'axios'; // Ensure axios is imported
 import Swal from "sweetalert2";
 import Modal from "@/Components/Modal.vue";
 import Paginator from "@/Components/Paginator.vue";
-import PlayerPerformance from '../Teams/PlayerPerformance.vue';
+
+import PlayerPerformance from '../Teams/Module/PlayerPerformance.vue';
+
 const showPlayerProfileModal = ref(false);
 const selectedPlayer = ref([]);
 const data = ref({

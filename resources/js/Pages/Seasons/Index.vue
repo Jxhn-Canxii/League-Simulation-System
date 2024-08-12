@@ -494,11 +494,12 @@ import Modal from "@/Components/Modal.vue";
 import { roundNameFormatter, roundGridFormatter } from "@/Utility/Formatter.js";
 import Paginator from "@/Components/Paginator.vue";
 import { ref, onMounted } from "vue";
-import Seasons from "@/Pages/Seasons/Season.vue";
-import Playoffs from "@/Pages/Seasons/Playoffs.vue";
-import FreeAgents from "./FreeAgents.vue";
 import Swal from "sweetalert2";
 import axios from "axios";
+
+import Seasons from "@/Pages/Seasons/Module/Season.vue";
+import Playoffs from "@/Pages/Seasons/Module/Playoffs.vue";
+import FreeAgents from "./Module/FreeAgents.vue";
 
 const isAddModalOpen = ref(false);
 const isViewModalOpen = ref(false);
