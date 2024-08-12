@@ -117,7 +117,6 @@ const search = ref({
 // Fetch data on component mount
 onMounted(async () => {
     isLoading.value = true;
-    await fetchPlayerMainPerformance();
     await fetchPlayerGameLogs();
     isLoading.value = false;
 });
