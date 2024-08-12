@@ -207,6 +207,7 @@ class PlayersController extends Controller
                 'role' => $player->role,
                 'is_active' => $player->is_active,
                 'is_rookie' => $player->is_rookie,
+                'retirement_age' => $player->retirement_age,
                 'status' => $status,
                 'total_points' => $totalPoints,
                 'total_rebounds' => $totalRebounds,
@@ -313,7 +314,7 @@ class PlayersController extends Controller
 
         // Build the query with optional search filter and join with teams
         $query = DB::table('players')
-            ->select('players.id as player_id', 'players.name', 'players.age', 'players.role', 'players.is_active', 'players.contract_years', DB::raw("IF(players.team_id = 0, 'none', teams.name) as team_name"))
+            ->select('players.id as player_id', 'players.name', 'players.age', 'players.role', 'players.is_active','players.retirement_age', 'players.contract_years', DB::raw("IF(players.team_id = 0, 'none', teams.name) as team_name"))
             ->leftJoin('teams', 'players.team_id', '=', 'teams.id');
 
         // Apply search filter if provided

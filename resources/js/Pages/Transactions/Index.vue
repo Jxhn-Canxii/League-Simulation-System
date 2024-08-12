@@ -28,6 +28,7 @@
                                     <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Current Team</th>
                                     <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Remaining Contract</th>
                                     <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Age</th>
+                                    <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Retirement</th>
                                     <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Role</th>
                                     <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                 </tr>
@@ -38,14 +39,21 @@
                                     <td class="px-2 py-1 whitespace-nowrap border">{{ player.team_name ?? '-' }}</td>
                                     <td class="px-2 py-1 whitespace-nowrap border">{{ player.contract_years ?? 0 }} yrs.</td>
                                     <td class="px-2 py-1 whitespace-nowrap border">{{ player.age }}</td>
+                                    <td class="px-2 py-1 whitespace-nowrap border">{{ player.retirement_age }}</td>
                                     <td class="px-2 py-1 whitespace-nowrap border">
                                         <span :class="roleClasses(player.role)" class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium">
                                             {{ player.role }}
                                         </span>
                                     </td>
                                     <td class="px-2 py-1 whitespace-nowrap border">
-                                        <span v-if="player.is_active" class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Active</span>
-                                        <span v-else class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Waived/Free Agent</span>
+                                        <!-- Display "Retired" if player is not active and retirement age is greater than or equal to their age -->
+                                        <span v-if="player.age > player.retirement_age && !player.is_active" class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">Retired</span>
+
+                                        <!-- Display "Active" if player is active and retirement age is less than their age -->
+                                        <span v-if="player.age <= player.retirement_age && player.is_active" class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Active</span>
+
+                                        <!-- Display "Waived/Free Agent" if player is waived/free agent and retirement age is less than their age -->
+                                        <span v-if="player.age <= player.retirement_age && !player.is_active" class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Waived/Free Agent</span>
                                     </td>
                                 </tr>
                             </tbody>

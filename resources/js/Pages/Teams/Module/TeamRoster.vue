@@ -157,24 +157,14 @@
                             {{ player.average_fouls_per_game.toFixed(1) }}
                         </td>
                         <td class="px-2 py-1 whitespace-nowrap border">
-                            <span
-                                v-if="player.status == 1"
-                                class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800"
-                            >
-                                Active
-                            </span>
-                            <span
-                                v-else-if="player.status == 2"
-                                class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800"
-                            >
-                                Transferred
-                            </span>
-                            <span
-                                v-else
-                                class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"
-                            >
-                                Free Agent
-                            </span>
+                            <!-- Display "Retired" if player is not active and retirement age is greater than or equal to their age -->
+                            <span v-if="player.age > player.retirement_age && !player.is_active" class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">Retired</span>
+
+                            <!-- Display "Active" if player is active and retirement age is less than their age -->
+                            <span v-if="player.age <= player.retirement_age && player.is_active" class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Active</span>
+
+                            <!-- Display "Waived/Free Agent" if player is waived/free agent and retirement age is less than their age -->
+                            <span v-if="player.age <= player.retirement_age && !player.is_active" class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Waived/Free Agent</span>
                         </td>
                         <!-- <td class="px-2 py-1 whitespace-nowrap border">
                             <button
