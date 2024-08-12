@@ -1117,7 +1117,7 @@ class PlayersController extends Controller
             ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id')
             ->where('player_game_stats.player_id', $playerId)
             ->whereIn('schedules.round', ['round_of_16', 'quarter_finals', 'semi_finals', 'interconference_semi_finals', 'finals'])
-            ->distinct('schedules.round')
+            ->distinct('schedules.season_id')
             ->count('schedules.round');
 
         return response()->json([
