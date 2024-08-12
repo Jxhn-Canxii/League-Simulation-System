@@ -218,7 +218,7 @@ class ScheduleController extends Controller
                     // Ensure both teams are not null (bye team)
                     if ($homeTeam && $awayTeam) {
                         // Second leg match (reverse of the first leg)
-                        $round = $round + 1;
+                        $round = $numTeams + 1;
                         $gameId = $seasonId . '-' . $round . '-2' . $conferenceId . '-' . $gameIdCounter;
                         $matches[] = [
                             'season_id' => $seasonId,
