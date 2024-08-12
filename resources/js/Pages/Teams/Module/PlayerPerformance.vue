@@ -28,10 +28,14 @@
                     </span>
                 </p>
                 <p>
-                    <strong>Experience:</strong>
-                    <span :class="playerExpStatusClass(main_performance.player_details.is_rookie)">
-                        {{ playerExpStatusText(main_performance.player_details.is_rookie) }}
+                    <strong>Season Experience:</strong>
+                    <span :class="playerExpStatusClass(season_logs.player_stats?.length)">
+                        {{ playerExpStatusText(season_logs.player_stats?.length) }} {{ season_logs.player_stats?.length ?? 0 }}
                     </span>
+                </p>
+                <p>
+                    <strong>Playoff Experience:</strong>
+                    {{ playoff_logs.player_stats?.length ?? 0 }}
                 </p>
                 <p>
                     <strong>Contract Status:</strong>
