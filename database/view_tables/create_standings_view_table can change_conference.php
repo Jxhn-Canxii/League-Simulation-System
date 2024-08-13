@@ -25,45 +25,40 @@ WITH team_games AS (
     WHERE
         schedules.round NOT IN ('round_of_32', 'round_of_16', 'quarter_finals', 'semi_finals', 'interconference_semi_finals', 'finals')
 ),
-streaks AS (
+game_streaks AS (
     SELECT
         team_id,
         season_id,
         game_result,
-        round,
+        game_id,
+        ROW_NUMBER() OVER (PARTITION BY team_id, season_id ORDER BY game_id) -
+        ROW_NUMBER() OVER (PARTITION BY team_id, season_id, game_result ORDER BY game_id) AS streak_id
+    FROM
+        team_games
+    WHERE
+        game_result IS NOT NULL
+),
+streak_summary AS (
+    SELECT
+        team_id,
+        season_id,
+        game_result,
         COUNT(*) AS streak_length
-    FROM (
-        SELECT
-            team_id,
-            season_id,
-            game_result,
-            round,
-            ROW_NUMBER() OVER (PARTITION BY team_id, season_id ORDER BY game_id) -
-            ROW_NUMBER() OVER (PARTITION BY team_id, season_id, game_result ORDER BY game_id) AS streak_id
-        FROM
-            team_games
-    ) AS streak_groups
-    WHERE game_result IS NOT NULL
+    FROM
+        game_streaks
     GROUP BY
-        team_id, season_id, game_result, streak_id, round
+        team_id, season_id, game_result, streak_id
 ),
 latest_streak AS (
     SELECT
         team_id,
         season_id,
         game_result,
-        streak_length
-    FROM (
-        SELECT
-            team_id,
-            season_id,
-            game_result,
-            streak_length,
-            ROW_NUMBER() OVER (PARTITION BY team_id, season_id ORDER BY streak_length DESC, round DESC) AS rn
-        FROM
-            streaks
-    ) AS ranked_streaks
-    WHERE rn = 1
+        MAX(streak_length) AS streak_length
+    FROM
+        streak_summary
+    GROUP BY
+        team_id, season_id, game_result
 ),
 team_rankings AS (
     SELECT
