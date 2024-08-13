@@ -251,7 +251,6 @@ class DashboardController extends Controller
                      DB::raw('IFNULL((SUM(wins) / NULLIF(SUM(wins) + SUM(losses), 0)) * 100, 0) as win_rate'))
             ->leftJoin('teams', 'standings_view.team_id', '=', 'teams.id')
             ->leftJoin('conferences', 'teams.conference_id', '=', 'conferences.id')
-            ->where('seasons.status',8)
             ->groupBy('teams.id', 'teams.name', 'conferences.name')
             ->orderBy('total_wins', 'desc') // Sort by total wins in descending order
             ->skip($offset)
@@ -274,6 +273,7 @@ class DashboardController extends Controller
                      DB::raw('SUM(losses) as total_losses'),
                      DB::raw('IFNULL((SUM(wins) / NULLIF(SUM(wins) + SUM(losses), 0)) * 100, 0) as win_rate'))
             ->leftJoin('seasons', 'standings_view.season_id', '=', 'seasons.id') // Join with seasons table
+            ->where('seasons.status',8)
             ->groupBy('standings_view.team_id', 'standings_view.season_id', 'seasons.name')
             ->orderBy('standings_view.team_id', 'asc'); // For grouping by team_id
 
