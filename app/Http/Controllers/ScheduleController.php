@@ -194,7 +194,7 @@ class ScheduleController extends Controller
                 $roundCounter++; // Increment round number after each round
             }
 
-            // Generate reverse matches for double round-robin
+            // Generate reverse matches for double round-robin (second leg)
             for ($round = 0; $round < ($numTeams - 1); $round++) {
                 for ($i = 0; $i < $numTeams / 2; $i++) {
                     $homeIndex = ($round + $i) % ($numTeams - 1);
@@ -269,6 +269,7 @@ class ScheduleController extends Controller
                 }
             }
         }
+
     }
     // Helper function to create a match pair
     public function simulate(Request $request)
