@@ -15,24 +15,18 @@
         <thead>
             <tr class="border-b bg-gray-50 text-left  text-nowrap text-xs font-semibold uppercase tracking-wide text-gray-500">
                 <th class="border-b-2 border-gray-200 bg-gray-100 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
-                    Rank
-                </th>
-                <th class="border-b-2 border-gray-200 bg-gray-100 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                     Player
                 </th>
                 <th class="border-b-2 border-gray-200 bg-gray-100 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
-                    Current Team
+                    Team
                 </th>
                 <th class="border-b-2 border-gray-200 bg-gray-100 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
-                    All-time Score
+                    Score
                 </th>
             </tr>
         </thead>
         <tbody>
             <tr v-for="player in scorers.data" v-if="scorers.total_pages" :key="player.id" class="text-gray-700">
-                <td class="border-b border-gray-200 bg-white px-3 py-3 text-xs">
-                    <p class="text-gray-900 whitespace-no-wrap uppercase">{{ player.rank }}</p>
-                </td>
                 <td class="border-b border-gray-200 bg-white px-3 py-3 text-xs">
                     <p class="text-gray-900 whitespace-no-wrap uppercase">{{ player.player_name }}</p>
                 </td>

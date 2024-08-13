@@ -156,19 +156,10 @@ class ScheduleController extends Controller
 
         // Generate matches for each conference
         foreach ($teamsByConference as $conferenceId => $conferenceTeams) {
-            // Initialize variables
-            $numTeams = $conferenceTeams->count();
-            $gameIdCounter = 1;
+            $roundCounter = 0; // Initialize round counter
+            $numTeams = count($conferenceTeams);
+            $gameIdCounter = 1; // Initialize game ID counter
             $matches = [];
-
-            // Check if the number of teams is odd
-            $hasOddTeams = $numTeams % 2 !== 0;
-
-            // If odd, add a bye team
-            if ($hasOddTeams) {
-                $conferenceTeams->push(null); // Add a null team as a placeholder for the bye
-                $numTeams++; // Increment the number of teams
-            }
 
             // Generate matches for each round
             for ($round = 0; $round < ($numTeams - 1); $round++) {
@@ -186,11 +177,11 @@ class ScheduleController extends Controller
                     // Ensure both teams are not null (bye team)
                     if ($homeTeam && $awayTeam) {
                         // First leg match
-                        $gameId = $seasonId . '-' . $round . '-1' . $conferenceId . '-' . $gameIdCounter;
+                        $gameId = $seasonId . '-' . ($roundCounter + 1) . '-' . $conferenceId . '-' . $gameIdCounter;
                         $matches[] = [
                             'season_id' => $seasonId,
                             'game_id' => $gameId,
-                            'round' => $round, // Pattern: round_conference_id
+                            'round' => $roundCounter + 1, // Continue round number
                             'conference_id' => $conferenceId,
                             'home_id' => $homeTeam->id,
                             'away_id' => $awayTeam->id,
@@ -200,6 +191,7 @@ class ScheduleController extends Controller
                         $gameIdCounter++;
                     }
                 }
+                $roundCounter++; // Increment round number after each round
             }
 
             // Generate reverse matches for double round-robin
@@ -218,12 +210,11 @@ class ScheduleController extends Controller
                     // Ensure both teams are not null (bye team)
                     if ($homeTeam && $awayTeam) {
                         // Second leg match (reverse of the first leg)
-                        $round = $numTeams + 1;
-                        $gameId = $seasonId . '-' . $round . '-2' . $conferenceId . '-' . $gameIdCounter;
+                        $gameId = $seasonId . '-' . ($roundCounter + 1) . '-' . $conferenceId . '-' . $gameIdCounter;
                         $matches[] = [
                             'season_id' => $seasonId,
                             'game_id' => $gameId,
-                            'round' => $round, // Pattern: round_conference_id
+                            'round' => $roundCounter + 1, // Continue round number
                             'conference_id' => $conferenceId,
                             'home_id' => $awayTeam->id,
                             'away_id' => $homeTeam->id,
@@ -233,7 +224,9 @@ class ScheduleController extends Controller
                         $gameIdCounter++;
                     }
                 }
+                $roundCounter++; // Increment round number after each round
             }
+
 
             // Save matches to the database
             Schedules::insert($matches);

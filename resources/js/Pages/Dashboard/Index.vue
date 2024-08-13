@@ -7,9 +7,10 @@
         </template>
 
         <div class="inline-block min-w-full bg-white overflow-hidden shadow p-2 rounded">
-            <div class="grid grid-cols-2 gap-6">
-                    <TeamScoringRankings />
-                    <Championships />
+            <div class="grid grid-cols-3 gap-6">
+                <Championships />
+                <PlayerScoringRankings />
+                <TeamScoringRankings />
             </div>
             <div class="grid grid-cols-1 gap-6 mt-4">
                 <Last12Games />
@@ -18,8 +19,8 @@
                 <TopPlayoffTeams />
                 <Rivals />
             </div>
-            <div class="grid grid-cols-2 gap-6 mt-4">
-                <PlayerScoringRankings />
+            <div class="grid grid-cols-1 gap-6 mt-4">
+                <TeamWinningRankings />
             </div>
         </div>
     </AuthenticatedLayout>
@@ -37,4 +38,5 @@ import Last12Games from './Module/Last12Games.vue';
 import PlayerScoringRankings from './Module/PlayerScoringRankings.vue';
 import Rivals from './Module/Rivals.vue';
 import TopPlayoffTeams from './Module/TopPlayoffTeams.vue';
+import TeamWinningRankings from './Module/TeamWinningRankings.vue';
 </script>

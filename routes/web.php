@@ -41,6 +41,7 @@ Route::middleware('auth')->group(function () {
         Route::post('champions', [DashboardController::class, 'champions'])->name('dashboard.champions');
         Route::post('recent', [DashboardController::class, 'recent'])->name('dashboard.recent');
         Route::post('topscorerteams', [DashboardController::class, 'topscorerteams'])->name('dashboard.team.topscorer');
+        Route::post('winningestteams', [DashboardController::class, 'winningestteams'])->name('dashboard.team.winningest');
         Route::post('rivals', [DashboardController::class, 'get_rivalries'])->name('dashboard.rivalries');
         Route::post('playoff_appearances', [DashboardController::class, 'playoff_appearances'])->name('dashboard.playoff.appearances');
         Route::post('topscorerplayers', [DashboardController::class, 'topscorerplayers'])->name('dashboard.player.topscorer');

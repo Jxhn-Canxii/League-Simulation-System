@@ -179,13 +179,7 @@ class DashboardController extends Controller
         // Calculate the offset for pagination
         $offset = ($page - 1) * $perPage;
 
-        // Query to fetch the total number of unique players
-        $totalCount = DB::table('player_game_stats')
-            ->select('player_id')
-            ->distinct()
-            ->count();
-
-        // Query to fetch the paginated list of top scorers
+        // Query to fetch all entries from player_game_stats and sum up scores for each player
         $scoreAlltime = DB::table('player_game_stats')
             ->select('players.name as player_name', 'teams.name as team_name', DB::raw('SUM(player_game_stats.points) as total_score'))
             ->leftJoin('players', 'player_game_stats.player_id', '=', 'players.id')
@@ -201,15 +195,118 @@ class DashboardController extends Controller
                 return $item;
             });
 
+        // Count total unique players with scores
+        $totalCount = DB::table('player_game_stats')
+            ->select('player_id')
+            ->distinct()
+            ->leftJoin('players', 'player_game_stats.player_id', '=', 'players.id')
+            ->count();
+
         // Calculate total pages
         $totalPages = ceil($totalCount / $perPage);
 
         // Ensure the current page does not exceed total pages
         $page = min($page, $totalPages);
 
+        // Re-run the query to ensure correct results on the last page
+        $scoreAlltime = DB::table('player_game_stats')
+            ->select('players.name as player_name', 'teams.name as team_name', DB::raw('SUM(player_game_stats.points) as total_score'))
+            ->leftJoin('players', 'player_game_stats.player_id', '=', 'players.id')
+            ->leftJoin('teams', 'players.team_id', '=', 'teams.id')
+            ->groupBy('players.name', 'teams.name')
+            ->orderBy('total_score', 'desc') // Sort by total score in descending order
+            ->skip($offset)
+            ->take($perPage)
+            ->get()
+            ->map(function ($item, $index) use ($offset) {
+                // Add rank to each item
+                $item->rank = $offset + $index + 1;
+                return $item;
+            });
+
         // Create the response array
         $response = [
             'data' => $scoreAlltime,
+            'current_page' => $page,
+            'total_pages' => $totalPages,
+            'total' => $totalCount,
+        ];
+
+        return response()->json($response);
+    }
+    public function winningestteams(Request $request)
+    {
+        // Extracting per_page and current_page from request
+        $perPage = $request->input('per_page', 10); // Default per page to 10 if not provided
+        $page = $request->input('page_num', 1); // Default page to 1 if not provided
+
+        // Calculating the offset to skip records
+        $offset = ($page - 1) * $perPage;
+
+        // Query to fetch team statistics
+        $teamsStats = DB::table('standings_view')
+            ->select('teams.id as team_id', 'teams.name', 'conferences.name as conference',
+                     DB::raw('SUM(wins) as total_wins'),
+                     DB::raw('SUM(losses) as total_losses'),
+                     DB::raw('IFNULL((SUM(wins) / NULLIF(SUM(wins) + SUM(losses), 0)) * 100, 0) as win_rate'))
+            ->leftJoin('teams', 'standings_view.team_id', '=', 'teams.id')
+            ->leftJoin('conferences', 'teams.conference_id', '=', 'conferences.id')
+            ->where('seasons.status',8)
+            ->groupBy('teams.id', 'teams.name', 'conferences.name')
+            ->orderBy('total_wins', 'desc') // Sort by total wins in descending order
+            ->skip($offset)
+            ->take($perPage)
+            ->get();
+
+        // Count total records (number of distinct teams in standings_view)
+        $totalCount = DB::table('standings_view')
+            ->distinct('team_id')
+            ->count('team_id');
+
+        // Calculate total pages
+        $totalPages = ceil($totalCount / $perPage);
+
+        // Query to get best and worst seasons for each team
+        $teamSeasons = DB::table('standings_view')
+            ->select('standings_view.team_id', 'standings_view.season_id',
+                     'seasons.name as season_name',
+                     DB::raw('SUM(wins) as total_wins'),
+                     DB::raw('SUM(losses) as total_losses'),
+                     DB::raw('IFNULL((SUM(wins) / NULLIF(SUM(wins) + SUM(losses), 0)) * 100, 0) as win_rate'))
+            ->leftJoin('seasons', 'standings_view.season_id', '=', 'seasons.id') // Join with seasons table
+            ->groupBy('standings_view.team_id', 'standings_view.season_id', 'seasons.name')
+            ->orderBy('standings_view.team_id', 'asc'); // For grouping by team_id
+
+        // Determine best and worst seasons per team
+        $bestSeasons = $teamSeasons->clone()->orderBy('win_rate', 'desc')->get()->groupBy('team_id')->map(function ($seasons) {
+            return $seasons->first(); // Best winning season (highest percentage) for each team
+        });
+
+        $worstSeasons = $teamSeasons->clone()->orderBy('win_rate', 'asc')->get()->groupBy('team_id')->map(function ($seasons) {
+            return $seasons->first(); // Worst winning season (lowest percentage) for each team
+        });
+
+        // Combine team stats with best and worst seasons
+        $teamsWithSeasons = $teamsStats->map(function ($team) use ($bestSeasons, $worstSeasons) {
+            $bestSeason = $bestSeasons->get($team->team_id);
+            $worstSeason = $worstSeasons->get($team->team_id);
+
+            return [
+                'team_name' => $team->name,
+                'conference' => $team->conference,
+                'total_wins' => $team->total_wins,
+                'total_losses' => $team->total_losses,
+                'win_rate' => $team->win_rate,
+                'best_season' => $bestSeason ? $bestSeason->season_name : 'N/A',
+                'best_win_loss' => $bestSeason ? $bestSeason->total_wins . "-" . $bestSeason->total_losses : 'N/A',
+                'worst_season' => $worstSeason ? $worstSeason->season_name : 'N/A',
+                'worst_win_loss' => $worstSeason ? $worstSeason->total_wins . "-" . $worstSeason->total_losses : 'N/A',
+            ];
+        });
+
+        // Create the response array
+        $response = [
+            'data' => $teamsWithSeasons,
             'current_page' => $page,
             'total_pages' => $totalPages,
             'total' => $totalCount,
