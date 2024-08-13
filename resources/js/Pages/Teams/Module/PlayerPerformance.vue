@@ -398,6 +398,14 @@ const playerStatusText = (isActive) => {
     return isActive ? "Active" : "Waived";
 };
 const playerExpStatusClass = (isRookie) => {
+    switch (isRookie) {
+        case value:
+
+            break;
+
+        default:
+            break;
+    }h
     return !isRookie ? "bg-gray-100 text-gray-800" : "bg-red-100 text-red-800";
 };
 
