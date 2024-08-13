@@ -170,7 +170,7 @@ class ScheduleController extends Controller
                 $numTeams++; // Increment the number of teams
             }
 
-            // Generate matches for each round
+            // Generate matches for each round (first leg)
             for ($round = 0; $round < ($numTeams - 1); $round++) {
                 for ($i = 0; $i < $numTeams / 2; $i++) {
                     $homeIndex = ($round + $i) % ($numTeams - 1);
@@ -202,7 +202,7 @@ class ScheduleController extends Controller
                 }
             }
 
-            // Generate reverse matches for double round-robin
+            // Generate reverse matches for double round-robin (second leg)
             for ($round = 0; $round < ($numTeams - 1); $round++) {
                 for ($i = 0; $i < $numTeams / 2; $i++) {
                     $homeIndex = ($round + $i) % ($numTeams - 1);
@@ -218,12 +218,11 @@ class ScheduleController extends Controller
                     // Ensure both teams are not null (bye team)
                     if ($homeTeam && $awayTeam) {
                         // Second leg match (reverse of the first leg)
-                        $round = $numTeams + 1;
-                        $gameId = $seasonId . '-' . $round . '-2' . $conferenceId . '-' . $gameIdCounter;
+                        $gameId = $seasonId . '-' . ($round + $numTeams - 1) . '-2' . $conferenceId . '-' . $gameIdCounter;
                         $matches[] = [
                             'season_id' => $seasonId,
                             'game_id' => $gameId,
-                            'round' => $round, // Pattern: round_conference_id
+                            'round' => $round + $numTeams - 1, // Adjusted round for second leg
                             'conference_id' => $conferenceId,
                             'home_id' => $awayTeam->id,
                             'away_id' => $homeTeam->id,
@@ -276,6 +275,7 @@ class ScheduleController extends Controller
                 }
             }
         }
+
     }
     // Helper function to create a match pair
     public function simulate(Request $request)
