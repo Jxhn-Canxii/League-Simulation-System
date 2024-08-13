@@ -832,6 +832,7 @@ class PlayersController extends Controller
         if ($playerStats->isEmpty()) {
             return response()->json([
                 'error' => 'No stats found for the given player.',
+                'player_stats' => [],
             ], 404);
         }
 
@@ -874,7 +875,6 @@ class PlayersController extends Controller
                 'average_fouls_per_game' => $averageFoulsPerGame,
             ];
         }
-
         return response()->json([
             'player_stats' => $formattedPlayerStats,
         ]);
@@ -920,6 +920,7 @@ class PlayersController extends Controller
         if ($playerStats->isEmpty()) {
             return response()->json([
                 'error' => 'No stats found for the given player.',
+                'player_stats' => [],
             ], 404);
         }
 
@@ -981,7 +982,7 @@ class PlayersController extends Controller
         $playerDetails = \DB::table('players')
             ->join('teams', 'players.team_id', '=', 'teams.id', 'left') // Join teams table to get team details
             ->where('players.id', $playerId)
-            ->select('players.id as player_id', 'players.name as player_name', 'teams.name as team_name', 'players.role', 'players.contract_years', 'players.is_rookie')
+            ->select('players.id as player_id', 'players.name as player_name','players.age as age', 'teams.name as team_name', 'players.role', 'players.contract_years', 'players.is_rookie')
             ->first();
 
         if (!$playerDetails) {
@@ -1052,45 +1053,44 @@ class PlayersController extends Controller
             ->groupBy('seasons.name', 'seasons.finals_winner_name')
             ->get();
 
-            $conference_championships = \DB::table('seasons')
-    ->join('player_game_stats', 'seasons.id', '=', 'player_game_stats.season_id')
-    ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id')
-    ->join('teams as team', 'player_game_stats.team_id', '=', 'team.id') // Join with player’s team
-    ->join('teams as home_team', 'schedules.home_id', '=', 'home_team.id') // Join with home team
-    ->join('teams as away_team', 'schedules.away_id', '=', 'away_team.id') // Join with away team
-    ->select(
-        'seasons.name as season_name',
-        \DB::raw('CASE
-            WHEN (schedules.home_id = team.id AND schedules.home_score > schedules.away_score) THEN home_team.name
-            WHEN (schedules.away_id = team.id AND schedules.away_score > schedules.home_score) THEN away_team.name
-            ELSE NULL
-        END as championship_team')
-    )
-    ->where('player_game_stats.player_id', $playerId)
-    ->where('schedules.round', 'semi_finals')
-    ->whereColumn('seasons.id', 'player_game_stats.season_id')
-    ->whereExists(function ($query) use ($playerId) {
-        $query->select(\DB::raw(1))
-            ->from('schedules as s')
-            ->join('player_game_stats as pg', 's.game_id', '=', 'pg.game_id')
-            ->where('pg.team_id', '=', \DB::raw('player_game_stats.team_id'))
-            ->where('s.round', 'semi_finals')
-            ->where('pg.player_id', $playerId)
-            ->whereColumn('pg.season_id', 'player_game_stats.season_id')
-            ->where(function ($q) {
-                $q->where(function ($q) {
-                    $q->whereColumn('s.home_id', 'player_game_stats.team_id')
-                        ->whereColumn('s.home_score', '>', 's.away_score');
-                })
-                ->orWhere(function ($q) {
-                    $q->whereColumn('s.away_id', 'player_game_stats.team_id')
-                        ->whereColumn('s.away_score', '>', 's.home_score');
-                });
-            });
-    })
-    ->groupBy('seasons.name', 'team.id', 'home_team.name', 'away_team.name', 'schedules.home_id', 'schedules.away_id', 'schedules.home_score', 'schedules.away_score')
-    ->get();
-
+        $conference_championships = \DB::table('seasons')
+            ->join('player_game_stats', 'seasons.id', '=', 'player_game_stats.season_id')
+            ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id')
+            ->join('teams as team', 'player_game_stats.team_id', '=', 'team.id') // Join with player’s team
+            ->join('teams as home_team', 'schedules.home_id', '=', 'home_team.id') // Join with home team
+            ->join('teams as away_team', 'schedules.away_id', '=', 'away_team.id') // Join with away team
+            ->select(
+                'seasons.name as season_name',
+                \DB::raw('CASE
+                    WHEN (schedules.home_id = team.id AND schedules.home_score > schedules.away_score) THEN home_team.name
+                    WHEN (schedules.away_id = team.id AND schedules.away_score > schedules.home_score) THEN away_team.name
+                    ELSE NULL
+                END as championship_team')
+            )
+            ->where('player_game_stats.player_id', $playerId)
+            ->where('schedules.round', 'semi_finals')
+            ->whereColumn('seasons.id', 'player_game_stats.season_id')
+            ->whereExists(function ($query) use ($playerId) {
+                $query->select(\DB::raw(1))
+                    ->from('schedules as s')
+                    ->join('player_game_stats as pg', 's.game_id', '=', 'pg.game_id')
+                    ->where('pg.team_id', '=', \DB::raw('player_game_stats.team_id'))
+                    ->where('s.round', 'semi_finals')
+                    ->where('pg.player_id', $playerId)
+                    ->whereColumn('pg.season_id', 'player_game_stats.season_id')
+                    ->where(function ($q) {
+                        $q->where(function ($q) {
+                            $q->whereColumn('s.home_id', 'player_game_stats.team_id')
+                                ->whereColumn('s.home_score', '>', 's.away_score');
+                        })
+                        ->orWhere(function ($q) {
+                            $q->whereColumn('s.away_id', 'player_game_stats.team_id')
+                                ->whereColumn('s.away_score', '>', 's.home_score');
+                        });
+                    });
+            })
+            ->groupBy('seasons.name', 'team.id', 'home_team.name', 'away_team.name', 'schedules.home_id', 'schedules.away_id', 'schedules.home_score', 'schedules.away_score')
+            ->get();
 
         // Fetch career high stats
         $careerHighs = \DB::table('player_game_stats')
@@ -1106,6 +1106,20 @@ class PlayersController extends Controller
             ->where('player_id', $playerId)
             ->first();
 
+        // Calculate season count
+        $seasonCount = \DB::table('player_game_stats')
+            ->where('player_id', $playerId)
+            ->distinct('season_id')
+            ->count('season_id');
+
+        // Calculate playoff count
+        $playoffCount = \DB::table('player_game_stats')
+            ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id')
+            ->where('player_game_stats.player_id', $playerId)
+            ->whereIn('schedules.round', ['round_of_16', 'quarter_finals', 'semi_finals', 'interconference_semi_finals', 'finals'])
+            ->distinct('schedules.season_id')
+            ->count('schedules.round');
+
         return response()->json([
             'player_details' => $playerDetails,
             'playoff_performance' => $playoffPerformance,
@@ -1114,6 +1128,8 @@ class PlayersController extends Controller
             'championships' => $championships,
             'conference_championships' => $conference_championships,
             'career_highs' => $careerHighs,
+            'season_count' => $seasonCount,
+            'playoff_count' => $playoffCount,
         ]);
     }
 

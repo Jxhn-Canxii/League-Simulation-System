@@ -527,7 +527,7 @@ import { roundNameFormatter } from "@/Utility/Formatter";
 
 import TeamHistory from "@/Pages/Teams/Module/TeamHistory.vue";
 import TeamInfo from "@/Pages/Teams/Module/TeamInfo.vue";
-import TeamComparison from "@/Pages/Teams/Module/TeamComparison.vue";
+import TeamRoster from "@/Pages/Teams/Module/TeamRoster.vue";
 import GameResults from "@/Pages/Seasons/Module/GameResults.vue";
 import TopPlayers from "@/Pages/Seasons/Module/TopPlayers.vue";
 

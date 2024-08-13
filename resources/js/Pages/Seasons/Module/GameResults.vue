@@ -143,7 +143,7 @@
   <script setup>
   import { ref, computed, onMounted } from 'vue';
   import axios from 'axios';
-  import { roundNameFormatter } from "@/Utility/Formatter";
+  import { roundNameFormatter, roleBadgeClass } from "@/Utility/Formatter";
   import Modal from "@/Components/Modal.vue";
 
   import TeamRoster from "@/Pages/Teams/Module/TeamRoster.vue";
@@ -194,22 +194,6 @@
   const top5AwayPlayers = computed(() => {
     return sortedAwayPlayers.value.slice(0, 5).map(player => player.name);
   });
-
-  // Function to determine badge class based on role
-  const roleBadgeClass = (role) => {
-    switch(role) {
-      case 'star player':
-        return 'bg-red-500 text-white rounded-full px-2 py-1 text-xs';
-      case 'starter':
-        return 'bg-blue-500 text-white rounded-full px-2 py-1 text-xs';
-      case 'role player':
-        return 'bg-green-500 text-white rounded-full px-2 py-1 text-xs';
-      case 'bench':
-        return 'bg-gray-500 text-white rounded-full px-2 py-1 text-xs';
-      default:
-        return 'bg-gray-300 text-gray-800 rounded-full px-2 py-1 text-xs';
-    }
-  };
 
   onMounted(() => {
     fetchBoxScore();
