@@ -96,7 +96,7 @@
                 <div v-else class="text-center font-bold text-red-500">
                     No Standings available
                 </div>
-                <small class="text-red-500 font-bold" v-if="currentRound">Simulating Round # {{ parseFloat(currentRound) + 1}}</small>
+                <small class="text-red-500 font-bold" v-if="currentRound">Simulating Round # {{ parseFloat(currentRound)}}</small>
             </div>
         </div>
     </div>
