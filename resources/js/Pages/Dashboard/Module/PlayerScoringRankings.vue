@@ -15,6 +15,9 @@
         <thead>
             <tr class="border-b bg-gray-50 text-left  text-nowrap text-xs font-semibold uppercase tracking-wide text-gray-500">
                 <th class="border-b-2 border-gray-200 bg-gray-100 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                    Rank
+                </th>
+                <th class="border-b-2 border-gray-200 bg-gray-100 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                     Player
                 </th>
                 <th class="border-b-2 border-gray-200 bg-gray-100 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
@@ -27,6 +30,9 @@
         </thead>
         <tbody>
             <tr v-for="player in scorers.data" v-if="scorers.total_pages" :key="player.id" class="text-gray-700">
+                <td class="border-b border-gray-200 bg-white px-3 py-3 text-xs">
+                    <p class="text-gray-900 whitespace-no-wrap uppercase">{{ player.rank }}</p>
+                </td>
                 <td class="border-b border-gray-200 bg-white px-3 py-3 text-xs">
                     <p class="text-gray-900 whitespace-no-wrap uppercase">{{ player.player_name }}</p>
                 </td>
@@ -66,8 +72,7 @@ import Paginator from "@/Components/Paginator.vue";
 const scorers = ref([]);
 const search_scorers = ref({
     page_num: 1,
-    total_pages: 0,
-    total: 0,
+    itemsperpage:10,
     search: '',
 });
 

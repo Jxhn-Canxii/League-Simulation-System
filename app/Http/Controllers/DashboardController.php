@@ -166,14 +166,26 @@ class DashboardController extends Controller
 
     public function topscorerplayers(Request $request)
     {
-        // Extracting per_page and current_page from request
-        $perPage = $request->input('per_page', 10); // Default per page to 10 if not provided
+        // Extracting per_page and current_page from request with default values
+        $perPage = $request->input('itemsperpage', 10); // Default per page to 10 if not provided
         $page = $request->input('page_num', 1); // Default page to 1 if not provided
 
-        // Calculating the offset to skip records
+        // Ensure perPage is a positive integer
+        $perPage = max(1, (int) $perPage);
+
+        // Ensure page is a positive integer
+        $page = max(1, (int) $page);
+
+        // Calculate the offset for pagination
         $offset = ($page - 1) * $perPage;
 
-        // Query to fetch all entries from player_game_stats and sum up scores for each team
+        // Query to fetch the total number of unique players
+        $totalCount = DB::table('player_game_stats')
+            ->select('player_id')
+            ->distinct()
+            ->count();
+
+        // Query to fetch the paginated list of top scorers
         $scoreAlltime = DB::table('player_game_stats')
             ->select('players.name as player_name', 'teams.name as team_name', DB::raw('SUM(player_game_stats.points) as total_score'))
             ->leftJoin('players', 'player_game_stats.player_id', '=', 'players.id')
@@ -182,13 +194,18 @@ class DashboardController extends Controller
             ->orderBy('total_score', 'desc') // Sort by total score in descending order
             ->skip($offset)
             ->take($perPage)
-            ->get();
-
-        // Count total records (total number of player_game_stats entries)
-        $totalCount = DB::table('player_game_stats')->count();
+            ->get()
+            ->map(function ($item, $index) use ($offset) {
+                // Add rank to each item
+                $item->rank = $offset + $index + 1;
+                return $item;
+            });
 
         // Calculate total pages
         $totalPages = ceil($totalCount / $perPage);
+
+        // Ensure the current page does not exceed total pages
+        $page = min($page, $totalPages);
 
         // Create the response array
         $response = [
@@ -200,4 +217,6 @@ class DashboardController extends Controller
 
         return response()->json($response);
     }
+
+
 }
