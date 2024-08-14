@@ -198,7 +198,6 @@ class PlayersController extends Controller
             if ($player->is_active == 0 && $status == 2) {
                 $status = 0;
             }
-
             // Append player with stats and details in one row
             $playerStats[] = [
                 'player_id' => $player->id,
