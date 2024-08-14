@@ -161,6 +161,21 @@ finals_appearances AS (
     GROUP BY
         teams.id
 ),
+conference_championships AS (
+    SELECT
+        teams.id AS team_id,
+        COUNT(DISTINCT schedules.season_id) AS championships
+    FROM
+        teams
+    JOIN
+        schedules ON teams.id = schedules.home_id OR teams.id = schedules.away_id
+    WHERE
+        schedules.round = 'interconference_semi_finals' AND
+        ((schedules.home_score > schedules.away_score AND schedules.home_id = teams.id) OR
+         (schedules.away_score > schedules.home_score AND schedules.away_id = teams.id))
+    GROUP BY
+        teams.id
+),
 championships AS (
     SELECT
         teams.id AS team_id,
