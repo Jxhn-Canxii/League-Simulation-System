@@ -1,66 +1,97 @@
 <template>
-   <!-- Overlay Container -->
-<div v-if="isHide" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-500">
-    <div class="bg-white p-6 rounded-md shadow-lg max-w-4xl w-full">
-        <h2 class="text-lg font-semibold text-gray-800 mb-2 text-left">
-            {{ season_info?.seasons[0].name ?? '' }} Standings
-        </h2>
-        <div class="grid grid-cols-1 gap-6">
-            <div class="block">
-                <table
-                    class="min-w-full divide-y divide-gray-200 text-sm"
-                    v-if="
-                        season_standings &&
-                        season_standings.standings.length > 0
-                    "
-                >
-                    <thead class="bg-gray-50 text-xs">
-                        <tr>
-                            <th class="px-1 py-1 text-left text-gray-500 uppercase tracking-wider text-nowrap">Team</th>
-                            <th class="px-1 py-1 text-left text-gray-500 uppercase tracking-wider text-nowrap">Wins</th>
-                            <th class="px-1 py-1 text-left text-gray-500 uppercase tracking-wider text-nowrap">Loss</th>
-                            <th class="px-1 py-1 text-left text-gray-500 uppercase tracking-wider text-nowrap">Rank</th>
-                            <th class="px-1 py-1 text-left text-gray-500 uppercase tracking-wider text-nowrap">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-rose-200 divide-y divide-gray-200 text-sm">
-                        <tr
-                            v-for="(team, index) in season_standings.standings"
-                            :key="index"
-                            :class="
-                                index <= 7
-                                    ? 'bg-orange-300 text-black text-bold'
-                                    : 'text-bold'
-                            "
-                        >
-                            <td class="px-1 py-1 whitespace-nowrap text-sm">
-                                <button
-                                    type="button"
-                                    class="uppercase"
-                                    :title="
-                                        ' Playoff Appearance:' +
-                                        team.playoff_appearances
-                                    "
-                                    @click.prevent="
-                                        isTeamModalOpen = team.team_id
-                                    "
+    <!-- Overlay Container -->
+    <div
+        v-if="isHide"
+        class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-500"
+    >
+        <div class="bg-white p-6 rounded-md shadow-lg max-w-4xl w-full">
+            <h2 class="text-lg font-semibold text-gray-800 mb-2 text-left">
+                {{ season_info?.seasons[0].name ?? "" }} Standings
+            </h2>
+            <div class="grid grid-cols-1 gap-6">
+                <div class="block">
+                    <table
+                        class="min-w-full divide-y divide-gray-200 text-sm"
+                        v-if="
+                            season_standings &&
+                            season_standings.standings.length > 0
+                        "
+                    >
+                        <thead class="bg-gray-50 text-xs">
+                            <tr>
+                                <th
+                                    class="px-1 py-1 text-left text-gray-500 uppercase tracking-wider text-nowrap"
                                 >
-                                    <b>{{ team.team_name }} <sup class="text-slate-500">{{ team.streak_status }}</sup></b>
-                                </button>
-                            </td>
-                            <td class="px-1 py-1 whitespace-nowrap text-sm">
-                                {{ team.wins }}
-                            </td>
-                            <td class="px-1 py-1 whitespace-nowrap text-sm">
-                                {{ team.losses }}
-
-                            </td>
-                            <td class="px-1 py-1 whitespace-nowrap text-sm">
-                                {{ team.overall_rank }}
-                            </td>
-                            <td class="px-1 py-1 whitespace-nowrap text-sm">
-                                <div class="flex space-x-1">
-                                    <span
+                                    Team
+                                </th>
+                                <th
+                                    class="px-1 py-1 text-left text-gray-500 uppercase tracking-wider text-nowrap"
+                                >
+                                    Wins
+                                </th>
+                                <th
+                                    class="px-1 py-1 text-left text-gray-500 uppercase tracking-wider text-nowrap"
+                                >
+                                    Loss
+                                </th>
+                                <th
+                                    class="px-1 py-1 text-left text-gray-500 uppercase tracking-wider text-nowrap"
+                                >
+                                    Rank
+                                </th>
+                                <th
+                                    class="px-1 py-1 text-left text-gray-500 uppercase tracking-wider text-nowrap"
+                                >
+                                    Status
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody
+                            class="bg-rose-200 divide-y divide-gray-200 text-sm"
+                        >
+                            <tr
+                                v-for="(
+                                    team, index
+                                ) in season_standings.standings"
+                                :key="index"
+                                :class="
+                                    index <= 7
+                                        ? 'bg-orange-300 text-black text-bold'
+                                        : 'text-bold'
+                                "
+                            >
+                                <td class="px-1 py-1 whitespace-nowrap text-sm">
+                                    <button
+                                        type="button"
+                                        class="uppercase"
+                                        :title="
+                                            ' Playoff Appearance:' +
+                                            team.playoff_appearances
+                                        "
+                                        @click.prevent="
+                                            isTeamModalOpen = team.team_id
+                                        "
+                                    >
+                                        <b
+                                            >{{ team.team_name }}
+                                            <sup class="text-slate-500">{{
+                                                team.streak_status
+                                            }}</sup></b
+                                        >
+                                    </button>
+                                </td>
+                                <td class="px-1 py-1 whitespace-nowrap text-sm">
+                                    {{ team.wins }}
+                                </td>
+                                <td class="px-1 py-1 whitespace-nowrap text-sm">
+                                    {{ team.losses }}
+                                </td>
+                                <td class="px-1 py-1 whitespace-nowrap text-sm">
+                                    {{ team.overall_rank }}
+                                </td>
+                                <td class="px-1 py-1 whitespace-nowrap text-sm">
+                                    <div class="flex space-x-1">
+                                        <!-- <span
                                         v-if="team.conference_1_rank > 0"
                                         class="flex items-center justify-center w-5 h-5 bg-red-500 text-black text-xs rounded-full"
                                         title="#1 Conference Rank"
@@ -73,36 +104,47 @@
                                         title="#1 Overall Rank"
                                     >
                                         {{ team.overall_1_rank }}
-                                    </span>
-                                    <span
-                                        v-if="team.finals_appearances > 0"
-                                        class="flex items-center justify-center w-5 h-5 bg-green-500 text-black text-xs rounded-full"
-                                        title="Finals Appearances"
-                                    >
-                                        {{ team.finals_appearances }}
-                                    </span>
-                                    <span
-                                        v-if="team.championships > 0"
-                                        class="flex items-center justify-center w-5 h-5 bg-yellow-500 text-black text-xs rounded-full"
-                                        title="Championships"
-                                    >
-                                        {{ team.championships }}
-                                    </span>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div v-else class="text-center font-bold text-red-500">
-                    No Standings available
+                                    </span> -->
+                                        <span
+                                            v-if="
+                                                team.conference_championships >
+                                                0
+                                            "
+                                            class="flex items-center justify-center w-5 h-5 bg-yellow-500 text-black text-xs rounded-full"
+                                            title="Conference Championships"
+                                        >
+                                            {{ team.conference_championships }}
+                                        </span>
+                                        <span
+                                            v-if="team.finals_appearances > 0"
+                                            class="flex items-center justify-center w-5 h-5 bg-green-500 text-black text-xs rounded-full"
+                                            title="Finals Appearances"
+                                        >
+                                            {{ team.finals_appearances }}
+                                        </span>
+                                        <span
+                                            v-if="team.championships > 0"
+                                            class="flex items-center justify-center w-5 h-5 bg-red-500 text-black text-xs rounded-full"
+                                            title="Championships"
+                                        >
+                                            {{ team.championships }}
+                                        </span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div v-else class="text-center font-bold text-red-500">
+                        No Standings available
+                    </div>
+                    <small class="text-red-500 font-bold" v-if="currentRound"
+                        >Simulating Round #
+                        {{ parseFloat(currentRound) }}</small
+                    >
                 </div>
-                <small class="text-red-500 font-bold" v-if="currentRound">Simulating Round # {{ parseFloat(currentRound)}}</small>
             </div>
         </div>
     </div>
-
-</div>
-
 
     <!-- this div will be at the bottom the top div will create an ilussion of overlay make the standings and top10 players card float at the center-->
     <div v-else>
@@ -165,7 +207,7 @@
             <!-- Standings UI (Left Side) -->
             <div class="md:col-span-3 sm:col-span-1 overflow-y-auto">
                 <h2 class="text-lg font-semibold text-gray-800 mb-2">
-                    {{ season_info?.seasons[0].name ?? '' }} Standings
+                    {{ season_info?.seasons[0].name ?? "" }} Standings
                 </h2>
                 <table
                     class="min-w-full divide-y divide-gray-200"
@@ -252,12 +294,6 @@
                             <td class="px-2 py-2 whitespace-nowrap text-sm">
                                 <div class="flex space-x-1">
                                     <!-- <span
-                                    v-if="team.conference_1_rank > 0"
-                                    class="flex items-center justify-center w-6 h-6 bg-yellow-500 text-black text-sm rounded-full"
-                                    title="#1 Conference Rank">
-                                    {{ team.conference_1_rank }}
-                                </span> -->
-                                    <span
                                         v-if="team.conference_1_rank > 0"
                                         class="flex items-center justify-center w-6 h-6 bg-red-500 text-black text-sm rounded-full"
                                         title="#1 Conference Rank"
@@ -270,23 +306,24 @@
                                         title="#1 Overall Rank"
                                     >
                                         {{ team.overall_1_rank }}
+                                    </span> -->
+                                    <span
+                                        v-if="team.conference_championships > 0"
+                                        class="flex items-center justify-center w-5 h-5 bg-yellow-500 text-black text-xs rounded-full"
+                                        title="Conference Championships"
+                                    >
+                                        {{ team.conference_championships }}
                                     </span>
-                                    <!-- <span
-                                    v-if="team.playoff_appearances > 0"
-                                    class="flex items-center justify-center w-6 h-6 bg-blue-500 text-black text-sm rounded-full"
-                                    title="Playoff Appearances">
-                                    {{ team.playoff_appearances }}
-                                </span> -->
                                     <span
                                         v-if="team.finals_appearances > 0"
-                                        class="flex items-center justify-center w-6 h-6 bg-green-500 text-black text-sm rounded-full"
+                                        class="flex items-center justify-center w-5 h-5 bg-green-500 text-black text-xs rounded-full"
                                         title="Finals Appearances"
                                     >
                                         {{ team.finals_appearances }}
                                     </span>
                                     <span
                                         v-if="team.championships > 0"
-                                        class="flex items-center justify-center w-6 h-6 bg-yellow-500 text-black text-sm rounded-full"
+                                        class="flex items-center justify-center w-5 h-5 bg-red-500 text-black text-xs rounded-full"
                                         title="Championships"
                                     >
                                         {{ team.championships }}
@@ -325,7 +362,10 @@
 
                 <div class="flex mt-4">
                     <TopPlayers
-                        v-if="season_info?.seasons && season_info?.seasons[0].status == 8"
+                        v-if="
+                            season_info?.seasons &&
+                            season_info?.seasons[0].status == 8
+                        "
                         :season_id="season_info.seasons[0].id"
                         :conference_id="activeConferenceTab"
                         :key="topPlayersKey"
@@ -489,7 +529,12 @@
                 Team Season History
             </button>
             <button
-                :class="['px-4 py-2', currentTab === 'roster' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700']"
+                :class="[
+                    'px-4 py-2',
+                    currentTab === 'roster'
+                        ? 'border-b-2 border-blue-500 text-blue-500'
+                        : 'text-gray-500 hover:text-gray-700',
+                ]"
                 @click="currentTab = 'roster'"
             >
                 Team Roster
@@ -501,7 +546,10 @@
                 v-if="currentTab === 'history'"
                 :team_id="isTeamModalOpen"
             />
-            <TeamRoster v-if="currentTab === 'roster'" :team_id="isTeamModalOpen" />
+            <TeamRoster
+                v-if="currentTab === 'roster'"
+                :team_id="isTeamModalOpen"
+            />
         </div>
     </Modal>
     <Modal :show="isGameResultModalOpen" :maxWidth="'4xl'">
@@ -646,23 +694,22 @@ const simulatePerRound = async () => {
         // Pass an additional parameter if it's the last round
         await simulateRound(round, isLastRound);
     }
-}
+};
 
-
-const simulateRound = async (round,isLast) => {
+const simulateRound = async (round, isLast) => {
     try {
         isHide.value = true;
         currentRound.value = round;
         const response = await axios.post(route("game.simulate.round"), {
             season_id: props.season_id, // Assuming the parameter name should be schedule_id
             round: round,
-            conference_id: activeConferenceTab.value
+            conference_id: activeConferenceTab.value,
         });
         // await localStorage.setItem('season-key',generateRandomKey());
         await fetchConferenceStandings(activeConferenceTab.value);
         await fetchConferenceSchedules(activeConferenceTab.value);
         topPlayersKey.value = round;
-        if(isLast){
+        if (isLast) {
             Swal.fire({
                 icon: "success",
                 title: "Success!",
