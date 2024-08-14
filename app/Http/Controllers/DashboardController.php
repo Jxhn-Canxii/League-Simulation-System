@@ -266,47 +266,47 @@ class DashboardController extends Controller
         $totalPages = ceil($totalCount / $perPage);
 
         // Query to get best and worst seasons for each team
-        $teamSeasons = DB::table('standings_view')
-            ->select('standings_view.team_id', 'standings_view.season_id',
-                     'seasons.name as season_name',
-                     DB::raw('SUM(wins) as total_wins'),
-                     DB::raw('SUM(losses) as total_losses'),
-                     DB::raw('IFNULL((SUM(wins) / NULLIF(SUM(wins) + SUM(losses), 0)) * 100, 0) as win_rate'))
-            ->leftJoin('seasons', 'standings_view.season_id', '=', 'seasons.id') // Join with seasons table
-            ->where('seasons.status',8)
-            ->groupBy('standings_view.team_id', 'standings_view.season_id', 'seasons.name')
-            ->orderBy('standings_view.team_id', 'asc'); // For grouping by team_id
+        // $teamSeasons = DB::table('standings_view')
+        //     ->select('standings_view.team_id', 'standings_view.season_id',
+        //              'seasons.name as season_name',
+        //              DB::raw('SUM(wins) as total_wins'),
+        //              DB::raw('SUM(losses) as total_losses'),
+        //              DB::raw('IFNULL((SUM(wins) / NULLIF(SUM(wins) + SUM(losses), 0)) * 100, 0) as win_rate'))
+        //     ->leftJoin('seasons', 'standings_view.season_id', '=', 'seasons.id') // Join with seasons table
+        //     ->where('seasons.status',8)
+        //     ->groupBy('standings_view.team_id', 'standings_view.season_id', 'seasons.name')
+        //     ->orderBy('standings_view.team_id', 'asc'); // For grouping by team_id
 
-        // Determine best and worst seasons per team
-        $bestSeasons = $teamSeasons->clone()->orderBy('win_rate', 'desc')->get()->groupBy('team_id')->map(function ($seasons) {
-            return $seasons->first(); // Best winning season (highest percentage) for each team
-        });
+        // // Determine best and worst seasons per team
+        // $bestSeasons = $teamSeasons->clone()->orderBy('win_rate', 'desc')->get()->groupBy('team_id')->map(function ($seasons) {
+        //     return $seasons->first(); // Best winning season (highest percentage) for each team
+        // });
 
-        $worstSeasons = $teamSeasons->clone()->orderBy('win_rate', 'asc')->get()->groupBy('team_id')->map(function ($seasons) {
-            return $seasons->first(); // Worst winning season (lowest percentage) for each team
-        });
+        // $worstSeasons = $teamSeasons->clone()->orderBy('win_rate', 'asc')->get()->groupBy('team_id')->map(function ($seasons) {
+        //     return $seasons->first(); // Worst winning season (lowest percentage) for each team
+        // });
 
         // Combine team stats with best and worst seasons
-        $teamsWithSeasons = $teamsStats->map(function ($team) use ($bestSeasons, $worstSeasons) {
-            $bestSeason = $bestSeasons->get($team->team_id);
-            $worstSeason = $worstSeasons->get($team->team_id);
+        // $teamsWithSeasons = $teamsStats->map(function ($team) use ($) {
+        //     $bestSeason = $bestSeasons->get($team->team_id);
+        //     $worstSeason = $worstSeasons->get($team->team_id);
 
-            return [
-                'team_name' => $team->name,
-                'conference' => $team->conference,
-                'total_wins' => $team->total_wins,
-                'total_losses' => $team->total_losses,
-                'win_rate' => $team->win_rate,
-                'best_season' => $bestSeason ? $bestSeason->season_name : 'N/A',
-                'best_win_loss' => $bestSeason ? $bestSeason->total_wins . "-" . $bestSeason->total_losses : 'N/A',
-                'worst_season' => $worstSeason ? $worstSeason->season_name : 'N/A',
-                'worst_win_loss' => $worstSeason ? $worstSeason->total_wins . "-" . $worstSeason->total_losses : 'N/A',
-            ];
-        });
+        //     return [
+        //         'team_name' => $team->name,
+        //         'conference' => $team->conference,
+        //         'total_wins' => $team->total_wins,
+        //         'total_losses' => $team->total_losses,
+        //         'win_rate' => $team->win_rate,
+        //         // 'best_season' => $bestSeason ? $bestSeason->season_name : 'N/A',
+        //         // 'best_win_loss' => $bestSeason ? $bestSeason->total_wins . "-" . $bestSeason->total_losses : 'N/A',
+        //         // 'worst_season' => $worstSeason ? $worstSeason->season_name : 'N/A',
+        //         // 'worst_win_loss' => $worstSeason ? $worstSeason->total_wins . "-" . $worstSeason->total_losses : 'N/A',
+        //     ];
+        // });
 
         // Create the response array
         $response = [
-            'data' => $teamsWithSeasons,
+            'data' => $teamsStats,
             'current_page' => $page,
             'total_pages' => $totalPages,
             'total' => $totalCount,

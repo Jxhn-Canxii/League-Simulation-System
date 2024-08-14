@@ -21,16 +21,23 @@
                 <th class="border-b-2 border-gray-200 bg-gray-100 py-2 text-center text-xs font-semibold uppercase tracking-wider text-gray-600">
                     # of Championship
                 </th>
+                <th class="border-b-2 border-gray-200 bg-gray-100 py-2 text-center text-xs font-semibold uppercase tracking-wider text-gray-600">
+                    Last Appearance
+                </th>
             </tr>
         </thead>
         <tbody>
             <tr v-for="team in champions.data" v-if="champions.total_pages" :title="'Conference:'+team.conference_name+', Last Appearance:'+team.last_finals_appearance" :key="team.id" class="text-gray-700">
                 <td class="border-b border-gray-200 bg-white px-3 py-3 text-xs">
-                    <p class="text-gray-900 whitespace-no-wrap uppercase">{{ team.name }}</p>
+                    <p class="text-gray-900 whitespace-no-wrap uppercase">{{ team.name }} ({{ team.acronym }})</p>
                 </td>
                 <td class="border-b border-gray-200 bg-white text-center px-3 py-3 text-xs">
                     <p class="text-gray-900 whitespace-no-wrap uppercase">{{ team.championships }}</p>
                 </td>
+                <td class="border-b border-gray-200 bg-white text-center px-3 py-3 text-xs">
+                    <p class="text-gray-900 whitespace-no-wrap uppercase">{{ team.last_finals_appearance }}</p>
+                </td>
+
             </tr>
             <tr v-else>
                 <td colspan="4" class="border-b text-center font-bold text-lg border-gray-200 bg-white px-3 py-3">
