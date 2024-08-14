@@ -203,7 +203,15 @@ SELECT
         ELSE NULL
     END AS streak_status,
     COALESCE(rank_counts.overall_rank, 0) AS overall_1_rank,
-    COALESCE(rank_counts.conference_rank, 0) AS conference_1_rank
+    COALESCE(rank_counts.conference_rank, 0) AS conference_1_rank,
+    CASE
+        WHEN COALESCE(rank_counts.overall_rank, 0) = 1
+             AND COALESCE(rank_counts.conference_rank, 0) = 1
+             AND COALESCE(conference_championships.championships, 0) > 0
+             AND COALESCE(championships.championships, 0) > 0
+        THEN true
+        ELSE false
+    END AS is_grandslam
 FROM
     (SELECT * FROM ranked_team_rankings) AS standings
 LEFT JOIN
