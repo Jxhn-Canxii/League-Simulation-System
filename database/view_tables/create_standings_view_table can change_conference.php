@@ -195,6 +195,7 @@ SELECT
     standings.*,
     COALESCE(playoff_appearances.playoff_appearances, 0) AS playoff_appearances,
     COALESCE(finals_appearances.finals_appearances, 0) AS finals_appearances,
+    COALESCE(conference_championships.championships, 0) AS conference_championships,
     COALESCE(championships.championships, 0) AS championships,
     CASE
         WHEN latest_streak.game_result = 'W' THEN CONCAT('W', latest_streak.streak_length)
@@ -211,6 +212,8 @@ LEFT JOIN
     playoff_appearances ON standings.team_id = playoff_appearances.team_id
 LEFT JOIN
     finals_appearances ON standings.team_id = finals_appearances.team_id
+LEFT JOIN
+    conference_championships ON standings.team_id = conference_championships.team_id
 LEFT JOIN
     championships ON standings.team_id = championships.team_id
 LEFT JOIN
