@@ -22,6 +22,14 @@ return new class extends Migration
             $table->integer('retirement_age')->default(0);
             $table->decimal('injury_prone_percentage', 5, 2)->default(0.00);
             $table->string('role')->default('bench'); // Default role is 'bench
+
+            // Rating columns
+            $table->decimal('shooting_rating', 5, 2)->default(0.00);
+            $table->decimal('defense_rating', 5, 2)->default(0.00);
+            $table->decimal('passing_rating', 5, 2)->default(0.00);
+            $table->decimal('rebounding_rating', 5, 2)->default(0.00);
+            $table->decimal('overall_rating', 5, 2)->default(0.00);
+
             $table->timestamps();
         });
     }

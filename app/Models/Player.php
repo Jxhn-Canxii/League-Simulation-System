@@ -16,17 +16,21 @@ class Player extends Model
     protected $fillable = [
         'name',
         'team_id',
-        'age',
-        'retirement_age',
-        'injury_prone_percentage',
         'contract_years',
         'contract_expires_at',
         'is_active',
-        'is_rookie',
-        'role', // Add this line
+        'age',
+        'retirement_age',
+        'injury_prone_percentage',
+        'role',
+        'shooting_rating',
+        'defense_rating',
+        'passing_rating',
+        'rebounding_rating',
+        'overall_rating',
     ];
 
-    // The attributes that should be hidden for arrays (optional)
+    // The attributes that are hidden for arrays (optional)
     protected $hidden = [
         // Any attributes you want to hide
     ];
@@ -46,4 +50,3 @@ class Player extends Model
         return $this->hasMany(PlayerGameStats::class);
     }
 }
-
