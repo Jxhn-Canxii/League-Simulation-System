@@ -57,79 +57,18 @@
                     <table class="min-w-full divide-y divide-gray-200 text-xs">
                         <thead class="bg-gray-50 text-nowrap">
                             <tr>
-                                <th
-                                    class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
-                                >
-                                    Name
-                                </th>
-                                <th
-                                    class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
-                                >
-                                    Age
-                                </th>
-                                <th
-                                    class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
-                                >
-                                    Role
-                                </th>
-                                <th
-                                    class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
-                                    title="Games Played"
-                                >
-                                    GP
-                                </th>
-                                <th
-                                    class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
-                                    title="Points Per Game"
-                                >
-                                    PPG
-                                </th>
-                                <th
-                                    class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
-                                    title="Rebounds Per Game"
-                                >
-                                    RPG
-                                </th>
-                                <th
-                                    class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
-                                    title="Assists Per Game"
-                                >
-                                    APG
-                                </th>
-                                <th
-                                    class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
-                                    title="Steals Per Game"
-                                >
-                                    SPG
-                                </th>
-                                <th
-                                    class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
-                                    title="Blocks Per Game"
-                                >
-                                    BPG
-                                </th>
-                                <th
-                                    class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
-                                    title="Turnovers Per Game"
-                                >
-                                    TOPG
-                                </th>
-                                <th
-                                    class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
-                                    title="Fouls Per Game"
-                                >
-                                    FPG
-                                </th>
-                                <th
-                                    class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
-                                >
-                                    Status
-                                </th>
-                                <th
-                                    class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
-                                >
-                                    Actions
-                                </th>
+                                <!-- Existing columns -->
+                                <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Age</th>
+                                <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                                <!-- New columns for ratings -->
+                                <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Overall Rating">Overall</th>
+                                <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Shooting Rating">Shooting</th>
+                                <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Defense Rating">Defense</th>
+                                <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Passing Rating">Passing</th>
+                                <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Rebounding Rating">Rebounding</th>
+                                <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
@@ -138,12 +77,8 @@
                                 :key="player.player_id"
                                 class="hover:bg-gray-100"
                             >
-                                <td class="px-2 py-1 whitespace-nowrap border">
-                                    {{ player.name }}
-                                </td>
-                                <td class="px-2 py-1 whitespace-nowrap border">
-                                    {{ player.age }}
-                                </td>
+                                <td class="px-2 py-1 whitespace-nowrap border">{{ player.name }}</td>
+                                <td class="px-2 py-1 whitespace-nowrap border">{{ player.age }}</td>
                                 <td class="px-2 py-1 whitespace-nowrap border">
                                     <span
                                         :class="roleClasses(player.role)"
@@ -152,71 +87,21 @@
                                         {{ player.role }}
                                     </span>
                                 </td>
-                                <td class="px-2 py-1 whitespace-nowrap border">
-                                    {{ player.games_played || 0 }}
-                                </td>
-                                <td class="px-2 py-1 whitespace-nowrap border">
-                                    {{
-                                        parseFloat(
-                                            player.average_points_per_game || 0
-                                        ).toFixed(1)
-                                    }}
-                                </td>
-                                <td class="px-2 py-1 whitespace-nowrap border">
-                                    {{
-                                        parseFloat(
-                                            player.average_rebounds_per_game ||
-                                                0
-                                        ).toFixed(1)
-                                    }}
-                                </td>
-                                <td class="px-2 py-1 whitespace-nowrap border">
-                                    {{
-                                        parseFloat(
-                                            player.average_assists_per_game || 0
-                                        ).toFixed(1)
-                                    }}
-                                </td>
-                                <td class="px-2 py-1 whitespace-nowrap border">
-                                    {{
-                                        parseFloat(
-                                            player.average_steals_per_game || 0
-                                        ).toFixed(1)
-                                    }}
-                                </td>
-                                <td class="px-2 py-1 whitespace-nowrap border">
-                                    {{
-                                        parseFloat(
-                                            player.average_blocks_per_game || 0
-                                        ).toFixed(1)
-                                    }}
-                                </td>
-                                <td class="px-2 py-1 whitespace-nowrap border">
-                                    {{
-                                        parseFloat(
-                                            player.average_turnovers_per_game ||
-                                                0
-                                        ).toFixed(1)
-                                    }}
-                                </td>
-                                <td class="px-2 py-1 whitespace-nowrap border">
-                                    {{
-                                        parseFloat(
-                                            player.average_fouls_per_game || 0
-                                        ).toFixed(1)
-                                    }}
-                                </td>
+                                <!-- New columns for ratings -->
+                                <td class="px-2 py-1 whitespace-nowrap border">{{ parseFloat(player.overall_rating || 0).toFixed(1) }}</td>
+                                <td class="px-2 py-1 whitespace-nowrap border">{{ parseFloat(player.shooting_rating || 0).toFixed(1) }}</td>
+                                <td class="px-2 py-1 whitespace-nowrap border">{{ parseFloat(player.defense_rating || 0).toFixed(1) }}</td>
+                                <td class="px-2 py-1 whitespace-nowrap border">{{ parseFloat(player.passing_rating || 0).toFixed(1) }}</td>
+                                <td class="px-2 py-1 whitespace-nowrap border">{{ parseFloat(player.rebounding_rating || 0).toFixed(1) }}</td>
                                 <td class="px-2 py-1 whitespace-nowrap border">
                                     <span
                                         v-if="player.is_active"
                                         class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800"
-                                        >Active</span
-                                    >
+                                    >Active</span>
                                     <span
                                         v-else
                                         class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800"
-                                        >Waived</span
-                                    >
+                                    >Waived</span>
                                 </td>
                                 <td class="px-2 py-1 whitespace-nowrap border">
                                     <button
@@ -244,36 +129,38 @@
             </div>
         </div>
         <Modal :show="showAddPlayerModal" :maxWidth="'sm'">
-            <button
-                class="flex float-end bg-gray-100 p-3"
-                @click.prevent="showAddPlayerModal = false"
-            >
-                <i class="fa fa-times text-black-600"></i>
-            </button>
-            <div class="grid grid-cols-1 gap-6 p-6">
-                <h2 class="text-lg font-semibold text-gray-800">
-                    Add Player(Free Agent)
-                </h2>
-                <div>
-                    <label
-                        for="player_name"
-                        class="block text-sm font-medium text-gray-700"
-                        >Player Name</label
-                    >
+            <!-- Modal Content -->
+            <div class="flex flex-col">
+                <h3 class="text-lg font-medium text-gray-800 mb-4">
+                    Add New Player
+                </h3>
+                <!-- Form Fields -->
+                <div class="mb-4">
+                    <label for="playerName" class="block text-sm font-medium text-gray-700">Player Name</label>
                     <input
-                        v-model="newPlayerName"
-                        id="player_name"
+                        id="playerName"
+                        v-model="newPlayer.name"
                         type="text"
-                        required
-                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm sm:text-sm"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
                     />
                 </div>
-                <button
-                    @click="addPlayerV1()"
-                    class="px-4 py-2 bg-green-500 text-white rounded"
-                >
-                    Add Player
-                </button>
+                <div class="mb-4">
+                    <label for="playerTeam" class="block text-sm font-medium text-gray-700">Team ID</label>
+                    <input
+                        id="playerTeam"
+                        v-model="newPlayer.team_id"
+                        type="text"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                    />
+                </div>
+                <div class="flex items-center justify-end">
+                    <button
+                        @click="addPlayer()"
+                        class="px-4 py-2 bg-blue-500 text-white rounded-md"
+                    >
+                        Add Player
+                    </button>
+                </div>
             </div>
         </Modal>
     </div>

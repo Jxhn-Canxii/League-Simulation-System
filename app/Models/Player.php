@@ -19,6 +19,7 @@ class Player extends Model
         'contract_years',
         'contract_expires_at',
         'is_active',
+        'is_rookie',
         'age',
         'retirement_age',
         'injury_prone_percentage',

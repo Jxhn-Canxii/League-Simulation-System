@@ -268,7 +268,7 @@ class PlayersController extends Controller
         ];
 
         // Build the query with optional search filter
-        $query = Player::select('id as player_id', 'name', 'age', 'role', 'is_active', 'contract_years', 'team_id')
+        $query = Player::select('*')
             ->where('contract_years', 0)
             ->where('is_active', 1);
 
@@ -313,7 +313,7 @@ class PlayersController extends Controller
 
         // Build the query with optional search filter and join with teams
         $query = DB::table('players')
-            ->select('players.id as player_id', 'players.name', 'players.age', 'players.role', 'players.is_active','players.retirement_age', 'players.contract_years', DB::raw("IF(players.team_id = 0, 'none', teams.name) as team_name"))
+            ->select('players.id as player_id', 'players.name', 'players.age', 'players.role', 'players.is_active', 'players.retirement_age', 'players.contract_years', DB::raw("IF(players.team_id = 0, 'none', teams.name) as team_name"))
             ->leftJoin('teams', 'players.team_id', '=', 'teams.id');
 
         // Apply search filter if provided
@@ -387,6 +387,13 @@ class PlayersController extends Controller
         $roles = ['starter', 'star player', 'role player', 'bench'];
         $role = $roles[array_rand($roles)];
 
+        // Randomize player ratings
+        $shootingRating = rand(1, 100);
+        $defenseRating = rand(1, 100);
+        $passingRating = rand(1, 100);
+        $reboundingRating = rand(1, 100);
+        $overallRating = ($shootingRating + $defenseRating + $passingRating + $reboundingRating) / 4;
+
         // Calculate contract expiration date
         $contractExpiresAt = Carbon::now()->addYears($contractYears);
 
@@ -400,6 +407,11 @@ class PlayersController extends Controller
             'contract_expires_at' => $contractExpiresAt,
             'is_active' => true,
             'role' => $role,
+            'shooting_rating' => $shootingRating,
+            'defense_rating' => $defenseRating,
+            'passing_rating' => $passingRating,
+            'rebounding_rating' => $reboundingRating,
+            'overall_rating' => $overallRating,
         ]);
 
         return response()->json([
@@ -445,6 +457,13 @@ class PlayersController extends Controller
         $roles = ['starter', 'star player', 'role player', 'bench'];
         $role = $roles[array_rand($roles)];
 
+        // Randomize player ratings
+        $shootingRating = rand(50, 100);
+        $defenseRating = rand(50, 100);
+        $passingRating = rand(50, 100);
+        $reboundingRating = rand(50, 100);
+        $overallRating = ($shootingRating + $defenseRating + $passingRating + $reboundingRating) / 4;
+
         // Calculate contract expiration date
         $contractExpiresAt = Carbon::now();
 
@@ -458,6 +477,11 @@ class PlayersController extends Controller
             'contract_expires_at' => $contractExpiresAt,
             'is_active' => true,
             'role' => $role,
+            'shooting_rating' => $shootingRating,
+            'defense_rating' => $defenseRating,
+            'passing_rating' => $passingRating,
+            'rebounding_rating' => $reboundingRating,
+            'overall_rating' => $overallRating,
             'is_rookie' => true,
         ]);
 
@@ -467,7 +491,6 @@ class PlayersController extends Controller
             'player' => $player,
         ]);
     }
-
 
 
     // Generate a random age ensuring it is either at least 19 or exactly 30
@@ -981,7 +1004,7 @@ class PlayersController extends Controller
         $playerDetails = \DB::table('players')
             ->join('teams', 'players.team_id', '=', 'teams.id', 'left') // Join teams table to get team details
             ->where('players.id', $playerId)
-            ->select('players.id as player_id', 'players.name as player_name','players.age as age', 'teams.name as team_name', 'players.role', 'players.contract_years', 'players.is_rookie')
+            ->select('players.id as player_id', 'players.name as player_name', 'players.age as age', 'teams.name as team_name', 'players.role', 'players.contract_years', 'players.is_rookie')
             ->first();
 
         if (!$playerDetails) {
@@ -1043,10 +1066,10 @@ class PlayersController extends Controller
                             $q->whereColumn('s.home_id', 'player_game_stats.team_id')
                                 ->whereColumn('s.home_score', '>', 's.away_score');
                         })
-                        ->orWhere(function ($q) {
-                            $q->whereColumn('s.away_id', 'player_game_stats.team_id')
-                                ->whereColumn('s.away_score', '>', 's.home_score');
-                        });
+                            ->orWhere(function ($q) {
+                                $q->whereColumn('s.away_id', 'player_game_stats.team_id')
+                                    ->whereColumn('s.away_score', '>', 's.home_score');
+                            });
                     });
             })
             ->groupBy('seasons.name', 'seasons.finals_winner_name')
@@ -1082,10 +1105,10 @@ class PlayersController extends Controller
                             $q->whereColumn('s.home_id', 'player_game_stats.team_id')
                                 ->whereColumn('s.home_score', '>', 's.away_score');
                         })
-                        ->orWhere(function ($q) {
-                            $q->whereColumn('s.away_id', 'player_game_stats.team_id')
-                                ->whereColumn('s.away_score', '>', 's.home_score');
-                        });
+                            ->orWhere(function ($q) {
+                                $q->whereColumn('s.away_id', 'player_game_stats.team_id')
+                                    ->whereColumn('s.away_score', '>', 's.home_score');
+                            });
                     });
             })
             ->groupBy('seasons.name', 'team.id', 'home_team.name', 'away_team.name', 'schedules.home_id', 'schedules.away_id', 'schedules.home_score', 'schedules.away_score')
@@ -1209,82 +1232,79 @@ class PlayersController extends Controller
         ]);
     }
     public function getPlayerGameLogs(Request $request)
-{
-    // Validate the request data
-    $request->validate([
-        'player_id' => 'required|exists:players,id',
-        'season_id' => 'required|exists:seasons,id',
-        'page_num' => 'required|integer|min:1',
-        'itemsperpage' => 'required|integer|min:1',
-    ]);
+    {
+        // Validate the request data
+        $request->validate([
+            'player_id' => 'required|exists:players,id',
+            'season_id' => 'required|exists:seasons,id',
+            'page_num' => 'required|integer|min:1',
+            'itemsperpage' => 'required|integer|min:1',
+        ]);
 
-    $playerId = $request->player_id;
-    $seasonId = $request->season_id;
-    $page = $request->page_num;
-    $perPage = $request->itemsperpage;
+        $playerId = $request->player_id;
+        $seasonId = $request->season_id;
+        $page = $request->page_num;
+        $perPage = $request->itemsperpage;
 
-    // Calculate offset
-    $offset = ($page - 1) * $perPage;
+        // Calculate offset
+        $offset = ($page - 1) * $perPage;
 
-    // Fetch player game logs for the given player and season with pagination
-    $playerGameLogs = \DB::table('player_game_stats')
-        ->join('players', 'player_game_stats.player_id', '=', 'players.id')
-        ->join('teams as player_team', 'player_game_stats.team_id', '=', 'player_team.id') // Join with player's team to get team name
-        ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id') // Join with schedules table
-        ->join('seasons', 'schedules.season_id', '=', 'seasons.id') // Join with seasons table
-        ->leftJoin('teams as home_team', 'schedules.home_id', '=', 'home_team.id') // Join with home team
-        ->leftJoin('teams as away_team', 'schedules.away_id', '=', 'away_team.id') // Join with away team
-        ->select(
-            'player_game_stats.id as stat_id', // Include player_game_stats.id in the select
-            'player_game_stats.game_id',
-            'player_team.name as team_name', // Player's team name
-            \DB::raw('CASE
+        // Fetch player game logs for the given player and season with pagination
+        $playerGameLogs = \DB::table('player_game_stats')
+            ->join('players', 'player_game_stats.player_id', '=', 'players.id')
+            ->join('teams as player_team', 'player_game_stats.team_id', '=', 'player_team.id') // Join with player's team to get team name
+            ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id') // Join with schedules table
+            ->join('seasons', 'schedules.season_id', '=', 'seasons.id') // Join with seasons table
+            ->leftJoin('teams as home_team', 'schedules.home_id', '=', 'home_team.id') // Join with home team
+            ->leftJoin('teams as away_team', 'schedules.away_id', '=', 'away_team.id') // Join with away team
+            ->select(
+                'player_game_stats.id as stat_id', // Include player_game_stats.id in the select
+                'player_game_stats.game_id',
+                'player_team.name as team_name', // Player's team name
+                \DB::raw('CASE
                 WHEN player_game_stats.team_id = schedules.home_id THEN away_team.name
                 ELSE home_team.name
             END as opponent_team_name'), // Determine opponent team name
-            'schedules.round as round', // Add round info
-            'seasons.name as season_name', // Include season name
-            \DB::raw('player_game_stats.points as game_points'),
-            \DB::raw('player_game_stats.rebounds as game_rebounds'),
-            \DB::raw('player_game_stats.assists as game_assists'),
-            \DB::raw('player_game_stats.steals as game_steals'),
-            \DB::raw('player_game_stats.blocks as game_blocks'),
-            \DB::raw('player_game_stats.turnovers as game_turnovers'),
-            \DB::raw('player_game_stats.fouls as game_fouls'),
-            'player_game_stats.minutes as game_minutes',
-            \DB::raw('(CASE
+                'schedules.round as round', // Add round info
+                'seasons.name as season_name', // Include season name
+                \DB::raw('player_game_stats.points as game_points'),
+                \DB::raw('player_game_stats.rebounds as game_rebounds'),
+                \DB::raw('player_game_stats.assists as game_assists'),
+                \DB::raw('player_game_stats.steals as game_steals'),
+                \DB::raw('player_game_stats.blocks as game_blocks'),
+                \DB::raw('player_game_stats.turnovers as game_turnovers'),
+                \DB::raw('player_game_stats.fouls as game_fouls'),
+                'player_game_stats.minutes as game_minutes',
+                \DB::raw('(CASE
                 WHEN player_game_stats.team_id = schedules.home_id THEN
                     (CASE WHEN schedules.home_score > schedules.away_score THEN "Win" ELSE "Loss" END)
                 ELSE
                     (CASE WHEN schedules.away_score > schedules.home_score THEN "Win" ELSE "Loss" END)
             END) as game_result') // Determine win/loss
-        )
-        ->where('player_game_stats.player_id', $playerId)
-        ->where('player_game_stats.season_id', $seasonId)
-        ->orderBy('player_game_stats.id', 'desc') // Order by player_game_stats.id in descending order
-        ->offset($offset)
-        ->limit($perPage)
-        ->get();
+            )
+            ->where('player_game_stats.player_id', $playerId)
+            ->where('player_game_stats.season_id', $seasonId)
+            ->orderBy('player_game_stats.id', 'desc') // Order by player_game_stats.id in descending order
+            ->offset($offset)
+            ->limit($perPage)
+            ->get();
 
-    // Fetch total count of records for pagination info
-    $totalRecords = \DB::table('player_game_stats')
-        ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id') // Join with schedules table
-        ->where('player_game_stats.player_id', $playerId)
-        ->where('player_game_stats.season_id', $seasonId)
-        ->count();
+        // Fetch total count of records for pagination info
+        $totalRecords = \DB::table('player_game_stats')
+            ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id') // Join with schedules table
+            ->where('player_game_stats.player_id', $playerId)
+            ->where('player_game_stats.season_id', $seasonId)
+            ->count();
 
-    // Prepare pagination metadata
-    $totalPages = ceil($totalRecords / $perPage);
+        // Prepare pagination metadata
+        $totalPages = ceil($totalRecords / $perPage);
 
-    // Prepare response
-    return response()->json([
-        'current_page' => $page,
-        'total_pages' => $totalPages,
-        'total_records' => $totalRecords,
-        'game_logs' => $playerGameLogs,
-    ]);
-}
-
-
-
+        // Prepare response
+        return response()->json([
+            'current_page' => $page,
+            'total_pages' => $totalPages,
+            'total_records' => $totalRecords,
+            'game_logs' => $playerGameLogs,
+        ]);
+    }
 }

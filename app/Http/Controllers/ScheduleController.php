@@ -100,6 +100,14 @@ class ScheduleController extends Controller
             4 => 'bench' // No further downgrade
         ];
 
+        // Define performance thresholds for each role
+        $roleThresholds = [
+            'star player' => ['shooting' => 90, 'defense' => 90, 'passing' => 90, 'rebounding' => 90],
+            'starter' => ['shooting' => 75, 'defense' => 75, 'passing' => 75, 'rebounding' => 75],
+            'role player' => ['shooting' => 60, 'defense' => 60, 'passing' => 60, 'rebounding' => 60],
+            'bench' => ['shooting' => 50, 'defense' => 50, 'passing' => 50, 'rebounding' => 50],
+        ];
+
         // Fetch all active players
         $players = Player::where('is_active', 1)->get();
 
@@ -107,6 +115,7 @@ class ScheduleController extends Controller
             // Deduct contract_years by 1
             $player->contract_years -= 1;
             $player->is_rookie = 0;
+
             // Check if contract_years is 0 and update team_id to 0
             if ($player->contract_years <= 0) {
                 $player->contract_years = 0; // Ensure contract_years is exactly 0
@@ -135,15 +144,146 @@ class ScheduleController extends Controller
                 // Assign a random value between 1 and 100
                 $player->injury_prone_percentage = rand(1, 100);
             } else {
-
                 $player->injury_prone_percentage = 0;
             }
 
+            // Update player ratings based on performance
+            $performance = $this->calculatePerformance($player->id); // Calculate performance from game stats
+            $player->shooting_rating = $this->updateRating($player->shooting_rating, $performance['shooting']);
+            $player->defense_rating = $this->updateRating($player->defense_rating, $performance['defense']);
+            $player->passing_rating = $this->updateRating($player->passing_rating, $performance['passing']);
+            $player->rebounding_rating = $this->updateRating($player->rebounding_rating, $performance['rebounding']);
+            $player->overall_rating = ($player->shooting_rating + $player->defense_rating + $player->passing_rating + $player->rebounding_rating) / 4;
+
+            // Debugging: Print performance and updated ratings
+            \Log::info("Player ID: {$player->id}", [
+                'Performance' => $performance,
+                'Updated Ratings' => [
+                    'Shooting' => $player->shooting_rating,
+                    'Defense' => $player->defense_rating,
+                    'Passing' => $player->passing_rating,
+                    'Rebounding' => $player->rebounding_rating,
+                    'Overall' => $player->overall_rating,
+                ],
+            ]);
+
+            // Update role based on performance
+            $playerRole = $this->updateRoleBasedOnPerformance($player, $roleThresholds);
+            if ($playerRole !== $player->role) {
+                $player->role = $playerRole;
+            }
 
             // Save the updated player data
             $player->save();
+
+            $seasonId = $this->getLatestSeasonId();
+            // Log the player ratings
+            $this->logPlayerRatings($player, $seasonId);
         }
     }
+    private function logPlayerRatings($player, $seasonId)
+    {
+        DB::table('player_ratings')->updateOrInsert(
+            [
+                'player_id' => $player->id,
+                'season_id' => $seasonId,
+            ],
+            [
+                'shooting_rating' => $player->shooting_rating,
+                'defense_rating' => $player->defense_rating,
+                'passing_rating' => $player->passing_rating,
+                'rebounding_rating' => $player->rebounding_rating,
+                'overall_rating' => $player->overall_rating,
+                'updated_at' => now(),
+            ]
+        );
+    }
+    // Function to update ratings based on performance
+    private function updateRating($currentRating, $performanceMetric)
+    {
+        // Ensure performanceMetric is between 0 and 100
+        $performanceMetric = min(max($performanceMetric, 0), 100);
+
+        // Logic to update rating; this is just a simple example
+        $newRating = $currentRating + ($performanceMetric - $currentRating) / 10; // Adjust based on performance
+        return min(max($newRating, 0), 100); // Ensure rating stays within bounds
+    }
+
+    // Function to update player role based on performance
+    private function updateRoleBasedOnPerformance($player, $roleThresholds)
+    {
+        // Determine new role based on performance thresholds
+        $performance = $this->calculatePerformance($player->id);
+
+        // Role thresholds should be ordered from most to least demanding
+        $roles = ['star player', 'starter', 'role player', 'bench'];
+
+        foreach ($roles as $role) {
+            $thresholds = $roleThresholds[$role];
+            if (
+                $performance['shooting'] >= $thresholds['shooting'] &&
+                $performance['defense'] >= $thresholds['defense'] &&
+                $performance['passing'] >= $thresholds['passing'] &&
+                $performance['rebounding'] >= $thresholds['rebounding']
+            ) {
+                return $role;
+            }
+        }
+
+        return 'bench'; // Default role if none of the thresholds are met
+    }
+
+    // Function to calculate player performance based on game stats
+    private function calculatePerformance($playerId)
+    {
+        // Fetch game stats for the current season
+        $stats = PlayerGameStats::where('player_id', $playerId)
+            ->where('season_id', $this->getLatestSeasonId()) // Assume you have a method to get the current season ID
+            ->get();
+
+        $performance = [
+            'shooting' => 0,
+            'defense' => 0,
+            'passing' => 0,
+            'rebounding' => 0,
+        ];
+
+        // Aggregate stats
+        foreach ($stats as $stat) {
+            $performance['shooting'] += $stat->points / max($stat->minutes, 1); // Example: points per minute
+            $performance['defense'] += $stat->blocks + $stat->steals; // Example: combined defensive stats
+            $performance['passing'] += $stat->assists / max($stat->minutes, 1); // Example: assists per minute
+            $performance['rebounding'] += $stat->rebounds / max($stat->minutes, 1); // Example: rebounds per minute
+        }
+
+        // Calculate averages
+        $totalGames = $stats->count();
+        if ($totalGames > 0) {
+            $performance['shooting'] /= $totalGames;
+            $performance['defense'] /= $totalGames;
+            $performance['passing'] /= $totalGames;
+            $performance['rebounding'] /= $totalGames;
+        }
+
+        return $performance;
+    }
+
+
+    // Example method to get the current season ID
+    private function getLatestSeasonId()
+    {
+        // Fetch the latest season ID based on descending order of IDs
+        $latestSeasonId = Seasons::orderBy('id', 'desc')->pluck('id')->first();
+
+        if ($latestSeasonId) {
+            return $latestSeasonId;
+        }
+
+        // Handle the case where no seasons are found
+        throw new \Exception('No seasons found.');
+    }
+
+
     private function createDoubleRoundRobinScheduleByConference($seasonId, $leagueId)
     {
         // Retrieve teams based on league_id
@@ -370,14 +510,17 @@ class ScheduleController extends Controller
         // Simulate player game stats for home team
         foreach ($homeTeamPlayers as $player) {
             $minutes = $homeMinutes[$player->id] ?? 0;
+            // Factor in player's ratings to calculate their performance
             $maxPoints = $roleMaxPoints[$player->role] ?? 30; // Default to 30 if role not found
             $exposureFactor = $minutes / 30; // Scale factor based on minutes
 
-            $points = $minutes === 0 ? 0 : round(rand(0, $maxPoints * $exposureFactor));
-            $assists = $minutes === 0 ? 0 : round(rand(0, 10 * $exposureFactor));
-            $rebounds = $minutes === 0 ? 0 : round(rand(0, 15 * $exposureFactor));
-            $steals = $minutes === 0 ? 0 : round(rand(0, 5 * $exposureFactor));
-            $blocks = $minutes === 0 ? 0 : round(rand(0, 5 * $exposureFactor));
+            $ratingFactor = ($player->shooting_rating + $player->defense_rating + $player->passing_rating + $player->rebounding_rating) / 4;
+
+            $points = round(rand(0, $maxPoints * $exposureFactor * ($ratingFactor / 100)));
+            $assists = round(rand(0, 10 * $exposureFactor * ($player->passing_rating / 100)));
+            $rebounds = round(rand(0, 10 * $exposureFactor * ($player->rebounding_rating / 100)));
+            $steals = round(rand(0, 5 * $exposureFactor * ($player->defense_rating / 100)));
+            $blocks = round(rand(0, 5 * $exposureFactor * ($player->defense_rating / 100)));
             $turnovers = $minutes === 0 ? 0 : round(rand(0, 5 * $exposureFactor));
             $fouls = $minutes === 0 ? 0 : round(rand(0, 5 * $exposureFactor));
 
@@ -401,14 +544,17 @@ class ScheduleController extends Controller
         // Simulate player game stats for away team
         foreach ($awayTeamPlayers as $player) {
             $minutes = $awayMinutes[$player->id] ?? 0;
+            // Factor in player's ratings to calculate their performance
             $maxPoints = $roleMaxPoints[$player->role] ?? 30; // Default to 30 if role not found
             $exposureFactor = $minutes / 30; // Scale factor based on minutes
 
-            $points = $minutes === 0 ? 0 : round(rand(0, $maxPoints * $exposureFactor));
-            $assists = $minutes === 0 ? 0 : round(rand(0, 10 * $exposureFactor));
-            $rebounds = $minutes === 0 ? 0 : round(rand(0, 15 * $exposureFactor));
-            $steals = $minutes === 0 ? 0 : round(rand(0, 5 * $exposureFactor));
-            $blocks = $minutes === 0 ? 0 : round(rand(0, 5 * $exposureFactor));
+            $ratingFactor = ($player->shooting_rating + $player->defense_rating + $player->passing_rating + $player->rebounding_rating) / 4;
+
+            $points = round(rand(0, $maxPoints * $exposureFactor * ($ratingFactor / 100)));
+            $assists = round(rand(0, 10 * $exposureFactor * ($player->passing_rating / 100)));
+            $rebounds = round(rand(0, 10 * $exposureFactor * ($player->rebounding_rating / 100)));
+            $steals = round(rand(0, 5 * $exposureFactor * ($player->defense_rating / 100)));
+            $blocks = round(rand(0, 5 * $exposureFactor * ($player->defense_rating / 100)));
             $turnovers = $minutes === 0 ? 0 : round(rand(0, 5 * $exposureFactor));
             $fouls = $minutes === 0 ? 0 : round(rand(0, 5 * $exposureFactor));
 
@@ -743,6 +889,46 @@ class ScheduleController extends Controller
                     }
                 }
 
+                // Check if the game is tied and adjust minutes
+                if ($homeScore == $awayScore) {
+                    // Add 12 extra minutes to each team
+                    foreach ($homePlayers as $player) {
+                        if (isset($homeMinutes[$player->id])) {
+                            $homeMinutes[$player->id] += 12;
+                        }
+                    }
+
+                    foreach ($awayPlayers as $player) {
+                        if (isset($awayMinutes[$player->id])) {
+                            $awayMinutes[$player->id] += 12;
+                        }
+                    }
+
+                    // Recalculate scores based on additional minutes
+                    $homeScore = 0;
+                    $awayScore = 0;
+
+                    foreach ($homePlayers as $player) {
+                        $minutes = $homeMinutes[$player->id] ?? 0;
+                        if ($minutes > 0) {
+                            $exposureFactor = $minutes / 30; // Scale factor based on minutes
+
+                            $points = round(rand(0, $roleMaxPoints[$player->role] * $exposureFactor));
+                            $homeScore += $points;
+                        }
+                    }
+
+                    foreach ($awayPlayers as $player) {
+                        $minutes = $awayMinutes[$player->id] ?? 0;
+                        if ($minutes > 0) {
+                            $exposureFactor = $minutes / 30; // Scale factor based on minutes
+
+                            $points = round(rand(0, $roleMaxPoints[$player->role] * $exposureFactor));
+                            $awayScore += $points;
+                        }
+                    }
+                }
+
                 // Update the scores in the schedule
                 $schedule->home_score = $homeScore;
                 $schedule->away_score = $awayScore;
@@ -827,13 +1013,6 @@ class ScheduleController extends Controller
             'bench' => 4,
         ];
 
-        $roleMaxPoints = [
-            'star player' => 50,
-            'starter' => 30,
-            'role player' => 20,
-            'bench' => 10,
-        ];
-
         // Define total minutes available for each team
         $totalMinutes = 240;
 
@@ -908,14 +1087,20 @@ class ScheduleController extends Controller
                             ]
                         );
                     } else {
-                        $maxPoints = $roleMaxPoints[$player->role] ?? 30; // Default to 30 if role not found
+                        // Calculate player stats based on ratings
+                        $shootingRating = $player->shooting_rating;
+                        $defenseRating = $player->defense_rating;
+                        $passingRating = $player->passing_rating;
+                        $reboundingRating = $player->rebounding_rating;
+                        $overallRating = $player->overall_rating;
+
                         $exposureFactor = $minutes / 30; // Scale factor based on minutes
 
-                        $points = round(rand(0, $maxPoints * $exposureFactor));
-                        $assists = round(rand(0, 10 * $exposureFactor));
-                        $rebounds = round(rand(0, 10 * $exposureFactor));
-                        $steals = round(rand(0, 5 * $exposureFactor));
-                        $blocks = round(rand(0, 5 * $exposureFactor));
+                        $points = round(($shootingRating / 100) * rand(0, 50 * $exposureFactor));
+                        $assists = round(($passingRating / 100) * rand(0, 10 * $exposureFactor));
+                        $rebounds = round(($reboundingRating / 100) * rand(0, 10 * $exposureFactor));
+                        $steals = round(($defenseRating / 100) * rand(0, 5 * $exposureFactor));
+                        $blocks = round(($defenseRating / 100) * rand(0, 5 * $exposureFactor));
 
                         // Update player game stats
                         PlayerGameStats::updateOrCreate(
@@ -964,14 +1149,20 @@ class ScheduleController extends Controller
                             ]
                         );
                     } else {
-                        $maxPoints = $roleMaxPoints[$player->role] ?? 30; // Default to 30 if role not found
+                        // Calculate player stats based on ratings
+                        $shootingRating = $player->shooting_rating;
+                        $defenseRating = $player->defense_rating;
+                        $passingRating = $player->passing_rating;
+                        $reboundingRating = $player->rebounding_rating;
+                        $overallRating = $player->overall_rating;
+
                         $exposureFactor = $minutes / 30; // Scale factor based on minutes
 
-                        $points = round(rand(0, $maxPoints * $exposureFactor));
-                        $assists = round(rand(0, 10 * $exposureFactor));
-                        $rebounds = round(rand(0, 10 * $exposureFactor));
-                        $steals = round(rand(0, 5 * $exposureFactor));
-                        $blocks = round(rand(0, 5 * $exposureFactor));
+                        $points = round(($shootingRating / 100) * rand(0, 50 * $exposureFactor));
+                        $assists = round(($passingRating / 100) * rand(0, 10 * $exposureFactor));
+                        $rebounds = round(($reboundingRating / 100) * rand(0, 10 * $exposureFactor));
+                        $steals = round(($defenseRating / 100) * rand(0, 5 * $exposureFactor));
+                        $blocks = round(($defenseRating / 100) * rand(0, 5 * $exposureFactor));
 
                         // Update player game stats
                         PlayerGameStats::updateOrCreate(
@@ -996,47 +1187,7 @@ class ScheduleController extends Controller
                     }
                 }
 
-                // Check if the game is tied and adjust minutes
-                if ($homeScore == $awayScore) {
-                    // Add 12 extra minutes to each team
-                    foreach ($homePlayers as $player) {
-                        if (isset($homeMinutes[$player->id])) {
-                            $homeMinutes[$player->id] += 12;
-                        }
-                    }
-
-                    foreach ($awayPlayers as $player) {
-                        if (isset($awayMinutes[$player->id])) {
-                            $awayMinutes[$player->id] += 12;
-                        }
-                    }
-
-                    // Recalculate scores based on additional minutes
-                    $homeScore = 0;
-                    $awayScore = 0;
-
-                    foreach ($homePlayers as $player) {
-                        $minutes = $homeMinutes[$player->id] ?? 0;
-                        if ($minutes > 0) {
-                            $exposureFactor = $minutes / 30; // Scale factor based on minutes
-
-                            $points = round(rand(0, $roleMaxPoints[$player->role] * $exposureFactor));
-                            $homeScore += $points;
-                        }
-                    }
-
-                    foreach ($awayPlayers as $player) {
-                        $minutes = $awayMinutes[$player->id] ?? 0;
-                        if ($minutes > 0) {
-                            $exposureFactor = $minutes / 30; // Scale factor based on minutes
-
-                            $points = round(rand(0, $roleMaxPoints[$player->role] * $exposureFactor));
-                            $awayScore += $points;
-                        }
-                    }
-                }
-
-                // Update the scores in the schedule
+                // Update the schedule status to completed
                 $schedule->home_score = $homeScore;
                 $schedule->away_score = $awayScore;
                 $schedule->status = 2; // Marking the game as completed
@@ -1056,20 +1207,17 @@ class ScheduleController extends Controller
                     $season->save();
                 }
             }
-
             // Commit the transaction
             DB::commit();
 
-            // Return a response indicating success
             return response()->json([
-                'message' => 'Games for the conference round simulated and player stats updated successfully.',
-            ]);
+                'success' => 'Simulation completed successfully.',
+            ], 200);
         } catch (\Exception $e) {
-            // Rollback the transaction if any error occurs
+            // Rollback the transaction in case of an error
             DB::rollBack();
             return response()->json([
-                'error' => 'An error occurred while simulating games. Transaction rolled back.',
-                'details' => $e->getMessage(),
+                'error' => 'An error occurred during simulation: ' . $e->getMessage(),
             ], 500);
         }
     }

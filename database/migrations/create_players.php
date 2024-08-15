@@ -18,6 +18,7 @@ return new class extends Migration
             $table->integer('contract_years')->default(1);
             $table->timestamp('contract_expires_at')->nullable();
             $table->boolean('is_active')->default(true);
+            $table->boolean('is_rookie')->default(true);
             $table->integer('age')->default(0);
             $table->integer('retirement_age')->default(0);
             $table->decimal('injury_prone_percentage', 5, 2)->default(0.00);
