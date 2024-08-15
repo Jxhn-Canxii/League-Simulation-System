@@ -1,4 +1,19 @@
-CREATE VIEW schedule_view AS
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
+
+class CreateScheduleView extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        DB::statement('
+            CREATE VIEW schedule_view AS
             SELECT
                 s.*,
                 t_home.name AS home_team_name,
@@ -16,3 +31,16 @@ CREATE VIEW schedule_view AS
                 seasons se ON s.season_id = se.id
             JOIN
                 leagues l ON se.league_id = l.id
+        ');
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        DB::statement('DROP VIEW IF EXISTS schedule_view');
+    }
+}

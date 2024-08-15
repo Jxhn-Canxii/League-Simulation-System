@@ -74,6 +74,52 @@ class ConferenceController extends Controller
             'standings' => $standings,
         ]);
     }
+    // Function to get power rankings
+    public function powerrankings(Request $request)
+    {
+        // Retrieve the season_id from the request
+        $seasonId = $request->season_id;
+
+        // Fetch power rankings filtered by season_id
+        $powerRankings = DB::table('power_rankings_view') // Replace with your actual view or table name
+            ->where('season_id', $seasonId)
+            ->orderByDesc('ranking') // Adjust ordering based on your power ranking logic
+            ->get();
+
+        return response()->json([
+            'power_rankings' => $powerRankings,
+        ]);
+    }
+
+    // Function to get the results of the previous round in a conference
+    public function previousConferenceRoundResults(Request $request)
+    {
+        // Retrieve the season_id and conference_id from the request
+        $seasonId = $request->season_id;
+        $conferenceId = $request->conference_id;
+
+        // Retrieve the current round from the request
+        $currentRound = $request->current_round;
+
+        // Determine the previous round in the specified conference
+        $previousRound = DB::table('schedules')
+            ->where('season_id', $seasonId)
+            ->where('conference_id', $conferenceId)
+            ->where('round', '<', $currentRound) // Adjust comparison as needed
+            ->orderByDesc('round')
+            ->value('round');
+
+        // Fetch results for the previous round in the specified conference
+        $previousRoundResults = DB::table('schedules')
+            ->where('season_id', $seasonId)
+            ->where('conference_id', $conferenceId)
+            ->where('round', $previousRound)
+            ->get();
+
+        return response()->json([
+            'previous_round_results' => $previousRoundResults,
+        ]);
+    }
     public function seasonschedules(Request $request)
     {
         // Retrieve the season_id and conference_id from the request
