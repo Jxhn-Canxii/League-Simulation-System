@@ -248,7 +248,6 @@ class PlayersController extends Controller
             'team_id' => $teamId,
         ]);
     }
-
     public function getFreeAgents(Request $request)
     {
         // Get pagination parameters from the request
