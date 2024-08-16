@@ -132,7 +132,7 @@ class PlayersController extends Controller
     {
         $request->validate([
             'team_id' => 'required|exists:teams,id',
-            'season_id' => 'nullable|integer', // Validate season_id as nullable integer
+            'season_id' => 'nullable|integer',
         ]);
 
         $teamId = $request->team_id;
@@ -140,7 +140,6 @@ class PlayersController extends Controller
 
         // Determine the season_id to use
         if (is_null($seasonId) || $seasonId == 0) {
-            // Get the latest season_id if null or 0
             $seasonId = DB::table('seasons')->orderBy('id', 'desc')->value('id');
         }
 
@@ -169,7 +168,7 @@ class PlayersController extends Controller
 
             // Filter games where player minutes are greater than 0
             $filteredStats = $stats->filter(function ($stat) {
-                return $stat->minutes > 0; // Assuming 'minutes' is the column indicating minutes played
+                return $stat->minutes > 0;
             });
 
             // Calculate totals
@@ -191,6 +190,14 @@ class PlayersController extends Controller
             $averageTurnoversPerGame = $gamesPlayed > 0 ? $totalTurnovers / $gamesPlayed : 0;
             $averageFoulsPerGame = $gamesPlayed > 0 ? $totalFouls / $gamesPlayed : 0;
 
+            // Determine player role from player_ratings table if available
+            $playerRating = DB::table('player_ratings')
+                ->where('player_id', $player->id)
+                ->where('season_id', $seasonId)
+                ->first();
+
+            $role = $playerRating ? $playerRating->role : $player->role;
+
             // Determine player status
             $status = $player->team_id == $teamId ? 1 : 2;
 
@@ -198,12 +205,13 @@ class PlayersController extends Controller
             if ($player->is_active == 0 && $status == 2) {
                 $status = 0;
             }
+
             // Append player with stats and details in one row
             $playerStats[] = [
                 'player_id' => $player->id,
                 'name' => $player->name,
                 'age' => $player->age,
-                'role' => $player->role,
+                'role' => $role,
                 'is_active' => $player->is_active,
                 'is_rookie' => $player->is_rookie,
                 'retirement_age' => $player->retirement_age,
@@ -248,6 +256,7 @@ class PlayersController extends Controller
             'team_id' => $teamId,
         ]);
     }
+
     public function getFreeAgents(Request $request)
     {
         // Get pagination parameters from the request
@@ -843,7 +852,7 @@ class PlayersController extends Controller
                 \DB::raw('SUM(player_game_stats.turnovers) as total_turnovers'),
                 \DB::raw('SUM(player_game_stats.fouls) as total_fouls'),
                 \DB::raw('COUNT(DISTINCT CASE WHEN player_game_stats.minutes > 0 THEN player_game_stats.game_id END) as games_played'), // Exclude DNP games
-                \DB::raw('COALESCE(player_ratings.role, "Not Rated") as role') // Use COALESCE to handle NULL roles
+                \DB::raw('COALESCE(player_ratings.role, players.role) as role') // Use COALESCE to handle NULL roles
             )
             ->where('player_game_stats.player_id', $playerId)
             ->whereIn('schedules.round', ['round_of_16', 'quarter_finals', 'semi_finals', 'interconference_semi_finals', 'finals']) // Filter by playoff rounds
@@ -936,7 +945,7 @@ class PlayersController extends Controller
                 \DB::raw('SUM(player_game_stats.turnovers) as total_turnovers'),
                 \DB::raw('SUM(player_game_stats.fouls) as total_fouls'),
                 \DB::raw('COUNT(DISTINCT CASE WHEN player_game_stats.minutes > 0 THEN player_game_stats.game_id END) as games_played'), // Exclude DNP games
-                \DB::raw('COALESCE(player_ratings.role, "Not Rated") as role') // Use COALESCE to handle NULL roles
+                \DB::raw('COALESCE(player_ratings.role, players.role) as role') // Use COALESCE to handle NULL roles
             )
             ->where('player_game_stats.player_id', $playerId)
             ->whereNotIn('schedules.round', ['round_of_16', 'quarter_finals', 'semi_finals', 'interconference_semi_finals', 'finals']) // Exclude specific playoff rounds
