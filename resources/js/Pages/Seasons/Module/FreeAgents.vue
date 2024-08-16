@@ -339,7 +339,7 @@ const assignTeams = async (player_id) => {
         });
     }
 };
-const assignTeamsAuto = async () => {
+const assignTeamsAutov1 = async () => {
     try {
         // Show confirmation dialog
         const result = await Swal.fire({
@@ -361,7 +361,10 @@ const assignTeamsAuto = async () => {
 
             const data = response.data;
             let message = "";
-
+            console.log(data.message);
+            if (data.message === "Player Status Updated") {
+                message = `<p>${data.message}</p>`;
+            }
             if (data.message === "No free agents available.") {
                 message = `<p>${data.message}</p>`;
                 if (data.incomplete_teams.length > 0) {
@@ -413,6 +416,88 @@ const assignTeamsAuto = async () => {
         emits("newSeason", true);
     }
 };
+const assignTeamsAuto = async () => {
+    try {
+        // Show confirmation dialog
+        const result = await Swal.fire({
+            title: "Are you sure?",
+            text: "Do you want to assign free agents to teams?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, assign them!",
+            cancelButtonText: "No, cancel",
+            reverseButtons: true,
+        });
+
+        if (result.isConfirmed) {
+            // Proceed with the request if confirmed
+            const response = await axios.post(
+                route("auto.assign.freeagent.teams")
+            );
+
+            const data = response.data;
+            let message = "";
+            console.log(data.message);
+            if (data.message === "All teams have signed 12 players.") {
+                message = `<p>${data.message}</p>`;
+            } else if (data.message === "No free agents available.") {
+                message = `<p>${data.message}</p>`;
+                if (data.incomplete_teams.length > 0) {
+                    message += "<ul>";
+                    data.incomplete_teams.forEach((team) => {
+                        message += `<li><strong>${team.team_name}</strong>: ${team.players_needed} player(s) needed</li>`;
+                    });
+                    message += "</ul>";
+                }
+            } else {
+                message = `<p>${data.message}</p>`;
+                if (data.remaining_free_agents > 0) {
+                    message += `<p>Remaining free agents: ${data.remaining_free_agents}</p>`;
+                }
+                if (data.incomplete_teams.length > 0) {
+                    message += "<ul>";
+                    data.incomplete_teams.forEach((team) => {
+                        message += `<li><strong>${team.team_name}</strong>: ${team.players_needed} player(s) still needed</li>`;
+                    });
+                    message += "</ul>";
+                }
+            }
+
+            Swal.fire({
+                icon: "success",
+                title: "Success!",
+                html: message,
+            });
+
+            // Check if a new season should be emitted
+            const is_new_season = response.data.team_count === 0;
+            if (is_new_season) {
+                emits("newSeason", is_new_season);
+            }
+
+            // Fetch updated free agents list
+            fetchFreeAgent();
+        } else {
+            // Show cancellation message if canceled
+            Swal.fire({
+                icon: "info",
+                title: "Cancelled",
+                text: "The assignment process was canceled.",
+            });
+        }
+    } catch (error) {
+        console.error("Error assigning teams:", error);
+        Swal.fire({
+            icon: "warning",
+            title: "Error!",
+            text: error.response?.data?.message || "An unexpected error occurred.",
+        });
+
+        // Emitting new season status in case of error
+        emits("newSeason", true);
+    }
+};
+
 onMounted(() => {
     fetchFreeAgent();
 });

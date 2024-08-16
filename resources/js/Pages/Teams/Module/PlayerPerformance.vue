@@ -31,6 +31,9 @@
                             Team
                         </th>
                         <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                            Role
+                        </th>
+                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
                             GP
                         </th>
                         <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Points Per Game">
@@ -63,6 +66,14 @@
                         </td>
                         <td class="px-2 py-1 whitespace-nowrap border">
                             {{ player.team_name }}
+                        </td>
+                        <td class="px-2 py-1 whitespace-nowrap border">
+                            <span
+                                :class="roleClasses(player.role)"
+                                class="inline-flex items-center capitalize px-2.5 py-0.5 rounded text-xs font-medium"
+                            >
+                                {{ player.role }}
+                            </span>
                         </td>
                         <td class="px-2 py-1 whitespace-nowrap border">
                             {{ player.games_played }}
@@ -107,6 +118,9 @@
                             Team
                         </th>
                         <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                            Role
+                        </th>
+                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
                             GP
                         </th>
                         <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Points Per Game">
@@ -139,6 +153,14 @@
                         </td>
                         <td class="px-2 py-1 whitespace-nowrap border">
                             {{ player.team_name }}
+                        </td>
+                        <td class="px-2 py-1 whitespace-nowrap border">
+                            <span
+                                :class="roleClasses(player.role)"
+                                class="inline-flex items-center capitalize px-2.5 py-0.5 rounded text-xs font-medium"
+                            >
+                                {{ player.role }}
+                            </span>
                         </td>
                         <td class="px-2 py-1 whitespace-nowrap border">
                             {{ player.games_played }}
@@ -224,6 +246,20 @@ const fetchPlayerSeasonPerformance = async () => {
         season_logs.value = response.data;
     } catch (error) {
         console.error("Error fetching player season performance:", error);
+    }
+};
+const roleClasses = (role) => {
+    switch (role) {
+        case "starter":
+            return "bg-blue-100 text-blue-800";
+        case "star player":
+            return "bg-yellow-100 text-yellow-800";
+        case "role player":
+            return "bg-green-100 text-green-800";
+        case "bench":
+            return "bg-gray-100 text-gray-800";
+        default:
+            return "bg-gray-200 text-gray-800"; // Default case
     }
 };
 </script>

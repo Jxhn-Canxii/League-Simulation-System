@@ -843,7 +843,8 @@ class PlayersController extends Controller
                 \DB::raw('SUM(player_game_stats.blocks) as total_blocks'),
                 \DB::raw('SUM(player_game_stats.turnovers) as total_turnovers'),
                 \DB::raw('SUM(player_game_stats.fouls) as total_fouls'),
-                \DB::raw('COUNT(DISTINCT CASE WHEN player_game_stats.minutes > 0 THEN player_game_stats.game_id END) as games_played') // Exclude DNP games
+                \DB::raw('COUNT(DISTINCT CASE WHEN player_game_stats.minutes > 0 THEN player_game_stats.game_id END) as games_played'), // Exclude DNP games
+                \DB::raw('COALESCE(player_ratings.role, "Not Rated") as role') // Use COALESCE to handle NULL roles
             )
             ->where('player_game_stats.player_id', $playerId)
             ->whereIn('schedules.round', ['round_of_16', 'quarter_finals', 'semi_finals', 'interconference_semi_finals', 'finals']) // Filter by playoff rounds
@@ -916,6 +917,10 @@ class PlayersController extends Controller
             ->join('teams', 'player_game_stats.team_id', '=', 'teams.id')
             ->join('seasons', 'player_game_stats.season_id', '=', 'seasons.id') // Join with seasons table
             ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id') // Join with schedules table
+            ->leftJoin('player_ratings', function($join) {
+                $join->on('player_game_stats.player_id', '=', 'player_ratings.player_id')
+                     ->on('player_game_stats.season_id', '=', 'player_ratings.season_id');
+            }) // Left join with player_ratings table
             ->select(
                 'players.id as player_id',
                 'players.name as player_name',
@@ -931,11 +936,12 @@ class PlayersController extends Controller
                 \DB::raw('SUM(player_game_stats.blocks) as total_blocks'),
                 \DB::raw('SUM(player_game_stats.turnovers) as total_turnovers'),
                 \DB::raw('SUM(player_game_stats.fouls) as total_fouls'),
-                \DB::raw('COUNT(DISTINCT CASE WHEN player_game_stats.minutes > 0 THEN player_game_stats.game_id END) as games_played') // Exclude DNP games
+                \DB::raw('COUNT(DISTINCT CASE WHEN player_game_stats.minutes > 0 THEN player_game_stats.game_id END) as games_played'), // Exclude DNP games
+                \DB::raw('COALESCE(player_ratings.role, "Not Rated") as role') // Use COALESCE to handle NULL roles
             )
             ->where('player_game_stats.player_id', $playerId)
             ->whereNotIn('schedules.round', ['round_of_16', 'quarter_finals', 'semi_finals', 'interconference_semi_finals', 'finals']) // Exclude specific playoff rounds
-            ->groupBy('players.id', 'players.name', 'players.team_id', 'teams.name', 'teams.conference_id', 'player_game_stats.season_id', 'seasons.name')
+            ->groupBy('players.id', 'players.name', 'players.team_id', 'teams.name', 'teams.conference_id', 'player_game_stats.season_id', 'seasons.name', 'player_ratings.role')
             ->orderBy('player_game_stats.season_id', 'desc') // Sort by season_id in descending order
             ->get();
 
@@ -959,7 +965,7 @@ class PlayersController extends Controller
             $averageTurnoversPerGame = $stats->games_played > 0 ? $stats->total_turnovers / $stats->games_played : 0;
             $averageFoulsPerGame = $stats->games_played > 0 ? $stats->total_fouls / $stats->games_played : 0;
 
-            // Append player with stats and team name
+            // Append player with stats, team name, and role
             $formattedPlayerStats[] = [
                 'player_id' => $stats->player_id,
                 'player_name' => $stats->player_name,
@@ -968,6 +974,7 @@ class PlayersController extends Controller
                 'conference_id' => $stats->conference_id,
                 'season_id' => $stats->season_id,
                 'season_name' => $stats->season_name, // Add season name
+                'role' => $stats->role, // Add player role
                 'total_points' => $stats->total_points,
                 'total_rebounds' => $stats->total_rebounds,
                 'total_assists' => $stats->total_assists,

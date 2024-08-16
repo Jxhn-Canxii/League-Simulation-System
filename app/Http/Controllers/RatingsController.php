@@ -20,104 +20,104 @@ class RatingsController extends Controller
     //
     public function updateActivePlayers()
     {
-        // Define role priority and possible new roles
-        $rolePriority = [
-            'star player' => 1,
-            'starter' => 2,
-            'role player' => 3,
-            'bench' => 4,
-        ];
+        DB::beginTransaction(); // Start transaction
 
-        $roleMapping = [
-            1 => 'starter',
-            2 => 'role player',
-            3 => 'bench',
-            4 => 'bench' // No further downgrade
-        ];
+        try {
+            // Define role priority and possible new roles
+            $rolePriority = [
+                'star player' => 1,
+                'starter' => 2,
+                'role player' => 3,
+                'bench' => 4,
+            ];
 
-        // Fetch all active players
-        $players = Player::where('is_active', 1)->get();
+            $roleMapping = [
+                1 => 'starter',
+                2 => 'role player',
+                3 => 'bench',
+                4 => 'bench' // No further downgrade
+            ];
 
-        foreach ($players as $player) {
-            // Deduct contract_years by 1
-            $player->contract_years -= 1;
-            $player->is_rookie = 0;
+            // Fetch all active players
+            $players = Player::where('is_active', 1)->get();
 
-            // Check if contract_years is 0 and update team_id to 0
-            if ($player->contract_years <= 0) {
-                $player->contract_years = 0; // Ensure contract_years is exactly 0
-                $player->team_id = 0; // Update team_id to 0
-            }
-
-            // Increment age by 1
-            $player->age += 1;
-
-            // Check for retirement
-            if ($player->age >= $player->retirement_age) {
-                $player->is_active = 0;
-                $player->team_id = 0;
-            } else {
-                // Adjust role if player is near retirement
-                if ($player->age >= ($player->retirement_age - 3)) { // Near retirement
-                    $currentPriority = $rolePriority[$player->role];
-                    if ($currentPriority < 4) {
-                        $player->role = $roleMapping[$currentPriority];
-                    }
-                }
-            }
-
-            // Determine if the player should have an injury_prone_percentage of 0
-            if (rand(1, 100) <= 20) {
-                // Assign a random value between 1 and 100
-                $player->injury_prone_percentage = rand(1, 100);
-            } else {
-                $player->injury_prone_percentage = 0;
-            }
-
-            // Update player ratings based on performance
-            $performance = $this->calculatePerformance($player->id); // Calculate performance from game stats
-            $player->shooting_rating = $this->updateRating($player->shooting_rating, $performance['shooting']);
-            $player->defense_rating = $this->updateRating($player->defense_rating, $performance['defense']);
-            $player->passing_rating = $this->updateRating($player->passing_rating, $performance['passing']);
-            $player->rebounding_rating = $this->updateRating($player->rebounding_rating, $performance['rebounding']);
-            $player->overall_rating = ($player->shooting_rating + $player->defense_rating + $player->passing_rating + $player->rebounding_rating) / 4;
-
-            // Debugging: Print performance and updated ratings
-            \Log::info("Player ID: {$player->id}", [
-                'Performance' => $performance,
-                'Updated Ratings' => [
-                    'Shooting' => $player->shooting_rating,
-                    'Defense' => $player->defense_rating,
-                    'Passing' => $player->passing_rating,
-                    'Rebounding' => $player->rebounding_rating,
-                    'Overall' => $player->overall_rating,
-                ],
-            ]);
-
-
-            // Update role based on performance
             $seasonId = $this->getLatestSeasonId();
 
-            $playerRole = $this->updateRoleBasedOnPerformance($player);
-            if ($playerRole !== $player->role) {
-                $player->role = $playerRole;
+            foreach ($players as $player) {
+                // Deduct contract_years by 1
+                $player->contract_years -= 1;
+                $player->is_rookie = 0;
+
+                // Check if contract_years is 0 and update team_id to 0
+                if ($player->contract_years <= 0) {
+                    $player->contract_years = 0; // Ensure contract_years is exactly 0
+                    $player->team_id = 0; // Update team_id to 0
+                }
+
+                // Increment age by 1
+                $player->age += 1;
+
+                // Check for retirement
+                if ($player->age >= $player->retirement_age) {
+                    $player->is_active = 0;
+                    $player->team_id = 0;
+                } else {
+                    // Adjust role if player is near retirement
+                    if ($player->age >= ($player->retirement_age - 3)) { // Near retirement
+                        $currentPriority = $rolePriority[$player->role];
+                        if ($currentPriority < 4) {
+                            $player->role = $roleMapping[$currentPriority];
+                        }
+                    }
+                }
+
+                // Determine if the player should have an injury_prone_percentage of 0
+                if (rand(1, 100) <= 20) {
+                    // Assign a random value between 1 and 100
+                    $player->injury_prone_percentage = rand(1, 100);
+                } else {
+                    $player->injury_prone_percentage = 0;
+                }
+
+                // Save the updated player data
+                $player->save();
+
+                // Update player ratings based on performance
+                $performance = $this->calculatePerformance($player->id); // Calculate performance from game stats
+                $player->shooting_rating = $this->updateRating($player->shooting_rating, $performance['shooting']);
+                $player->defense_rating = $this->updateRating($player->defense_rating, $performance['defense']);
+                $player->passing_rating = $this->updateRating($player->passing_rating, $performance['passing']);
+                $player->rebounding_rating = $this->updateRating($player->rebounding_rating, $performance['rebounding']);
+                $player->overall_rating = ($player->shooting_rating + $player->defense_rating + $player->passing_rating + $player->rebounding_rating) / 4;
+
+                // Insert updated ratings into player_ratings table
+                $this->logPlayerRatings($player, $seasonId);
             }
 
-            $this->logPlayerRatings($player, $seasonId);
-            // Save the updated player data
-            $player->save();
+            // Update the last season's status to 9
+            DB::table('seasons')
+                ->where('id', $seasonId)
+                ->update(['status' => 9]);
+
+            DB::commit(); // Commit transaction
+
+            // Return a response indicating all player statuses have been updated
+            return response()->json([
+                'error' => false,
+                'message' => 'All player statuses have been updated successfully.',
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack(); // Rollback transaction on error
+
+            // Log the error
+            \Log::error('Failed to update player statuses', ['exception' => $e]);
+
+            // Return an error response
+            return response()->json([
+                'error' => true,
+                'message' => 'Failed to update player statuses.',
+            ], 500);
         }
-
-        // Update the last season's status to 9
-        DB::table('seasons')
-            ->where('id', $this->getLatestSeasonId())
-            ->update(['status' => 9]);
-
-        // Return a response indicating all player statuses have been updated
-        return response()->json([
-            'error' => false,
-            'message' => 'All player statuses have been updated successfully.',
-        ]);
     }
 
     private function logPlayerRatings($player, $seasonId)
