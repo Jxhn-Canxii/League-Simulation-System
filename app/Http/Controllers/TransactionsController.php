@@ -105,6 +105,10 @@ class TransactionsController extends Controller
             DB::table('seasons')
                 ->where('id', $this->getLatestSeasonId())
                 ->update(['status' => 10]);
+
+            return response()->json([
+                'message' => 'Player Status Updated',
+            ], 200);
         }
         if ($remainingFreeAgents === 0) {
             $incompleteTeams = $teamsWithFewMembers->map(function ($team) {
