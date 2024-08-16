@@ -984,37 +984,109 @@ class ScheduleController extends Controller
                     }
                 }
 
-                // Update the schedule status to completed
-                $schedule->home_score = $homeScore;
-                $schedule->away_score = $awayScore;
-                $schedule->status = 2; // Marking the game as completed
-                $schedule->save();
-            }
+                // Update game result
+                $schedule->update([
+                    'home_score' => $homeScore,
+                    'away_score' => $awayScore,
+                    'status' => 2, // Set status to completed
+                    'updated_at' => now(),
+                ]);
 
-            // Check if all rounds have been simulated for the season
-            $allRoundsSimulatedForSeason = Schedules::where('season_id', $seasonId)
-                ->where('status', 1)
-                ->doesntExist();
+                // Handle overtimes if scores are tied
+                while ($homeScore === $awayScore) {
+                    // Simulate an additional 6 minutes of play
+                    $additionalMinutes = 6;
+                    $additionalHomeScore = rand(0, $additionalMinutes * 3); // Random points for additional minutes
+                    $additionalAwayScore = rand(0, $additionalMinutes * 3); // Random points for additional minutes
 
-            if ($allRoundsSimulatedForSeason) {
-                // Update the season's status to 2
-                $season = Seasons::find($seasonId);
-                if ($season) {
-                    $season->status = 2; // Example status for completed season
-                    $season->save();
+                    // Update scores
+                    $homeScore += $additionalHomeScore;
+                    $awayScore += $additionalAwayScore;
+
+                    // Update game result with additional scores
+                    $schedule->update([
+                        'home_score' => $homeScore,
+                        'away_score' => $awayScore,
+                        'status' => 2, // Set status to completed
+                        'updated_at' => now(),
+                    ]);
+
+                    // Simulate player stats for overtime
+                    foreach ($homePlayers as $player) {
+                        if (isset($homeMinutes[$player->id]) && $homeMinutes[$player->id] > 0) {
+                            // Simulate overtime performance
+                            $overtimeMinutes = $additionalMinutes;
+                            $points = round(($player->shooting_rating / 100) * rand(0, 10 * ($overtimeMinutes / 6)));
+                            $assists = round(($player->passing_rating / 100) * rand(0, 3 * ($overtimeMinutes / 6)));
+                            $rebounds = round(($player->rebounding_rating / 100) * rand(0, 3 * ($overtimeMinutes / 6)));
+                            $steals = round(($player->defense_rating / 100) * rand(0, 2 * ($overtimeMinutes / 6)));
+                            $blocks = round(($player->defense_rating / 100) * rand(0, 2 * ($overtimeMinutes / 6)));
+
+                            // Update player game stats for overtime
+                            PlayerGameStats::updateOrCreate(
+                                [
+                                    'player_id' => $player->id,
+                                    'game_id' => $schedule->game_id,
+                                    'team_id' => $schedule->home_id,
+                                    'season_id' => $seasonId
+                                ],
+                                [
+                                    'points' => DB::raw('points + ' . $points),
+                                    'assists' => DB::raw('assists + ' . $assists),
+                                    'rebounds' => DB::raw('rebounds + ' . $rebounds),
+                                    'steals' => DB::raw('steals + ' . $steals),
+                                    'blocks' => DB::raw('blocks + ' . $blocks),
+                                    'updated_at' => now(),
+                                ]
+                            );
+                        }
+                    }
+
+                    foreach ($awayPlayers as $player) {
+                        if (isset($awayMinutes[$player->id]) && $awayMinutes[$player->id] > 0) {
+                            // Simulate overtime performance
+                            $overtimeMinutes = $additionalMinutes;
+                            $points = round(($player->shooting_rating / 100) * rand(0, 10 * ($overtimeMinutes / 6)));
+                            $assists = round(($player->passing_rating / 100) * rand(0, 3 * ($overtimeMinutes / 6)));
+                            $rebounds = round(($player->rebounding_rating / 100) * rand(0, 3 * ($overtimeMinutes / 6)));
+                            $steals = round(($player->defense_rating / 100) * rand(0, 2 * ($overtimeMinutes / 6)));
+                            $blocks = round(($player->defense_rating / 100) * rand(0, 2 * ($overtimeMinutes / 6)));
+
+                            // Update player game stats for overtime
+                            PlayerGameStats::updateOrCreate(
+                                [
+                                    'player_id' => $player->id,
+                                    'game_id' => $schedule->game_id,
+                                    'team_id' => $schedule->away_id,
+                                    'season_id' => $seasonId
+                                ],
+                                [
+                                    'points' => DB::raw('points + ' . $points),
+                                    'assists' => DB::raw('assists + ' . $assists),
+                                    'rebounds' => DB::raw('rebounds + ' . $rebounds),
+                                    'steals' => DB::raw('steals + ' . $steals),
+                                    'blocks' => DB::raw('blocks + ' . $blocks),
+                                    'updated_at' => now(),
+                                ]
+                            );
+                        }
+                    }
                 }
             }
+
             // Commit the transaction
             DB::commit();
 
             return response()->json([
-                'success' => 'Simulation completed successfully.',
+                'message' => 'Games simulated successfully',
+                'data' => $schedules,
             ], 200);
         } catch (\Exception $e) {
-            // Rollback the transaction in case of an error
-            DB::rollBack();
+            // Rollback the transaction if an error occurs
+            DB::rollback();
+
             return response()->json([
-                'error' => 'An error occurred during simulation: ' . $e->getMessage(),
+                'error' => 'An error occurred while simulating games: ' . $e->getMessage(),
             ], 500);
         }
     }

@@ -211,24 +211,24 @@ class TransactionsController extends Controller
                 'message' => 'All teams have signed 12 players.',
                 'team_count' => $teamsCount,
             ], 200);
-        }
-
-        if ($remainingFreeAgents === 0) {
-            $incompleteTeams = $teamsWithFewMembers->map(function ($team) {
-                $playersNeeded = 12 - $team->player_count;
-                return [
-                    'team_name' => $team->name,
-                    'players_needed' => $playersNeeded,
-                ];
-            })->filter(function ($team) {
-                return $team['players_needed'] > 0;
-            });
-
-            return response()->json([
-                'message' => 'No free agents available.',
-                'incomplete_teams' => $incompleteTeams,
-            ], 400);
         } else {
+            if ($remainingFreeAgents === 0) {
+                $incompleteTeams = $teamsWithFewMembers->map(function ($team) {
+                    $playersNeeded = 12 - $team->player_count;
+                    return [
+                        'team_name' => $team->name,
+                        'players_needed' => $playersNeeded,
+                    ];
+                })->filter(function ($team) {
+                    return $team['players_needed'] > 0;
+                });
+
+                return response()->json([
+                    'message' => 'No free agents available.',
+                    'incomplete_teams' => $incompleteTeams,
+                ], 400);
+            }
+
             // Randomly assign each free agent to a team with fewer than 12 players
             foreach ($freeAgents as $agent) {
                 if ($remainingFreeAgents <= 0) break;
