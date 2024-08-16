@@ -836,6 +836,10 @@ class PlayersController extends Controller
             ->join('teams', 'player_game_stats.team_id', '=', 'teams.id')
             ->join('seasons', 'player_game_stats.season_id', '=', 'seasons.id') // Join with seasons table
             ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id') // Join with schedules table
+            ->leftJoin('player_ratings', function($join) {
+                $join->on('player_game_stats.player_id', '=', 'player_ratings.player_id')
+                     ->on('player_game_stats.season_id', '=', 'player_ratings.season_id');
+            }) // Left join with player_ratings table
             ->select(
                 'players.id as player_id',
                 'players.name as player_name',
@@ -856,7 +860,7 @@ class PlayersController extends Controller
             )
             ->where('player_game_stats.player_id', $playerId)
             ->whereIn('schedules.round', ['round_of_16', 'quarter_finals', 'semi_finals', 'interconference_semi_finals', 'finals']) // Filter by playoff rounds
-            ->groupBy('players.id', 'players.name', 'players.team_id', 'teams.name', 'teams.conference_id', 'player_game_stats.season_id', 'seasons.name')
+            ->groupBy('players.id', 'players.name', 'players.team_id','players.role', 'teams.name', 'teams.conference_id', 'player_game_stats.season_id', 'seasons.name', 'player_ratings.role')
             ->orderBy('player_game_stats.season_id', 'desc') // Sort by season_id in descending order
             ->get();
 
@@ -887,6 +891,7 @@ class PlayersController extends Controller
                 'team_name' => $stats->team_name,
                 'team_id' => $stats->team_id,
                 'conference_id' => $stats->conference_id,
+                'role' => $stats->role, // Add player role
                 'season_id' => $stats->season_id,
                 'season_name' => $stats->season_name, // Add season name
                 'total_points' => $stats->total_points,
@@ -949,7 +954,7 @@ class PlayersController extends Controller
             )
             ->where('player_game_stats.player_id', $playerId)
             ->whereNotIn('schedules.round', ['round_of_16', 'quarter_finals', 'semi_finals', 'interconference_semi_finals', 'finals']) // Exclude specific playoff rounds
-            ->groupBy('players.id', 'players.name', 'players.team_id', 'teams.name', 'teams.conference_id', 'player_game_stats.season_id', 'seasons.name', 'player_ratings.role')
+            ->groupBy('players.id', 'players.name', 'players.team_id','players.role',  'teams.name', 'teams.conference_id', 'player_game_stats.season_id', 'seasons.name', 'player_ratings.role')
             ->orderBy('player_game_stats.season_id', 'desc') // Sort by season_id in descending order
             ->get();
 
