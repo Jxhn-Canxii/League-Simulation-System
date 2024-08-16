@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Teams;
+use App\Models\Seasons;
 use App\Models\Player;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -100,7 +100,12 @@ class TransactionsController extends Controller
 
         $remainingFreeAgents = $freeAgents->count();
         $teamsCount = $teamsWithFewMembers->count();
-
+        if ($teamsCount <= 0) {
+            // Update the last season's status to 10 if there are no incomplete teams
+            DB::table('seasons')
+                ->where('id', $this->getLatestSeasonId())
+                ->update(['status' => 10]);
+        }
         if ($remainingFreeAgents === 0) {
             $incompleteTeams = $teamsWithFewMembers->map(function ($team) {
                 $playersNeeded = 12 - $team->player_count;
@@ -169,6 +174,7 @@ class TransactionsController extends Controller
             'incomplete_teams' => $incompleteTeams,
         ]);
     }
+
     private function determineContractYears($role)
     {
         switch ($role) {
@@ -183,5 +189,17 @@ class TransactionsController extends Controller
             default:
                 return 1;
         }
+    }
+    private function getLatestSeasonId()
+    {
+        // Fetch the latest season ID based on descending order of IDs
+        $latestSeasonId = Seasons::orderBy('id', 'desc')->pluck('id')->first();
+
+        if ($latestSeasonId) {
+            return $latestSeasonId;
+        }
+
+        // Handle the case where no seasons are found
+        throw new \Exception('No seasons found.');
     }
 }

@@ -10,6 +10,7 @@ use App\Http\Controllers\SeasonsController;
 use App\Http\Controllers\ConferenceController;
 use App\Http\Controllers\PlayersController;
 use App\Http\Controllers\TransactionsController;
+use App\Http\Controllers\RatingsController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -76,6 +77,11 @@ Route::middleware('auth')->group(function () {
         Route::post('game_per_conference', [ScheduleController::class, 'simulateperconference'])->name('game.simulate.conference');
         Route::post('all_game', [ScheduleController::class, 'simulateall'])->name('game.simulate.all');
         Route::post('seasonplayoffschedule', [ScheduleController::class, 'playoffschedule'])->name('season.playoff.schedule');
+        Route::post('update-player-status', [ScheduleController::class, 'updateActivePlayers'])->name('update.player.status');
+
+    });
+    Route::prefix('ratings/')->group(function(){
+        Route::post('update-player-status', [RatingsController::class, 'updateActivePlayers'])->name('update.player.status');
 
     });
     Route::prefix('seasons/')->group(function(){

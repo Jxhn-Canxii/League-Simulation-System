@@ -20,6 +20,9 @@
             </span>
         </p>
         <p>
+            <strong>Overall Ratings:</strong> {{ main_performance.player_details.overall_rating ?? "-" }}
+        </p>
+        <p>
             <strong>Season Experience:</strong>
             <span :class="playerExpStatusClass(main_performance.season_count)">
                 {{ playerExpStatusText(main_performance.season_count ?? main_performance.season_count) }} ({{ main_performance.season_count ?? 0 }})

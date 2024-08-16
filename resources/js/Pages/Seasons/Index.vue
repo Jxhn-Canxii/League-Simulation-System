@@ -7,9 +7,29 @@
             <div
                 class="inline-block min-w-full bg-white overflow-auto shadow rounded p-2"
             >
+                <div class="flex overflow-hidden justify-end gap-5 p-2" v-if="seasons.is_new_season == 1">
+                    <button
+                        @click.prevent="updatePlayerStatus()"
+                        class="px-2 py-2 bg-blue-500 rounded font-bold text-md float-end text-white shadow"
+                    >
+                        <i class="fa fa-users"></i> Update Player Status
+                    </button>
+                </div>
+                <div class="flex overflow-hidden justify-end gap-5 p-2" v-if="seasons.is_new_season == 2">
+                    <button
+                        @click.prevent="isPlayerSigningModalOpen = true"
+                        v-bind:class="{
+                            'opacity-25': isPlayerSigningModalOpen,
+                        }"
+                        v-bind:disabled="isPlayerSigningModalOpen"
+                        class="px-2 py-2 bg-red-500 rounded font-bold text-md float-end text-white shadow"
+                    >
+                        <i class="fa fa-users"></i> Player Signings
+                    </button>
+                </div>
                 <div
                     class="flex overflow-hidden justify-end gap-5 p-2"
-                    v-if="seasons.is_new_season"
+                    v-if="seasons.is_new_season== 3"
                 >
                     <button
                         @click.prevent="isAddModalOpen = true"
@@ -20,18 +40,6 @@
                         class="px-2 py-2 bg-blue-500 rounded font-bold text-md float-end text-white shadow"
                     >
                         <i class="fa fa-calendar-plus"></i> New Season
-                    </button>
-                </div>
-                <div class="flex overflow-hidden justify-end gap-5 p-2" v-else>
-                    <button
-                        @click.prevent="isPlayerSigningModalOpen = true"
-                        v-bind:class="{
-                            'opacity-25': isPlayerSigningModalOpen,
-                        }"
-                        v-bind:disabled="isPlayerSigningModalOpen"
-                        class="px-2 py-2 bg-red-500 rounded font-bold text-md float-end text-white shadow"
-                    >
-                        <i class="fa fa-users"></i> Player Signings
                     </button>
                 </div>
                 <div class="flex overflow-hidden gap-5 p-2">
@@ -591,6 +599,53 @@ const create = async () => {
         }
     }
 };
+const updatePlayerStatus = async () => {
+    try {
+        isProcessing.value = true;
+
+        // Show processing status
+        const processingAlert = Swal.fire({
+            title: "Processing...",
+            text: "Please wait while the player status is being updated.",
+            icon: "info",
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            },
+        });
+
+        const response = await axios.post(route("update.player.status"), form);
+
+        // Close the processing status alert
+        Swal.close();
+
+        isAddModalOpen.value = false;
+        Swal.fire({
+            icon: "success",
+            title: "Success!",
+            text: response.data.message, // Assuming the response contains a 'message' field
+        });
+
+        form.reset("name", "type", "league_id");
+        isProcessing.value = false;
+        fetchSeasons();
+    } catch (error) {
+        console.error(error);
+
+        // Close the processing status alert if there's an error
+        Swal.close();
+
+        // Show error message using Swal2
+        Swal.fire({
+            icon: "error",
+            title: "Error!",
+            text: "Failed to update player status. Please try again later.",
+        });
+
+        isProcessing.value = false;
+    }
+};
+
 const changeTab = (tab) => {
     currentTab.value = tab;
 };

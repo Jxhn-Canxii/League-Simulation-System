@@ -85,18 +85,22 @@ class SeasonsController extends Controller
         // Return the seasons data along with pagination information as a JSON response
         return response()->json($response);
     }
-    private function is_new_season(){
-        $teamIds = DB::table('teams')
-            ->leftJoin('players', 'teams.id', '=', 'players.team_id')
-            ->select('teams.id')
-            ->groupBy('teams.id')
-            ->havingRaw('COUNT(players.id) < 12')
-            ->pluck('id');
+    private function is_new_season() {
+        // Get the last season status
+        $lastSeasonStatus = DB::table('seasons')
+            ->orderBy('id', 'desc')
+            ->value('status');
 
-        $teamsCount = $teamIds->count();
-
-        return $teamsCount == 0;
+        // Check the status and return the appropriate value
+        if ($lastSeasonStatus == 8) {
+            return 1;
+        } elseif ($lastSeasonStatus == 9) {
+            return 2;
+        } elseif ($lastSeasonStatus == 10) {
+            return 3;
+        }
     }
+
     public function seasonsperleague(Request $request)
     {
         // Validate the incoming request

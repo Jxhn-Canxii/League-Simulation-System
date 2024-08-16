@@ -411,7 +411,7 @@ const fetchSeasonPlayoffs = async (type) => {
         console.error("Error fetching season playoffs:", error);
     }
 };
-const simulateGame = async (id,type,index,round) => {
+const simulateGamev2 = async (id,type,index,round) => {
     try {
         isHide.value = true;
         activeIndex.value = index;
@@ -437,6 +437,54 @@ const simulateGame = async (id,type,index,round) => {
         });
     }
 };
+const simulateGame = async (id, type, index, round) => {
+    try {
+        isHide.value = true;
+        activeIndex.value = index;
+
+        // Show simulating game status
+        const simulatingAlert = Swal.fire({
+            title: "Simulating...",
+            text: "Please wait while the game is being simulated.",
+            icon: "info",
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            },
+        });
+
+        const response = await axios.post(route("game.simulate"), {
+            schedule_id: id, // Assuming the parameter name should be schedule_id
+        });
+
+        season_playoffs.value.playoffs[round][index] = response.data.schedule;
+
+        // Close the simulating status alert
+        Swal.close();
+
+        // Show success message using Swal2
+        Swal.fire({
+            icon: "success",
+            title: "Success!",
+            text: response.data.message, // Assuming the response contains a 'message' field
+        });
+
+        isHide.value = false;
+    } catch (error) {
+        console.error("Error simulating the game:", error);
+
+        // Close the simulating status alert if there's an error
+        Swal.close();
+
+        // Show error message using Swal2
+        Swal.fire({
+            icon: "error",
+            title: "Error!",
+            text: "Failed to simulate the game. Please try again later.",
+        });
+    }
+};
+
 const getConferenceClass = (home_conference, away_conference) => {
     // Define Tailwind classes for each conference
     const conferenceClasses = {
