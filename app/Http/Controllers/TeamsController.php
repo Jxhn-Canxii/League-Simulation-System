@@ -382,6 +382,7 @@ class TeamsController extends Controller
             ->select(
                 'standings_view.*',
                 'seasons.name as season_name',
+                'conference_championships as conference_championship',
                 DB::raw('CASE WHEN standings_view.overall_rank <= CASE WHEN seasons.start_playoffs = 16 THEN 16 ELSE 32 END THEN TRUE ELSE FALSE END AS isPlayoffQualified'),
                 DB::raw('MAX(schedules.id) as last_round_played_id'),
             )
@@ -417,6 +418,7 @@ class TeamsController extends Controller
             return $season->conference_rank == 1;
         })->count();
 
+
         $seasonCount = DB::table('standings_view')
             ->where('season_id', $seasonId)
             ->count();
@@ -434,6 +436,7 @@ class TeamsController extends Controller
             'overallRank1Count' => $overallRank1Count,
             'conferenceRank1Count' => $conferenceRank1Count,
             'lastOverallRankCount' => $lastOverallRankCount,
+            'conferenceChampions' => $season->conference_championship,
         ];
     }
 

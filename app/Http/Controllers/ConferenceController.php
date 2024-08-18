@@ -181,6 +181,7 @@ class ConferenceController extends Controller
     }
     private static function playoffTree($seasonId, $status, $type, $start)
     {
+        $status = $status >= 8 ? 8 : $status;
         // Define round indices based on status
         $roundIndices = [];
         if($start == 8){
@@ -192,7 +193,7 @@ class ConferenceController extends Controller
                     5 => ['quarter_finals'],
                     6 => ['semi_finals'],
                     7 => ['interconference_semi_finals'],
-                    8 => ['finals']
+                    8 => ['finals'],
                 ];
             }
             if ($type == 1) {

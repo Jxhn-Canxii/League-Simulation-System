@@ -1074,6 +1074,19 @@ class ScheduleController extends Controller
                 }
             }
 
+            // Check if all rounds have been simulated for the season
+            $allRoundsSimulatedForSeason = Schedules::where('season_id', $seasonId)
+                ->where('status', 1)
+                ->doesntExist();
+
+            if ($allRoundsSimulatedForSeason) {
+                // Update the season's status to 2
+                $season = Seasons::find($seasonId);
+                if ($season) {
+                    $season->status = 2; // Example status for completed season
+                    $season->save();
+                }
+            }
             // Commit the transaction
             DB::commit();
 
@@ -1090,191 +1103,6 @@ class ScheduleController extends Controller
             ], 500);
         }
     }
-
-    public function simulateperconference(Request $request)
-    {
-        // Validate the request data
-        $request->validate([
-            'season_id' => 'required|exists:seasons,id',
-            'conference_id' => 'required|exists:conferences,id',
-        ]);
-
-        $seasonId = $request->season_id;
-        $conferenceId = $request->conference_id;
-
-        // Retrieve schedules for the given season and conference
-        $schedules = Schedules::where('season_id', $seasonId)
-            ->where('conference_id', $conferenceId)
-            ->get();
-
-        if ($schedules->isEmpty()) {
-            return response()->json([
-                'error' => 'No schedules found for the given season and conference.',
-            ], 404);
-        }
-
-        // Define role-based priority and maximum points
-        $rolePriority = [
-            'star player' => 1,
-            'starter' => 2,
-            'role player' => 3,
-            'bench' => 4,
-        ];
-
-        $roleMaxPoints = [
-            'star player' => 50,
-            'starter' => 30,
-            'role player' => 20,
-            'bench' => 10,
-        ];
-
-        // Define total minutes available for each team
-        $totalMinutes = 240;
-
-        // Begin a database transaction
-        DB::beginTransaction();
-
-        try {
-            // Process each schedule
-            foreach ($schedules as $schedule) {
-                // Fetch players for home and away teams
-                $homePlayers = Player::where('team_id', $schedule->home_id)->get();
-                $awayPlayers = Player::where('team_id', $schedule->away_id)->get();
-
-                // Prioritize players based on their roles
-                $homePlayers = $homePlayers->sortBy(function ($player) use ($rolePriority) {
-                    return $rolePriority[$player->role] ?? 5; // Default to a lower priority if role not found
-                })->values();
-
-                $awayPlayers = $awayPlayers->sortBy(function ($player) use ($rolePriority) {
-                    return $rolePriority[$player->role] ?? 5; // Default to a lower priority if role not found
-                })->values();
-
-                // Initialize team scores and minutes
-                $homeScore = 0;
-                $awayScore = 0;
-
-                // Allocate minutes to players
-                $homeMinutes = [];
-                $awayMinutes = [];
-
-                // Distribute minutes based on player priority
-                foreach ($homePlayers as $index => $player) {
-                    $minutes = $index < 5 ? (rand(24, 30)) : (rand(6, 15)); // Top 5 players get more minutes, others get less
-                    $homeMinutes[$player->id] = $minutes;
-                }
-
-                foreach ($awayPlayers as $index => $player) {
-                    $minutes = $index < 5 ? (rand(24, 30)) : (rand(6, 15)); // Top 5 players get more minutes, others get less
-                    $awayMinutes[$player->id] = $minutes;
-                }
-
-                // Simulate player game stats for home team
-                foreach ($homePlayers as $player) {
-                    $minutes = $homeMinutes[$player->id] ?? 0;
-                    $maxPoints = $roleMaxPoints[$player->role] ?? 30; // Default to 30 if role not found
-                    $exposureFactor = $minutes / 30; // Scale factor based on minutes
-
-                    $points = round(rand(0, $maxPoints * $exposureFactor));
-                    $assists = round(rand(0, 10 * $exposureFactor));
-                    $rebounds = round(rand(0, 10 * $exposureFactor));
-                    $steals = round(rand(0, 5 * $exposureFactor));
-                    $blocks = round(rand(0, 5 * $exposureFactor));
-
-                    // Update player game stats
-                    PlayerGameStats::updateOrCreate(
-                        [
-                            'player_id' => $player->id,
-                            'game_id' => $schedule->game_id,
-                            'team_id' => $schedule->home_id,
-                            'season_id' => $seasonId
-                        ],
-                        [
-                            'points' => $points,
-                            'assists' => $assists,
-                            'rebounds' => $rebounds,
-                            'steals' => $steals,
-                            'blocks' => $blocks,
-                            'minutes' => $minutes,
-                            'updated_at' => now(),
-                        ]
-                    );
-
-                    $homeScore += $points;
-                }
-
-                // Simulate player game stats for away team
-                foreach ($awayPlayers as $player) {
-                    $minutes = $awayMinutes[$player->id] ?? 0;
-                    $maxPoints = $roleMaxPoints[$player->role] ?? 30; // Default to 30 if role not found
-                    $exposureFactor = $minutes / 30; // Scale factor based on minutes
-
-                    $points = round(rand(0, $maxPoints * $exposureFactor));
-                    $assists = round(rand(0, 10 * $exposureFactor));
-                    $rebounds = round(rand(0, 10 * $exposureFactor));
-                    $steals = round(rand(0, 5 * $exposureFactor));
-                    $blocks = round(rand(0, 5 * $exposureFactor));
-
-                    // Update player game stats
-                    PlayerGameStats::updateOrCreate(
-                        [
-                            'player_id' => $player->id,
-                            'game_id' => $schedule->game_id,
-                            'team_id' => $schedule->away_id,
-                            'season_id' => $seasonId
-                        ],
-                        [
-                            'points' => $points,
-                            'assists' => $assists,
-                            'rebounds' => $rebounds,
-                            'steals' => $steals,
-                            'blocks' => $blocks,
-                            'minutes' => $minutes,
-                            'updated_at' => now(),
-                        ]
-                    );
-
-                    $awayScore += $points;
-                }
-
-                // Update the scores in the schedule
-                $schedule->home_score = $homeScore;
-                $schedule->away_score = $awayScore;
-                $schedule->status = 2; // Marking the game as completed
-                $schedule->save();
-            }
-
-            // Check if all rounds have been simulated
-            $allRoundsSimulated = Schedules::where('season_id', $seasonId)
-                ->where('status', 1)
-                ->doesntExist();
-
-            if ($allRoundsSimulated) {
-                // Update the season's status to 2
-                $season = Seasons::find($seasonId);
-                if ($season) {
-                    $season->status = 2;
-                    $season->save();
-                }
-            }
-
-            // Commit the transaction
-            DB::commit();
-
-            // Return a response indicating success
-            return response()->json([
-                'message' => 'All conference games simulated and player stats updated successfully.',
-            ]);
-        } catch (\Exception $e) {
-            // Rollback the transaction if any error occurs
-            DB::rollBack();
-            return response()->json([
-                'error' => 'An error occurred while simulating games. Transaction rolled back.',
-                'details' => $e->getMessage(),
-            ], 500);
-        }
-    }
-
 
     //start playoff algo
     public static function playoffschedule(Request $request)

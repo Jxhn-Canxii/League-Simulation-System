@@ -63,7 +63,7 @@
                     </div>
                     <div class="stat flex justify-between" v-if="home.finalsStats">
                         <p>
-                            Championships ({{
+                            National Championships ({{
                                 home.finalsStats.finals_wins ?? 0
                             }}):
                         </p>
@@ -88,10 +88,29 @@
                             </template>
                         </div>
                     </div>
+                     <!-- Display season stats -->
+                     <div class="stat flex justify-between" v-if="home.seasonStats">
+                        <p>
+                            Conference Championship ({{
+                                home.seasonStats.conferenceChampions
+                            }}):
+                        </p>
+                        <div>
+                            <template
+                                v-if="home.seasonStats.conferenceChampions"
+                                v-for="i in parseInt(
+                                    home.seasonStats.conferenceChampions
+                                )"
+                                :key="'win1-' + i"
+                            >
+                                <i class="fa fa-trophy text-yellow-500"></i>
+                            </template>
+                        </div>
+                    </div>
                     <!-- Display season stats -->
                     <div class="stat flex justify-between" v-if="home.seasonStats">
                         <p>
-                            Overall Championships ({{
+                            National Rank #1 ({{
                                 home.seasonStats.overallRank1Count
                             }}):
                         </p>
@@ -109,7 +128,7 @@
                     </div>
                     <div class="stat flex justify-between" v-if="home.seasonStats">
                         <p>
-                            Conf. Championships ({{
+                            Conference Rank #1 ({{
                                 home.seasonStats.conferenceRank1Count
                             }}):
                         </p>
@@ -207,7 +226,7 @@
                     </div>
                     <div class="stat flex justify-between" v-if="away.finalsStats">
                         <p>
-                            Championships ({{
+                            National Championships ({{
                                 away.finalsStats.finals_wins ?? 0
                             }}):
                         </p>
@@ -232,10 +251,28 @@
                             </template>
                         </div>
                     </div>
+                    <div class="stat flex justify-between" v-if="away.seasonStats">
+                        <p>
+                            Conference Championship ({{
+                                away.seasonStats.conferenceChampions
+                            }}):
+                        </p>
+                        <div>
+                            <template
+                                v-if="away.seasonStats.conferenceChampions"
+                                v-for="i in parseInt(
+                                    away.seasonStats.conferenceChampions
+                                )"
+                                :key="'win1-' + i"
+                            >
+                                <i class="fa fa-trophy text-yellow-500"></i>
+                            </template>
+                        </div>
+                    </div>
                     <!-- Display season stats -->
                     <div class="stat flex justify-between" v-if="away.seasonStats">
                         <p>
-                            Overall Championships ({{
+                            National Rank #1 ({{
                                 away.seasonStats.overallRank1Count
                             }}):
                         </p>
@@ -253,7 +290,7 @@
                     </div>
                     <div class="stat flex justify-between" v-if="away.seasonStats">
                         <p>
-                            Conf. Championships ({{
+                            Conference Rank #1 ({{
                                 away.seasonStats.conferenceRank1Count
                             }}):
                         </p>
