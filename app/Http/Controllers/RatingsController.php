@@ -79,9 +79,6 @@ class RatingsController extends Controller
                     $player->injury_prone_percentage = 0;
                 }
 
-                // Save the updated player data
-                $player->save();
-
                 // Update player ratings based on performance
                 $performance = $this->calculatePerformance($player->id); // Calculate performance from game stats
                 $player->shooting_rating = $this->updateRating($player->shooting_rating, $performance['shooting']);
@@ -91,6 +88,9 @@ class RatingsController extends Controller
                 $player->overall_rating = ($player->shooting_rating + $player->defense_rating + $player->passing_rating + $player->rebounding_rating) / 4;
 
                 // Insert updated ratings into player_ratings table
+                // Save the updated player data
+                $player->save();
+
                 $this->logPlayerRatings($player, $seasonId);
             }
 

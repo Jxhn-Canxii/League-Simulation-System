@@ -57,6 +57,9 @@
                         <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Fouls Per Game">
                             FPG
                         </th>
+                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                            Ratings
+                        </th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -98,6 +101,9 @@
                         </td>
                         <td class="px-2 py-1 whitespace-nowrap border">
                             {{ player.average_fouls_per_game.toFixed(1) }}
+                        </td>
+                        <td class="px-2 py-1 whitespace-nowrap border font-bold">
+                            {{ player.overall_rating ? player.overall_rating.toFixed(1) : 'Unrated' }}
                         </td>
                     </tr>
                 </tbody>
@@ -144,6 +150,9 @@
                         <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Fouls Per Game">
                             FPG
                         </th>
+                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                            Ratings
+                        </th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -185,6 +194,9 @@
                         </td>
                         <td class="px-2 py-1 whitespace-nowrap border">
                             {{ player.average_fouls_per_game.toFixed(1) }}
+                        </td>
+                        <td class="px-2 py-1 whitespace-nowrap border font-bold">
+                            {{ player.overall_rating ? player.overall_rating.toFixed(1) : 'Unrated' }}
                         </td>
                     </tr>
                 </tbody>

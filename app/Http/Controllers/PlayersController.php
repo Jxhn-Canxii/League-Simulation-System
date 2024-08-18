@@ -847,6 +847,7 @@ class PlayersController extends Controller
                 'teams.name as team_name',
                 'teams.conference_id',
                 'player_game_stats.season_id',
+                'player_ratings.overall_rating',
                 'seasons.name as season_name', // Select season name
                 \DB::raw('SUM(player_game_stats.points) as total_points'),
                 \DB::raw('SUM(player_game_stats.rebounds) as total_rebounds'),
@@ -860,7 +861,7 @@ class PlayersController extends Controller
             )
             ->where('player_game_stats.player_id', $playerId)
             ->whereIn('schedules.round', ['round_of_16', 'quarter_finals', 'semi_finals', 'interconference_semi_finals', 'finals']) // Filter by playoff rounds
-            ->groupBy('players.id', 'players.name', 'players.team_id','players.role', 'teams.name', 'teams.conference_id', 'player_game_stats.season_id', 'seasons.name', 'player_ratings.role')
+            ->groupBy('players.id', 'players.name', 'players.team_id','players.role','player_ratings.overall_rating', 'teams.name', 'teams.conference_id', 'player_game_stats.season_id', 'seasons.name', 'player_ratings.role')
             ->orderBy('player_game_stats.season_id', 'desc') // Sort by season_id in descending order
             ->get();
 
@@ -888,6 +889,7 @@ class PlayersController extends Controller
             $formattedPlayerStats[] = [
                 'player_id' => $stats->player_id,
                 'player_name' => $stats->player_name,
+                'overall_rating' => $stats->overall_rating,
                 'team_name' => $stats->team_name,
                 'team_id' => $stats->team_id,
                 'conference_id' => $stats->conference_id,
@@ -941,6 +943,7 @@ class PlayersController extends Controller
                 'teams.name as team_name',
                 'teams.conference_id',
                 'player_game_stats.season_id',
+                'player_ratings.overall_rating',
                 'seasons.name as season_name', // Select season name
                 \DB::raw('SUM(player_game_stats.points) as total_points'),
                 \DB::raw('SUM(player_game_stats.rebounds) as total_rebounds'),
@@ -954,7 +957,7 @@ class PlayersController extends Controller
             )
             ->where('player_game_stats.player_id', $playerId)
             ->whereNotIn('schedules.round', ['round_of_16', 'quarter_finals', 'semi_finals', 'interconference_semi_finals', 'finals']) // Exclude specific playoff rounds
-            ->groupBy('players.id', 'players.name', 'players.team_id','players.role',  'teams.name', 'teams.conference_id', 'player_game_stats.season_id', 'seasons.name', 'player_ratings.role')
+            ->groupBy('players.id', 'players.name', 'players.team_id','players.role', 'player_ratings.overall_rating', 'teams.name', 'teams.conference_id', 'player_game_stats.season_id', 'seasons.name', 'player_ratings.role')
             ->orderBy('player_game_stats.season_id', 'desc') // Sort by season_id in descending order
             ->get();
 
@@ -986,6 +989,7 @@ class PlayersController extends Controller
                 'team_id' => $stats->team_id,
                 'conference_id' => $stats->conference_id,
                 'season_id' => $stats->season_id,
+                'overall_rating' => $stats->overall_rating,
                 'season_name' => $stats->season_name, // Add season name
                 'role' => $stats->role, // Add player role
                 'total_points' => $stats->total_points,
