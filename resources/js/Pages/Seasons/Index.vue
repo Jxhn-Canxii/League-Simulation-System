@@ -20,7 +20,7 @@
                 </div>
                 <div
                     class="flex overflow-hidden justify-end gap-5 p-2"
-                    v-if="seasons.is_new_season == 2"
+                    v-if="seasons.is_new_season == 2 || seasons.is_new_season == 4"
                 >
                     <button
                         @click.prevent="isPlayerSigningModalOpen = true"
@@ -35,7 +35,7 @@
                 </div>
                 <div
                     class="flex overflow-hidden justify-end gap-5 p-2"
-                    v-if="seasons.is_new_season == 3"
+                    v-if="seasons.is_new_season == 3 || seasons.is_new_season == 4"
                 >
                     <button
                         @click.prevent="isAddModalOpen = true"

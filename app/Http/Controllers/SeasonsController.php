@@ -92,6 +92,14 @@ class SeasonsController extends Controller
         return response()->json($response);
     }
     private function is_new_season() {
+        // Get the total count of seasons
+        $totalSeasons = DB::table('seasons')->count();
+
+        // Return 4 if there are no seasons
+        if ($totalSeasons == 0) {
+            return 4;
+        }
+
         // Get the last season status
         $lastSeasonStatus = DB::table('seasons')
             ->orderBy('id', 'desc')
@@ -105,7 +113,11 @@ class SeasonsController extends Controller
         } elseif ($lastSeasonStatus == 10) {
             return 3;
         }
+
+        // Optionally, you can return a default value if no status matches
+        return null;
     }
+
 
     public function seasonsperleague(Request $request)
     {
