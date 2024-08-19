@@ -57,20 +57,6 @@ class RatingsController extends Controller
                 // Increment age by 1
                 $player->age += 1;
 
-                // Check for retirement
-                if ($player->age >= $player->retirement_age) {
-                    $player->is_active = 0;
-                    $player->team_id = 0;
-                } else {
-                    // Adjust role if player is near retirement
-                    if ($player->age >= ($player->retirement_age - 3)) { // Near retirement
-                        $currentPriority = $rolePriority[$player->role];
-                        if ($currentPriority < 4) {
-                            $player->role = $roleMapping[$currentPriority];
-                        }
-                    }
-                }
-
                 // Determine if the player should have an injury_prone_percentage of 0
                 if (rand(1, 100) <= 20) {
                     // Assign a random value between 1 and 100
@@ -86,8 +72,22 @@ class RatingsController extends Controller
                 $player->passing_rating = $this->updateRating($player->passing_rating, $performance['passing']);
                 $player->rebounding_rating = $this->updateRating($player->rebounding_rating, $performance['rebounding']);
                 $player->overall_rating = ($player->shooting_rating + $player->defense_rating + $player->passing_rating + $player->rebounding_rating) / 4;
-
+                $player->role = $this->updateRoleBasedOnPerformance($player->id,$player->overall_rating);
                 // Insert updated ratings into player_ratings table
+                 // Check for retirement
+                 if ($player->age >= $player->retirement_age) {
+                    $player->is_active = 0;
+                    $player->team_id = 0;
+                } else {
+                    // Adjust role if player is near retirement
+                    if ($player->age >= ($player->retirement_age - 3)) { // Near retirement
+                        $currentPriority = $rolePriority[$player->role];
+                        if ($currentPriority < 4) {
+                            $player->role = $roleMapping[$currentPriority];
+                        }
+                    }
+                }
+
                 // Save the updated player data
                 $player->save();
 
@@ -142,7 +142,7 @@ class RatingsController extends Controller
 
 
     // Function to update player role based on performance
-    private function updateRoleBasedOnPerformance($player)
+    private function updateRoleBasedOnPerformance($player,$overall)
     {
         $seasonPlayedCount = $this->getSeasonsPlayed($player->id);
 
@@ -152,13 +152,13 @@ class RatingsController extends Controller
         }
 
         // Determine the role based on overall rating
-        if ($player->overall_rating >= 85) {
+        if ($overall >= 85) {
             return 'star player';
-        } elseif ($player->overall_rating >= 75) {
+        } elseif ($overall >= 75) {
             return 'starter';
-        } elseif ($player->overall_rating >= 60) {
+        } elseif ($overall >= 60) {
             return 'role player';
-        } elseif ($player->overall_rating >= 40) {
+        } elseif ($overall >= 40) {
             return 'bench';
         } else {
             return 'bench'; // Default to bench if the rating is below 40
