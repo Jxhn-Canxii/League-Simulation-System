@@ -190,22 +190,37 @@ class RatingsController extends Controller
 
     private function logPlayerRatings($player, $seasonId)
     {
-        DB::table('player_ratings')->updateOrInsert(
-            [
+        // Check if the player ratings for the current season already exist
+        $existingRecord = DB::table('player_ratings')
+            ->where('player_id', $player->id)
+            ->where('season_id', $seasonId)
+            ->exists();
+
+        // Only update or insert ratings if no record exists for the current season
+        if (!$existingRecord) {
+            DB::table('player_ratings')->updateOrInsert(
+                [
+                    'player_id' => $player->id,
+                    'season_id' => $seasonId,
+                ],
+                [
+                    'role' => $player->role,
+                    'shooting_rating' => $player->shooting_rating,
+                    'defense_rating' => $player->defense_rating,
+                    'passing_rating' => $player->passing_rating,
+                    'rebounding_rating' => $player->rebounding_rating,
+                    'overall_rating' => $player->overall_rating,
+                    'updated_at' => now(),
+                ]
+            );
+        } else {
+            \Log::info('Player ratings already recorded for season', [
                 'player_id' => $player->id,
-                'season_id' => $seasonId,
-            ],
-            [
-                'role' => $player->role,
-                'shooting_rating' => $player->shooting_rating,
-                'defense_rating' => $player->defense_rating,
-                'passing_rating' => $player->passing_rating,
-                'rebounding_rating' => $player->rebounding_rating,
-                'overall_rating' => $player->overall_rating,
-                'updated_at' => now(),
-            ]
-        );
+                'season_id' => $seasonId
+            ]);
+        }
     }
+
     // Function to update ratings based on performance
 
 
