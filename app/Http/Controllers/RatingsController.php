@@ -63,71 +63,79 @@ class RatingsController extends Controller
             $declinedPlayers = [];
 
             foreach ($players as $player) {
-                // Store old ratings and role for comparison
-                $oldRatings = [
-                    'shooting' => $player->shooting_rating,
-                    'defense' => $player->defense_rating,
-                    'passing' => $player->passing_rating,
-                    'rebounding' => $player->rebounding_rating,
-                    'overall' => $player->overall_rating,
-                ];
-                $oldRole = $player->role;
+                // Check if player ratings for the current season already exist
+                $ratingExists = DB::table('player_ratings')
+                    ->where('player_id', $player->id)
+                    ->where('season_id', $seasonId)
+                    ->exists();
 
-                // Deduct contract_years by 1
-                $player->contract_years -= 1;
-                $player->is_rookie = 0;
+                if (!$ratingExists) {
+                    // Store old ratings and role for comparison
+                    $oldRatings = [
+                        'shooting' => $player->shooting_rating,
+                        'defense' => $player->defense_rating,
+                        'passing' => $player->passing_rating,
+                        'rebounding' => $player->rebounding_rating,
+                        'overall' => $player->overall_rating,
+                    ];
+                    $oldRole = $player->role;
 
-                // Check if contract_years is 0 and update team_id to 0
-                if ($player->contract_years <= 0) {
-                    $player->contract_years = 0; // Ensure contract_years is exactly 0
-                    $player->team_id = 0; // Update team_id to 0
-                }
+                    // Deduct contract_years by 1
+                    $player->contract_years -= 1;
+                    $player->is_rookie = 0;
 
-                // Increment age by 1
-                $player->age += 1;
+                    // Check if contract_years is 0 and update team_id to 0
+                    if ($player->contract_years <= 0) {
+                        $player->contract_years = 0; // Ensure contract_years is exactly 0
+                        $player->team_id = 0; // Update team_id to 0
+                    }
 
-                // Determine if the player should have an injury_prone_percentage of 0
-                if (rand(1, 100) <= 20) {
-                    // Assign a random value between 1 and 100
-                    $player->injury_prone_percentage = rand(1, 100);
-                } else {
-                    $player->injury_prone_percentage = 0;
-                }
+                    // Increment age by 1
+                    $player->age += 1;
 
-                // Update player ratings based on performance
-                $performance = $this->calculatePerformance($player->id); // Calculate performance from game stats
-                $player->shooting_rating = $this->updateRating($player->shooting_rating, $performance['shooting']);
-                $player->defense_rating = $this->updateRating($player->defense_rating, $performance['defense']);
-                $player->passing_rating = $this->updateRating($player->passing_rating, $performance['passing']);
-                $player->rebounding_rating = $this->updateRating($player->rebounding_rating, $performance['rebounding']);
-                $player->overall_rating = ($player->shooting_rating + $player->defense_rating + $player->passing_rating + $player->rebounding_rating) / 4;
+                    // Determine if the player should have an injury_prone_percentage of 0
+                    if (rand(1, 100) <= 20) {
+                        // Assign a random value between 1 and 100
+                        $player->injury_prone_percentage = rand(1, 100);
+                    } else {
+                        $player->injury_prone_percentage = 0;
+                    }
 
-                // Update player role based on performance
-                $player->role = $this->updateRoleBasedOnPerformance($player);
+                    // Update player ratings based on performance
+                    $performance = $this->calculatePerformance($player->id); // Calculate performance from game stats
+                    $player->shooting_rating = $this->updateRating($player->shooting_rating, $performance['shooting']);
+                    $player->defense_rating = $this->updateRating($player->defense_rating, $performance['defense']);
+                    $player->passing_rating = $this->updateRating($player->passing_rating, $performance['passing']);
+                    $player->rebounding_rating = $this->updateRating($player->rebounding_rating, $performance['rebounding']);
+                    $player->overall_rating = ($player->shooting_rating + $player->defense_rating + $player->passing_rating + $player->rebounding_rating) / 4;
 
-                // Check for improvements or declines
-                if ($player->overall_rating > $oldRatings['overall'] || $player->role != $oldRole) {
-                    $improvedPlayers[] = $player;
-                } elseif ($player->overall_rating < $oldRatings['overall'] || $player->role != $oldRole) {
-                    $declinedPlayers[] = $player;
-                }
+                    // Update player role based on performance
+                    $player->role = $this->updateRoleBasedOnPerformance($player);
 
-                // Check for retirement
-                if ($player->age >= $player->retirement_age) {
-                    $player->is_active = 0;
-                    $player->team_id = 0;
-                } else {
-                    // Adjust role if player is near retirement
-                    if ($player->age >= ($player->retirement_age - 3)) { // Near retirement
-                        $currentPriority = $rolePriority[$player->role];
-                        if ($currentPriority < 4) {
-                            $player->role = $roleMapping[$currentPriority];
+                    // Check for improvements or declines
+                    if ($player->overall_rating > $oldRatings['overall'] || $player->role != $oldRole) {
+                        $improvedPlayers[] = $player;
+                    } elseif ($player->overall_rating < $oldRatings['overall'] || $player->role != $oldRole) {
+                        $declinedPlayers[] = $player;
+                    }
+
+                    // Check for retirement
+                    if ($player->age >= $player->retirement_age) {
+                        $player->is_active = 0;
+                        $player->team_id = 0;
+                    } else {
+                        // Adjust role if player is near retirement
+                        if ($player->age >= ($player->retirement_age - 3)) { // Near retirement
+                            $currentPriority = $rolePriority[$player->role];
+                            if ($currentPriority < 4) {
+                                $player->role = $roleMapping[$currentPriority];
+                            }
                         }
                     }
-                }
 
-                // Save the updated player data
-                $player->save();
+                    // Save the updated player data
+                    $player->save();
+                }
 
                 // Log the updated ratings
                 $this->logPlayerRatings($player, $seasonId);
@@ -186,6 +194,7 @@ class RatingsController extends Controller
             ], 500);
         }
     }
+
 
 
     private function logPlayerRatings($player, $seasonId)
