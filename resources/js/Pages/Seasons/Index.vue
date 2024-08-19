@@ -615,7 +615,7 @@ const updatePlayerStatus = async () => {
             const is_last = i === team_ids.length - 1;
 
             // Update player status for each team and get the response
-            await updatePlayerStatusPerTeam(team_id, is_last);
+            await updatePlayerStatusPerTeam(i,team_id, is_last);
         }
     } catch (error) {
         console.error(error);
@@ -629,7 +629,7 @@ const updatePlayerStatus = async () => {
     }
 };
 
-const updatePlayerStatusPerTeam = async (team_id, is_last) => {
+const updatePlayerStatusPerTeam = async (index,team_id, is_last) => {
     try {
         // isProcessing.value = true;
 
@@ -645,7 +645,7 @@ const updatePlayerStatusPerTeam = async (team_id, is_last) => {
         const teamName = response.data.team_name || 'none';
         // Build the HTML message for Swal
         let htmlMessage = `
-            <p>Player status for team ${teamName} has been updated.</p>
+            <p>Player status for team #${index + 1} ${teamName} has been updated.</p>
             <table style="width:100%; border-collapse: collapse; margin-top: 10px;">
                 <thead>
                     <tr>
