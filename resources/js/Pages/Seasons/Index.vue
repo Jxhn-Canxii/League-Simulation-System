@@ -617,6 +617,7 @@ const updatePlayerStatus = async () => {
             // Update player status for each team and get the response
             await updatePlayerStatusPerTeam(i,team_id, is_last);
         }
+        await fetchSeasons(); // Refresh seasons after each team update
     } catch (error) {
         console.error(error);
 
@@ -692,8 +693,6 @@ const updatePlayerStatusPerTeam = async (index,team_id, is_last) => {
 
         // isAddModalOpen.value = false;
         // isProcessing.value = false;
-        fetchSeasons(); // Refresh seasons after each team update
-
         // Return the response to the main function
         return response;
     } catch (error) {

@@ -32,6 +32,8 @@ class RatingsController extends Controller
             $teamId = $request->team_id;
             $isLast = $request->is_last;
 
+            \Log::info('Received request:', ['team_id' => $teamId, 'is_last' => $isLast]);
+
             // Define role priority and possible new roles
             $rolePriority = [
                 'star player' => 1,
@@ -55,6 +57,8 @@ class RatingsController extends Controller
             $players = $query->get();
 
             $seasonId = $this->getLatestSeasonId();
+            \Log::info('Latest season ID:', ['seasonId' => $seasonId]);
+
             $improvedPlayers = [];
             $declinedPlayers = [];
 
@@ -140,9 +144,18 @@ class RatingsController extends Controller
 
             // Show alert if this is the last update
             if ($isLast) {
-                DB::table('seasons')
-                    ->where('id', $seasonId)
-                    ->update(['status' => 9]);
+                \Log::info('Processing last update.');
+
+                // Use Eloquent to update the season status
+                $season = Seasons::find($seasonId);
+                if ($season) {
+                    $season->status = 9;
+                    $season->save();
+                } else {
+                    \Log::warning('Season not found for ID:', ['seasonId' => $seasonId]);
+                }
+
+                DB::commit(); // Commit transaction
 
                 return response()->json([
                     'error' => false,
@@ -165,7 +178,6 @@ class RatingsController extends Controller
         } catch (\Exception $e) {
             DB::rollBack(); // Rollback transaction on error
 
-            // Log the error
             \Log::error('Failed to update player statuses', ['exception' => $e]);
 
             return response()->json([
