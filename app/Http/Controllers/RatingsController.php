@@ -18,11 +18,20 @@ use Illuminate\Support\Facades\DB;
 class RatingsController extends Controller
 {
     //
-    public function updateActivePlayers()
+    public function updateActivePlayers(Request $request)
     {
         DB::beginTransaction(); // Start transaction
 
         try {
+            // Validate the request data
+            $request->validate([
+                'team_id' => 'required|integer|min:0',
+                'is_last' => 'required|boolean',
+            ]);
+
+            $teamId = $request->team_id;
+            $isLast = $request->is_last;
+
             // Define role priority and possible new roles
             $rolePriority = [
                 'star player' => 1,
@@ -35,15 +44,31 @@ class RatingsController extends Controller
                 1 => 'starter',
                 2 => 'role player',
                 3 => 'bench',
-                4 => 'bench' // No further downgrade
+                4 => 'bench', // No further downgrade
             ];
 
-            // Fetch all active players
-            $players = Player::where('is_active', 1)->get();
+            // Fetch all active players, filtered by team_id if provided
+            $query = Player::where('is_active', 1);
+            if ($teamId) {
+                $query->where('team_id', $teamId);
+            }
+            $players = $query->get();
 
             $seasonId = $this->getLatestSeasonId();
+            $improvedPlayers = [];
+            $declinedPlayers = [];
 
             foreach ($players as $player) {
+                // Store old ratings and role for comparison
+                $oldRatings = [
+                    'shooting' => $player->shooting_rating,
+                    'defense' => $player->defense_rating,
+                    'passing' => $player->passing_rating,
+                    'rebounding' => $player->rebounding_rating,
+                    'overall' => $player->overall_rating,
+                ];
+                $oldRole = $player->role;
+
                 // Deduct contract_years by 1
                 $player->contract_years -= 1;
                 $player->is_rookie = 0;
@@ -72,10 +97,19 @@ class RatingsController extends Controller
                 $player->passing_rating = $this->updateRating($player->passing_rating, $performance['passing']);
                 $player->rebounding_rating = $this->updateRating($player->rebounding_rating, $performance['rebounding']);
                 $player->overall_rating = ($player->shooting_rating + $player->defense_rating + $player->passing_rating + $player->rebounding_rating) / 4;
-                $player->role = $this->updateRoleBasedOnPerformance($player->id,$player->overall_rating);
-                // Insert updated ratings into player_ratings table
-                 // Check for retirement
-                 if ($player->age >= $player->retirement_age) {
+
+                // Update player role based on performance
+                $player->role = $this->updateRoleBasedOnPerformance($player);
+
+                // Check for improvements or declines
+                if ($player->overall_rating > $oldRatings['overall'] || $player->role != $oldRole) {
+                    $improvedPlayers[] = $player;
+                } elseif ($player->overall_rating < $oldRatings['overall'] || $player->role != $oldRole) {
+                    $declinedPlayers[] = $player;
+                }
+
+                // Check for retirement
+                if ($player->age >= $player->retirement_age) {
                     $player->is_active = 0;
                     $player->team_id = 0;
                 } else {
@@ -91,20 +125,42 @@ class RatingsController extends Controller
                 // Save the updated player data
                 $player->save();
 
+                // Log the updated ratings
                 $this->logPlayerRatings($player, $seasonId);
             }
 
-            // Update the last season's status to 9
-            DB::table('seasons')
-                ->where('id', $seasonId)
-                ->update(['status' => 9]);
+            // Fetch the team name if team_id is provided
+            $teamName = '';
+            if ($teamId) {
+                $team = Teams::find($teamId);
+                if ($team) {
+                    $teamName = $team->name;
+                }
+            }
+
+            // Show alert if this is the last update
+            if ($isLast) {
+                DB::table('seasons')
+                    ->where('id', $seasonId)
+                    ->update(['status' => 9]);
+
+                return response()->json([
+                    'error' => false,
+                    'message' => 'All player statuses have been updated successfully. Update finished.',
+                    'team_name' => $teamName,
+                    'improved_players' => $improvedPlayers,
+                    'declined_players' => $declinedPlayers,
+                ]);
+            }
 
             DB::commit(); // Commit transaction
 
-            // Return a response indicating all player statuses have been updated
             return response()->json([
                 'error' => false,
                 'message' => 'All player statuses have been updated successfully.',
+                'team_name' => $teamName,
+                'improved_players' => $improvedPlayers,
+                'declined_players' => $declinedPlayers,
             ]);
         } catch (\Exception $e) {
             DB::rollBack(); // Rollback transaction on error
@@ -112,13 +168,13 @@ class RatingsController extends Controller
             // Log the error
             \Log::error('Failed to update player statuses', ['exception' => $e]);
 
-            // Return an error response
             return response()->json([
                 'error' => true,
                 'message' => 'Failed to update player statuses.',
             ], 500);
         }
     }
+
 
     private function logPlayerRatings($player, $seasonId)
     {
@@ -142,7 +198,7 @@ class RatingsController extends Controller
 
 
     // Function to update player role based on performance
-    private function updateRoleBasedOnPerformance($player,$overall)
+    private function updateRoleBasedOnPerformance($player)
     {
         $seasonPlayedCount = $this->getSeasonsPlayed($player->id);
 
@@ -152,13 +208,13 @@ class RatingsController extends Controller
         }
 
         // Determine the role based on overall rating
-        if ($overall >= 85) {
+        if ($player->overall_rating >= 85) {
             return 'star player';
-        } elseif ($overall >= 75) {
+        } elseif ($player->overall_rating >= 75) {
             return 'starter';
-        } elseif ($overall >= 60) {
+        } elseif ($player->overall_rating >= 60) {
             return 'role player';
-        } elseif ($overall >= 40) {
+        } elseif ($player->overall_rating >= 40) {
             return 'bench';
         } else {
             return 'bench'; // Default to bench if the rating is below 40

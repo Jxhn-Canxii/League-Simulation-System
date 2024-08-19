@@ -73,6 +73,11 @@ class SeasonsController extends Controller
                          ->get();
 
         $isNewSeason = $this->is_new_season();
+
+        $teamIds = DB::table('teams')->pluck('id')->toArray();
+
+        // If you need the result as a Collection again, you can convert it back
+        $teamIdsCollection = collect($teamIds);
         // Create the response array
         $response = [
             'seasons' => $seasons,
@@ -80,6 +85,7 @@ class SeasonsController extends Controller
             'current_page' => $currentPage,
             'total_count' => $totalCount,
             'is_new_season' => $isNewSeason,
+            'team_ids' => $teamIdsCollection, // Include team count in the response
         ];
 
         // Return the seasons data along with pagination information as a JSON response

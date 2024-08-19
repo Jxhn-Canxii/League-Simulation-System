@@ -7,7 +7,10 @@
             <div
                 class="inline-block min-w-full bg-white overflow-auto shadow rounded p-2"
             >
-                <div class="flex overflow-hidden justify-end gap-5 p-2" v-if="seasons.is_new_season == 1">
+                <div
+                    class="flex overflow-hidden justify-end gap-5 p-2"
+                    v-if="seasons.is_new_season == 1"
+                >
                     <button
                         @click.prevent="updatePlayerStatus()"
                         class="px-2 py-2 bg-blue-500 rounded font-bold text-md float-end text-white shadow"
@@ -15,7 +18,10 @@
                         <i class="fa fa-users"></i> Update Player Status
                     </button>
                 </div>
-                <div class="flex overflow-hidden justify-end gap-5 p-2" v-if="seasons.is_new_season == 2">
+                <div
+                    class="flex overflow-hidden justify-end gap-5 p-2"
+                    v-if="seasons.is_new_season == 2"
+                >
                     <button
                         @click.prevent="isPlayerSigningModalOpen = true"
                         v-bind:class="{
@@ -29,7 +35,7 @@
                 </div>
                 <div
                     class="flex overflow-hidden justify-end gap-5 p-2"
-                    v-if="seasons.is_new_season== 3"
+                    v-if="seasons.is_new_season == 3"
                 >
                     <button
                         @click.prevent="isAddModalOpen = true"
@@ -245,13 +251,13 @@
                 </table>
                 <div class="flex w-full overflow-auto">
                     <Paginator
-                      v-if="seasons.total_count"
-                      :page_number="search_seasons.page_num"
-                      :total_rows="seasons.total_count ?? 0"
-                      :itemsperpage="search_seasons.itemsperpage"
-                      @page_num="handlePagination"
+                        v-if="seasons.total_count"
+                        :page_number="search_seasons.page_num"
+                        :total_rows="seasons.total_count ?? 0"
+                        :itemsperpage="search_seasons.itemsperpage"
+                        @page_num="handlePagination"
                     />
-                  </div>
+                </div>
             </div>
             <Modal :show="isViewModalOpen" :maxWidth="'fullscreen'">
                 <button
@@ -601,48 +607,109 @@ const create = async () => {
 };
 const updatePlayerStatus = async () => {
     try {
-        isProcessing.value = true;
+        const team_ids = seasons.value.team_ids;
+        console.log(team_ids);
 
-        // Show processing status
-        const processingAlert = Swal.fire({
-            title: "Processing...",
-            text: "Please wait while the player status is being updated.",
-            icon: "info",
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            },
+        for (let i = 0; i < team_ids.length; i++) {
+            const team_id = team_ids[i];
+            const is_last = i === team_ids.length - 1;
+
+            // Update player status for each team and get the response
+            await updatePlayerStatusPerTeam(team_id, is_last);
+        }
+    } catch (error) {
+        console.error(error);
+
+        // Show error message using Swal2 if there's an error in the loop
+        Swal.fire({
+            icon: "error",
+            title: "Error!",
+            text: "Failed to update player status for some or all teams. Please try again later.",
         });
+    }
+};
 
+const updatePlayerStatusPerTeam = async (team_id, is_last) => {
+    try {
+        // isProcessing.value = true;
+
+        form.is_last = is_last;
+        form.team_id = team_id;
+
+        // Call the update function
         const response = await axios.post(route("update.player.status"), form);
 
-        // Close the processing status alert
-        Swal.close();
+        // Extract improved and declined players from the response
+        const improvedPlayers = response.data.improved_players || [];
+        const declinedPlayers = response.data.declined_players || [];
+        const teamName = response.data.team_name || 'none';
+        // Build the HTML message for Swal
+        let htmlMessage = `
+            <p>Player status for team ${teamName} has been updated.</p>
+            <table style="width:100%; border-collapse: collapse; margin-top: 10px;">
+                <thead>
+                    <tr>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Player</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Role</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Overall Rating</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${improvedPlayers.length > 0 ? `
+                        <tr><td colspan="3"><strong>Improved Players</strong></td></tr>
+                        ${improvedPlayers.map(player => `
+                            <tr>
+                                <td style="border: 1px solid #ddd; padding: 8px;">${player.name}</td>
+                                <td style="border: 1px solid #ddd; padding: 8px;">${player.role}</td>
+                                <td style="border: 1px solid #ddd; padding: 8px;">${player.overall_rating.toFixed(2)}</td>
+                            </tr>
+                        `).join('')}
+                    ` : ''}
 
-        isAddModalOpen.value = false;
+                    ${declinedPlayers.length > 0 ? `
+                        <tr><td colspan="3"><strong>Declined Players</strong></td></tr>
+                        ${declinedPlayers.map(player => `
+                            <tr>
+                                <td style="border: 1px solid #ddd; padding: 8px;">${player.name}</td>
+                                <td style="border: 1px solid #ddd; padding: 8px;">${player.role}</td>
+                                <td style="border: 1px solid #ddd; padding: 8px;">${player.overall_rating.toFixed(2)}</td>
+                            </tr>
+                        `).join('')}
+                    ` : ''}
+                </tbody>
+            </table>
+        `;
+
+        // Show success alert with the table-like message
         Swal.fire({
             icon: "success",
             title: "Success!",
-            text: response.data.message, // Assuming the response contains a 'message' field
+            html: htmlMessage,
+            showConfirmButton: true,
         });
 
-        form.reset("name", "type", "league_id");
-        isProcessing.value = false;
-        fetchSeasons();
+        // Close the processing status alert
+
+        // isAddModalOpen.value = false;
+        // isProcessing.value = false;
+        fetchSeasons(); // Refresh seasons after each team update
+
+        // Return the response to the main function
+        return response;
     } catch (error) {
         console.error(error);
 
         // Close the processing status alert if there's an error
-        Swal.close();
+        // Swal.close();
 
         // Show error message using Swal2
         Swal.fire({
             icon: "error",
             title: "Error!",
-            text: "Failed to update player status. Please try again later.",
+            text: `Failed to update player status for team ID ${team_id}. Please try again later.`,
         });
 
-        isProcessing.value = false;
+        // isProcessing.value = false;
     }
 };
 
