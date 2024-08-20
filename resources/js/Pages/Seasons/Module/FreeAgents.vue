@@ -233,7 +233,13 @@ const addPlayer = async (name) => {
         const response = await axios.post(route("players.add.free.agent"), {
             name: name,
         });
-        return response.data.message; // Return success message for logging
+        // return response.data.message; // Return success message for logging
+
+        Swal.fire({
+            icon: "success",
+            title: name+ ' has added to Draft Pool!',
+            text: response.data.message, // Assuming the response contains a 'message' field
+        });
     } catch (error) {
         console.error("Error adding player:", error.response.data.message);
         throw new Error(error.response.data.message); // Throw error to be caught in Promise.all
