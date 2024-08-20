@@ -266,7 +266,7 @@ class RatingsController extends Controller
     }
 
     // Function to calculate player performance based on game stats
-    private function calculatePerformance($playerId)
+    private function calculatePerformanceV1($playerId)
     {
         // Fetch game stats for the current season where minutes are greater than 0
         $stats = PlayerGameStats::where('player_id', $playerId)
@@ -306,6 +306,65 @@ class RatingsController extends Controller
             'defense' => 99, // Adjust based on your expectations
             'passing' => 99, // Adjust based on your expectations
             'rebounding' => 99, // Adjust based on your expectations
+        ];
+
+        // Normalize and rate each metric on a 40-99 scale
+        foreach ($performance as $key => $value) {
+            $normalizedValue = ($value / $maxValues[$key]) * 59 + 40; // Scale to 40-99 range
+            $performance[$key] = min(max($normalizedValue, 40), 99); // Ensure value stays within bounds
+        }
+
+        return $performance;
+    }
+    private function calculatePerformance($playerId)
+    {
+        // Fetch game stats for the current season where minutes are greater than 0
+        $stats = PlayerGameStats::where('player_id', $playerId)
+            ->where('season_id', $this->getLatestSeasonId())
+            ->where('minutes', '>', 0)
+            ->get();
+
+        // Initialize performance metrics
+        $performance = [
+            'shooting' => 0,
+            'defense' => 0,
+            'passing' => 0,
+            'rebounding' => 0,
+        ];
+
+        // Aggregate stats
+        foreach ($stats as $stat) {
+            $performance['shooting'] += $stat->points / max($stat->minutes, 1); // Points per minute
+            $performance['defense'] += $stat->blocks + $stat->steals; // Combined defensive stats
+            $performance['passing'] += $stat->assists / max($stat->minutes, 1); // Assists per minute
+            $performance['rebounding'] += $stat->rebounds / max($stat->minutes, 1); // Rebounds per minute
+        }
+
+        // Calculate averages
+        $totalGames = $stats->count();
+        if ($totalGames > 0) {
+            $performance['shooting'] /= $totalGames;
+            $performance['defense'] /= $totalGames;
+            $performance['passing'] /= $totalGames;
+            $performance['rebounding'] /= $totalGames;
+        }
+
+        // Determine the dynamic maximum values for normalization based on league stats
+        $leagueMax = PlayerGameStats::where('season_id', $this->getLatestSeasonId())
+            ->selectRaw('
+            MAX(points / GREATEST(minutes, 1)) as max_shooting,
+            MAX(blocks + steals) as max_defense,
+            MAX(assists / GREATEST(minutes, 1)) as max_passing,
+            MAX(rebounds / GREATEST(minutes, 1)) as max_rebounding
+        ')
+            ->first();
+
+        // Use the league max values or fallback to a default max (e.g., 99) if none found
+        $maxValues = [
+            'shooting' => $leagueMax->max_shooting ?? 99,
+            'defense' => $leagueMax->max_defense ?? 99,
+            'passing' => $leagueMax->max_passing ?? 99,
+            'rebounding' => $leagueMax->max_rebounding ?? 99,
         ];
 
         // Normalize and rate each metric on a 40-99 scale
