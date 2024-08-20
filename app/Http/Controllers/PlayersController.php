@@ -435,16 +435,6 @@ class PlayersController extends Controller
         ]);
 
         // Check if the team already has 12 players
-        $playerCount = Player::where('team_id', $request->team_id)
-            ->where('is_active', 1) // Ensure players are active
-            ->count();
-
-        if ($playerCount >= 12) {
-            return response()->json([
-                'error' => true,
-                'message' => 'Team already has 12 players. Cannot add more.',
-            ], 400);
-        }
 
         // Check if a player with the same name already exists in any team
         $existingPlayer = Player::where('name', $request->name)->first();
@@ -459,21 +449,45 @@ class PlayersController extends Controller
         $age = mt_rand(18, 25);
         $retirementAge = rand($age + 1, 45); // Retirement age should be greater than current age
         $injuryPronePercentage = rand(0, 100); // Random injury-prone percentage between 0 and 100
-        $contractYears = rand(1, 5); // Random contract years between 1 and 5
+        $contractYears = 0; // Random contract years between 1 and 5
 
         // Randomize player role
         $roles = ['starter', 'star player', 'role player', 'bench'];
         $role = $roles[array_rand($roles)];
 
-        // Randomize player ratings
-        $shootingRating = rand(50, 100);
-        $defenseRating = rand(50, 100);
-        $passingRating = rand(50, 100);
-        $reboundingRating = rand(50, 100);
+        // Randomize player ratings based on role
+        switch ($role) {
+            case 'star player':
+                $shootingRating = rand(80, 100);
+                $defenseRating = rand(80, 100);
+                $passingRating = rand(80, 100);
+                $reboundingRating = rand(80, 100);
+                break;
+            case 'starter':
+                $shootingRating = rand(70, 90);
+                $defenseRating = rand(70, 90);
+                $passingRating = rand(70, 90);
+                $reboundingRating = rand(70, 90);
+                break;
+            case 'role player':
+                $shootingRating = rand(60, 80);
+                $defenseRating = rand(60, 80);
+                $passingRating = rand(60, 80);
+                $reboundingRating = rand(60, 80);
+                break;
+            case 'bench':
+                $shootingRating = rand(50, 70);
+                $defenseRating = rand(50, 70);
+                $passingRating = rand(50, 70);
+                $reboundingRating = rand(50, 70);
+                break;
+        }
+
+        // Calculate overall rating
         $overallRating = ($shootingRating + $defenseRating + $passingRating + $reboundingRating) / 4;
 
         // Calculate contract expiration date
-        $contractExpiresAt = Carbon::now();
+        $contractExpiresAt = Carbon::now()->addYears($contractYears);
 
         $player = Player::create([
             'name' => $request->name,
@@ -481,7 +495,7 @@ class PlayersController extends Controller
             'age' => $age,
             'retirement_age' => $retirementAge,
             'injury_prone_percentage' => $injuryPronePercentage,
-            'contract_years' => 0,
+            'contract_years' => $contractYears,
             'contract_expires_at' => $contractExpiresAt,
             'is_active' => true,
             'role' => $role,
@@ -499,6 +513,7 @@ class PlayersController extends Controller
             'player' => $player,
         ]);
     }
+
 
 
     // Generate a random age ensuring it is either at least 19 or exactly 30

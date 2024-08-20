@@ -123,14 +123,6 @@ class RatingsController extends Controller
                     if ($player->age >= $player->retirement_age) {
                         $player->is_active = 0;
                         $player->team_id = 0;
-                    } else {
-                        // Adjust role if player is near retirement
-                        if ($player->age >= ($player->retirement_age - 3)) { // Near retirement
-                            $currentPriority = $rolePriority[$player->role];
-                            if ($currentPriority < 4) {
-                                $player->role = $roleMapping[$currentPriority];
-                            }
-                        }
                     }
 
                     // Save the updated player data
