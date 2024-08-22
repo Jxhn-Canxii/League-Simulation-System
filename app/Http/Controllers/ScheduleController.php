@@ -409,27 +409,12 @@ class ScheduleController extends Controller
 
         // Prepare an array to hold the update data for the seasons table if it's finals
         $seasonUpdateData = [];
+        if ($gameData->round === 'semi_finals') {
+            $this->updateConferenceChampions($gameData, $winnerId);
+        }
         if ($gameData->round === 'finals') {
             // Find the MVP of the winning team
-            $mvpPlayer = PlayerGameStats::join('players', 'player_game_stats.player_id', '=', 'players.id')
-                ->where('player_game_stats.team_id', $winnerId)
-                ->where('player_game_stats.game_id', $gameData->game_id)
-                ->orderBy('player_game_stats.points', 'desc')
-                ->first();
-
-            $finalsMVP = $mvpPlayer ? $mvpPlayer->name : '';
-            $finalsMVPId = $mvpPlayer ? $mvpPlayer->player_id : '';
-
-            $seasonUpdateData = [
-                'finals_winner_id' => $winnerId,
-                'finals_loser_id' => $winnerId === $gameData->home_team_id ? $gameData->away_team_id : $gameData->home_team_id,
-                'finals_winner_name' => $winnerId === $gameData->home_team_id ? $gameData->home_team_name : $gameData->away_team_name,
-                'finals_loser_name' => $winnerId === $gameData->home_team_id ? $gameData->away_team_name : $gameData->home_team_name,
-                'finals_winner_score' => $winnerId === $gameData->home_team_id ? $homeScore : $awayScore,
-                'finals_loser_score' => $winnerId === $gameData->home_team_id ? $awayScore : $homeScore,
-                'finals_mvp' => $finalsMVP,
-                'finals_mvp_id' => $finalsMVPId,
-            ];
+            $this->updateFinalsWinner($gameData, $winnerId, $homeScore, $awayScore);
         }
 
         // Update the seasons table if there are updates
@@ -469,300 +454,77 @@ class ScheduleController extends Controller
             'schedule' => $schedule
         ]);
     }
-
-    public function simulateperroundv1(Request $request)
+    // Method to handle semi-finals logic
+    private function updateConferenceChampions($gameData, $winnerId)
     {
-        // Validate the request data
-        $request->validate([
-            'season_id' => 'required|exists:seasons,id',
-            'conference_id' => 'required|exists:conferences,id',
-            'round' => 'required|integer|min:0', // Validate round number
-        ]);
+        // Determine the conference based on home or away conference name
+        $conferenceName = $gameData->home_conference_name;
 
-        $seasonId = $request->season_id;
-        $conferenceId = $request->conference_id;
-        $round = $request->round;
+        // Define the columns to update
+        $columnsToUpdate = [];
 
-        // Check if the round has already been simulated
-        $alreadySimulated = Schedules::where('season_id', $seasonId)
-            ->where('conference_id', $conferenceId)
-            ->where('round', $round)
-            ->where('status', 2) // Status 2 indicates completed simulation
-            ->exists();
-
-        if ($alreadySimulated) {
-            return response()->json([
-                'error' => 'This round ' . ($round + 1) . ' has already been simulated.',
-            ], 400);
+        // Check the conference and set the champion ID and name columns
+        switch ($conferenceName) {
+            case 'East':
+                $columnsToUpdate = [
+                    'east_champion_id' => $winnerId,
+                    'east_champion_name' => $gameData->home_team_name === $winnerId ? $gameData->home_team_name : $gameData->away_team_name,
+                ];
+                break;
+            case 'West':
+                $columnsToUpdate = [
+                    'west_champion_id' => $winnerId,
+                    'west_champion_name' => $gameData->home_team_name === $winnerId ? $gameData->home_team_name : $gameData->away_team_name,
+                ];
+                break;
+            case 'North':
+                $columnsToUpdate = [
+                    'north_champion_id' => $winnerId,
+                    'north_champion_name' => $gameData->home_team_name === $winnerId ? $gameData->home_team_name : $gameData->away_team_name,
+                ];
+                break;
+            case 'South':
+                $columnsToUpdate = [
+                    'south_champion_id' => $winnerId,
+                    'south_champion_name' => $gameData->home_team_name === $winnerId ? $gameData->home_team_name : $gameData->away_team_name,
+                ];
+                break;
         }
 
-        // Retrieve schedules for the given season, conference, and round
-        $schedules = Schedules::where('season_id', $seasonId)
-            ->where('conference_id', $conferenceId)
-            ->where('round', $round)
-            ->where('status', 1) // Only simulate games that haven't been completed
-            ->get();
-
-        if ($schedules->isEmpty()) {
-            return response()->json([
-                'error' => 'No schedules found for the given season, conference, and round.',
-            ], 404);
-        }
-
-        // Define role-based priority and maximum points
-        $rolePriority = [
-            'star player' => 1,
-            'starter' => 2,
-            'role player' => 3,
-            'bench' => 4,
-        ];
-
-        $roleMaxPoints = [
-            'star player' => 50,
-            'starter' => 30,
-            'role player' => 20,
-            'bench' => 10,
-        ];
-
-        // Define total minutes available for each team
-        $totalMinutes = 240;
-
-        // Begin a database transaction
-        DB::beginTransaction();
-
-        try {
-            // Process each schedule
-            foreach ($schedules as $schedule) {
-                // Fetch players for home and away teams
-                $homePlayers = Player::where('team_id', $schedule->home_id)->get();
-                $awayPlayers = Player::where('team_id', $schedule->away_id)->get();
-
-                // Prioritize players based on their roles
-                $homePlayers = $homePlayers->sortBy(function ($player) use ($rolePriority) {
-                    return $rolePriority[$player->role] ?? 5; // Default to a lower priority if role not found
-                })->values();
-
-                $awayPlayers = $awayPlayers->sortBy(function ($player) use ($rolePriority) {
-                    return $rolePriority[$player->role] ?? 5; // Default to a lower priority if role not found
-                })->values();
-
-                // Initialize team scores and minutes
-                $homeScore = 0;
-                $awayScore = 0;
-
-                $homeMinutes = [];
-                $awayMinutes = [];
-
-                // Distribute minutes to players considering injury status
-                foreach ($homePlayers as $index => $player) {
-                    if (rand(1, 100) <= $player->injury_prone_percentage) {
-                        // Player is injured
-                        $homeMinutes[$player->id] = 0; // DNP
-                    } else {
-                        $minutes = $index < 5 ? rand(24, 30) : rand(6, 15); // Top 5 players get more minutes, others get less
-                        $homeMinutes[$player->id] = $minutes;
-                    }
-                }
-
-                foreach ($awayPlayers as $index => $player) {
-                    if (rand(1, 100) <= $player->injury_prone_percentage) {
-                        // Player is injured
-                        $awayMinutes[$player->id] = 0; // DNP
-                    } else {
-                        $minutes = $index < 5 ? rand(24, 30) : rand(6, 15); // Top 5 players get more minutes, others get less
-                        $awayMinutes[$player->id] = $minutes;
-                    }
-                }
-
-                // Simulate player game stats for home team
-                foreach ($homePlayers as $player) {
-                    $minutes = $homeMinutes[$player->id] ?? 0;
-
-                    // If minutes is 0, player did not play
-                    if ($minutes === 0) {
-                        PlayerGameStats::updateOrCreate(
-                            [
-                                'player_id' => $player->id,
-                                'game_id' => $schedule->game_id,
-                                'team_id' => $schedule->home_id,
-                                'season_id' => $seasonId
-                            ],
-                            [
-                                'points' => 0,
-                                'assists' => 0,
-                                'rebounds' => 0,
-                                'steals' => 0,
-                                'blocks' => 0,
-                                'minutes' => $minutes,
-                                'updated_at' => now(),
-                            ]
-                        );
-                    } else {
-                        $maxPoints = $roleMaxPoints[$player->role] ?? 30; // Default to 30 if role not found
-                        $exposureFactor = $minutes / 30; // Scale factor based on minutes
-
-                        $points = round(rand(0, $maxPoints * $exposureFactor));
-                        $assists = round(rand(0, 10 * $exposureFactor));
-                        $rebounds = round(rand(0, 10 * $exposureFactor));
-                        $steals = round(rand(0, 5 * $exposureFactor));
-                        $blocks = round(rand(0, 5 * $exposureFactor));
-
-                        // Update player game stats
-                        PlayerGameStats::updateOrCreate(
-                            [
-                                'player_id' => $player->id,
-                                'game_id' => $schedule->game_id,
-                                'team_id' => $schedule->home_id,
-                                'season_id' => $seasonId
-                            ],
-                            [
-                                'points' => $points,
-                                'assists' => $assists,
-                                'rebounds' => $rebounds,
-                                'steals' => $steals,
-                                'blocks' => $blocks,
-                                'minutes' => $minutes,
-                                'updated_at' => now(),
-                            ]
-                        );
-
-                        $homeScore += $points;
-                    }
-                }
-
-                // Simulate player game stats for away team
-                foreach ($awayPlayers as $player) {
-                    $minutes = $awayMinutes[$player->id] ?? 0;
-
-                    // If minutes is 0, player did not play
-                    if ($minutes === 0) {
-                        PlayerGameStats::updateOrCreate(
-                            [
-                                'player_id' => $player->id,
-                                'game_id' => $schedule->game_id,
-                                'team_id' => $schedule->away_id,
-                                'season_id' => $seasonId
-                            ],
-                            [
-                                'points' => 0,
-                                'assists' => 0,
-                                'rebounds' => 0,
-                                'steals' => 0,
-                                'blocks' => 0,
-                                'minutes' => $minutes,
-                                'updated_at' => now(),
-                            ]
-                        );
-                    } else {
-                        $maxPoints = $roleMaxPoints[$player->role] ?? 30; // Default to 30 if role not found
-                        $exposureFactor = $minutes / 30; // Scale factor based on minutes
-
-                        $points = round(rand(0, $maxPoints * $exposureFactor));
-                        $assists = round(rand(0, 10 * $exposureFactor));
-                        $rebounds = round(rand(0, 10 * $exposureFactor));
-                        $steals = round(rand(0, 5 * $exposureFactor));
-                        $blocks = round(rand(0, 5 * $exposureFactor));
-
-                        // Update player game stats
-                        PlayerGameStats::updateOrCreate(
-                            [
-                                'player_id' => $player->id,
-                                'game_id' => $schedule->game_id,
-                                'team_id' => $schedule->away_id,
-                                'season_id' => $seasonId
-                            ],
-                            [
-                                'points' => $points,
-                                'assists' => $assists,
-                                'rebounds' => $rebounds,
-                                'steals' => $steals,
-                                'blocks' => $blocks,
-                                'minutes' => $minutes,
-                                'updated_at' => now(),
-                            ]
-                        );
-
-                        $awayScore += $points;
-                    }
-                }
-
-                // Check if the game is tied and adjust minutes
-                if ($homeScore == $awayScore) {
-                    // Add 12 extra minutes to each team
-                    foreach ($homePlayers as $player) {
-                        if (isset($homeMinutes[$player->id])) {
-                            $homeMinutes[$player->id] += 12;
-                        }
-                    }
-
-                    foreach ($awayPlayers as $player) {
-                        if (isset($awayMinutes[$player->id])) {
-                            $awayMinutes[$player->id] += 12;
-                        }
-                    }
-
-                    // Recalculate scores based on additional minutes
-                    $homeScore = 0;
-                    $awayScore = 0;
-
-                    foreach ($homePlayers as $player) {
-                        $minutes = $homeMinutes[$player->id] ?? 0;
-                        if ($minutes > 0) {
-                            $exposureFactor = $minutes / 30; // Scale factor based on minutes
-
-                            $points = round(rand(0, $roleMaxPoints[$player->role] * $exposureFactor));
-                            $homeScore += $points;
-                        }
-                    }
-
-                    foreach ($awayPlayers as $player) {
-                        $minutes = $awayMinutes[$player->id] ?? 0;
-                        if ($minutes > 0) {
-                            $exposureFactor = $minutes / 30; // Scale factor based on minutes
-
-                            $points = round(rand(0, $roleMaxPoints[$player->role] * $exposureFactor));
-                            $awayScore += $points;
-                        }
-                    }
-                }
-
-                // Update the scores in the schedule
-                $schedule->home_score = $homeScore;
-                $schedule->away_score = $awayScore;
-                $schedule->status = 2; // Marking the game as completed
-                $schedule->save();
-            }
-
-            // Check if all rounds have been simulated for the season
-            $allRoundsSimulatedForSeason = Schedules::where('season_id', $seasonId)
-                ->where('status', 1)
-                ->doesntExist();
-
-            if ($allRoundsSimulatedForSeason) {
-                // Update the season's status to 2
-                $season = Seasons::find($seasonId);
-                if ($season) {
-                    $season->status = 2; // Example status for completed season
-                    $season->save();
-                }
-            }
-
-            // Commit the transaction
-            DB::commit();
-
-            // Return a response indicating success
-            return response()->json([
-                'message' => 'Games for the conference round simulated and player stats updated successfully.',
-            ]);
-        } catch (\Exception $e) {
-            // Rollback the transaction if any error occurs
-            DB::rollBack();
-            return response()->json([
-                'error' => 'An error occurred while simulating games. Transaction rolled back.',
-                'details' => $e->getMessage(),
-            ], 500);
-        }
+        // Update the seasons table with the determined columns
+        DB::table('seasons')
+            ->where('id', $gameData->season_id)
+            ->update($columnsToUpdate);
     }
+
+
+    // Method to handle finals logic
+    private function updateFinalsWinner($gameData, $winnerId, $homeScore, $awayScore)
+    {
+        // Find the MVP of the winning team
+        $mvpPlayer = PlayerGameStats::join('players', 'player_game_stats.player_id', '=', 'players.id')
+            ->where('player_game_stats.team_id', $winnerId)
+            ->where('player_game_stats.game_id', $gameData->game_id)
+            ->orderBy('player_game_stats.points', 'desc')
+            ->first();
+
+        $finalsMVP = $mvpPlayer ? $mvpPlayer->name : '';
+        $finalsMVPId = $mvpPlayer ? $mvpPlayer->player_id : '';
+
+        DB::table('seasons')
+            ->where('id', $gameData->season_id)
+            ->update([
+                'finals_winner_id' => $winnerId,
+                'finals_loser_id' => $winnerId === $gameData->home_team_id ? $gameData->away_team_id : $gameData->home_team_id,
+                'finals_winner_name' => $winnerId === $gameData->home_team_id ? $gameData->home_team_name : $gameData->away_team_name,
+                'finals_loser_name' => $winnerId === $gameData->home_team_id ? $gameData->away_team_name : $gameData->home_team_name,
+                'finals_winner_score' => $winnerId === $gameData->home_team_id ? $homeScore : $awayScore,
+                'finals_loser_score' => $winnerId === $gameData->home_team_id ? $awayScore : $homeScore,
+                'finals_mvp' => $finalsMVP,
+                'finals_mvp_id' => $finalsMVPId,
+            ]);
+    }
+
     public function simulateperround(Request $request)
     {
         // Validate the request data

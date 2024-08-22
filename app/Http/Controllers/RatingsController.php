@@ -34,13 +34,7 @@ class RatingsController extends Controller
 
             \Log::info('Received request:', ['team_id' => $teamId, 'is_last' => $isLast]);
 
-            // Define role priority and possible new roles
-            $rolePriority = [
-                'star player' => 1,
-                'starter' => 2,
-                'role player' => 3,
-                'bench' => 4,
-            ];
+
 
             $roleMapping = [
                 1 => 'starter',
@@ -109,7 +103,6 @@ class RatingsController extends Controller
                     $player->rebounding_rating = $this->updateRating($player->rebounding_rating, $performance['rebounding']);
                     $player->overall_rating = ($player->shooting_rating + $player->defense_rating + $player->passing_rating + $player->rebounding_rating) / 4;
 
-                    // Update player role based on performance
                     $player->role = $this->updateRoleBasedOnPerformance($player);
 
                     // Check for improvements or declines
@@ -187,7 +180,83 @@ class RatingsController extends Controller
         }
     }
 
+    // Define role priority (lower number = higher priority)
+    protected $rolePriority = [
+        'star player' => 1,
+        'starter' => 2,
+        'role player' => 3,
+        'bench' => 4,
+    ];
+    // Function to update role based on performance
+    protected function updateRoleBasedOnPerformance(Player $player)
+    {
+        // Role thresholds based on overall rating
+        $roleThresholds = [
+            'star player' => 85,
+            'starter' => 75,
+            'role player' => 60,
+            'bench' => 40,
+        ];
 
+
+        // Check current role
+        $currentRolePriority = $this->rolePriority[$player->role];
+
+        // Determine new role based on updated overall rating
+        $newRole = $player->role; // Default to current role
+
+        if ($player->overall_rating >= $roleThresholds['star player']) {
+            $newRole = 'star player';
+        } elseif ($player->overall_rating >= $roleThresholds['starter']) {
+            $newRole = 'starter';
+        } elseif ($player->overall_rating >= $roleThresholds['role player']) {
+            $newRole = 'role player';
+        } else {
+            $newRole = 'bench';
+        }
+
+        // Enforce incremental upgrades/downgrades
+        $newRolePriority = $this->rolePriority[$newRole];
+
+        if ($newRolePriority > $currentRolePriority) {
+            // Upgrade only if the difference in priority is 1
+            if ($newRolePriority - $currentRolePriority == 1) {
+                return $newRole;
+            }
+        } elseif ($newRolePriority < $currentRolePriority) {
+            // Downgrade only if the difference in priority is 1
+            if ($currentRolePriority - $newRolePriority == 1) {
+                return $newRole;
+            }
+        }
+
+        // No change in role if upgrade/downgrade rules are not met
+        return $player->role;
+    }
+
+    // Function to update player rating based on performance
+    protected function updateRating($currentRating, $performance)
+    {
+        // Define rating adjustment based on performance
+        $adjustment = 0;
+
+        if ($performance > 85) {
+            $adjustment = 3; // High performance, significant increase
+        } elseif ($performance > 75) {
+            $adjustment = 2; // Good performance, moderate increase
+        } elseif ($performance > 60) {
+            $adjustment = 1; // Decent performance, slight increase
+        } elseif ($performance < 40) {
+            $adjustment = -2; // Poor performance, significant decrease
+        } elseif ($performance < 50) {
+            $adjustment = -1; // Below average performance, slight decrease
+        }
+
+        // Ensure rating remains within bounds of 40-99
+        $newRating = max(40, min(99, $currentRating + $adjustment));
+
+        return $newRating;
+    }
 
     private function logPlayerRatings($player, $seasonId)
     {
@@ -222,32 +291,7 @@ class RatingsController extends Controller
         }
     }
 
-    // Function to update ratings based on performance
 
-
-    // Function to update player role based on performance
-    private function updateRoleBasedOnPerformance($player)
-    {
-        $seasonPlayedCount = $this->getSeasonsPlayed($player->id);
-
-        // If the player is a rookie or has not played any season, do not change their role
-        if ($player->is_rookie || $seasonPlayedCount == 0) {
-            return $player->role;
-        }
-
-        // Determine the role based on overall rating
-        if ($player->overall_rating >= 85) {
-            return 'star player';
-        } elseif ($player->overall_rating >= 75) {
-            return 'starter';
-        } elseif ($player->overall_rating >= 60) {
-            return 'role player';
-        } elseif ($player->overall_rating >= 40) {
-            return 'bench';
-        } else {
-            return 'bench'; // Default to bench if the rating is below 40
-        }
-    }
 
     // Helper function to get the number of seasons played by the player
     private function getSeasonsPlayed($playerId)
@@ -257,57 +301,6 @@ class RatingsController extends Controller
             ->count();
     }
 
-    // Function to calculate player performance based on game stats
-    private function calculatePerformanceV1($playerId)
-    {
-        // Fetch game stats for the current season where minutes are greater than 0
-        $stats = PlayerGameStats::where('player_id', $playerId)
-            ->where('season_id', $this->getLatestSeasonId())
-            ->where('minutes', '>', 0)
-            ->get();
-
-
-        // Initialize performance metrics
-        $performance = [
-            'shooting' => 0,
-            'defense' => 0,
-            'passing' => 0,
-            'rebounding' => 0,
-        ];
-
-        // Aggregate stats
-        foreach ($stats as $stat) {
-            $performance['shooting'] += $stat->points / max($stat->minutes, 1); // Points per minute
-            $performance['defense'] += $stat->blocks + $stat->steals; // Combined defensive stats
-            $performance['passing'] += $stat->assists / max($stat->minutes, 1); // Assists per minute
-            $performance['rebounding'] += $stat->rebounds / max($stat->minutes, 1); // Rebounds per minute
-        }
-
-        // Calculate averages
-        $totalGames = $stats->count();
-        if ($totalGames > 0) {
-            $performance['shooting'] /= $totalGames;
-            $performance['defense'] /= $totalGames;
-            $performance['passing'] /= $totalGames;
-            $performance['rebounding'] /= $totalGames;
-        }
-
-        // Define maximum values for normalization
-        $maxValues = [
-            'shooting' => 99, // Adjust based on your expectations
-            'defense' => 99, // Adjust based on your expectations
-            'passing' => 99, // Adjust based on your expectations
-            'rebounding' => 99, // Adjust based on your expectations
-        ];
-
-        // Normalize and rate each metric on a 40-99 scale
-        foreach ($performance as $key => $value) {
-            $normalizedValue = ($value / $maxValues[$key]) * 59 + 40; // Scale to 40-99 range
-            $performance[$key] = min(max($normalizedValue, 40), 99); // Ensure value stays within bounds
-        }
-
-        return $performance;
-    }
     private function calculatePerformance($playerId)
     {
         // Fetch game stats for the current season where minutes are greater than 0
@@ -366,19 +359,6 @@ class RatingsController extends Controller
         }
 
         return $performance;
-    }
-
-
-    private function updateRating($currentRating, $performanceMetric)
-    {
-        // Ensure performanceMetric is between 0 and 100
-        $performanceMetric = min(max($performanceMetric, 0), 100);
-
-        // Adjust the rating based on the performance
-        $newRating = $currentRating + ($performanceMetric - $currentRating) / 10;
-
-        // Ensure the rating stays within the 40-99 bounds
-        return min(max($newRating, 40), 99);
     }
     // Example method to get the current season ID
     private function getLatestSeasonId()

@@ -58,197 +58,111 @@
                         class="mt-1 p-2 text-md shadow border rounded-md w-full"
                     />
                 </div>
-                <table class="w-full whitespace-no-wrap">
+                <table class="w-full whitespace-no-wrap overflow-x-auto border border-gray-200">
                     <thead>
-                        <tr
-                            class="border-b text-nowrap bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
-                        >
-                            <th
-                                class="border-b-2 border-gray-200 bg-gray-100 px-2 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
-                            >
+                        <tr class="border-b bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                            <th class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                                 Season
                             </th>
-                            <th
-                                class="border-b-2 border-gray-200 bg-gray-100 px-2 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
-                            >
+                            <th class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                                 Finals MVP
                             </th>
-                            <th
-                                class="border-b-2 border-gray-200 bg-gray-100 px-2 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
-                            >
-                                Conference
-                            </th>
-                            <th
-                                class="border-b-2 border-gray-200 bg-gray-100 px-2 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
-                            >
+                            <th class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                                 Finals Champion
                             </th>
-                            <th
-                                class="border-b-2 border-gray-200 bg-gray-100 px-2 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
-                            >
-                                Conference
-                            </th>
-                            <th
-                                class="border-b-2 border-gray-200 bg-gray-100 px-2 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
-                            >
+                            <th class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                                 Finals Runner Up
                             </th>
-                            <th
-                                class="border-b-2 border-gray-200 bg-gray-100 px-2 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
-                            >
+                            <th class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                                 Regular Champion
                             </th>
-                            <th
-                                class="border-b-2 border-gray-200 bg-gray-100 px-2 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
-                            >
+                            <th class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                                East
+                            </th>
+                            <th class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                                West
+                            </th>
+                            <th class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                                North
+                            </th>
+                            <th class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                                South
+                            </th>
+                            <th class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                                 Worst
                             </th>
-                            <th
-                                class="border-b-2 border-gray-200 bg-gray-100 px-2 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
-                            >
+                            <th class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                                 Action
                             </th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr
-                            v-for="season in seasons.seasons"
+                            v-for="(season, index) in seasons.seasons"
                             v-if="seasons.total_pages"
                             :key="season.id"
                             :class="[
                                 season.finals_winner_id === season.champion_id
                                     ? 'bg-stone-700 text-yellow-400 font-extrabold'
                                     : '',
-                                season.winner_conference_name ===
-                                season.loser_conference_name
+                                season.winner_conference_name === season.loser_conference_name
                                     ? 'bg-slate-600 text-yellow-500 font-extrabold'
                                     : '',
-                                'bg-gray-50 border',
+                                index > 0 && seasons.seasons[index - 1].champion_name === season.champion_name
+                                    ? 'bg-green-200'
+                                    : '',
+                                'border border-gray-200',
                             ]"
                         >
-                            <td class="border-b px-2 py-2 text-xs text-nowrap">
-                                <p class="whitespace-no-wrap uppercase">
-                                    {{ season.name }}
-                                </p>
+                            <td class="border px-1 py-1 text-xs text-nowrap">
+                                <p class="whitespace-no-wrap uppercase">{{ season.name }}</p>
                             </td>
-
-                            <td
-                                class="border-b border-gray-200 px-2 py-2 text-xs"
-                            >
-                                <p
-                                    class="whitespace-no-wrap uppercase text-nowrap"
-                                >
-                                    {{ season.finals_mvp ?? "TBD" }}
-                                </p>
+                            <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap">
+                                <p>{{ season.finals_mvp ?? "TBD" }}</p>
                             </td>
-                            <td
-                                class="border-b border-gray-200 px-2 py-2 text-xs"
-                            >
-                                <span
-                                    class="bg-yellow-500 text-white shadow px-2 py-1 inline-block rounded-full text-xs font-semibold"
-                                    >{{
-                                        season.winner_conference_name ?? "TBD"
-                                    }}</span
-                                >
+                            <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap">
+                                <p>{{ season.finals_winner_name ?? "TBD" }} ({{ season.finals_winner_score > season.finals_loser_score ? season.finals_winner_score : season.finals_loser_score }})</p>
                             </td>
-                            <td
-                                class="border-b border-gray-200 px-2 py-2 text-xs"
-                            >
-                                <p
-                                    class="whitespace-no-wrap uppercase text-nowrap"
-                                >
-                                    {{ season.finals_winner_name ?? "TBD" }}
-                                    (
-                                    {{
-                                        season.finals_winner_score >
-                                        season.finals_loser_score
-                                            ? season.finals_winner_score
-                                            : season.finals_loser_score
-                                    }}
-                                    )
-                                </p>
+                            <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap">
+                                <p>{{ season.finals_loser_name ?? "TBD" }} ({{ season.finals_winner_score < season.finals_loser_score ? season.finals_winner_score : season.finals_loser_score }})</p>
                             </td>
-                            <td
-                                class="border-b border-gray-200 px-2 py-2 text-xs"
-                            >
-                                <span
-                                    class="bg-gray-500 text-white shadow px-2 py-1 inline-block rounded-full text-xs font-semibold"
-                                    >{{
-                                        season.loser_conference_name ?? "TBD"
-                                    }}</span
-                                >
+                            <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap">
+                                <p>{{ season.type == 1 ? "n/a" : season.champion_name }}</p>
                             </td>
-                            <td
-                                class="border-b border-gray-200 px-2 py-2 text-xs"
-                            >
-                                <p
-                                    class="whitespace-no-wrap uppercase text-nowrap"
-                                >
-                                    {{ season.finals_loser_name ?? "TBD" }}
-                                    ({{
-                                        season.finals_winner_score <
-                                        season.finals_loser_score
-                                            ? season.finals_winner_score
-                                            : season.finals_loser_score
-                                    }})
-                                </p>
+                            <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap bg-blue-100">
+                                <p>{{ season.east_champion_name ?? "TBD" }}</p>
                             </td>
-                            <td
-                                class="border-b border-gray-200 px-2 py-2 text-xs"
-                            >
-                                <p
-                                    class="whitespace-no-wrap uppercase text-nowrap"
-                                >
-                                    {{
-                                        season.type == 1
-                                            ? "n/a"
-                                            : season.champion_name
-                                    }}
-                                </p>
+                            <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap bg-red-100">
+                                <p>{{ season.west_champion_name ?? "TBD" }}</p>
                             </td>
-                            <td
-                                class="border-b border-gray-200 px-2 py-2 text-xs"
-                            >
-                                <p
-                                    class="whitespace-no-wrap uppercase text-nowrap"
-                                >
-                                    {{
-                                        season.type == 1
-                                            ? "n/a"
-                                            : season.weakest_name
-                                    }}
-                                </p>
+                            <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap bg-green-100">
+                                <p>{{ season.north_champion_name ?? "TBD" }}</p>
                             </td>
-                            <td
-                                class="border-b float-center border-gray-200 px-2 py-2 text-xs"
-                            >
+                            <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap bg-yellow-100">
+                                <p>{{ season.south_champion_name ?? "TBD" }}</p>
+                            </td>
+                            <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap">
+                                <p>{{ season.type == 1 ? "n/a" : season.weakest_name }}</p>
+                            </td>
+                            <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap">
                                 <button
-                                    @click.prevent="
-                                        (isViewModalOpen = true),
-                                            (season_id = season.id)
-                                    "
-                                    v-bind:class="{
-                                        'opacity-25': isViewModalOpen,
-                                    }"
+                                    @click.prevent="(isViewModalOpen = true), (season_id = season.id)"
+                                    v-bind:class="{ 'opacity-25': isViewModalOpen }"
                                     v-bind:disabled="isViewModalOpen"
-                                    class="px-2 py-2 bg-blue-500 mb-4 rounded font-bold text-md float-center text-white shadow"
+                                    class="px-1 py-1 bg-blue-500 mb-2 rounded font-bold text-xs text-white shadow"
                                 >
                                     <i class="fa fa-list"></i> Season
                                 </button>
                             </td>
                         </tr>
                         <tr v-else>
-                            <td
-                                colspan="9"
-                                class="border-b text-center font-bold text-lg border-gray-200 bg-white px-2 py-2"
-                            >
-                                <p class="text-red-500 whitespace-no-wrap">
-                                    No Data Found!
-                                </p>
+                            <td colspan="11" class="border-b text-center font-bold text-sm border-gray-200 bg-white px-2 py-1">
+                                <p class="text-red-500 whitespace-no-wrap">No Data Found!</p>
                             </td>
                         </tr>
                     </tbody>
                 </table>
+
                 <div class="flex w-full overflow-auto">
                     <Paginator
                         v-if="seasons.total_count"
