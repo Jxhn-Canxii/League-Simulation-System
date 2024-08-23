@@ -77,10 +77,10 @@
                                 Regular Champion
                             </th>
                             <th class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
-                                East
+                                West
                             </th>
                             <th class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
-                                West
+                                East
                             </th>
                             <th class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                                 North
@@ -129,11 +129,11 @@
                             <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap">
                                 <p>{{ season.type == 1 ? "n/a" : season.champion_name }}</p>
                             </td>
-                            <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap bg-blue-100">
-                                <p>{{ season.east_champion_name ?? "TBD" }}</p>
-                            </td>
                             <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap bg-red-100">
                                 <p>{{ season.west_champion_name ?? "TBD" }}</p>
+                            </td>
+                            <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap bg-blue-100">
+                                <p>{{ season.east_champion_name ?? "TBD" }}</p>
                             </td>
                             <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap bg-green-100">
                                 <p>{{ season.north_champion_name ?? "TBD" }}</p>

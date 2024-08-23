@@ -463,30 +463,38 @@ class ScheduleController extends Controller
         // Define the columns to update
         $columnsToUpdate = [];
 
+        // Determine the winner's team name based on the winner ID
+        $winnerName = null;
+        if ($gameData->home_team_id === $winnerId) {
+            $winnerName = $gameData->home_team_name;
+        } elseif ($gameData->away_team_id === $winnerId) {
+            $winnerName = $gameData->away_team_name;
+        }
+
         // Check the conference and set the champion ID and name columns
         switch ($conferenceName) {
             case 'East':
                 $columnsToUpdate = [
                     'east_champion_id' => $winnerId,
-                    'east_champion_name' => $gameData->home_team_name === $winnerId ? $gameData->home_team_name : $gameData->away_team_name,
+                    'east_champion_name' => $winnerName,
                 ];
                 break;
             case 'West':
                 $columnsToUpdate = [
                     'west_champion_id' => $winnerId,
-                    'west_champion_name' => $gameData->home_team_name === $winnerId ? $gameData->home_team_name : $gameData->away_team_name,
+                    'west_champion_name' => $winnerName,
                 ];
                 break;
             case 'North':
                 $columnsToUpdate = [
                     'north_champion_id' => $winnerId,
-                    'north_champion_name' => $gameData->home_team_name === $winnerId ? $gameData->home_team_name : $gameData->away_team_name,
+                    'north_champion_name' => $winnerName,
                 ];
                 break;
             case 'South':
                 $columnsToUpdate = [
                     'south_champion_id' => $winnerId,
-                    'south_champion_name' => $gameData->home_team_name === $winnerId ? $gameData->home_team_name : $gameData->away_team_name,
+                    'south_champion_name' => $winnerName,
                 ];
                 break;
         }
@@ -496,7 +504,6 @@ class ScheduleController extends Controller
             ->where('id', $gameData->season_id)
             ->update($columnsToUpdate);
     }
-
 
     // Method to handle finals logic
     private function updateFinalsWinner($gameData, $winnerId, $homeScore, $awayScore)
