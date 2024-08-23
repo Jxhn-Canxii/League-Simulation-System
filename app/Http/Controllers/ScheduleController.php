@@ -1128,7 +1128,7 @@ class ScheduleController extends Controller
     }
 
     // Function to insert schedule and player game stats into the database
-    private static function insertSchedule($season, $round, $schedule)
+    private static function insertScheduleV1($season, $round, $schedule)
     {
         // Start a database transaction
         DB::transaction(function () use ($season, $round, $schedule) {
@@ -1173,6 +1173,78 @@ class ScheduleController extends Controller
                         'game_id' => $match['game_id'],
                         'team_id' => $match['away_id'],
                         'points' => 0, // Initialize or calculate based on game performance
+                        'rebounds' => 0,
+                        'assists' => 0,
+                        'steals' => 0,
+                        'blocks' => 0,
+                        'turnovers' => 0,
+                        'fouls' => 0,
+                    ];
+                }
+            }
+
+            // Insert player game stats entries into the database
+            if (!empty($playerGameStats)) {
+                DB::table('player_game_stats')->insert($playerGameStats);
+            }
+        });
+    }
+    private static function insertSchedule($season, $round, $schedule)
+    {
+        // Start a database transaction
+        DB::transaction(function () use ($season, $round, $schedule) {
+            // Filter out any matches with duplicate game_id values that already exist in the database
+            $existingGameIds = DB::table('schedules')
+                ->whereIn('game_id', array_column($schedule, 'game_id'))
+                ->pluck('game_id')
+                ->toArray();
+
+            // If any game_ids already exist, throw an exception or return an error response
+            if (!empty($existingGameIds)) {
+                $existingGameIdsStr = implode(', ', $existingGameIds);
+                throw new \Exception("Duplicate game_id(s) found: {$existingGameIdsStr}. No schedules were inserted.");
+            }
+
+            // Insert schedule entries into the database
+            DB::table('schedules')->insert($schedule);
+
+            // Prepare player game stats entries
+            $playerGameStats = [];
+            foreach ($schedule as $match) {
+                // Fetch players for home and away teams
+                $homeTeamPlayers = Player::where('team_id', $match['home_id'])
+                    ->where('is_active', 1)
+                    ->get();
+
+                $awayTeamPlayers = Player::where('team_id', $match['away_id'])
+                    ->where('is_active', 1)
+                    ->get();
+
+                // Create player game stats entries for home team players
+                foreach ($homeTeamPlayers as $player) {
+                    $playerGameStats[] = [
+                        'player_id' => $player->id,
+                        'season_id' => $season,
+                        'game_id' => $match['game_id'],
+                        'team_id' => $match['home_id'],
+                        'points' => 0,
+                        'rebounds' => 0,
+                        'assists' => 0,
+                        'steals' => 0,
+                        'blocks' => 0,
+                        'turnovers' => 0,
+                        'fouls' => 0,
+                    ];
+                }
+
+                // Create player game stats entries for away team players
+                foreach ($awayTeamPlayers as $player) {
+                    $playerGameStats[] = [
+                        'player_id' => $player->id,
+                        'season_id' => $season,
+                        'game_id' => $match['game_id'],
+                        'team_id' => $match['away_id'],
+                        'points' => 0,
                         'rebounds' => 0,
                         'assists' => 0,
                         'steals' => 0,
