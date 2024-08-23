@@ -121,7 +121,7 @@
                                 <p>{{ season.finals_mvp ?? "TBD" }}</p>
                             </td>
                             <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap">
-                                <p>{{ season.finals_winner_name ?? "TBD" }} ({{ season.finals_winner_score > season.finals_loser_score ? season.finals_winner_score : season.finals_loser_score }})</p>
+                                <p class="font-extrabold text-yellow-500">{{ season.finals_winner_name ?? "TBD" }} ({{ season.finals_winner_score > season.finals_loser_score ? season.finals_winner_score : season.finals_loser_score }})</p>
                             </td>
                             <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap">
                                 <p>{{ season.finals_loser_name ?? "TBD" }} ({{ season.finals_winner_score < season.finals_loser_score ? season.finals_winner_score : season.finals_loser_score }})</p>
@@ -130,16 +130,16 @@
                                 <p>{{ season.type == 1 ? "n/a" : season.champion_name }}</p>
                             </td>
                             <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap bg-red-100">
-                                <p>{{ season.west_champion_name ?? "TBD" }}</p>
+                                <p :class="season.finals_winner_id == season.west_champion_id ? 'font-bold text-red-500' : ''">{{ season.west_champion_name ?? "TBD" }}</p>
                             </td>
                             <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap bg-blue-100">
-                                <p>{{ season.east_champion_name ?? "TBD" }}</p>
+                                <p :class="season.finals_winner_id == season.east_champion_id ? 'font-bold text-blue-500' : ''">{{ season.east_champion_name ?? "TBD" }}</p>
                             </td>
                             <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap bg-green-100">
-                                <p>{{ season.north_champion_name ?? "TBD" }}</p>
+                                <p :class="season.finals_winner_id == season.north_champion_id ? 'font-bold text-green-500' : ''">{{ season.north_champion_name ?? "TBD" }}</p>
                             </td>
                             <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap bg-yellow-100">
-                                <p>{{ season.south_champion_name ?? "TBD" }}</p>
+                                <p :class="season.finals_winner_id == season.south_champion_id ? 'font-bold text-yellow-500' : ''">{{ season.south_champion_name ?? "TBD" }}</p>
                             </td>
                             <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap">
                                 <p>{{ season.type == 1 ? "n/a" : season.weakest_name }}</p>
