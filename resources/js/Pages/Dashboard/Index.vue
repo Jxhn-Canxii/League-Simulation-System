@@ -22,6 +22,9 @@
                 <TeamWinningRankings />
                 <TeamScoringRankings />
             </div>
+            <div class="grid grid-cols-1 gap-6 mt-4">
+                <PlayerPlayoffAppearance />
+            </div>
         </div>
     </AuthenticatedLayout>
 </template>
@@ -39,4 +42,5 @@ import PlayerScoringRankings from './Module/PlayerScoringRankings.vue';
 import Rivals from './Module/Rivals.vue';
 import TopPlayoffTeams from './Module/TopPlayoffTeams.vue';
 import TeamWinningRankings from './Module/TeamWinningRankings.vue';
+import PlayerPlayoffAppearance from './Module/PlayerPlayoffAppearance.vue';
 </script>

@@ -105,7 +105,7 @@
                                     >
                                         {{ team.overall_1_rank }}
                                     </span> -->
-                                        <span
+                                        <!-- <span
                                             v-if="
                                                 team.conference_championships >
                                                 0
@@ -121,7 +121,7 @@
                                             title="Finals Appearances"
                                         >
                                             {{ team.finals_appearances }}
-                                        </span>
+                                        </span> -->
                                         <span
                                             v-if="team.championships > 0"
                                             class="flex items-center justify-center w-5 h-5 bg-red-500 text-black text-xs rounded-full"

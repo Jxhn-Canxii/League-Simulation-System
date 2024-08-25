@@ -851,9 +851,9 @@ class PlayersController extends Controller
             ->join('teams', 'player_game_stats.team_id', '=', 'teams.id')
             ->join('seasons', 'player_game_stats.season_id', '=', 'seasons.id') // Join with seasons table
             ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id') // Join with schedules table
-            ->leftJoin('player_ratings', function($join) {
+            ->leftJoin('player_ratings', function ($join) {
                 $join->on('player_game_stats.player_id', '=', 'player_ratings.player_id')
-                     ->on('player_game_stats.season_id', '=', 'player_ratings.season_id');
+                    ->on('player_game_stats.season_id', '=', 'player_ratings.season_id');
             }) // Left join with player_ratings table
             ->select(
                 'players.id as player_id',
@@ -876,7 +876,7 @@ class PlayersController extends Controller
             )
             ->where('player_game_stats.player_id', $playerId)
             ->whereIn('schedules.round', ['round_of_16', 'quarter_finals', 'semi_finals', 'interconference_semi_finals', 'finals']) // Filter by playoff rounds
-            ->groupBy('players.id', 'players.name', 'players.team_id','players.role','player_ratings.overall_rating', 'teams.name', 'teams.conference_id', 'player_game_stats.season_id', 'seasons.name', 'player_ratings.role')
+            ->groupBy('players.id', 'players.name', 'players.team_id', 'players.role', 'player_ratings.overall_rating', 'teams.name', 'teams.conference_id', 'player_game_stats.season_id', 'seasons.name', 'player_ratings.role')
             ->orderBy('player_game_stats.season_id', 'desc') // Sort by season_id in descending order
             ->get();
 
@@ -947,9 +947,9 @@ class PlayersController extends Controller
             ->join('teams', 'player_game_stats.team_id', '=', 'teams.id')
             ->join('seasons', 'player_game_stats.season_id', '=', 'seasons.id') // Join with seasons table
             ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id') // Join with schedules table
-            ->leftJoin('player_ratings', function($join) {
+            ->leftJoin('player_ratings', function ($join) {
                 $join->on('player_game_stats.player_id', '=', 'player_ratings.player_id')
-                     ->on('player_game_stats.season_id', '=', 'player_ratings.season_id');
+                    ->on('player_game_stats.season_id', '=', 'player_ratings.season_id');
             }) // Left join with player_ratings table
             ->select(
                 'players.id as player_id',
@@ -972,7 +972,7 @@ class PlayersController extends Controller
             )
             ->where('player_game_stats.player_id', $playerId)
             ->whereNotIn('schedules.round', ['round_of_16', 'quarter_finals', 'semi_finals', 'interconference_semi_finals', 'finals']) // Exclude specific playoff rounds
-            ->groupBy('players.id', 'players.name', 'players.team_id','players.role', 'player_ratings.overall_rating', 'teams.name', 'teams.conference_id', 'player_game_stats.season_id', 'seasons.name', 'player_ratings.role')
+            ->groupBy('players.id', 'players.name', 'players.team_id', 'players.role', 'player_ratings.overall_rating', 'teams.name', 'teams.conference_id', 'player_game_stats.season_id', 'seasons.name', 'player_ratings.role')
             ->orderBy('player_game_stats.season_id', 'desc') // Sort by season_id in descending order
             ->get();
 
@@ -1043,7 +1043,7 @@ class PlayersController extends Controller
         $playerDetails = \DB::table('players')
             ->join('teams', 'players.team_id', '=', 'teams.id', 'left') // Join teams table to get team details
             ->where('players.id', $playerId)
-            ->select('players.id as player_id', 'players.name as player_name', 'players.age as age', 'teams.name as team_name', 'players.role', 'players.contract_years', 'players.is_rookie','players.overall_rating')
+            ->select('players.id as player_id', 'players.name as player_name', 'players.age as age', 'teams.name as team_name', 'players.role', 'players.contract_years', 'players.is_rookie', 'players.overall_rating')
             ->first();
 
         if (!$playerDetails) {
@@ -1346,4 +1346,68 @@ class PlayersController extends Controller
             'game_logs' => $playerGameLogs,
         ]);
     }
+    public function getPlayersWithFilters(Request $request)
+    {
+        $sortColumn = $request->input('sort_by');
+        $sortOrder = $request->input('sort_order', 'desc');
+        $perPage = $request->input('itemsperpage', 10);
+        $page = $request->input('page_num', 1);
+        $offset = ($page - 1) * $perPage;
+
+        // Base query to get filtered players from the view
+        $query = DB::table('player_playoff_appearances')
+            ->select(
+                'player_id',
+                'player_name',
+                'current_team_name',
+                'round_of_32_appearances',
+                'round_of_16_appearances',
+                'quarter_finals_appearances',
+                'semi_finals_appearances',
+                'interconference_semi_finals_appearances',
+                'finals_appearances',
+                'total_playoff_appearances',
+                'seasons_played_in_playoffs',
+                'total_seasons_played',
+                'teams_played_for_in_playoffs',
+                'is_active'
+            );
+
+        // Apply sorting
+        switch ($sortColumn) {
+            case 'playoff_appearances':
+                $query->orderBy('total_playoff_appearances', $sortOrder);
+                break;
+            case 'big_four':
+                $query->orderBy('interconference_semi_finals_appearances', $sortOrder);
+                break;
+            case 'finals_appearances':
+                $query->orderBy('finals_appearances', $sortOrder);
+                break;
+            case 'seasons_played':
+                $query->orderBy('seasons_played_in_playoffs', $sortOrder);
+                break;
+            default:
+                // Default sorting if invalid sort column
+                $query->orderBy('player_name', 'asc');
+        }
+
+        // Fetch total number of records
+        $total = clone $query; // Clone the query to avoid counting the results after pagination
+        $total = $total->count();
+
+        // Fetch paginated results
+        $players = $query->skip($offset)->take($perPage)->get();
+
+        // Return paginated response
+        return response()->json([
+            'data' => $players,
+            'total' => $total,
+            'per_page' => $perPage,
+            'current_page' => $page,
+            'last_page' => ceil($total / $perPage),
+        ]);
+    }
+
+
 }
