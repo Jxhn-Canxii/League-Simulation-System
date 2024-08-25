@@ -1385,7 +1385,7 @@ class PlayersController extends Controller
                 $query->orderBy('finals_appearances', $sortOrder);
                 break;
             case 'seasons_played':
-                $query->orderBy('seasons_played_in_playoffs', $sortOrder);
+                $query->orderBy('total_seasons_played', $sortOrder);
                 break;
             default:
                 // Default sorting if invalid sort column
