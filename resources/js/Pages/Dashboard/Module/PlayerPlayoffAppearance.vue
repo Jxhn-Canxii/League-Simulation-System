@@ -7,7 +7,8 @@
         </h3>
 
         <!-- Input for filtering -->
-        <input
+         <div class="flex gap-2">
+            <input
             type="text"
             v-model="search_filters.search"
             @input.prevent="fetchFilteredPlayers()"
@@ -19,7 +20,7 @@
         <select
             v-model="search_filters.sort_by"
             @change="fetchFilteredPlayers()"
-            class="mb-2 p-2 border rounded w-full"
+            class="mt-1 mb-2 p-2 border rounded w-full"
         >
             <option value="playoff_appearances">
                 Most Playoff Appearances
@@ -29,6 +30,8 @@
             <option value="seasons_played">Seasons Played</option>
             <option value="championships_won">Championships</option>
         </select>
+         </div>
+
 
         <table class="w-full text-xs">
             <thead>
