@@ -1371,7 +1371,7 @@ class PlayersController extends Controller
                 'total_seasons_played',
                 'teams_played_for_in_playoffs',
                 'active_status',
-                'championship_won'
+                'championships_won'
             );
 
         // Apply sorting
