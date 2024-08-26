@@ -1370,7 +1370,8 @@ class PlayersController extends Controller
                 'seasons_played_in_playoffs',
                 'total_seasons_played',
                 'teams_played_for_in_playoffs',
-                'is_active'
+                'active_status',
+                'championship_won'
             );
 
         // Apply sorting
@@ -1386,6 +1387,9 @@ class PlayersController extends Controller
                 break;
             case 'seasons_played':
                 $query->orderBy('total_seasons_played', $sortOrder);
+                break;
+            case 'championships_won':
+                $query->orderBy('championships_won', $sortOrder);
                 break;
             default:
                 // Default sorting if invalid sort column

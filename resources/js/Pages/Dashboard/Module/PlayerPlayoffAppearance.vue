@@ -27,6 +27,7 @@
             <option value="finals_appearances">Most Finals Appearances</option>
             <option value="big_four">Most Big 4 Appearances</option>
             <option value="seasons_played">Seasons Played</option>
+            <option value="championships_won">Championships</option>
         </select>
 
         <table class="w-full text-xs">
@@ -72,6 +73,11 @@
                     <th
                         class="border-b-2 border-gray-200 bg-gray-100 py-2 px-2 text-left font-semibold uppercase text-gray-600"
                     >
+                        Championships
+                    </th>
+                    <th
+                        class="border-b-2 border-gray-200 bg-gray-100 py-2 px-2 text-left font-semibold uppercase text-gray-600"
+                    >
                         Seasons Played
                     </th>
                 </tr>
@@ -94,7 +100,7 @@
                     >
                         <!-- Display "Retired" if player is not active and retirement age is greater than or equal to their age -->
                         <span
-                            v-if="!player.is_active"
+                            v-if="!player.active_status"
                             class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800"
                             >Free Agent/Retired</span
                         >
@@ -139,6 +145,13 @@
                     >
                         <p class="text-gray-900 whitespace-nowrap truncate">
                             {{ player.finals_appearances }}
+                        </p>
+                    </td>
+                    <td
+                        class="border-b border-gray-200 bg-white px-2 py-2 text-ellipsis overflow-hidden"
+                    >
+                        <p class="text-gray-900 whitespace-nowrap truncate">
+                            {{ player.championships_won }}
                         </p>
                     </td>
                     <td
