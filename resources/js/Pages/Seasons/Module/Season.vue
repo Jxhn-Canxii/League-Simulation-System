@@ -539,6 +539,17 @@
             >
                 Team Roster
             </button>
+            <button
+                :class="[
+                    'px-4 py-2',
+                    currentTab === 'legend'
+                        ? 'border-b-2 border-blue-500 text-blue-500'
+                        : 'text-gray-500 hover:text-gray-700',
+                ]"
+                @click="currentTab = 'legend'"
+            >
+                Top 10 Player
+            </button>
         </div>
         <div class="mt-4">
             <TeamInfo v-if="currentTab === 'info'" :team_id="isTeamModalOpen" />
@@ -550,6 +561,7 @@
                 v-if="currentTab === 'roster'"
                 :team_id="isTeamModalOpen"
             />
+            <Top10Player v-if="currentTab === 'legend'" :team_id="isTeamModalOpen" />
         </div>
     </Modal>
     <Modal :show="isGameResultModalOpen" :maxWidth="'4xl'">
@@ -578,6 +590,7 @@ import TeamInfo from "@/Pages/Teams/Module/TeamInfo.vue";
 import TeamRoster from "@/Pages/Teams/Module/TeamRoster.vue";
 import GameResults from "@/Pages/Seasons/Module/GameResults.vue";
 import TopPlayers from "@/Pages/Seasons/Module/TopPlayers.vue";
+import Top10Player from "@/Pages/Teams/Module/Top10Player.vue";
 
 const season_info = ref(false);
 const season_conference = ref(false);

@@ -1428,7 +1428,7 @@ class PlayersController extends Controller
         // Retrieve the team_id from the request
 
         // Query the view 'top_10_players_by_team' filtered by team_id
-        $topPlayersByTeam = DB::table('top_10_players_by_team')
+        $topPlayersByTeam = DB::table('top_10_players_by_team_all_time')
             ->select(
                 'player_id',
                 'player_name',
@@ -1444,7 +1444,6 @@ class PlayersController extends Controller
                 'finals_mvp_count'
             )
             ->where('team_id', $validated['team_id'])
-            ->orderBy('rank_in_team')
             ->get();
 
         // Return the data as JSON response

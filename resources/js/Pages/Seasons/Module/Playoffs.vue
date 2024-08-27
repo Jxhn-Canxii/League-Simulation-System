@@ -250,10 +250,17 @@
             >
                 Team Info
             </button>
+            <button
+            :class="['px-4 py-2', currentTab === 'legend' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700']"
+            @click="currentTab = 'legend'"
+        >
+            Top 10 Player
+        </button>
         </div>
         <div class="mt-4">
             <TeamInfo v-if="currentTab === 'info'" :team_id="isTeamModalOpen" />
             <TeamHistory v-if="currentTab === 'history'" :team_id="isTeamModalOpen" />
+            <Top10Player v-if="currentTab === 'legend'" :team_id="isTeamModalOpen" />
         </div>
     </Modal>
     <Modal :show="isTeamComparisonModalOpen" :maxWidth="'6xl'">
