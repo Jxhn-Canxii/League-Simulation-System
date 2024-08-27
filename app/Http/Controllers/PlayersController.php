@@ -1413,5 +1413,41 @@ class PlayersController extends Controller
         ]);
     }
 
+    public function getTop20PlayersAllTime()
+    {
+        $top20Players = DB::table('top_20_players_all_time')->get();
+        return response()->json($top20Players);
+    }
+    public function getTop10PlayersByTeam(Request $request)
+    {
+        // Validate the request to ensure 'team_id' is provided
+        $validated = $request->validate([
+            'team_id' => 'required|integer|exists:teams,id',
+        ]);
 
+        // Retrieve the team_id from the request
+
+        // Query the view 'top_10_players_by_team' filtered by team_id
+        $topPlayersByTeam = DB::table('top_10_players_by_team')
+            ->select(
+                'player_id',
+                'player_name',
+                'team_id',
+                'team_name',
+                'total_points',
+                'total_assists',
+                'total_rebounds',
+                'total_steals',
+                'total_blocks',
+                'total_turnovers',
+                'championships_won',
+                'finals_mvp_count'
+            )
+            ->where('team_id', $validated['team_id'])
+            ->orderBy('rank_in_team')
+            ->get();
+
+        // Return the data as JSON response
+        return response()->json($topPlayersByTeam);
+    }
 }
