@@ -1397,8 +1397,8 @@ class PlayersController extends Controller
         }
 
         // Fetch total number of records
-        $total = clone $query; // Clone the query to avoid counting the results after pagination
-        $total = $total->count();
+        $total = DB::table('players')
+          ->count();
 
         // Fetch paginated results
         $players = $query->skip($offset)->take($perPage)->get();

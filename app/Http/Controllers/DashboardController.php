@@ -196,10 +196,7 @@ class DashboardController extends Controller
             });
 
         // Count total unique players with scores
-        $totalCount = DB::table('player_game_stats')
-            ->select('player_id')
-            ->distinct()
-            ->leftJoin('players', 'player_game_stats.player_id', '=', 'players.id')
+        $totalCount = DB::table('players')
             ->count();
 
         // Calculate total pages
