@@ -34,8 +34,6 @@ class RatingsController extends Controller
 
             \Log::info('Received request:', ['team_id' => $teamId, 'is_last' => $isLast]);
 
-
-
             $roleMapping = [
                 1 => 'starter',
                 2 => 'role player',
@@ -51,10 +49,12 @@ class RatingsController extends Controller
             $players = $query->get();
 
             $seasonId = $this->getLatestSeasonId();
+            $latestSeason = Seasons::find($seasonId);
             \Log::info('Latest season ID:', ['seasonId' => $seasonId]);
 
             $improvedPlayers = [];
             $declinedPlayers = [];
+            $reSignedPlayers = []; // Track re-signed players
 
             foreach ($players as $player) {
                 // Check if player ratings for the current season already exist
@@ -78,10 +78,31 @@ class RatingsController extends Controller
                     $player->contract_years -= 1;
                     $player->is_rookie = 0;
 
-                    // Check if contract_years is 0 and update team_id to 0
+                    // Check if contract_years is 0
                     if ($player->contract_years <= 0) {
-                        $player->contract_years = 0; // Ensure contract_years is exactly 0
-                        $player->team_id = 0; // Update team_id to 0
+                        // Determine if the player re-signs
+                        $reSignChance = rand(0,70);
+
+                        // Adjust chance based on player role and contract length
+                        if ($player->contract_years < 2) {
+                            $roleBasedChance = match ($player->role) {
+                                'starter' => 10,
+                                'role player' => 20,
+                                'bench' => 30,
+                                default => 50,
+                            };
+                            $reSignChance -= $roleBasedChance;
+                        }
+
+                        if (mt_rand(1, 100) > $reSignChance) {
+                            // Player does not re-sign, set as free agent
+                            $player->contract_years = 0;
+                            $player->team_id = 0;
+                        } else {
+                            // Player re-signs, assign contract length based on role
+                            $player->contract_years = $this->getContractYearsBasedOnRole($player->role);
+                            $reSignedPlayers[] = $player; // Track re-signed player
+                        }
                     }
 
                     // Increment age by 1
@@ -139,7 +160,41 @@ class RatingsController extends Controller
             if ($isLast) {
                 \Log::info('Processing last update.');
 
-                // Use Eloquent to update the season status
+                // Assign non-re-signed players to teams with fewer than 12 players
+                $freeAgents = Player::where('team_id', 0)->where('is_active', 1)->get();
+                $teamsWithFewMembers = DB::table('teams')
+                    ->leftJoin('players', 'teams.id', '=', 'players.team_id')
+                    ->select('teams.id', 'teams.name', DB::raw('COUNT(players.id) as player_count'))
+                    ->groupBy('teams.id', 'teams.name')
+                    ->havingRaw('COUNT(players.id) < 12')
+                    ->get();
+
+                foreach ($freeAgents as $agent) {
+                    if ($teamsWithFewMembers->isEmpty()) {
+                        break;
+                    }
+
+                    // Randomly select a team from the incomplete teams
+                    $team = $teamsWithFewMembers->random();
+                    $playersNeeded = 12 - $team->player_count;
+
+                    // Update the agent's team and contract years
+                    $agent->team_id = $team->id;
+                    $agent->contract_years = $this->getContractYearsBasedOnRole($agent->role);
+                    $agent->save();
+
+                    // Reduce the number of players needed for that team
+                    $team->player_count++;
+
+                    // Remove the team from the list if it no longer needs more players
+                    if ($playersNeeded <= 1) {
+                        $teamsWithFewMembers = $teamsWithFewMembers->filter(function ($t) use ($team) {
+                            return $t->id !== $team->id;
+                        });
+                    }
+                }
+
+                // Update season status
                 $season = Seasons::find($seasonId);
                 if ($season) {
                     $season->status = 9;
@@ -156,6 +211,7 @@ class RatingsController extends Controller
                     'team_name' => $teamName,
                     'improved_players' => $improvedPlayers,
                     'declined_players' => $declinedPlayers,
+                    're_signed_players' => $reSignedPlayers, // Include re-signed players in response
                 ]);
             }
 
@@ -167,6 +223,7 @@ class RatingsController extends Controller
                 'team_name' => $teamName,
                 'improved_players' => $improvedPlayers,
                 'declined_players' => $declinedPlayers,
+                're_signed_players' => $reSignedPlayers, // Include re-signed players in response
             ]);
         } catch (\Exception $e) {
             DB::rollBack(); // Rollback transaction on error
@@ -179,6 +236,25 @@ class RatingsController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get contract years based on the player's role.
+     */
+    private function getContractYearsBasedOnRole($role)
+    {
+        switch ($role) {
+            case 'star player':
+                return mt_rand(5, 7);
+            case 'starter':
+                return mt_rand(3, 5);
+            case 'role player':
+                return mt_rand(2, 4);
+            case 'bench':
+            default:
+                return mt_rand(1, 3);
+        }
+    }
+
 
     // Define role priority (lower number = higher priority)
     protected $rolePriority = [

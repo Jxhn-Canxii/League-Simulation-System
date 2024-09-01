@@ -544,7 +544,7 @@ const updatePlayerStatus = async () => {
     }
 };
 
-const updatePlayerStatusPerTeam = async (index,team_id, is_last) => {
+const updatePlayerStatusPerTeam = async (index, team_id, is_last) => {
     try {
         // isProcessing.value = true;
 
@@ -554,53 +554,88 @@ const updatePlayerStatusPerTeam = async (index,team_id, is_last) => {
         // Call the update function
         const response = await axios.post(route("update.player.status"), form);
 
-        // Extract improved and declined players from the response
+        // Extract improved, declined, and re-signed players from the response
         const improvedPlayers = response.data.improved_players || [];
         const declinedPlayers = response.data.declined_players || [];
+        const reSignedPlayers = response.data.re_signed_players || [];
         const teamName = response.data.team_name || 'none';
+
         // Build the HTML message for Swal
         let htmlMessage = `
-            <p>Player status for team #${index + 1} ${teamName} has been updated.</p>
-            <table style="width:100%; border-collapse: collapse; margin-top: 10px;">
-                <thead>
-                    <tr>
-                        <th style="border: 1px solid #ddd; padding: 8px;">Player</th>
-                        <th style="border: 1px solid #ddd; padding: 8px;">Role</th>
-                        <th style="border: 1px solid #ddd; padding: 8px;">Overall Rating</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${improvedPlayers.length > 0 ? `
-                        <tr><td colspan="3"><strong>Improved Players</strong></td></tr>
+            <p style="font-size: 12px;">Player status for team #${index + 1} ${teamName} has been updated.</p>
+            <div style="display: flex; flex-direction: column; align-items: center;">
+
+                <!-- Improved Players Table -->
+                <table style="width:90%; border-collapse: collapse; font-size: 10px; margin-bottom: 10px;">
+                    <thead>
+                        <tr><th colspan="3" style="text-align: center; padding: 4px;">Improved Players</th></tr>
+                        <tr>
+                            <th style="border: 1px solid #ddd; padding: 4px;">Player</th>
+                            <th style="border: 1px solid #ddd; padding: 4px;">Role</th>
+                            <th style="border: 1px solid #ddd; padding: 4px;">Contract Years</th>
+                        </tr>
+                    </thead>
+                    <tbody>
                         ${improvedPlayers.map(player => `
                             <tr>
-                                <td style="border: 1px solid #ddd; padding: 8px;">${player.name}</td>
-                                <td style="border: 1px solid #ddd; padding: 8px;">${player.role}</td>
-                                <td style="border: 1px solid #ddd; padding: 8px;">${player.overall_rating.toFixed(2)}</td>
+                                <td style="border: 1px solid #ddd; padding: 4px;">${player.name}</td>
+                                <td style="border: 1px solid #ddd; padding: 4px;">${player.role}</td>
+                                <td style="border: 1px solid #ddd; padding: 4px;">${player.contract_years} years</td>
                             </tr>
                         `).join('')}
-                    ` : ''}
+                    </tbody>
+                </table>
 
-                    ${declinedPlayers.length > 0 ? `
-                        <tr><td colspan="3"><strong>Declined Players</strong></td></tr>
+                <!-- Declined Players Table -->
+                <table style="width:90%; border-collapse: collapse; font-size: 10px; margin-bottom: 10px;">
+                    <thead>
+                        <tr><th colspan="3" style="text-align: center; padding: 4px;">Declined Players</th></tr>
+                        <tr>
+                            <th style="border: 1px solid #ddd; padding: 4px;">Player</th>
+                            <th style="border: 1px solid #ddd; padding: 4px;">Role</th>
+                            <th style="border: 1px solid #ddd; padding: 4px;">Contract Years</th>
+                        </tr>
+                    </thead>
+                    <tbody>
                         ${declinedPlayers.map(player => `
                             <tr>
-                                <td style="border: 1px solid #ddd; padding: 8px;">${player.name}</td>
-                                <td style="border: 1px solid #ddd; padding: 8px;">${player.role}</td>
-                                <td style="border: 1px solid #ddd; padding: 8px;">${player.overall_rating.toFixed(2)}</td>
+                                <td style="border: 1px solid #ddd; padding: 4px;">${player.name}</td>
+                                <td style="border: 1px solid #ddd; padding: 4px;">${player.role}</td>
+                                <td style="border: 1px solid #ddd; padding: 4px;">${player.contract_years} years</td>
                             </tr>
                         `).join('')}
-                    ` : ''}
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+
+                <!-- Re-Signed Players Table -->
+                 <table style="width:90%; border-collapse: collapse; font-size: 10px;">
+                    <thead>
+                        <tr><th colspan="3" style="text-align: center; padding: 4px;">Re-Signed Players</th></tr>
+                        <tr>
+                            <th style="border: 1px solid #ddd; padding: 4px;">Player</th>
+                            <th style="border: 1px solid #ddd; padding: 4px;">Role</th>
+                            <th style="border: 1px solid #ddd; padding: 4px;">Contract Years</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${reSignedPlayers.map(player => `
+                            <tr>
+                                <td style="border: 1px solid #ddd; padding: 4px;">${player.name}</td>
+                                <td style="border: 1px solid #ddd; padding: 4px;">${player.role}</td>
+                                <td style="border: 1px solid #ddd; padding: 4px;">${player.contract_years} years</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
         `;
 
         // Show success alert with the table-like message
         Swal.fire({
-            icon: "success",
-            title: "Success!",
+            title: `Team ${teamName} Player Update`,
             html: htmlMessage,
             showConfirmButton: true,
+            position: 'top', // Position the alert at the top of the screen
         });
 
         // Close the processing status alert
