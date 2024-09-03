@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\DB;
 class RatingsController extends Controller
 {
     //
-    public function updateActivePlayers(Request $request)
+    public function updateActivePlayersV1(Request $request)
     {
         DB::beginTransaction(); // Start transaction
 
@@ -240,7 +240,223 @@ class RatingsController extends Controller
     /**
      * Get contract years based on the player's role.
      */
-    private function getContractYearsBasedOnRole($role)
+    public function updateActivePlayers(Request $request)
+    {
+        DB::beginTransaction(); // Start transaction
+
+        try {
+            // Validate the request data
+            $request->validate([
+                'team_id' => 'required|integer|min:0',
+                'is_last' => 'required|boolean',
+            ]);
+
+            $teamId = $request->team_id;
+            $isLast = $request->is_last;
+
+            \Log::info('Received request:', ['team_id' => $teamId, 'is_last' => $isLast]);
+
+            $roleMapping = [
+                1 => 'starter',
+                2 => 'role player',
+                3 => 'bench',
+                4 => 'bench', // No further downgrade
+            ];
+
+            // Fetch all active players, filtered by team_id if provided
+            $query = Player::where('is_active', 1);
+            if ($teamId) {
+                $query->where('team_id', $teamId);
+            }
+            $players = $query->get();
+
+            $seasonId = $this->getLatestSeasonId();
+            $latestSeason = Seasons::find($seasonId);
+            \Log::info('Latest season ID:', ['seasonId' => $seasonId]);
+
+            $improvedPlayers = [];
+            $declinedPlayers = [];
+            $reSignedPlayers = []; // Track re-signed players
+
+            foreach ($players as $player) {
+                // Check if the player's ratings have already been updated for the current season
+                $ratingExists = DB::table('player_ratings')
+                    ->where('player_id', $player->id)
+                    ->where('season_id', $seasonId)
+                    ->exists();
+
+                if ($ratingExists) {
+                    // Skip updating this player if already updated
+                    continue;
+                }
+
+                // Store old ratings and role for comparison
+                $oldRatings = [
+                    'shooting' => $player->shooting_rating,
+                    'defense' => $player->defense_rating,
+                    'passing' => $player->passing_rating,
+                    'rebounding' => $player->rebounding_rating,
+                    'overall' => $player->overall_rating,
+                ];
+                $oldRole = $player->role;
+
+                // Deduct contract_years by 1
+                $player->contract_years -= 1;
+                $player->is_rookie = 0;
+
+                // Check if contract_years is 0
+                if ($player->contract_years <= 2) {
+                    // Determine if the player re-signs
+                    $reSignChance = match($player->role) {
+                            'star player' => 70,
+                            'starter' => 50,
+                            'role player' => 30,
+                            'bench' => 10,
+                            default => 50,
+                    };
+
+                    if (mt_rand(1, 100) > $reSignChance) {
+                        // Player does not re-sign, set as free agent
+                        $player->contract_years = 0;
+                        $player->team_id = 0;
+                    } else {
+                        // Player re-signs, assign contract length based on role
+                        $player->contract_years = $this->getContractYearsBasedOnRole($player->role);
+                        $reSignedPlayers[] = $player; // Track re-signed player
+                    }
+                }
+
+                // Increment age by 1
+                $player->age += 1;
+
+                // Determine if the player should have an injury_prone_percentage of 0
+                if (rand(1, 100) <= 10) {
+                    // Assign a random value between 1 and 100
+                    $player->injury_prone_percentage = rand(1, 100);
+                } else {
+                    $player->injury_prone_percentage = 0;
+                }
+
+                // Update player ratings based on performance
+                $performance = $this->calculatePerformance($player->id); // Calculate performance from game stats
+                $player->shooting_rating = $this->updateRating($player->shooting_rating, $performance['shooting']);
+                $player->defense_rating = $this->updateRating($player->defense_rating, $performance['defense']);
+                $player->passing_rating = $this->updateRating($player->passing_rating, $performance['passing']);
+                $player->rebounding_rating = $this->updateRating($player->rebounding_rating, $performance['rebounding']);
+                $player->overall_rating = ($player->shooting_rating + $player->defense_rating + $player->passing_rating + $player->rebounding_rating) / 4;
+
+                $player->role = $this->updateRoleBasedOnPerformance($player);
+
+                // Check for improvements or declines
+                if ($player->overall_rating > $oldRatings['overall'] || $player->role != $oldRole) {
+                    $improvedPlayers[] = $player;
+                } elseif ($player->overall_rating < $oldRatings['overall'] || $player->role != $oldRole) {
+                    $declinedPlayers[] = $player;
+                }
+
+                // Check for retirement
+                if ($player->age >= $player->retirement_age) {
+                    $player->is_active = 0;
+                    $player->team_id = 0;
+                }
+
+                // Save the updated player data
+                $player->save();
+
+                // Log the updated ratings
+                $this->logPlayerRatings($player, $seasonId);
+            }
+
+            // Fetch the team name if team_id is provided
+            $teamName = '';
+            if ($teamId) {
+                $team = Teams::find($teamId);
+                if ($team) {
+                    $teamName = $team->name;
+                }
+            }
+
+            // Show alert if this is the last update
+            if ($isLast) {
+                \Log::info('Processing last update.');
+
+                // Assign non-re-signed players to teams with fewer than 12 players
+                $freeAgents = Player::where('team_id', 0)->where('is_active', 1)->get();
+                $teamsWithFewMembers = DB::table('teams')
+                    ->leftJoin('players', 'teams.id', '=', 'players.team_id')
+                    ->select('teams.id', 'teams.name', DB::raw('COUNT(players.id) as player_count'))
+                    ->groupBy('teams.id', 'teams.name')
+                    ->havingRaw('COUNT(players.id) < 12')
+                    ->get();
+
+                foreach ($freeAgents as $agent) {
+                    if ($teamsWithFewMembers->isEmpty()) {
+                        break;
+                    }
+
+                    // Randomly select a team from the incomplete teams
+                    $team = $teamsWithFewMembers->random();
+                    $playersNeeded = 12 - $team->player_count;
+
+                    // Update the agent's team and contract years
+                    $agent->team_id = $team->id;
+                    $agent->contract_years = $this->getContractYearsBasedOnRole($agent->role);
+                    $agent->save();
+
+                    // Reduce the number of players needed for that team
+                    $team->player_count++;
+
+                    // Remove the team from the list if it no longer needs more players
+                    if ($playersNeeded <= 1) {
+                        $teamsWithFewMembers = $teamsWithFewMembers->filter(function ($t) use ($team) {
+                            return $t->id !== $team->id;
+                        });
+                    }
+                }
+
+                // Update season status
+                $season = Seasons::find($seasonId);
+                if ($season) {
+                    $season->status = 9;
+                    $season->save();
+                } else {
+                    \Log::warning('Season not found for ID:', ['seasonId' => $seasonId]);
+                }
+
+                DB::commit(); // Commit transaction
+
+                return response()->json([
+                    'error' => false,
+                    'message' => 'All player statuses have been updated successfully. Update finished.',
+                    'team_name' => $teamName,
+                    'improved_players' => $improvedPlayers,
+                    'declined_players' => $declinedPlayers,
+                    're_signed_players' => $reSignedPlayers, // Include re-signed players in response
+                ]);
+            }
+
+            DB::commit(); // Commit transaction
+
+            return response()->json([
+                'error' => false,
+                'message' => 'All player statuses have been updated successfully.',
+                'team_name' => $teamName,
+                'improved_players' => $improvedPlayers,
+                'declined_players' => $declinedPlayers,
+                're_signed_players' => $reSignedPlayers, // Include re-signed players in response
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack(); // Rollback transaction on error
+
+            \Log::error('Failed to update player statuses', ['exception' => $e]);
+
+            return response()->json([
+                'error' => true,
+                'message' => 'Failed to update player statuses.',
+            ], 500);
+        }
+    }
+        private function getContractYearsBasedOnRole($role)
     {
         switch ($role) {
             case 'star player':
