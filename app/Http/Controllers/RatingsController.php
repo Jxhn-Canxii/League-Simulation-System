@@ -460,11 +460,11 @@ class RatingsController extends Controller
     {
         switch ($role) {
             case 'star player':
-                return mt_rand(5, 7);
+                return mt_rand(1, 7);
             case 'starter':
-                return mt_rand(3, 5);
+                return mt_rand(1, 5);
             case 'role player':
-                return mt_rand(2, 4);
+                return mt_rand(1, 4);
             case 'bench':
             default:
                 return mt_rand(1, 3);
