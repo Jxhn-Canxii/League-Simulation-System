@@ -305,7 +305,7 @@ class RatingsController extends Controller
                 $player->is_rookie = 0;
 
                 // Check if contract_years is 0
-                if ($player->contract_years <= 2) {
+                if ($player->contract_years == 0) {
                     // Determine if the player re-signs
                     $reSignChance = match($player->role) {
                             'star player' => 70,
@@ -316,13 +316,13 @@ class RatingsController extends Controller
                     };
 
                     if (mt_rand(1, 100) > $reSignChance) {
-                        // Player does not re-sign, set as free agent
-                        $player->contract_years = 0;
-                        $player->team_id = 0;
-                    } else {
                         // Player re-signs, assign contract length based on role
-                        $player->contract_years = $this->getContractYearsBasedOnRole($player->role);
+                        $player->contract_years += $this->getContractYearsBasedOnRole($player->role);
                         $reSignedPlayers[] = $player; // Track re-signed player
+                    } else {
+                         // Player does not re-sign, set as free agent
+                         $player->contract_years += 0;
+                         $player->team_id = 0;
                     }
                 }
 
