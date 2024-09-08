@@ -81,7 +81,7 @@ class RatingsController extends Controller
                     // Check if contract_years is 0
                     if ($player->contract_years <= 0) {
                         // Determine if the player re-signs
-                        $reSignChance = rand(0,70);
+                        $reSignChance = rand(0, 70);
 
                         // Adjust chance based on player role and contract length
                         if ($player->contract_years < 2) {
@@ -118,10 +118,10 @@ class RatingsController extends Controller
 
                     // Update player ratings based on performance
                     $performance = $this->calculatePerformance($player->id); // Calculate performance from game stats
-                    $player->shooting_rating = $this->updateRating($player->shooting_rating, $performance['shooting']);
-                    $player->defense_rating = $this->updateRating($player->defense_rating, $performance['defense']);
-                    $player->passing_rating = $this->updateRating($player->passing_rating, $performance['passing']);
-                    $player->rebounding_rating = $this->updateRating($player->rebounding_rating, $performance['rebounding']);
+                    $player->shooting_rating = $this->updateRating($player->shooting_rating, $performance['shooting'], $oldRole);
+                    $player->defense_rating = $this->updateRating($player->defense_rating, $performance['defense'], $oldRole);
+                    $player->passing_rating = $this->updateRating($player->passing_rating, $performance['passing'], $oldRole);
+                    $player->rebounding_rating = $this->updateRating($player->rebounding_rating, $performance['rebounding'], $oldRole);
                     $player->overall_rating = ($player->shooting_rating + $player->defense_rating + $player->passing_rating + $player->rebounding_rating) / 4;
 
                     $player->role = $this->updateRoleBasedOnPerformance($player);
@@ -307,12 +307,12 @@ class RatingsController extends Controller
                 // Check if contract_years is 0
                 if ($player->contract_years == 0) {
                     // Determine if the player re-signs
-                    $reSignChance = match($player->role) {
-                            'star player' => 70,
-                            'starter' => 50,
-                            'role player' => 30,
-                            'bench' => 10,
-                            default => 50,
+                    $reSignChance = match ($player->role) {
+                        'star player' => 70,
+                        'starter' => 50,
+                        'role player' => 30,
+                        'bench' => 10,
+                        default => 50,
                     };
 
                     if (mt_rand(1, 100) > $reSignChance) {
@@ -320,9 +320,9 @@ class RatingsController extends Controller
                         $player->contract_years += $this->getContractYearsBasedOnRole($player->role);
                         $reSignedPlayers[] = $player; // Track re-signed player
                     } else {
-                         // Player does not re-sign, set as free agent
-                         $player->contract_years += 0;
-                         $player->team_id = 0;
+                        // Player does not re-sign, set as free agent
+                        $player->contract_years += 0;
+                        $player->team_id = 0;
                     }
                 }
 
@@ -339,10 +339,10 @@ class RatingsController extends Controller
 
                 // Update player ratings based on performance
                 $performance = $this->calculatePerformance($player->id); // Calculate performance from game stats
-                $player->shooting_rating = $this->updateRating($player->shooting_rating, $performance['shooting']);
-                $player->defense_rating = $this->updateRating($player->defense_rating, $performance['defense']);
-                $player->passing_rating = $this->updateRating($player->passing_rating, $performance['passing']);
-                $player->rebounding_rating = $this->updateRating($player->rebounding_rating, $performance['rebounding']);
+                $player->shooting_rating = $this->updateRating($player->shooting_rating, $performance['shooting'], $oldRole);
+                $player->defense_rating = $this->updateRating($player->defense_rating, $performance['defense'], $oldRole);
+                $player->passing_rating = $this->updateRating($player->passing_rating, $performance['passing'], $oldRole);
+                $player->rebounding_rating = $this->updateRating($player->rebounding_rating, $performance['rebounding'], $oldRole);
                 $player->overall_rating = ($player->shooting_rating + $player->defense_rating + $player->passing_rating + $player->rebounding_rating) / 4;
 
                 $player->role = $this->updateRoleBasedOnPerformance($player);
@@ -456,7 +456,7 @@ class RatingsController extends Controller
             ], 500);
         }
     }
-        private function getContractYearsBasedOnRole($role)
+    private function getContractYearsBasedOnRole($role)
     {
         switch ($role) {
             case 'star player':
@@ -479,24 +479,25 @@ class RatingsController extends Controller
         'role player' => 3,
         'bench' => 4,
     ];
+    protected $roleThresholds = [
+        'star player' => 85,  // Star players should maintain at least 85 overall rating
+        'starter' => 75,      // Starters should maintain at least 75 overall rating
+        'role player' => 60,  // Role players should maintain at least 60 overall rating
+        'bench' => 40,        // Bench players should maintain at least 40 overall rating
+    ];
+
     // Function to update role based on performance
     protected function updateRoleBasedOnPerformance(Player $player)
     {
-        // Role thresholds based on overall rating
-        $roleThresholds = [
-            'star player' => 85,
-            'starter' => 75,
-            'role player' => 60,
-            'bench' => 40,
-        ];
 
-
-        // Check current role
+        $roleThresholds = $this->roleThresholds;
         $currentRolePriority = $this->rolePriority[$player->role];
+        $newRole = $player->role;
+
+        // Check if the player is underperforming for their current role
+        $this->adjustRatingsForRole($player);
 
         // Determine new role based on updated overall rating
-        $newRole = $player->role; // Default to current role
-
         if ($player->overall_rating >= $roleThresholds['star player']) {
             $newRole = 'star player';
         } elseif ($player->overall_rating >= $roleThresholds['starter']) {
@@ -507,40 +508,42 @@ class RatingsController extends Controller
             $newRole = 'bench';
         }
 
-        // Enforce incremental upgrades/downgrades
+        // Incremental role change (only one step up or down)
         $newRolePriority = $this->rolePriority[$newRole];
 
-        if ($newRolePriority > $currentRolePriority) {
-            // Upgrade only if the difference in priority is 1
-            if ($newRolePriority - $currentRolePriority == 1) {
-                return $newRole;
-            }
-        } elseif ($newRolePriority < $currentRolePriority) {
-            // Downgrade only if the difference in priority is 1
-            if ($currentRolePriority - $newRolePriority == 1) {
-                return $newRole;
-            }
+        if ($newRolePriority > $currentRolePriority && $newRolePriority - $currentRolePriority == 1) {
+            // Allow upgrade only by one role step
+            return $newRole;
+        } elseif ($newRolePriority < $currentRolePriority && $currentRolePriority - $newRolePriority == 1) {
+            // Allow downgrade only by one role step
+            return $newRole;
         }
 
-        // No change in role if upgrade/downgrade rules are not met
+        // If the role shouldn't change, return the current role
         return $player->role;
     }
 
     // Function to update player rating based on performance
-    protected function updateRating($currentRating, $performance)
+    protected function updateRating($currentRating, $performance, $role)
     {
-        // Define rating adjustment based on performance
+        // Define the base performance thresholds for each role
+        $rolePerformanceThresholds = $this->roleThresholds;
+
+        // Get the performance threshold for the current role
+        $expectedPerformance = $rolePerformanceThresholds[$role] ?? 60; // Default to 60 if role is not found
+
+        // Define rating adjustment based on performance relative to the role's expectations
         $adjustment = 0;
 
-        if ($performance > 85) {
+        if ($performance > $expectedPerformance + 10) {
             $adjustment = 3; // High performance, significant increase
-        } elseif ($performance > 75) {
+        } elseif ($performance > $expectedPerformance) {
             $adjustment = 2; // Good performance, moderate increase
-        } elseif ($performance > 60) {
+        } elseif ($performance >= $expectedPerformance - 15) {
             $adjustment = 1; // Decent performance, slight increase
-        } elseif ($performance < 40) {
+        } elseif ($performance < $expectedPerformance - 30) {
             $adjustment = -2; // Poor performance, significant decrease
-        } elseif ($performance < 50) {
+        } elseif ($performance < $expectedPerformance - 15) {
             $adjustment = -1; // Below average performance, slight decrease
         }
 
@@ -549,6 +552,7 @@ class RatingsController extends Controller
 
         return $newRating;
     }
+
 
     private function logPlayerRatings($player, $seasonId)
     {
