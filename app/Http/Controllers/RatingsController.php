@@ -453,6 +453,7 @@ class RatingsController extends Controller
             return response()->json([
                 'error' => true,
                 'message' => 'Failed to update player statuses.',
+                'error_message' => $e,
             ], 500);
         }
     }
@@ -487,7 +488,7 @@ class RatingsController extends Controller
     ];
 
     // Function to update role based on performance
-    protected function updateRoleBasedOnPerformance(Player $player)
+    private function updateRoleBasedOnPerformance($player)
     {
 
         $roleThresholds = $this->roleThresholds;
@@ -522,9 +523,31 @@ class RatingsController extends Controller
         // If the role shouldn't change, return the current role
         return $player->role;
     }
+    // Function to adjust the player's ratings if they are underperforming for their role
+    private function adjustRatingsForRole($player)
+    {
+        // Define performance thresholds for each role
+        $roleThresholds = $this->roleThresholds;
+
+        // Get the performance threshold for the player's current role
+        $currentRole = $player->role;
+        $expectedPerformance = $roleThresholds[$currentRole] ?? 60; // Default to 60 if the role is not found
+
+        // Adjust ratings if the player's overall rating is below the expected threshold for their role
+        if ($player->overall_rating < $expectedPerformance) {
+            // The player is underperforming, so reduce their ratings slightly
+            $player->shooting_rating = max(40, $player->shooting_rating - mt_rand(1, 3));
+            $player->defense_rating = max(40, $player->defense_rating - mt_rand(1, 3));
+            $player->passing_rating = max(40, $player->passing_rating - mt_rand(1, 3));
+            $player->rebounding_rating = max(40, $player->rebounding_rating - mt_rand(1, 3));
+
+            // Recalculate overall rating based on adjusted individual ratings
+            $player->overall_rating = ($player->shooting_rating + $player->defense_rating + $player->passing_rating + $player->rebounding_rating) / 4;
+        }
+    }
 
     // Function to update player rating based on performance
-    protected function updateRating($currentRating, $performance, $role)
+    private function updateRating($currentRating, $performance, $role)
     {
         // Define the base performance thresholds for each role
         $rolePerformanceThresholds = $this->roleThresholds;
