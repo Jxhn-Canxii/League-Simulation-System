@@ -388,6 +388,7 @@ class RatingsController extends Controller
                 ],
                 [
                     'role' => $player->role,
+                    'team_id' => $player->team_id,
                     'shooting_rating' => $player->shooting_rating,
                     'defense_rating' => $player->defense_rating,
                     'passing_rating' => $player->passing_rating,

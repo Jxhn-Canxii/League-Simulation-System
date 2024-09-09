@@ -295,7 +295,7 @@ const newPlayerName = ref("");
 const team_roster = ref([]);
 const team_info = ref([]);
 const seasons = ref([]);
-const season_id = ref(seasons.value[0].season_id ?? 1);
+const season_id = ref(0);
 watch(
     () => props.team_id,
     async (newId, oldId) => {
@@ -307,20 +307,20 @@ watch(
 
 onMounted(() => {
     fetchTeamRoster(props.team_id);
-    fetchTeamInfo(props.team_id);
+    // fetchTeamInfo(props.team_id);
     seasonsDropdown();
 });
 
-const fetchTeamInfo = async (id) => {
-    try {
-        const response = await axios.post(route("teams.info"), {
-            team_id: id,
-        });
-        team_info.value = response.data;
-    } catch (error) {
-        console.error("Error fetching team info:", error);
-    }
-};
+// const fetchTeamInfo = async (id) => {
+//     try {
+//         const response = await axios.post(route("teams.info"), {
+//             team_id: id,
+//         });
+//         team_info.value = response.data;
+//     } catch (error) {
+//         console.error("Error fetching team info:", error);
+//     }
+// };
 
 const fetchTeamRoster = async (id) => {
     try {
