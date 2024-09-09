@@ -508,6 +508,7 @@ const create = async () => {
             form.reset("name", "type", "league_id");
             isProcessing.value = false;
             fetchSeasons();
+            seasonsDropdown();
         } catch (error) {
             console.error("Error creating schedule:", error);
             // Show error message using Swal2 if needed
@@ -660,7 +661,16 @@ const updatePlayerStatusPerTeam = async (index, team_id, is_last) => {
         // isProcessing.value = false;
     }
 };
-
+const seasonsDropdown = async () => {
+    try {
+        const response = await axios.post(route("seasons.dropdown"), {
+            season_id: 0,
+        });
+        localStorage.setItem('seasons',JSON.stringify(response.data));
+    } catch (error) {
+        console.error("Error fetching team info:", error);
+    }
+};
 const changeTab = (tab) => {
     currentTab.value = tab;
 };

@@ -336,12 +336,9 @@ const fetchTeamRoster = async (id) => {
 };
 const seasonsDropdown = async () => {
     try {
-        const response = await axios.post(route("seasons.dropdown"), {
-            season_id: season_id.value,
-        });
-        seasons.value = response.data;
+        seasons.value = JSON.parse(localStorage.getItem('seasons'));
     } catch (error) {
-        console.error("Error fetching team info:", error);
+        console.error("Error fetching seasons dropdown:", error);
     }
 };
 const seasonBehavior = () => {

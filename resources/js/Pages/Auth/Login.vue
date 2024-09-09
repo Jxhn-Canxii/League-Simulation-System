@@ -10,7 +10,7 @@
             {{ status }}
         </div>
 
-        <form @submit.prevent="submit">
+        <form @submit.prevent="login">
             <div>
                 <InputLabel for="email" value="Email" />
                 <TextInput id="email" type="email" class="mt-1 block w-full" v-model="form.email" required autofocus autocomplete="username" />
@@ -77,10 +77,26 @@ const form = useForm({
     remember: false
 });
 
-const submit = () => {
+const login = () => {
     form.post(route('login'), {
-        onFinish: () => form.reset('password'),
+        onFinish: async () => {
+            form.reset('password');  // Reset the password field
+
+            // Call seasonsDropdown after login is successful
+            await seasonsDropdown();
+        },
     });
+};
+
+const seasonsDropdown = async () => {
+    try {
+        const response = await axios.post(route("seasons.dropdown"), {
+            season_id: 0,
+        });
+        localStorage.setItem('seasons', JSON.stringify(response.data)); // Store the seasons data in localStorage
+    } catch (error) {
+        console.error("Error fetching seasons data:", error);
+    }
 };
 
 const togglePasswordVisibility = () => {

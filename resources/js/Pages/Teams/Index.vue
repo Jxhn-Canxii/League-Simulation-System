@@ -393,10 +393,10 @@
                     </button>
                 </div>
                 <div class="mt-4">
-                    <TeamInfo v-if="currentTab === 'info'" :team_id="isTeamModalOpen" />
-                    <TeamHistory v-if="currentTab === 'history'" :team_id="isTeamModalOpen" />
-                    <TeamRoster v-if="currentTab === 'roster'" :team_id="isTeamModalOpen" />
-                    <Top10Player v-if="currentTab === 'legend'" :team_id="isTeamModalOpen" />
+                    <TeamInfo :key="currentTab" v-if="currentTab === 'info'" :team_id="isTeamModalOpen" />
+                    <TeamHistory :key="currentTab"  v-if="currentTab === 'history'" :team_id="isTeamModalOpen" />
+                    <TeamRoster :key="currentTab" v-if="currentTab === 'roster'" :team_id="isTeamModalOpen" />
+                    <Top10Player :key="currentTab" v-if="currentTab === 'legend'" :team_id="isTeamModalOpen" />
                 </div>
             </Modal>
         </AuthenticatedLayout>

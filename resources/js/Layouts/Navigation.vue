@@ -12,23 +12,23 @@
         </div>
 
         <nav class="mt-10" x-data="{ isMultiLevelMenuOpen: false }">
+            <nav-link :href="route('seasons.index')" :active="route().current('seasons.index')">
+                <template #icon>
+                    <i class="fa fa-calendar"></i>
+                </template>
+                Seasons
+            </nav-link>
             <nav-link :href="route('dashboard')" :active="route().current('dashboard')">
                 <template #icon>
-                    <i class="fa fa-tachometer"></i>
+                    <i class="fa fa-chart-line"></i>
                 </template>
-                Dashboard
+                Statistics
             </nav-link>
             <nav-link :href="route('transactions.index')" :active="route().current('transactions.index')">
                 <template #icon>
                     <i class="fa fa-users"></i>
                 </template>
                 Players
-            </nav-link>
-            <nav-link :href="route('seasons.index')" :active="route().current('seasons.index')">
-                <template #icon>
-                    <i class="fa fa-calendar"></i>
-                </template>
-                Seasons
             </nav-link>
             <nav-link :href="route('teams.index')" :active="route().current('teams.index')">
                 <template #icon>

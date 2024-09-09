@@ -195,15 +195,16 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import Paginator from "@/Components/Paginator.vue";
 import axios from "axios";
 import { useForm } from "@inertiajs/vue3";
+
 const props = defineProps({
     team_id: Number,
 });
 const players = ref([]);
-const fetchFilteredPlayers = async () => {
+const fetchTopPlayers = async () => {
     try {
         const response = await axios.post(
             route("best.team.players.alltime"),
@@ -217,11 +218,11 @@ const fetchFilteredPlayers = async () => {
 
 const handlePagination = (page_num) => {
     search_filters.page_num = page_num;
-    fetchFilteredPlayers();
+    fetchTopPlayers();
 };
 
 onMounted(() => {
-    fetchFilteredPlayers();
+    fetchTopPlayers();
 });
 </script>
 
