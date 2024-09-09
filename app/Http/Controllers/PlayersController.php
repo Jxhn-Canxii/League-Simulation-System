@@ -132,16 +132,11 @@ class PlayersController extends Controller
     {
         $request->validate([
             'team_id' => 'required|exists:teams,id',
-            'season_id' => 'nullable|integer',
+            'season_id' => 'nullable|integer|min:1',
         ]);
 
         $teamId = $request->team_id;
         $seasonId = $request->season_id;
-
-        // Determine the season_id to use
-        if (is_null($seasonId) || $seasonId == 0) {
-            $seasonId = DB::table('seasons')->orderBy('id', 'desc')->value('id');
-        }
 
         // Get distinct player_ids from player_game_stats for the given team_id and season_id
         $playerIds = DB::table('player_game_stats')

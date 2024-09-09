@@ -295,7 +295,7 @@ const newPlayerName = ref("");
 const team_roster = ref([]);
 const team_info = ref([]);
 const seasons = ref([]);
-const season_id = ref(0);
+const season_id = ref(seasons.value[0].season_id ?? 1);
 watch(
     () => props.team_id,
     async (newId, oldId) => {
@@ -306,8 +306,8 @@ watch(
 );
 
 onMounted(() => {
-    fetchTeamInfo(props.team_id);
     fetchTeamRoster(props.team_id);
+    fetchTeamInfo(props.team_id);
     seasonsDropdown();
 });
 
