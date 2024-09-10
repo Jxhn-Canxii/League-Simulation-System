@@ -95,7 +95,6 @@ const showSeasonAwards = async () => {
     try {
         const response = await axios.post(route('player.awards'));
         awards.value = response.data.awards;
-        emits("newSeason", Math.random());
     } catch (error) {
         console.error(error);
         Swal.fire({
