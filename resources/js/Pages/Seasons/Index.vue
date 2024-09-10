@@ -455,10 +455,10 @@
                     <FreeAgents @newSeason="handleNewSeason" />
                 </div>
             </Modal>
-            <Modal :show="isPlayerAwardsModalOpen,fetchSeasons()" :maxWidth="'6xl'">
+            <Modal :show="isPlayerAwardsModalOpen" :maxWidth="'6xl'">
                 <button
                     class="flex float-end bg-gray-100 p-3"
-                    @click.prevent="isPlayerAwardsModalOpen = false"
+                    @click.prevent="isPlayerAwardsModalOpen = false,fetchSeasons()"
                 >
                     <i class="fa fa-times text-black-600"></i>
                 </button>
