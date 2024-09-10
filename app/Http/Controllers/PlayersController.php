@@ -49,6 +49,7 @@ class PlayersController extends Controller
                     'average_blocks_per_game' => (float)0,
                     'average_turnovers_per_game' => (float)0,
                     'average_fouls_per_game' => (float)0,
+                    'games_played' => 0, // Set games_played to 0
                 ];
             }
         } else {
@@ -57,11 +58,46 @@ class PlayersController extends Controller
                 ->where('team_id', $teamId)
                 ->where('season_id', $seasonId)
                 ->get();
+            if(count($playerStatsData) > 0){
+                foreach ($playerStatsData as $stats) {
+                    // Fetch the player
+                    $player = DB::table('players')->where('id', $stats->player_id)->first();
 
-            foreach ($playerStatsData as $stats) {
-                $player = DB::table('players')->where('id', $stats->player_id)->first();
+                    if ($player) {
+                        // Count the number of games played for the player
+                        $gamesPlayed = DB::table('player_game_stats')
+                            ->where('player_id', $player->id)
+                            ->where('team_id', $teamId)
+                            ->where('season_id', $seasonId)
+                            ->where('minutes', '>', 0) // Only count games where minutes > 0
+                            ->count();
 
-                if ($player) {
+                        $playerStats[] = [
+                            'player_id' => $player->id,
+                            'name' => $player->name,
+                            'age' => $player->age,
+                            'role' => $player->role,
+                            'is_active' => $player->is_active,
+                            'is_rookie' => $player->is_rookie,
+                            'retirement_age' => $player->retirement_age,
+                            'status' => $player->team_id == $teamId ? ($player->is_active ? 1 : 0) : 2,
+                            'average_points_per_game' => (float)$stats->avg_points_per_game,
+                            'average_rebounds_per_game' => (float)$stats->avg_rebounds_per_game,
+                            'average_assists_per_game' => (float)$stats->avg_assists_per_game,
+                            'average_steals_per_game' => (float)$stats->avg_steals_per_game,
+                            'average_blocks_per_game' => (float)$stats->avg_blocks_per_game,
+                            'average_turnovers_per_game' => (float)$stats->avg_turnovers_per_game,
+                            'average_fouls_per_game' => (float)$stats->avg_fouls_per_game,
+                            'games_played' => $gamesPlayed,
+                        ];
+                    }
+                }
+            }else{
+                $players = DB::table('players')
+                ->where('team_id', $teamId)
+                ->get();
+
+                foreach ($players as $player) {
                     $playerStats[] = [
                         'player_id' => $player->id,
                         'name' => $player->name,
@@ -71,13 +107,14 @@ class PlayersController extends Controller
                         'is_rookie' => $player->is_rookie,
                         'retirement_age' => $player->retirement_age,
                         'status' => $player->team_id == $teamId ? ($player->is_active ? 1 : 0) : 2,
-                        'average_points_per_game' => (float)$stats->avg_points_per_game,
-                        'average_rebounds_per_game' => (float)$stats->avg_rebounds_per_game,
-                        'average_assists_per_game' => (float)$stats->avg_assists_per_game,
-                        'average_steals_per_game' => (float)$stats->avg_steals_per_game,
-                        'average_blocks_per_game' => (float)$stats->avg_blocks_per_game,
-                        'average_turnovers_per_game' => (float)$stats->avg_turnovers_per_game,
-                        'average_fouls_per_game' => (float)$stats->avg_fouls_per_game,
+                        'average_points_per_game' => (float)0,
+                        'average_rebounds_per_game' => (float)0,
+                        'average_assists_per_game' => (float)0,
+                        'average_steals_per_game' => (float)0,
+                        'average_blocks_per_game' => (float)0,
+                        'average_turnovers_per_game' => (float)0,
+                        'average_fouls_per_game' => (float)0,
+                        'games_played' => 0, // Set games_played to 0
                     ];
                 }
             }
@@ -105,7 +142,6 @@ class PlayersController extends Controller
             'team_id' => $teamId,
         ]);
     }
-
     public function getFreeAgents(Request $request)
     {
         // Get pagination parameters from the request
