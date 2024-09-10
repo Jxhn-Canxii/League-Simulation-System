@@ -39,7 +39,7 @@
                             <i class="fa fa-user"></i> Add Rookie Player
                         </button>
                         <button
-                            @click.prevent="addMultiplePlayers(50)"
+                            @click.prevent="addMultiplePlayers(100)"
                             class="px-4 py-2 bg-green-700 text-white rounded mb-4 text-sm"
                         >
                             <i class="fa fa-user"></i> Add Rookie Player From Api
@@ -187,28 +187,6 @@ const search = ref({
 });
 const teams = ref([]);
 const emits = defineEmits(["newSeason"]);
-const addPlayerV1 = async () => {
-    try {
-        const response = await axios.post(route("players.add.free.agent"), {
-            name: newPlayerName.value,
-        });
-        newPlayerName.value = ""; // Clear the input
-        showAddPlayerModal.value = false; // Close the modal
-        Swal.fire({
-            icon: "success",
-            title: "Success!",
-            text: response.data.message, // Assuming the response contains a 'message' field
-        });
-        fetchFreeAgent(); // Refresh free agent list
-    } catch (error) {
-        console.error("Error adding player:", error);
-        Swal.fire({
-            icon: "error",
-            title: "Error!",
-            text: error.response.data.message, // Assuming the response contains a 'message' field
-        });
-    }
-};
 const fetchRandomFullName = async () => {
     try {
         const response = await axios.get('https://randomuser.me/api/?inc=name&gender=male'); // API URL for random male user
@@ -343,83 +321,6 @@ const assignTeams = async (player_id) => {
             title: "Warning!",
             text: error.response.data.message,
         });
-    }
-};
-const assignTeamsAutov1 = async () => {
-    try {
-        // Show confirmation dialog
-        const result = await Swal.fire({
-            title: "Are you sure?",
-            text: "Do you want to assign this player to a team?",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Yes, assign it!",
-            cancelButtonText: "No, cancel",
-            reverseButtons: true,
-        });
-
-        if (result.isConfirmed) {
-            // Proceed with the request if confirmed
-            const response = await axios.post(
-                route("auto.assign.freeagent.teams"),
-                { player_id: 0 }
-            );
-
-            const data = response.data;
-            let message = "";
-            console.log(data.message);
-            if (data.message === "Player Status Updated") {
-                message = `<p>${data.message}</p>`;
-            }
-            if (data.message === "No free agents available.") {
-                message = `<p>${data.message}</p>`;
-                if (data.incomplete_teams.length > 0) {
-                    message += "<ul>";
-                    data.incomplete_teams.forEach((team) => {
-                        message += `<li><strong>${team.team_name}</strong>: ${team.players_needed} player(s) needed</li>`;
-                    });
-                    message += "</ul>";
-                }
-            } else {
-                message = `<p>${data.message}</p>`;
-                if (data.remaining_free_agents > 0) {
-                    message += `<p>Remaining free agents: ${data.remaining_free_agents}</p>`;
-                }
-                if (data.incomplete_teams.length > 0) {
-                    message += "<ul>";
-                    data.incomplete_teams.forEach((team) => {
-                        message += `<li><strong>${team.team_name}</strong>: ${team.players_needed} player(s) still needed</li>`;
-                    });
-                    message += "</ul>";
-                }
-            }
-
-            Swal.fire({
-                icon: "success",
-                title: "Success!",
-                html: message,
-            });
-            const is_new_season = response.data.team_count == 0;
-            if (is_new_season) {
-                emits("newSeason", is_new_season);
-            }
-            fetchFreeAgent();
-        } else {
-            // Show cancellation message if canceled
-            Swal.fire({
-                icon: "info",
-                title: "Cancelled",
-                text: "The player was not assigned to a team.",
-            });
-        }
-    } catch (error) {
-        console.error("Error assigning team:", error);
-        Swal.fire({
-            icon: "warning",
-            title: "Warning!",
-            text: error.response.data.message,
-        });
-        emits("newSeason", true);
     }
 };
 const assignTeamsAuto = async () => {

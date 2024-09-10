@@ -23,19 +23,19 @@
             <strong>Overall Ratings:</strong> {{ main_performance.player_details.overall_rating ?? "-" }}
         </p>
         <p>
-            <strong>Season Experience:</strong>
+            <strong>Season Exp:</strong>
             <span :class="playerExpStatusClass(main_performance.season_count)">
                 {{ playerExpStatusText(main_performance.season_count ?? main_performance.season_count) }} ({{ main_performance.season_count ?? 0 }})
             </span>
         </p>
         <p>
-            <strong>Playoff Experience:</strong>
+            <strong>Playoff Exp:</strong>
             <span :class="playerExpStatusClass(main_performance.playoff_count)">
                 {{ playerExpStatusText(main_performance.playoff_count ?? main_performance.playoff_count) }} ({{ main_performance.playoff_count ?? 0 }})
             </span>
         </p>
         <p>
-            <strong>Contract Status:</strong>
+            <strong>Contract:</strong>
             {{ main_performance.player_details.contract_years + " years left" ?? "Unsigned" }}
         </p>
     </div>
@@ -75,18 +75,8 @@
     <div class="awards mb-6 flex-1">
         <h3 class="text-md font-semibold text-gray-700 mb-2 flex items-center">
             <i class="fa fa-star text-gray-500 mr-2"></i>
-            Awards
+            Championships
         </h3>
-        <div v-if="main_performance.mvp_seasons?.length > 0">
-            <h4 class="text-sm font-semibold text-gray-600 mb-2">
-                MVP Seasons
-                {{ main_performance.mvp_seasons?.length > 0 ? "(" + main_performance.mvp_seasons?.length + ")" : "" }}
-            </h4>
-            <div v-for="(season, index) in main_performance.mvp_seasons" :key="index" class="flex items-center mb-2">
-                <i class="fa fa-medal text-yellow-500 mr-2"></i>
-                <p class="text-sm">{{ season }}</p>
-            </div>
-        </div>
         <div v-if="main_performance.conference_championships?.length > 0">
             <h4 class="text-sm font-semibold text-gray-600 mb-2">
                 Conference Championships
@@ -108,7 +98,32 @@
             </div>
         </div>
     </div>
-
+    <div class="awards mb-6 flex-1">
+        <h3 class="text-md font-semibold text-gray-700 mb-2 flex items-center">
+            <i class="fa fa-star text-gray-500 mr-2"></i>
+            Awards
+        </h3>
+        <div v-if="main_performance.mvp_seasons?.length > 0">
+            <h4 class="text-sm font-semibold text-gray-600 mb-2">
+                MVP Seasons
+                {{ main_performance.mvp_seasons?.length > 0 ? "(" + main_performance.mvp_seasons?.length + ")" : "" }}
+            </h4>
+            <div v-for="(season, index) in main_performance.mvp_seasons" :key="index" class="flex items-center mb-2">
+                <i class="fa fa-medal text-yellow-500 mr-2"></i>
+                <p class="text-sm">{{ season }}</p>
+            </div>
+        </div>
+        <div v-if="main_performance.awards?.length > 0">
+            <h4 class="text-sm font-semibold text-gray-600 mb-2">
+                Awards
+                {{ main_performance.awards?.length > 0 ? "(" + main_performance.awards?.length + ")" : "" }}
+            </h4>
+            <div v-for="(season, index) in main_performance.awards" :key="index" class="flex text-nowrap items-center mb-2">
+                <i class="fa fa-medal text-yellow-500 mr-2"></i>
+                <p class="text-xs">{{ season.award_name }} (Season {{ season.season }})</p>
+            </div>
+        </div>
+    </div>
     <!-- Career Highs Section -->
     <div class="career-highs mb-6 flex-1">
         <h3 class="text-md font-semibold text-gray-700 mb-2 flex items-center">

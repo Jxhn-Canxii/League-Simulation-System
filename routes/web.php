@@ -11,6 +11,7 @@ use App\Http\Controllers\ConferenceController;
 use App\Http\Controllers\PlayersController;
 use App\Http\Controllers\TransactionsController;
 use App\Http\Controllers\RatingsController;
+use App\Http\Controllers\AwardsController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -77,7 +78,6 @@ Route::middleware('auth')->group(function () {
         Route::post('game_per_conference', [ScheduleController::class, 'simulateperconference'])->name('game.simulate.conference');
         Route::post('all_game', [ScheduleController::class, 'simulateall'])->name('game.simulate.all');
         Route::post('seasonplayoffschedule', [ScheduleController::class, 'playoffschedule'])->name('season.playoff.schedule');
-        Route::post('update-player-status', [ScheduleController::class, 'updateActivePlayers'])->name('update.player.status');
 
     });
     Route::prefix('ratings/')->group(function(){
@@ -138,6 +138,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/assign-team-free-agents', [TransactionsController::class, 'assignPlayerToRandomTeam'])->name('assign.freeagent.teams');
         Route::post('/auto-assign-team-free-agents', [TransactionsController::class, 'assignRemainingFreeAgents'])->name('auto.assign.freeagent.teams');
 
+    });
+    Route::prefix('awards/')->group(function(){
+        Route::post('/store-player-stats', [AwardsController::class, 'storePlayerSeasonStats'])->name('store.player.stats');
+        Route::post('/player-awards', [AwardsController::class, 'storeSeasonAwards'])->name('player.awards');
+        Route::post('/player-season-awards', [AwardsController::class, 'getSeasonAwards'])->name('player.season.awards');
     });
     Route::prefix('users/')->group(function(){
         Route::get('', [UserController::class, 'index'])->name('users.index');

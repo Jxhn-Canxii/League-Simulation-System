@@ -211,7 +211,7 @@ class RatingsController extends Controller
                 // Update season status
                 $season = Seasons::find($seasonId);
                 if ($season) {
-                    $season->status = 9;
+                    $season->status = 10;
                     $season->save();
                 } else {
                     \Log::warning('Season not found for ID:', ['seasonId' => $seasonId]);

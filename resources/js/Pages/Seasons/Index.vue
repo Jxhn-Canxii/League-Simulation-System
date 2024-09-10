@@ -12,6 +12,21 @@
                     v-if="seasons.is_new_season == 1"
                 >
                     <button
+                        @click.prevent="isPlayerAwardsModalOpen = true"
+                        v-bind:class="{
+                            'opacity-25': isPlayerAwardsModalOpen,
+                        }"
+                        v-bind:disabled="isPlayerAwardsModalOpen"
+                        class="px-2 py-2 bg-yellow-800 rounded font-bold text-md float-end text-white shadow"
+                    >
+                        <i class="fa fa-trophy"></i> Season Awards
+                    </button>
+                </div>
+                <div
+                    class="flex overflow-hidden justify-end gap-5 p-2"
+                    v-if="seasons.is_new_season == 2"
+                >
+                    <button
                         @click.prevent="updatePlayerStatus()"
                         class="px-2 py-2 bg-blue-500 rounded font-bold text-md float-end text-white shadow"
                     >
@@ -20,7 +35,7 @@
                 </div>
                 <div
                     class="flex overflow-hidden justify-end gap-5 p-2"
-                    v-if="seasons.is_new_season == 2 || seasons.is_new_season == 4"
+                    v-if="seasons.is_new_season == 3 || seasons.is_new_season == 5"
                 >
                     <button
                         @click.prevent="isPlayerSigningModalOpen = true"
@@ -35,7 +50,7 @@
                 </div>
                 <div
                     class="flex overflow-hidden justify-end gap-5 p-2"
-                    v-if="seasons.is_new_season == 3 || seasons.is_new_season == 4"
+                    v-if="seasons.is_new_season == 4 || seasons.is_new_season == 5"
                 >
                     <button
                         @click.prevent="isAddModalOpen = true"
@@ -232,6 +247,29 @@
                                     >6</span
                                 >
                             </li>
+                            <li
+                            @click="changeTab('Awards')"
+                            :class="{
+                                'text-yellow-500 border-b-2 border-yellow-500':
+                                    currentTab === 'Awards',
+                            }"
+                            class="whitespace-nowrap group flex items-center px-3 py-2 cursor-pointer relative flex-shrink-0 max-w-xs"
+                        >
+                            <i
+                                class="fa fa-medal mr-2 text-gray-500 group-hover:text-yellow-500"
+                                title="Playoffs"
+                            ></i>
+                            <span
+                                class="text-truncate hidden sm:inline md:inline"
+                                >Awards</span
+                            >
+                            <!-- Warning Badge Notification Counter -->
+                            <span
+                                hidden
+                                class="bg-red-500 text-white rounded-full h-4 w-4 text-center m-1 text-xs"
+                                >6</span
+                            >
+                        </li>
                         </ul>
                     </div>
                     <!-- Modify the existing content based on the currentTab -->
@@ -246,6 +284,12 @@
                         class="min-w-screen overflow-x-auto"
                     >
                         <Playoffs :season_id="season_id" />
+                    </div>
+                    <div
+                        v-if="currentTab === 'Awards' && season_id != 0"
+                        class="min-w-screen overflow-x-auto"
+                    >
+                        <SeasonAwards :season_id="season_id" />
                     </div>
                 </div>
             </Modal>
@@ -266,7 +310,7 @@
                     <h2 class="text-lg font-semibold text-gray-800">
                         New Seasons
                     </h2>
-                    <form class="mt-4" @submit.prevent="create()">
+                    <form class="mt-4" @submit.prevent="createNewSeason()">
                         <div class="mb-4">
                             <label
                                 for="FloorNo"
@@ -411,6 +455,17 @@
                     <FreeAgents @newSeason="handleNewSeason" />
                 </div>
             </Modal>
+            <Modal :show="isPlayerAwardsModalOpen,fetchSeasons()" :maxWidth="'6xl'">
+                <button
+                    class="flex float-end bg-gray-100 p-3"
+                    @click.prevent="isPlayerAwardsModalOpen = false"
+                >
+                    <i class="fa fa-times text-black-600"></i>
+                </button>
+                <div class="mt-4 p-3 block">
+                    <Awards @newSeason="handleNewSeason" :team_ids="seasons.team_ids" />
+                </div>
+            </Modal>
         </AuthenticatedLayout>
     </div>
 </template>
@@ -428,10 +483,13 @@ import axios from "axios";
 import Seasons from "@/Pages/Seasons/Module/Season.vue";
 import Playoffs from "@/Pages/Seasons/Module/Playoffs.vue";
 import FreeAgents from "@/Pages/Seasons/Module/FreeAgents.vue";
+import Awards from "./Module/Awards.vue";
+import SeasonAwards from "./Module/SeasonAwards.vue";
 
 const isAddModalOpen = ref(false);
 const isViewModalOpen = ref(false);
 const isPlayerSigningModalOpen = ref(false);
+const isPlayerAwardsModalOpen = ref(false);
 const seasons = ref([]);
 const leagues_dropdown = ref([]);
 const season_id = ref(0);
@@ -487,7 +545,7 @@ const leagueDropdown = async () => {
         console.error("Error fetching leagues:", error);
     }
 };
-const create = async () => {
+const createNewSeason = async () => {
     if (form.league_id == 0) {
         Swal.fire({
             title: "Warning!",
