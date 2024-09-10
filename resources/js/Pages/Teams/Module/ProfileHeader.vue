@@ -15,7 +15,7 @@
         </p>
         <p>
             <strong>Role:</strong>
-            <span :class="roleClasses(main_performance.player_details.role)">
+            <span  :class="roleClasses(main_performance.player_details.role)">
                 {{ main_performance.player_details.role }}
             </span>
         </p>
@@ -24,13 +24,13 @@
         </p>
         <p>
             <strong>Season Exp:</strong>
-            <span :class="playerExpStatusClass(main_performance.season_count)">
+            <span class="text-xs" :class="playerExpStatusClass(main_performance.season_count)">
                 {{ playerExpStatusText(main_performance.season_count ?? main_performance.season_count) }} ({{ main_performance.season_count ?? 0 }})
             </span>
         </p>
         <p>
             <strong>Playoff Exp:</strong>
-            <span :class="playerExpStatusClass(main_performance.playoff_count)">
+            <span class="text-xs" :class="playerExpStatusClass(main_performance.playoff_count)">
                 {{ playerExpStatusText(main_performance.playoff_count ?? main_performance.playoff_count) }} ({{ main_performance.playoff_count ?? 0 }})
             </span>
         </p>
