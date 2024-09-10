@@ -48,13 +48,13 @@
         </h3>
         <div v-if="main_performance.playoff_performance">
             <p>
-                <strong>Conference Quarter Finals:</strong> {{ main_performance.playoff_performance.round_of_16 ?? 0 }}
+                <strong>Conf. Quarter Finals:</strong> {{ main_performance.playoff_performance.round_of_16 ?? 0 }}
             </p>
             <p>
-                <strong>Conference Semi Finals:</strong> {{ main_performance.playoff_performance.quarter_finals ?? 0 }}
+                <strong>Conf. Semi Finals:</strong> {{ main_performance.playoff_performance.quarter_finals ?? 0 }}
             </p>
             <p>
-                <strong>Conference Finals:</strong> {{ main_performance.playoff_performance.semi_finals ?? 0 }}
+                <strong>Conf. Finals:</strong> {{ main_performance.playoff_performance.semi_finals ?? 0 }}
             </p>
             <p>
                 <strong>The Big 4:</strong> {{ main_performance.playoff_performance.interconference_semi_finals ?? 0 }}
