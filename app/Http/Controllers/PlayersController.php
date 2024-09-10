@@ -963,8 +963,7 @@ class PlayersController extends Controller
         // Fetch MVP count and seasons
         $awardsData = \DB::table('season_awards')
             ->join('players', 'season_awards.player_id', '=', 'players.id')
-            ->join('player_ratings', 'players.id', '=', 'player_ratings.player_id')
-            ->join('teams', 'player_ratings.team_id', '=', 'teams.id')
+            ->join('teams', 'season_awards.team_id', '=', 'teams.id')
             ->where('season_awards.player_id', $playerId)
             ->select(
                 'season_awards.award_name as award_name',

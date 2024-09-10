@@ -191,24 +191,28 @@ class AwardsController extends Controller
             $this->insertAward($rookieOfTheSeason, 'Rookie of the Season', 'Best rookie player of the season', $latestSeasonId);
         }
         DB::table('seasons')
-        ->where('id', $latestSeasonId)
-        ->update(['status' => 9]);
-        // Fetch awards along with player and team names for the latest season
+            ->where('id', $latestSeasonId)
+            ->update(['status' => 9]);
+
+        // Fetch awards along with player, team names, and team_id for the latest season
         $awards = DB::table('season_awards')
             ->leftJoin('players', 'season_awards.player_id', '=', 'players.id')
             ->leftJoin('teams', 'players.team_id', '=', 'teams.id')
-            ->where('season_awards.season_id',  $latestSeasonId)
+            ->where('season_awards.season_id', $latestSeasonId)
             ->select(
                 'season_awards.*',
                 'players.name as player_name',
-                'teams.name as team_name'
+                'teams.name as team_name',
+                'teams.id as team_id' // Include team_id in the select clause
             )
             ->get();
+
         return response()->json([
             'message' => 'Season awards stored successfully.',
             'awards' => $awards
         ]);
     }
+
 
     private function insertAward($playerStats, $awardName, $awardDescription, $seasonId)
     {
@@ -216,6 +220,7 @@ class AwardsController extends Controller
             DB::table('season_awards')->updateOrInsert(
                 [
                     'player_id' => $playerStats->player_id,
+                    'team_id' => $playerStats->team_id,
                     'season_id' => $seasonId,
                     'award_name' => $awardName,
                 ],
