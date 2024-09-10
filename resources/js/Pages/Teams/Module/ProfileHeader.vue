@@ -7,7 +7,7 @@
             <i class="fa fa-user text-blue-500 mr-2"></i>
             Player Details
         </h3>
-        <p>
+        <p class="text-nowrap text-sm">
             <strong>Name:</strong> {{ main_performance.player_details.player_name ?? "-" }} ,{{ main_performance.player_details.age ?? "N/A" }}
         </p>
         <p>
@@ -118,7 +118,7 @@
                 Awards
                 {{ main_performance.awards?.length > 0 ? "(" + main_performance.awards?.length + ")" : "" }}
             </h4>
-            <div v-for="(season, index) in main_performance.awards" :key="index" class="flex text-nowrap items-center mb-2">
+            <div v-for="(season, index) in main_performance.awards" :title="season.team_name" :key="index" class="flex text-nowrap items-center mb-2">
                 <i class="fa fa-medal text-yellow-500 mr-2"></i>
                 <p class="text-xs">{{ season.award_name }} (Season {{ season.season }})</p>
             </div>
