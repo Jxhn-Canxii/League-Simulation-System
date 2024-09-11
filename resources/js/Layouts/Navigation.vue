@@ -24,6 +24,12 @@
                 </template>
                 Statistics
             </nav-link>
+            <nav-link :href="route('awards.index')" :active="route().current('awards.index')">
+                <template #icon>
+                    <i class="fa fa-medal"></i>
+                </template>
+                Awards
+            </nav-link>
             <nav-link :href="route('transactions.index')" :active="route().current('transactions.index')">
                 <template #icon>
                     <i class="fa fa-users"></i>

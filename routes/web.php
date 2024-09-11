@@ -140,8 +140,11 @@ Route::middleware('auth')->group(function () {
 
     });
     Route::prefix('awards/')->group(function(){
+        Route::get('', [AwardsController::class, 'index'])->name('awards.index');
         Route::post('/store-player-stats', [AwardsController::class, 'storePlayerSeasonStats'])->name('store.player.stats');
         Route::post('/player-awards', [AwardsController::class, 'storeSeasonAwards'])->name('player.awards');
+        Route::get('/player-awards-dropdown', [AwardsController::class, 'getAwardNamesDropdown'])->name('player.awards.dropdown');
+        Route::post('/player-awards-filter', [AwardsController::class, 'filterAwardsPerSeason'])->name('player.awards.filter');
         Route::post('/player-season-awards', [AwardsController::class, 'getSeasonAwards'])->name('player.season.awards');
     });
     Route::prefix('users/')->group(function(){

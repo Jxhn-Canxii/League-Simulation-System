@@ -8,6 +8,12 @@ use Inertia\Inertia;
 
 class AwardsController extends Controller
 {
+    public function index()
+    {
+        return Inertia::render('Awards/Index', [
+            'status' => session('status'),
+        ]);
+    }
     /**
      * Store aggregated stats of a player's performance for a season in the player_season_stats table.
      * If 'is_last' is true, update the latest season's status to 9.
@@ -15,6 +21,7 @@ class AwardsController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
+
     public function storePlayerSeasonStats(Request $request)
     {
         // Validate the incoming request
@@ -108,6 +115,71 @@ class AwardsController extends Controller
             'awards' => $awards
         ]);
     }
+    public function getAwardNamesDropdown()
+    {
+        // Fetch distinct award names from the season_awards table
+        $awardNames = DB::table('season_awards')
+            ->select('award_name')
+            ->distinct()
+            ->get();
+
+        // Pass the award names to the view
+        return response()->json([
+            'awardNames' => $awardNames
+        ]);
+    }
+
+    public function filterAwardsPerSeason(Request $request)
+    {
+        // Assume season_id is passed in the request
+        $seasonId = $request->input('season_id');
+        $awardsName = $request->input('awards_name');
+        // Fetch awards along with player and team names for the updated season
+        if($seasonId > 0){
+            $awards = DB::table('season_awards')
+                ->leftJoin('players', 'season_awards.player_id', '=', 'players.id')
+                ->leftJoin('teams', 'season_awards.team_id', '=', 'teams.id')
+                ->where('season_awards.season_id', $seasonId)
+                ->select(
+                    'season_awards.id',
+                    'season_awards.player_id',
+                    'players.name as player_name',
+                    'teams.name as team_name',
+                    'season_awards.award_name',
+                    'season_awards.award_description',
+                    'season_awards.season_id',
+                    'season_awards.team_id',
+                    'season_awards.created_at'
+                )
+                ->orderBy('season_awards.id', 'desc')  // Order by id in descending order
+                ->get();
+        }else{
+            $awards = DB::table('season_awards')
+            ->leftJoin('players', 'season_awards.player_id', '=', 'players.id')
+            ->leftJoin('teams', 'season_awards.team_id', '=', 'teams.id')
+            ->where('season_awards.award_name', $awardsName)
+            ->select(
+                'season_awards.id',
+                'season_awards.player_id',
+                'players.name as player_name',
+                'teams.name as team_name',
+                'season_awards.award_name',
+                'season_awards.award_description',
+                'season_awards.season_id',
+                'season_awards.team_id',
+                'season_awards.created_at'
+            )
+            ->orderBy('season_awards.id', 'desc')  // Order by id in descending order
+            ->get();
+        }
+
+        return response()->json([
+            'message' => 'Team IDs in season awards updated successfully for season ' . $seasonId,
+            'awards' => $awards
+        ]);
+    }
+
+
     public function storeSeasonAwards()
     {
         // Get the latest season ID
@@ -212,8 +284,6 @@ class AwardsController extends Controller
             'awards' => $awards
         ]);
     }
-
-
     private function insertAward($playerStats, $awardName, $awardDescription, $seasonId)
     {
         if ($playerStats) {
