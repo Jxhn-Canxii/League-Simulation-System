@@ -6,7 +6,7 @@
         <hr class="my-4 border-t border-gray-200" />
 
         <!-- Update Button -->
-        <div class="mb-4" v-if="!awards.length">
+        <div class="mb-4 flex justify-center" v-if="!awards.length">
             <button
                 @click="updatePlayerStatus"
                 class="px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
@@ -57,7 +57,7 @@ const updatePlayerStatus = async () => {
             const is_last = i === team_ids.length - 1;
 
             // Update player status for each team and get the response
-            await updatePlayerStatusPerTeam(i, team_id);
+            await updatePlayerStatusPerTeam(i, team_id,team_ids.length);
             if (is_last) {
                 await showSeasonAwards();
             }
@@ -72,13 +72,14 @@ const updatePlayerStatus = async () => {
     }
 };
 
-const updatePlayerStatusPerTeam = async (index, team_id) => {
+const updatePlayerStatusPerTeam = async (index, team_id,team_count) => {
     try {
+        const total_teams = team_count + 1;
         const response = await axios.post(route('store.player.stats'), { team_id: team_id });
         Swal.fire({
-            title: 'Update Season Stats for '+team_id,
+            title: 'Preparing Season Awards '+team_id+'/'+total_teams,
             text: response.data.message,
-            showConfirmButton: true,
+            showConfirmButton: false,
             position: 'top',
         });
     } catch (error) {

@@ -1,6 +1,6 @@
 <template>
     <div
-        class="bg-white inline-block min-w-full overflow-hidden rounded shadow p-2"
+        class="bg-white inline-block min-w-full overflow-auto rounded shadow p-2"
     >
         <h3 class="text-md font-semibold text-gray-800">
             Top 20 Players All-time
@@ -89,18 +89,17 @@
                     <td
                         class="border-b border-gray-200 bg-white px-2 py-2 text-ellipsis overflow-hidden text-nowrap"
                     >
-                        <!-- Display "Retired" if player is not active and retirement age is greater than or equal to their age -->
-                        <span
-                            v-if="!player.active_status"
-                            class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800"
-                            >Free Agent/Retired</span
-                        >
-
                         <!-- Display "Active" if player is active and retirement age is less than their age -->
                         <span
-                            v-else
+                             v-if="player.is_active == 1"
                             class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800"
                             >Active</span
+                        >
+                        <!-- Display "Retired" if player is not active and retirement age is greater than or equal to their age -->
+                        <span
+                            v-else
+                            class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800"
+                            >Free Agent/Retired</span
                         >
                     </td>
                     <td
