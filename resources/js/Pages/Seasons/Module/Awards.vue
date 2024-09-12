@@ -72,16 +72,44 @@ const updatePlayerStatus = async () => {
     }
 };
 
-const updatePlayerStatusPerTeam = async (index, team_id,team_count) => {
+const updatePlayerStatusPerTeam = async (index, team_id, team_count) => {
     try {
-        const total_teams = team_count + 1;
-        const response = await axios.post(route('store.player.stats'), { team_id: team_id });
+        // const total_teams = team_count + 1;
+
+        // Show the initial Swal with a progress bar
         Swal.fire({
-            title: 'Preparing Season Awards '+team_id+'/'+total_teams,
-            text: response.data.message,
-            showConfirmButton: false,
+            title: 'Preparing Season Awards',
+            html: `<div id="progress-container">
+                    <p>Processing team ${team_id}/${team_count}</p>
+                    <div class="progress">
+                        <div id="progress-bar" class="progress-bar" role="progressbar" style="width: ${((index / total_teams) * 100)}%;" aria-valuenow="${index}" aria-valuemin="0" aria-valuemax="${total_teams}"></div>
+                    </div>
+                   </div>`,
+            showConfirmButton: true,
+            allowOutsideClick: false,
             position: 'top',
+            willOpen: () => {
+                Swal.showLoading();
+            }
         });
+
+        // Make the request
+        const response = await axios.post(route('store.player.stats'), { team_id: team_id });
+
+        // Update progress bar after response
+        const progressPercentage = ((index / total_teams) * 100);
+        document.getElementById('progress-bar').style.width = `${progressPercentage}%`;
+
+        // After completion of all teams, show a success message
+        if (index === total_teams) {
+            Swal.fire({
+                title: 'Success!',
+                text: 'All player stats updated successfully.',
+                icon: 'success',
+                showConfirmButton: true,
+            });
+        }
+
     } catch (error) {
         console.error(error);
         Swal.fire({
@@ -91,6 +119,7 @@ const updatePlayerStatusPerTeam = async (index, team_id,team_count) => {
         });
     }
 };
+
 
 const showSeasonAwards = async () => {
     try {
