@@ -97,11 +97,11 @@ const updatePlayerStatusPerTeam = async (index, team_id, team_count) => {
         const response = await axios.post(route('store.player.stats'), { team_id: team_id });
 
         // Update progress bar after response
-        const progressPercentage = ((index / total_teams) * 100);
+        const progressPercentage = ((index / team_count) * 100);
         document.getElementById('progress-bar').style.width = `${progressPercentage}%`;
 
         // After completion of all teams, show a success message
-        if (index === total_teams) {
+        if (index === team_count) {
             Swal.fire({
                 title: 'Success!',
                 text: 'All player stats updated successfully.',
@@ -148,4 +148,23 @@ onMounted(() => {
 .table td {
     padding: 0.5rem; /* Smaller padding */
 }
+
+/* Progress bar styling */
+.progress {
+    width: 100%;
+    background-color: #f3f3f3;
+    border-radius: 5px;
+    height: 20px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: #4caf50;
+    text-align: center;
+    color: white;
+    line-height: 20px;
+    transition: width 0.5s;
+}
+
 </style>
