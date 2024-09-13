@@ -26,39 +26,86 @@ class PlayersController extends Controller
         // Initialize an array to hold player stats
         $playerStats = [];
 
-        if (is_null($seasonId) || $seasonId == 0) {
-            // Fetch players from the players table and set all stats to zero
-            $players = DB::table('players')
-                ->where('team_id', $teamId)
-                ->get();
+        // Determine the latest season_id for the team
+        $latestSeasonId = DB::table('player_season_stats')
+            ->where('team_id', $teamId)
+            ->max('season_id');
 
-            foreach ($players as $player) {
-                $playerStats[] = [
-                    'player_id' => $player->id,
-                    'name' => $player->name,
-                    'age' => $player->age,
-                    'role' => $player->role,
-                    'is_active' => $player->is_active,
-                    'is_rookie' => $player->is_rookie,
-                    'retirement_age' => $player->retirement_age,
-                    'status' => $player->team_id == $teamId ? ($player->is_active ? 1 : 0) : 2,
-                    'average_points_per_game' => (float)0,
-                    'average_rebounds_per_game' => (float)0,
-                    'average_assists_per_game' => (float)0,
-                    'average_steals_per_game' => (float)0,
-                    'average_blocks_per_game' => (float)0,
-                    'average_turnovers_per_game' => (float)0,
-                    'average_fouls_per_game' => (float)0,
-                    'games_played' => 0, // Set games_played to 0
-                ];
-            }
-        } else {
+        // Use the latest season_id if no season_id is provided or if no results are found
+        if (is_null($seasonId) || $seasonId == 0 || !DB::table('player_season_stats')
+            ->where('team_id', $teamId)
+            ->where('season_id', $seasonId)
+            ->exists()) {
+            $seasonId = $latestSeasonId;
+        }
+
+        if ($seasonId) {
             // Fetch player stats for the given team_id and season_id
             $playerStatsData = DB::table('player_season_stats')
                 ->where('team_id', $teamId)
                 ->where('season_id', $seasonId)
                 ->get();
-            if(count($playerStatsData) > 0){
+
+            if ($playerStatsData->isEmpty()) {
+                // If no results are found, fallback to player_game_stats
+                $playerGameStats = DB::table('player_game_stats')
+                    ->where('team_id', $teamId)
+                    ->get();
+
+                // Calculate average stats for each player
+                $playerStatsData = $playerGameStats->groupBy('player_id')->map(function ($stats) {
+                    $playerId = $stats->first()->player_id;
+
+                    // Aggregate stats
+                    $averagePointsPerGame = $stats->avg('points');
+                    $averageReboundsPerGame = $stats->avg('rebounds');
+                    $averageAssistsPerGame = $stats->avg('assists');
+                    $averageStealsPerGame = $stats->avg('steals');
+                    $averageBlocksPerGame = $stats->avg('blocks');
+                    $averageTurnoversPerGame = $stats->avg('turnovers');
+                    $averageFoulsPerGame = $stats->avg('fouls');
+                    $gamesPlayed = $stats->count();
+
+                    return [
+                        'average_points_per_game' => $averagePointsPerGame,
+                        'average_rebounds_per_game' => $averageReboundsPerGame,
+                        'average_assists_per_game' => $averageAssistsPerGame,
+                        'average_steals_per_game' => $averageStealsPerGame,
+                        'average_blocks_per_game' => $averageBlocksPerGame,
+                        'average_turnovers_per_game' => $averageTurnoversPerGame,
+                        'average_fouls_per_game' => $averageFoulsPerGame,
+                        'games_played' => $gamesPlayed,
+                    ];
+                });
+
+                // Fetch player details and merge with stats
+                $players = DB::table('players')
+                    ->where('team_id', $teamId)
+                    ->get();
+
+                foreach ($players as $player) {
+                    $stats = $playerStatsData->get($player->id, []);
+
+                    $playerStats[] = [
+                        'player_id' => $player->id,
+                        'name' => $player->name,
+                        'age' => $player->age,
+                        'role' => $player->role,
+                        'is_active' => $player->is_active,
+                        'is_rookie' => $player->is_rookie,
+                        'retirement_age' => $player->retirement_age,
+                        'status' => $player->team_id == $teamId ? ($player->is_active ? 1 : 0) : 2,
+                        'average_points_per_game' => (float)($stats['average_points_per_game'] ?? 0),
+                        'average_rebounds_per_game' => (float)($stats['average_rebounds_per_game'] ?? 0),
+                        'average_assists_per_game' => (float)($stats['average_assists_per_game'] ?? 0),
+                        'average_steals_per_game' => (float)($stats['average_steals_per_game'] ?? 0),
+                        'average_blocks_per_game' => (float)($stats['average_blocks_per_game'] ?? 0),
+                        'average_turnovers_per_game' => (float)($stats['average_turnovers_per_game'] ?? 0),
+                        'average_fouls_per_game' => (float)($stats['average_fouls_per_game'] ?? 0),
+                        'games_played' => $stats['games_played'] ?? 0,
+                    ];
+                }
+            } else {
                 foreach ($playerStatsData as $stats) {
                     // Fetch the player
                     $player = DB::table('players')->where('id', $stats->player_id)->first();
@@ -92,31 +139,65 @@ class PlayersController extends Controller
                         ];
                     }
                 }
-            }else{
-                $players = DB::table('players')
+            }
+        } else {
+            // If no valid season_id is found, fallback to player_game_stats
+            $playerGameStats = DB::table('player_game_stats')
                 ->where('team_id', $teamId)
                 ->get();
 
-                foreach ($players as $player) {
-                    $playerStats[] = [
-                        'player_id' => $player->id,
-                        'name' => $player->name,
-                        'age' => $player->age,
-                        'role' => $player->role,
-                        'is_active' => $player->is_active,
-                        'is_rookie' => $player->is_rookie,
-                        'retirement_age' => $player->retirement_age,
-                        'status' => $player->team_id == $teamId ? ($player->is_active ? 1 : 0) : 2,
-                        'average_points_per_game' => (float)0,
-                        'average_rebounds_per_game' => (float)0,
-                        'average_assists_per_game' => (float)0,
-                        'average_steals_per_game' => (float)0,
-                        'average_blocks_per_game' => (float)0,
-                        'average_turnovers_per_game' => (float)0,
-                        'average_fouls_per_game' => (float)0,
-                        'games_played' => 0, // Set games_played to 0
-                    ];
-                }
+            // Calculate average stats for each player
+            $playerStatsData = $playerGameStats->groupBy('player_id')->map(function ($stats) {
+                $playerId = $stats->first()->player_id;
+
+                // Aggregate stats
+                $averagePointsPerGame = $stats->avg('points');
+                $averageReboundsPerGame = $stats->avg('rebounds');
+                $averageAssistsPerGame = $stats->avg('assists');
+                $averageStealsPerGame = $stats->avg('steals');
+                $averageBlocksPerGame = $stats->avg('blocks');
+                $averageTurnoversPerGame = $stats->avg('turnovers');
+                $averageFoulsPerGame = $stats->avg('fouls');
+                $gamesPlayed = $stats->count();
+
+                return [
+                    'average_points_per_game' => $averagePointsPerGame,
+                    'average_rebounds_per_game' => $averageReboundsPerGame,
+                    'average_assists_per_game' => $averageAssistsPerGame,
+                    'average_steals_per_game' => $averageStealsPerGame,
+                    'average_blocks_per_game' => $averageBlocksPerGame,
+                    'average_turnovers_per_game' => $averageTurnoversPerGame,
+                    'average_fouls_per_game' => $averageFoulsPerGame,
+                    'games_played' => $gamesPlayed,
+                ];
+            });
+
+            // Fetch player details and merge with stats
+            $players = DB::table('players')
+                ->where('team_id', $teamId)
+                ->get();
+
+            foreach ($players as $player) {
+                $stats = $playerStatsData->get($player->id, []);
+
+                $playerStats[] = [
+                    'player_id' => $player->id,
+                    'name' => $player->name,
+                    'age' => $player->age,
+                    'role' => $player->role,
+                    'is_active' => $player->is_active,
+                    'is_rookie' => $player->is_rookie,
+                    'retirement_age' => $player->retirement_age,
+                    'status' => $player->team_id == $teamId ? ($player->is_active ? 1 : 0) : 2,
+                    'average_points_per_game' => (float)($stats['average_points_per_game'] ?? 0),
+                    'average_rebounds_per_game' => (float)($stats['average_rebounds_per_game'] ?? 0),
+                    'average_assists_per_game' => (float)($stats['average_assists_per_game'] ?? 0),
+                    'average_steals_per_game' => (float)($stats['average_steals_per_game'] ?? 0),
+                    'average_blocks_per_game' => (float)($stats['average_blocks_per_game'] ?? 0),
+                    'average_turnovers_per_game' => (float)($stats['average_turnovers_per_game'] ?? 0),
+                    'average_fouls_per_game' => (float)($stats['average_fouls_per_game'] ?? 0),
+                    'games_played' => $stats['games_played'] ?? 0,
+                ];
             }
         }
 
@@ -142,6 +223,7 @@ class PlayersController extends Controller
             'team_id' => $teamId,
         ]);
     }
+
     public function getFreeAgents(Request $request)
     {
         // Get pagination parameters from the request
