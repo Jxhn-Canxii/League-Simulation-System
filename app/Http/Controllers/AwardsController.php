@@ -74,7 +74,7 @@ class AwardsController extends Controller
                         'team_id' => $teamId,
                     ],
                     [
-                        'role' => $playerRating->role ?? 'unknown',  // Role from player_ratings, default to 'unknown'
+                        'role' => $playerRating->role ?? $player->role,  // Role from player_ratings, default to 'unknown'
                         'avg_points_per_game' => $playerStats->avg_points_per_game,
                         'avg_rebounds_per_game' => $playerStats->avg_rebounds_per_game,
                         'avg_assists_per_game' => $playerStats->avg_assists_per_game,

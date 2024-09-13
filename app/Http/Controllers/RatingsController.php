@@ -270,8 +270,6 @@ class RatingsController extends Controller
             ], 500);
         }
     }
-
-
     private function getContractYearsBasedOnRole($role)
     {
         switch ($role) {
@@ -302,42 +300,6 @@ class RatingsController extends Controller
         'bench' => 40,        // Bench players should maintain at least 40 overall rating
     ];
 
-    // Function to update role based on performance
-    private function updateRoleBasedOnPerformance($player)
-    {
-
-        $roleThresholds = $this->roleThresholds;
-        $currentRolePriority = $this->rolePriority[$player->role];
-        $newRole = $player->role;
-
-        // Check if the player is underperforming for their current role
-        $this->adjustRatingsForRole($player);
-
-        // Determine new role based on updated overall rating
-        if ($player->overall_rating >= $roleThresholds['star player']) {
-            $newRole = 'star player';
-        } elseif ($player->overall_rating >= $roleThresholds['starter']) {
-            $newRole = 'starter';
-        } elseif ($player->overall_rating >= $roleThresholds['role player']) {
-            $newRole = 'role player';
-        } else {
-            $newRole = 'bench';
-        }
-
-        // Incremental role change (only one step up or down)
-        $newRolePriority = $this->rolePriority[$newRole];
-
-        if ($newRolePriority > $currentRolePriority && $newRolePriority - $currentRolePriority == 1) {
-            // Allow upgrade only by one role step
-            return $newRole;
-        } elseif ($newRolePriority < $currentRolePriority && $currentRolePriority - $newRolePriority == 1) {
-            // Allow downgrade only by one role step
-            return $newRole;
-        }
-
-        // If the role shouldn't change, return the current role
-        return $player->role;
-    }
     // Function to adjust the player's ratings if they are underperforming for their role
     private function adjustRatingsForRole($player)
     {
@@ -360,38 +322,6 @@ class RatingsController extends Controller
             $player->overall_rating = ($player->shooting_rating + $player->defense_rating + $player->passing_rating + $player->rebounding_rating) / 4;
         }
     }
-
-    // Function to update player rating based on performance
-    private function updateRating($currentRating, $performance, $role)
-    {
-        // Define the base performance thresholds for each role
-        $rolePerformanceThresholds = $this->roleThresholds;
-
-        // Get the performance threshold for the current role
-        $expectedPerformance = $rolePerformanceThresholds[$role] ?? 60; // Default to 60 if role is not found
-
-        // Define rating adjustment based on performance relative to the role's expectations
-        $adjustment = 0;
-
-        if ($performance > $expectedPerformance + 10) {
-            $adjustment = 3; // High performance, significant increase
-        } elseif ($performance > $expectedPerformance) {
-            $adjustment = 2; // Good performance, moderate increase
-        } elseif ($performance >= $expectedPerformance - 15) {
-            $adjustment = 1; // Decent performance, slight increase
-        } elseif ($performance < $expectedPerformance - 30) {
-            $adjustment = -2; // Poor performance, significant decrease
-        } elseif ($performance < $expectedPerformance - 15) {
-            $adjustment = -1; // Below average performance, slight decrease
-        }
-
-        // Ensure rating remains within bounds of 40-99
-        $newRating = max(40, min(99, $currentRating + $adjustment));
-
-        return $newRating;
-    }
-
-
     private function logPlayerRatings($player, $seasonId)
     {
         // Check if the player ratings for the current season already exist
@@ -426,209 +356,68 @@ class RatingsController extends Controller
         }
     }
 
-
-
-    // Helper function to get the number of seasons played by the player
-    private function getSeasonsPlayed($playerId)
-    {
-        return PlayerGameStats::where('player_id', $playerId)
-            ->distinct('season_id')
-            ->count();
-    }
-
-    private function calculatePerformanceV1($playerId)
-    {
-        // Fetch game stats for the current season where minutes are greater than 0
-        $stats = PlayerGameStats::where('player_id', $playerId)
-            ->where('season_id', $this->getLatestSeasonId())
-            ->where('minutes', '>', 0)
-            ->get();
-
-        // Initialize performance metrics
-        $performance = [
-            'shooting' => 0,
-            'defense' => 0,
-            'passing' => 0,
-            'rebounding' => 0,
-        ];
-
-        // Aggregate stats
-        foreach ($stats as $stat) {
-            $performance['shooting'] += $stat->points / max($stat->minutes, 1); // Points per minute
-            $performance['defense'] += $stat->blocks + $stat->steals; // Combined defensive stats
-            $performance['passing'] += $stat->assists / max($stat->minutes, 1); // Assists per minute
-            $performance['rebounding'] += $stat->rebounds / max($stat->minutes, 1); // Rebounds per minute
-        }
-
-        // Calculate averages
-        $totalGames = $stats->count();
-        if ($totalGames > 0) {
-            $performance['shooting'] /= $totalGames;
-            $performance['defense'] /= $totalGames;
-            $performance['passing'] /= $totalGames;
-            $performance['rebounding'] /= $totalGames;
-        }
-
-        // Determine the dynamic maximum values for normalization based on league stats
-        $leagueMax = PlayerGameStats::where('season_id', $this->getLatestSeasonId())
-            ->selectRaw('
-            MAX(points / GREATEST(minutes, 1)) as max_shooting,
-            MAX(blocks + steals) as max_defense,
-            MAX(assists / GREATEST(minutes, 1)) as max_passing,
-            MAX(rebounds / GREATEST(minutes, 1)) as max_rebounding
-        ')
-            ->first();
-
-        // Use the league max values or fallback to a default max (e.g., 99) if none found
-        $maxValues = [
-            'shooting' => $leagueMax->max_shooting ?? 99,
-            'defense' => $leagueMax->max_defense ?? 99,
-            'passing' => $leagueMax->max_passing ?? 99,
-            'rebounding' => $leagueMax->max_rebounding ?? 99,
-        ];
-
-        // Normalize and rate each metric on a 40-99 scale
-        foreach ($performance as $key => $value) {
-            $normalizedValue = ($value / $maxValues[$key]) * 59 + 40; // Scale to 40-99 range
-            $performance[$key] = min(max($normalizedValue, 40), 99); // Ensure value stays within bounds
-        }
-
-        return $performance;
-    }
-    private function comparePerformanceBetweenSeasonsV1($playerId)
-    {
-        // Get the latest season ID and the previous season ID
-        $latestSeasonId = $this->getLatestSeasonId();
-        $previousSeasonId = $this->getPreviousSeasonId($latestSeasonId); // This should return the season before the latest one
-
-        // Fetch stats for the latest season
-        $latestStats = PlayerGameStats::where('player_id', $playerId)
-            ->where('season_id', $latestSeasonId)
-            ->where('minutes', '>', 0)
-            ->get();
-
-        // Fetch stats for the previous season
-        $previousStats = PlayerGameStats::where('player_id', $playerId)
-            ->where('season_id', $previousSeasonId)
-            ->where('minutes', '>', 0)
-            ->get();
-
-        // Initialize performance metrics for both seasons
-        $latestPerformance = ['shooting' => 0, 'defense' => 0, 'passing' => 0, 'rebounding' => 0];
-        $previousPerformance = ['shooting' => 0, 'defense' => 0, 'passing' => 0, 'rebounding' => 0];
-
-        // Aggregate stats for the latest season
-        foreach ($latestStats as $stat) {
-            $latestPerformance['shooting'] += $stat->points / max($stat->minutes, 1); // Points per minute
-            $latestPerformance['defense'] += $stat->blocks + $stat->steals; // Defensive stats
-            $latestPerformance['passing'] += $stat->assists / max($stat->minutes, 1); // Assists per minute
-            $latestPerformance['rebounding'] += $stat->rebounds / max($stat->minutes, 1); // Rebounds per minute
-        }
-
-        // Aggregate stats for the previous season
-        foreach ($previousStats as $stat) {
-            $previousPerformance['shooting'] += $stat->points / max($stat->minutes, 1); // Points per minute
-            $previousPerformance['defense'] += $stat->blocks + $stat->steals; // Defensive stats
-            $previousPerformance['passing'] += $stat->assists / max($stat->minutes, 1); // Assists per minute
-            $previousPerformance['rebounding'] += $stat->rebounds / max($stat->minutes, 1); // Rebounds per minute
-        }
-
-        // Calculate averages for both seasons
-        $latestTotalGames = $latestStats->count();
-        $previousTotalGames = $previousStats->count();
-
-        if ($latestTotalGames > 0) {
-            foreach ($latestPerformance as $key => $value) {
-                $latestPerformance[$key] /= $latestTotalGames; // Average per game stats
-            }
-        }
-
-        if ($previousTotalGames > 0) {
-            foreach ($previousPerformance as $key => $value) {
-                $previousPerformance[$key] /= $previousTotalGames; // Average per game stats
-            }
-        }
-
-        // Compare performance between the two seasons
-        $performanceChange = [];
-        foreach ($latestPerformance as $key => $latestValue) {
-            $previousValue = $previousPerformance[$key] ?? 0; // Default to 0 if no previous stats
-            $performanceChange[$key] = $latestValue - $previousValue; // Calculate performance difference
-        }
-
-        return [
-            'latest_performance' => $latestPerformance,
-            'previous_performance' => $previousPerformance,
-            'performance_change' => $performanceChange, // How much the player improved or declined
-        ];
-    }
     private function comparePerformanceBetweenSeasons($playerId)
     {
         // Get the latest season ID and the previous season ID
         $latestSeasonId = $this->getLatestSeasonId();
         $previousSeasonId = $this->getPreviousSeasonId($latestSeasonId);
 
-        // Fetch stats for the latest season
-        $latestStats = PlayerGameStats::where('player_id', $playerId)
-            ->where('season_id', $latestSeasonId)
-            ->where('minutes', '>', 0)
-            ->get();
+        // Fetch player's role for the upcoming season from the players table
+        $upcomingSeasonRole = Player::where('id', $playerId)
+            ->value('role'); // Assume 'role' column exists in players table
 
-        // Fetch stats for the previous season
-        $previousStats = PlayerGameStats::where('player_id', $playerId)
+        // Fetch player's role for the latest season from player_season_stats table
+        $latestSeasonStats = PlayerSeasonStats::where('player_id', $playerId)
+            ->where('season_id', $latestSeasonId)
+            ->first(); // Get latest season stats
+
+        // Fetch player's role for the previous season from player_season_stats table
+        $previousSeasonStats = PlayerSeasonStats::where('player_id', $playerId)
             ->where('season_id', $previousSeasonId)
-            ->where('minutes', '>', 0)
-            ->get();
+            ->first(); // Get previous season stats
+
+        // Fetch player's role for the latest season from player_season_stats
+        $latestSeasonRole = $latestSeasonStats->role ?? 'role player'; // Default to 'role player' if no stats found
+
+        // Define role-based adjustments
+        $roleAdjustments = [
+            'star player' => ['shooting' => 1.2, 'defense' => 1.2, 'passing' => 1.2, 'rebounding' => 1.2],
+            'starter' => ['shooting' => 1.1, 'defense' => 1.1, 'passing' => 1.1, 'rebounding' => 1.1],
+            'role player' => ['shooting' => 1.0, 'defense' => 1.0, 'passing' => 1.0, 'rebounding' => 1.0],
+            'bench' => ['shooting' => 0.9, 'defense' => 0.9, 'passing' => 0.9, 'rebounding' => 0.9],
+        ];
+
+        // Get role adjustment factors for both roles
+        $latestAdjustmentFactors = $roleAdjustments[$latestSeasonRole] ?? $roleAdjustments['role player'];
+        $upcomingAdjustmentFactors = $roleAdjustments[$upcomingSeasonRole] ?? $roleAdjustments['role player'];
 
         // Initialize performance metrics for both seasons
         $latestPerformance = ['shooting' => 0, 'defense' => 0, 'passing' => 0, 'rebounding' => 0];
         $previousPerformance = ['shooting' => 0, 'defense' => 0, 'passing' => 0, 'rebounding' => 0];
 
         // Aggregate stats for the latest season
-        foreach ($latestStats as $stat) {
-            $pointsPerMinute = $stat->points / max($stat->minutes, 1);
-            $assistsPerMinute = $stat->assists / max($stat->minutes, 1);
-            $reboundsPerMinute = $stat->rebounds / max($stat->minutes, 1);
+        if ($latestSeasonStats) {
+            $latestPerformance['shooting'] = $latestSeasonStats->avg_points_per_game;
+            $latestPerformance['defense'] = $latestSeasonStats->avg_blocks_per_game + $latestSeasonStats->avg_steals_per_game;
+            $latestPerformance['passing'] = $latestSeasonStats->avg_assists_per_game;
+            $latestPerformance['rebounding'] = $latestSeasonStats->avg_rebounds_per_game;
 
-            // Add fouls and turnovers impact
-            $foulsImpact = $stat->fouls * -0.2; // Arbitrary negative impact
-            $turnoversImpact = $stat->turnovers * -0.1; // Arbitrary negative impact
-
-            $latestPerformance['shooting'] += $pointsPerMinute + $foulsImpact; // Points per minute adjusted by fouls
-            $latestPerformance['defense'] += ($stat->blocks + $stat->steals) - $turnoversImpact; // Defensive stats adjusted by turnovers
-            $latestPerformance['passing'] += $assistsPerMinute - $turnoversImpact; // Assists per minute adjusted by turnovers
-            $latestPerformance['rebounding'] += $reboundsPerMinute; // Rebounds are not directly impacted by fouls or turnovers
-        }
-
-        // Aggregate stats for the previous season
-        foreach ($previousStats as $stat) {
-            $pointsPerMinute = $stat->points / max($stat->minutes, 1);
-            $assistsPerMinute = $stat->assists / max($stat->minutes, 1);
-            $reboundsPerMinute = $stat->rebounds / max($stat->minutes, 1);
-
-            // Add fouls and turnovers impact
-            $foulsImpact = $stat->fouls * -0.2; // Arbitrary negative impact
-            $turnoversImpact = $stat->turnovers * -0.1; // Arbitrary negative impact
-
-            $previousPerformance['shooting'] += $pointsPerMinute + $foulsImpact; // Points per minute adjusted by fouls
-            $previousPerformance['defense'] += ($stat->blocks + $stat->steals) - $turnoversImpact; // Defensive stats adjusted by turnovers
-            $previousPerformance['passing'] += $assistsPerMinute - $turnoversImpact; // Assists per minute adjusted by turnovers
-            $previousPerformance['rebounding'] += $reboundsPerMinute; // Rebounds are not directly impacted by fouls or turnovers
-        }
-
-        // Calculate averages for both seasons
-        $latestTotalGames = $latestStats->count();
-        $previousTotalGames = $previousStats->count();
-
-        if ($latestTotalGames > 0) {
+            // Apply role-based adjustments
             foreach ($latestPerformance as $key => $value) {
-                $latestPerformance[$key] /= $latestTotalGames; // Average per game stats
+                $latestPerformance[$key] *= $latestAdjustmentFactors[$key] ?? 1;
             }
         }
 
-        if ($previousTotalGames > 0) {
+        // Aggregate stats for the previous season
+        if ($previousSeasonStats) {
+            $previousPerformance['shooting'] = $previousSeasonStats->avg_points_per_game;
+            $previousPerformance['defense'] = $previousSeasonStats->avg_blocks_per_game + $previousSeasonStats->avg_steals_per_game;
+            $previousPerformance['passing'] = $previousSeasonStats->avg_assists_per_game;
+            $previousPerformance['rebounding'] = $previousSeasonStats->avg_rebounds_per_game;
+
+            // Apply role-based adjustments
             foreach ($previousPerformance as $key => $value) {
-                $previousPerformance[$key] /= $previousTotalGames; // Average per game stats
+                $previousPerformance[$key] *= $latestAdjustmentFactors[$key] ?? 1;
             }
         }
 
@@ -639,12 +428,20 @@ class RatingsController extends Controller
             $performanceChange[$key] = $latestValue - $previousValue; // Calculate performance difference
         }
 
+        // Apply drastic adjustments if the role for the upcoming season is different from the latest season's role
+        if ($upcomingSeasonRole !== $latestSeasonRole) {
+            foreach ($performanceChange as $key => $value) {
+                $performanceChange[$key] *= 2; // Apply a drastic adjustment factor (e.g., 2x)
+            }
+        }
+
         return [
             'latest_performance' => $latestPerformance,
             'previous_performance' => $previousPerformance,
             'performance_change' => $performanceChange, // How much the player improved or declined
         ];
     }
+
 
     // Function to retrieve the previous season ID based on the latest season ID
     private function getPreviousSeasonId($latestSeasonId)
