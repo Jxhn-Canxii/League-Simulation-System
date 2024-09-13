@@ -399,24 +399,34 @@ class ScheduleController extends Controller
                         $minutes = $homeMinutes[$player->id] ?? 0;
 
                         // Factor in player's ratings to calculate their performance
-                        $maxPoints = $roleMaxStats[$player->role]['points'] ?? 30;
-                        $maxReb = $roleMaxStats[$player->role]['rebounds'] ?? 30;
-                        $maxAst = $roleMaxStats[$player->role]['assists'] ?? 30;
-                        $maxStl = $roleMaxStats[$player->role]['steals'] ?? 30;
-                        $maxBlk = $roleMaxStats[$player->role]['blocks'] ?? 30;
+
 
                         $exposureFactor = $minutes / 30; // Scale factor based on minutes
+                        $performanceVariance = 0.9 + (rand(0, 20) / 100);  // Adds a 10% variability in performance
+                        $ratingFactor = ($player->shooting_rating + $player->defense_rating + $player->passing_rating + $player->rebounding_rating) / 400; // Ratings are scaled from 0 to 1
 
-                        $ratingFactor = ($player->shooting_rating + $player->defense_rating + $player->passing_rating + $player->rebounding_rating) / 4;
+                        // Points calculation: capped at a realistic range with rating factor applied
+                        $pointsPerMinute = 0.5 + ($player->shooting_rating / 200);  // Players score between 0.5 to 1.0 points per minute based on shooting rating
+                        $points = round($pointsPerMinute * $minutes * $performanceVariance);
 
-                        $points = round(rand(0, $maxPoints * $exposureFactor * ($ratingFactor / 100)));
-                        $assists = round(rand(0, $maxAst * $exposureFactor * ($player->passing_rating / 100)));
-                        $rebounds = round(rand(0, $maxReb * $exposureFactor * ($player->rebounding_rating / 100)));
-                        $steals = round(rand(0, $maxStl * $exposureFactor * ($player->defense_rating / 100)));
-                        $blocks = round(rand(0, $maxBlk * $exposureFactor * ($player->defense_rating / 100)));
-                        $turnovers = $minutes === 0 ? 0 : round(rand(0, 5 * $exposureFactor));
-                        $fouls = $minutes === 0 ? 0 : round(rand(0, 5 * $exposureFactor));
+                        // Assists calculation: realistic assist range
+                        $assistPerMinute = 0.2 + ($player->passing_rating / 500);  // Players get assists based on passing rating
+                        $assists = round($assistPerMinute * $minutes * $performanceVariance);
 
+                        // Rebounds calculation: rebounding impact with rating
+                        $reboundPerMinute = 0.3 + ($player->rebounding_rating / 500);
+                        $rebounds = round($reboundPerMinute * $minutes * $performanceVariance);
+
+                        // Steals and blocks: These stats are rare, so cap them to smaller ranges
+                        $stealPerMinute = 0.05 + ($player->defense_rating / 1000);  // Rare stat, so lower base
+                        $steals = round($stealPerMinute * $minutes * $performanceVariance);
+
+                        $blockPerMinute = 0.03 + ($player->defense_rating / 1000);  // Rare stat, so lower base
+                        $blocks = round($blockPerMinute * $minutes * $performanceVariance);
+
+                        // Turnovers and fouls: These happen less frequently and are scaled with minutes
+                        $turnovers = round(rand(0, 2) * $exposureFactor);  // Usually between 0-2 turnovers per game
+                        $fouls = round(rand(0, 4) * $exposureFactor);  // Usually between 1-4 fouls per game
                         // Update player game stats
                         PlayerGameStats::updateOrCreate(
                             [
@@ -467,24 +477,36 @@ class ScheduleController extends Controller
                         );
                     } else {
                         $minutes = $awayMinutes[$player->id] ?? 0;
+
                         // Factor in player's ratings to calculate their performance
-                        $maxPoints = $roleMaxStats[$player->role]['points'] ?? 30;
-                        $maxReb = $roleMaxStats[$player->role]['rebounds'] ?? 30;
-                        $maxAst = $roleMaxStats[$player->role]['assists'] ?? 30;
-                        $maxStl = $roleMaxStats[$player->role]['steals'] ?? 30;
-                        $maxBlk = $roleMaxStats[$player->role]['blocks'] ?? 30;
+
 
                         $exposureFactor = $minutes / 30; // Scale factor based on minutes
+                        $performanceVariance = 0.9 + (rand(0, 20) / 100);  // Adds a 10% variability in performance
+                        $ratingFactor = ($player->shooting_rating + $player->defense_rating + $player->passing_rating + $player->rebounding_rating) / 400; // Ratings are scaled from 0 to 1
 
-                        $ratingFactor = ($player->shooting_rating + $player->defense_rating + $player->passing_rating + $player->rebounding_rating) / 4;
+                        // Points calculation: capped at a realistic range with rating factor applied
+                        $pointsPerMinute = 0.5 + ($player->shooting_rating / 200);  // Players score between 0.5 to 1.0 points per minute based on shooting rating
+                        $points = round($pointsPerMinute * $minutes * $performanceVariance);
 
-                        $points = round(rand(0, $maxPoints * $exposureFactor * ($ratingFactor / 100)));
-                        $assists = round(rand(0, $maxAst * $exposureFactor * ($player->passing_rating / 100)));
-                        $rebounds = round(rand(0, $maxReb * $exposureFactor * ($player->rebounding_rating / 100)));
-                        $steals = round(rand(0, $maxStl * $exposureFactor * ($player->defense_rating / 100)));
-                        $blocks = round(rand(0, $maxBlk * $exposureFactor * ($player->defense_rating / 100)));
-                        $turnovers = $minutes === 0 ? 0 : round(rand(0, 5 * $exposureFactor));
-                        $fouls = $minutes === 0 ? 0 : round(rand(0, 5 * $exposureFactor));
+                        // Assists calculation: realistic assist range
+                        $assistPerMinute = 0.2 + ($player->passing_rating / 500);  // Players get assists based on passing rating
+                        $assists = round($assistPerMinute * $minutes * $performanceVariance);
+
+                        // Rebounds calculation: rebounding impact with rating
+                        $reboundPerMinute = 0.3 + ($player->rebounding_rating / 500);
+                        $rebounds = round($reboundPerMinute * $minutes * $performanceVariance);
+
+                        // Steals and blocks: These stats are rare, so cap them to smaller ranges
+                        $stealPerMinute = 0.05 + ($player->defense_rating / 1000);  // Rare stat, so lower base
+                        $steals = round($stealPerMinute * $minutes * $performanceVariance);
+
+                        $blockPerMinute = 0.03 + ($player->defense_rating / 1000);  // Rare stat, so lower base
+                        $blocks = round($blockPerMinute * $minutes * $performanceVariance);
+
+                        // Turnovers and fouls: These happen less frequently and are scaled with minutes
+                        $turnovers = round(rand(0, 2) * $exposureFactor);  // Usually between 0-2 turnovers per game
+                        $fouls = round(rand(0, 4) * $exposureFactor);  // Usually between 1-4 fouls per game
 
                         // Update player game stats
                         PlayerGameStats::updateOrCreate(
@@ -725,24 +747,36 @@ class ScheduleController extends Controller
         // Simulate player game stats for home team
         foreach ($homeTeamPlayers as $player) {
             $minutes = $homeMinutes[$player->id] ?? 0;
+
             // Factor in player's ratings to calculate their performance
-            $maxPoints = $roleMaxStats[$player->role]['points'] ?? 30;
-            $maxReb = $roleMaxStats[$player->role]['rebounds'] ?? 30;
-            $maxAst = $roleMaxStats[$player->role]['assists'] ?? 30;
-            $maxStl = $roleMaxStats[$player->role]['steals'] ?? 30;
-            $maxBlk = $roleMaxStats[$player->role]['blocks'] ?? 30;
+
 
             $exposureFactor = $minutes / 30; // Scale factor based on minutes
+            $performanceVariance = 0.9 + (rand(0, 20) / 100);  // Adds a 10% variability in performance
+            $ratingFactor = ($player->shooting_rating + $player->defense_rating + $player->passing_rating + $player->rebounding_rating) / 400; // Ratings are scaled from 0 to 1
 
-            $ratingFactor = ($player->shooting_rating + $player->defense_rating + $player->passing_rating + $player->rebounding_rating) / 4;
+            // Points calculation: capped at a realistic range with rating factor applied
+            $pointsPerMinute = 0.5 + ($player->shooting_rating / 200);  // Players score between 0.5 to 1.0 points per minute based on shooting rating
+            $points = round($pointsPerMinute * $minutes * $performanceVariance);
 
-            $points = round(rand(0, $maxPoints * $exposureFactor * ($ratingFactor / 100)));
-            $assists = round(rand(0, $maxAst * $exposureFactor * ($player->passing_rating / 100)));
-            $rebounds = round(rand(0, $maxReb * $exposureFactor * ($player->rebounding_rating / 100)));
-            $steals = round(rand(0, $maxStl * $exposureFactor * ($player->defense_rating / 100)));
-            $blocks = round(rand(0, $maxBlk * $exposureFactor * ($player->defense_rating / 100)));
-            $turnovers = $minutes === 0 ? 0 : round(rand(0, 5 * $exposureFactor));
-            $fouls = $minutes === 0 ? 0 : round(rand(0, 5 * $exposureFactor));
+            // Assists calculation: realistic assist range
+            $assistPerMinute = 0.2 + ($player->passing_rating / 500);  // Players get assists based on passing rating
+            $assists = round($assistPerMinute * $minutes * $performanceVariance);
+
+            // Rebounds calculation: rebounding impact with rating
+            $reboundPerMinute = 0.3 + ($player->rebounding_rating / 500);
+            $rebounds = round($reboundPerMinute * $minutes * $performanceVariance);
+
+            // Steals and blocks: These stats are rare, so cap them to smaller ranges
+            $stealPerMinute = 0.05 + ($player->defense_rating / 1000);  // Rare stat, so lower base
+            $steals = round($stealPerMinute * $minutes * $performanceVariance);
+
+            $blockPerMinute = 0.03 + ($player->defense_rating / 1000);  // Rare stat, so lower base
+            $blocks = round($blockPerMinute * $minutes * $performanceVariance);
+
+            // Turnovers and fouls: These happen less frequently and are scaled with minutes
+            $turnovers = round(rand(0, 2) * $exposureFactor);  // Usually between 0-2 turnovers per game
+            $fouls = round(rand(0, 4) * $exposureFactor);  // Usually between 1-4 fouls per game
 
             // Update player game stats
             $playerGameStats[] = [
@@ -765,23 +799,33 @@ class ScheduleController extends Controller
         foreach ($awayTeamPlayers as $player) {
             $minutes = $awayMinutes[$player->id] ?? 0;
             // Factor in player's ratings to calculate their performance
-            $maxPoints = $roleMaxStats[$player->role]['points'] ?? 30;
-            $maxReb = $roleMaxStats[$player->role]['rebounds'] ?? 30;
-            $maxAst = $roleMaxStats[$player->role]['assists'] ?? 30;
-            $maxStl = $roleMaxStats[$player->role]['steals'] ?? 30;
-            $maxBlk = $roleMaxStats[$player->role]['blocks'] ?? 30;
 
             $exposureFactor = $minutes / 30; // Scale factor based on minutes
+            $performanceVariance = 0.9 + (rand(0, 20) / 100);  // Adds a 10% variability in performance
+            $ratingFactor = ($player->shooting_rating + $player->defense_rating + $player->passing_rating + $player->rebounding_rating) / 400; // Ratings are scaled from 0 to 1
 
-            $ratingFactor = ($player->shooting_rating + $player->defense_rating + $player->passing_rating + $player->rebounding_rating) / 4;
+            // Points calculation: capped at a realistic range with rating factor applied
+            $pointsPerMinute = 0.5 + ($player->shooting_rating / 200);  // Players score between 0.5 to 1.0 points per minute based on shooting rating
+            $points = round($pointsPerMinute * $minutes * $performanceVariance);
 
-            $points = round(rand(0, $maxPoints * $exposureFactor * ($ratingFactor / 100)));
-            $assists = round(rand(0, $maxAst * $exposureFactor * ($player->passing_rating / 100)));
-            $rebounds = round(rand(0, $maxReb * $exposureFactor * ($player->rebounding_rating / 100)));
-            $steals = round(rand(0, $maxStl * $exposureFactor * ($player->defense_rating / 100)));
-            $blocks = round(rand(0, $maxBlk * $exposureFactor * ($player->defense_rating / 100)));
-            $turnovers = $minutes === 0 ? 0 : round(rand(0, 5 * $exposureFactor));
-            $fouls = $minutes === 0 ? 0 : round(rand(0, 5 * $exposureFactor));
+            // Assists calculation: realistic assist range
+            $assistPerMinute = 0.2 + ($player->passing_rating / 500);  // Players get assists based on passing rating
+            $assists = round($assistPerMinute * $minutes * $performanceVariance);
+
+            // Rebounds calculation: rebounding impact with rating
+            $reboundPerMinute = 0.3 + ($player->rebounding_rating / 500);
+            $rebounds = round($reboundPerMinute * $minutes * $performanceVariance);
+
+            // Steals and blocks: These stats are rare, so cap them to smaller ranges
+            $stealPerMinute = 0.05 + ($player->defense_rating / 1000);  // Rare stat, so lower base
+            $steals = round($stealPerMinute * $minutes * $performanceVariance);
+
+            $blockPerMinute = 0.03 + ($player->defense_rating / 1000);  // Rare stat, so lower base
+            $blocks = round($blockPerMinute * $minutes * $performanceVariance);
+
+            // Turnovers and fouls: These happen less frequently and are scaled with minutes
+            $turnovers = round(rand(0, 2) * $exposureFactor);  // Usually between 0-2 turnovers per game
+            $fouls = round(rand(0, 4) * $exposureFactor);  // Usually between 1-4 fouls per game
 
             // Update player game stats
             $playerGameStats[] = [

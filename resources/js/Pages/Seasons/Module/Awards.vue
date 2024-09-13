@@ -82,7 +82,7 @@ const updatePlayerStatusPerTeam = async (index, team_id, team_count) => {
             html: `<div id="progress-container">
                     <p>Processing team ${team_id}/${team_count}</p>
                     <div class="progress">
-                        <div id="progress-bar" class="progress-bar" role="progressbar" style="width: ${((index / total_teams) * 100)}%;" aria-valuenow="${index}" aria-valuemin="0" aria-valuemax="${total_teams}"></div>
+                        <div id="progress-bar" class="progress-bar" role="progressbar" style="width: ${((index / team_count) * 100)}%;" aria-valuenow="${index}" aria-valuemin="0" aria-valuemax="${team_count}"></div>
                     </div>
                    </div>`,
             showConfirmButton: true,
