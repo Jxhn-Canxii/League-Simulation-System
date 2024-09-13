@@ -366,16 +366,17 @@ class RatingsController extends Controller
         $upcomingSeasonRole = Player::where('id', $playerId)
             ->value('role'); // Assume 'role' column exists in players table
 
-        // Fetch player's role for the latest season from player_season_stats table
-        $latestSeasonStats = PlayerSeasonStats::where('player_id', $playerId)
+        // Fetch player's stats for the latest season from player_season_stats table
+        $latestSeasonStats = DB::table('player_season_stats')
+            ->where('player_id', $playerId)
             ->where('season_id', $latestSeasonId)
             ->first(); // Get latest season stats
 
-        // Fetch player's role for the previous season from player_season_stats table
-        $previousSeasonStats = PlayerSeasonStats::where('player_id', $playerId)
+        // Fetch player's stats for the previous season from player_season_stats table
+        $previousSeasonStats = DB::table('player_season_stats')
+            ->where('player_id', $playerId)
             ->where('season_id', $previousSeasonId)
             ->first(); // Get previous season stats
-
         // Fetch player's role for the latest season from player_season_stats
         $latestSeasonRole = $latestSeasonStats->role ?? 'role player'; // Default to 'role player' if no stats found
 
