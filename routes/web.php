@@ -118,7 +118,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('players/')->group(function(){
         Route::post('list', [PlayersController::class, 'listPlayers'])->name('players.list');
         Route::post('add', [PlayersController::class, 'addPlayer'])->name('players.add');
-        Route::post('add-freeagent', [PlayersController::class, 'addFreeAgentPlayer'])->name('players.add.free.agent');
+        Route::post('add-free-agent', [PlayersController::class, 'addFreeAgentPlayer'])->name('players.add.free.agent');
         Route::post('waive', [PlayersController::class, 'waivePlayer'])->name('players.waive');
         Route::post('extend-contract', [PlayersController::class, 'extendContract'])->name('players.contract.extend');
         Route::post('/box-score', [PlayersController::class, 'getBoxScore'])->name('game.boxscore');

@@ -86,7 +86,9 @@ class TransactionsController extends Controller
         // Fetch teams with fewer than 12 players
         $teamsWithFewMembers = DB::table('teams')
             ->leftJoin('players', 'teams.id', '=', 'players.team_id')
-            ->select('teams.id', 'teams.name', DB::raw('COUNT(players.id) as player_count'))
+            ->select('teams.id', 'teams.name',
+                DB::raw('COUNT(players.id) as player_count'),
+                DB::raw('SUM(CASE WHEN players.role = "star player" THEN 1 ELSE 0 END) as star_player_count'))
             ->groupBy('teams.id', 'teams.name')
             ->havingRaw('COUNT(players.id) < 12')
             ->get();
@@ -102,7 +104,7 @@ class TransactionsController extends Controller
         $teamsCount = $teamsWithFewMembers->count();
 
         if ($teamsCount === 0) {
-            // Update the last season's status to 10 if there are no incomplete teams
+            // Update the last season's status to 11 if there are no incomplete teams
             DB::table('seasons')
                 ->where('id', $this->getLatestSeasonId())
                 ->update(['status' => 11]);
@@ -130,7 +132,41 @@ class TransactionsController extends Controller
                 ], 400);
             }
 
-            // Randomly assign each free agent to a team with fewer than 12 players
+            // Prioritize teams that need more star players
+            $teamsWithFewMembers = $teamsWithFewMembers->sortBy('star_player_count');
+
+            // Assign star players first
+            foreach ($freeAgents as $agent) {
+                if ($remainingFreeAgents <= 0) break;
+
+                if ($agent->role == 'star player') {
+                    // Find the team with the fewest star players
+                    $teamWithFewestStars = $teamsWithFewMembers->first();
+
+                    // Update the agent's team and contract years
+                    $agent->team_id = $teamWithFewestStars->id;
+                    $agent->contract_years = $this->determineContractYears($agent->role);
+                    $agent->save();
+
+                    // Increase the star player count for that team
+                    $teamWithFewestStars->star_player_count++;
+                    $teamWithFewestStars->player_count++;
+
+                    // Remove the team from the list if it no longer needs players
+                    if ($teamWithFewestStars->player_count >= 12) {
+                        $teamsWithFewMembers = $teamsWithFewMembers->reject(function ($t) use ($teamWithFewestStars) {
+                            return $t->id === $teamWithFewestStars->id;
+                        });
+                    } else {
+                        // Resort the teams list after updating the star player count
+                        $teamsWithFewMembers = $teamsWithFewMembers->sortBy('star_player_count');
+                    }
+
+                    $remainingFreeAgents--;
+                }
+            }
+
+            // Assign remaining free agents to teams
             foreach ($freeAgents as $agent) {
                 if ($remainingFreeAgents <= 0) break;
 
@@ -148,8 +184,8 @@ class TransactionsController extends Controller
 
                 // Remove the team from the list if it no longer needs more players
                 if ($playersNeeded <= 1) {
-                    $teamsWithFewMembers = $teamsWithFewMembers->filter(function ($t) use ($team) {
-                        return $t->id !== $team->id;
+                    $teamsWithFewMembers = $teamsWithFewMembers->reject(function ($t) use ($team) {
+                        return $t->id === $team->id;
                     });
                 }
 
@@ -181,7 +217,6 @@ class TransactionsController extends Controller
             ]);
         }
     }
-
     private function determineContractYears($role)
     {
         switch ($role) {

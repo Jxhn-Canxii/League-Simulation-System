@@ -337,36 +337,45 @@ class PlayersController extends Controller
         $contractYears = 0; // Random contract years between 1 and 5
 
         // Randomize player role
-        $roles = ['starter', 'star player', 'role player', 'bench'];
-        $role = $roles[array_rand($roles)];
+        $random = rand(1, 100);  // Generate a random number between 1 and 100
+        if ($random <= 15) {
+            $role = 'star player';  // 15% chance
+        } elseif ($random <= 45) {
+            $role = 'starter';      // 30% chance
+        } elseif ($random <= 75) {
+            $role = 'role player';  // 30% chance
+        } else {
+            $role = 'bench';        // 25% chance
+        }
 
         // Randomize player ratings based on role
         switch ($role) {
             case 'star player':
-                $shootingRating = rand(80, 100);
-                $defenseRating = rand(80, 100);
-                $passingRating = rand(80, 100);
-                $reboundingRating = rand(80, 100);
+                $shootingRating = rand(85, 100); // Shooting is usually high
+                $defenseRating = rand(75, 95);   // Good defense but not always elite
+                $passingRating = rand(80, 95);   // Playmaking ability is strong
+                $reboundingRating = rand(75, 90); // Rebounding is typically good
                 break;
             case 'starter':
-                $shootingRating = rand(70, 90);
-                $defenseRating = rand(70, 90);
-                $passingRating = rand(70, 90);
-                $reboundingRating = rand(70, 90);
+                $shootingRating = rand(75, 90);  // Good shooters but not as elite
+                $defenseRating = rand(70, 85);   // Solid defense but not top-tier
+                $passingRating = rand(70, 85);   // Passing is good, not exceptional
+                $reboundingRating = rand(70, 85); // Good, balanced rebounding
                 break;
             case 'role player':
-                $shootingRating = rand(60, 80);
-                $defenseRating = rand(60, 80);
-                $passingRating = rand(60, 80);
-                $reboundingRating = rand(60, 80);
+                $shootingRating = rand(65, 80);  // Some role players can shoot well, others not as much
+                $defenseRating = rand(65, 85);   // Role players often excel in defense
+                $passingRating = rand(60, 80);   // Passing varies more for role players
+                $reboundingRating = rand(65, 85); // Role players often contribute in rebounding
                 break;
             case 'bench':
-                $shootingRating = rand(50, 70);
-                $defenseRating = rand(50, 70);
-                $passingRating = rand(50, 70);
-                $reboundingRating = rand(50, 70);
+                $shootingRating = rand(50, 70);  // Less scoring ability
+                $defenseRating = rand(55, 75);   // Bench players may have defensive specialties
+                $passingRating = rand(50, 70);   // Passing abilities are typically lower
+                $reboundingRating = rand(55, 75); // Bench players often provide hustle on the boards
                 break;
         }
+
 
         // Calculate overall rating
         $overallRating = ($shootingRating + $defenseRating + $passingRating + $reboundingRating) / 4;
@@ -398,9 +407,6 @@ class PlayersController extends Controller
             'player' => $player,
         ]);
     }
-
-
-
     // Generate a random age ensuring it is either at least 19 or exactly 30
     private function generateRandomAge()
     {
