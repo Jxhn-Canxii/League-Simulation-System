@@ -54,7 +54,8 @@ class AwardsController extends Controller
                     DB::raw('AVG(steals) as avg_steals_per_game'),
                     DB::raw('AVG(blocks) as avg_blocks_per_game'),
                     DB::raw('AVG(turnovers) as avg_turnovers_per_game'),
-                    DB::raw('AVG(fouls) as avg_fouls_per_game')
+                    DB::raw('AVG(fouls) as avg_fouls_per_game'),
+                    DB::raw('AVG(minutes) as avg_minutes_per_game')
                 )
                 ->groupBy('player_id')
                 ->first();
@@ -75,6 +76,7 @@ class AwardsController extends Controller
                     ],
                     [
                         'role' => $playerRating->role ?? $player->role,  // Role from player_ratings, default to 'unknown'
+                        'avg_minutes_per_game' => $playerStats->avg_minutes_per_game,
                         'avg_points_per_game' => $playerStats->avg_points_per_game,
                         'avg_rebounds_per_game' => $playerStats->avg_rebounds_per_game,
                         'avg_assists_per_game' => $playerStats->avg_assists_per_game,

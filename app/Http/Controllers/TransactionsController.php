@@ -86,9 +86,12 @@ class TransactionsController extends Controller
         // Fetch teams with fewer than 12 players
         $teamsWithFewMembers = DB::table('teams')
             ->leftJoin('players', 'teams.id', '=', 'players.team_id')
-            ->select('teams.id', 'teams.name',
+            ->select(
+                'teams.id',
+                'teams.name',
                 DB::raw('COUNT(players.id) as player_count'),
-                DB::raw('SUM(CASE WHEN players.role = "star player" THEN 1 ELSE 0 END) as star_player_count'))
+                DB::raw('SUM(CASE WHEN players.role = "star player" THEN 1 ELSE 0 END) as star_player_count')
+            )
             ->groupBy('teams.id', 'teams.name')
             ->havingRaw('COUNT(players.id) < 12')
             ->get();
