@@ -435,7 +435,7 @@ class PlayersController extends Controller
         // Generate random attributes
         $age = mt_rand(18, 25);
         $retirementAge = rand($age + 1, 45); // Retirement age should be greater than current age
-        $injuryPronePercentage = rand(0, 100); // Random injury-prone percentage between 0 and 100
+        $injuryPronePercentage = rand(0, 30); // Random injury-prone percentage between 0 and 100
         $contractYears = 0; // Random contract years between 1 and 5
 
         // Randomize player role
@@ -443,33 +443,37 @@ class PlayersController extends Controller
         $role = $roles[array_rand($roles)];
 
         // Randomize player ratings based on role
-        switch ($role) {
-            case 'star player':
-                $shootingRating = rand(85, 100); // Shooting is usually high
-                $defenseRating = rand(75, 95);   // Good defense but not always elite
-                $passingRating = rand(80, 95);   // Playmaking ability is strong
-                $reboundingRating = rand(75, 90); // Rebounding is typically good
-                break;
-            case 'starter':
-                $shootingRating = rand(75, 90);  // Good shooters but not as elite
-                $defenseRating = rand(70, 85);   // Solid defense but not top-tier
-                $passingRating = rand(70, 85);   // Passing is good, not exceptional
-                $reboundingRating = rand(70, 85); // Good, balanced rebounding
-                break;
-            case 'role player':
-                $shootingRating = rand(65, 80);  // Some role players can shoot well, others not as much
-                $defenseRating = rand(65, 85);   // Role players often excel in defense
-                $passingRating = rand(60, 80);   // Passing varies more for role players
-                $reboundingRating = rand(65, 85); // Role players often contribute in rebounding
-                break;
-            case 'bench':
-                $shootingRating = rand(50, 70);  // Less scoring ability
-                $defenseRating = rand(55, 75);   // Bench players may have defensive specialties
-                $passingRating = rand(50, 70);   // Passing abilities are typically lower
-                $reboundingRating = rand(55, 75); // Bench players often provide hustle on the boards
-                break;
-        }
+        // switch ($role) {
+        //     case 'star player':
+        //         $shootingRating = rand(85, 100); // Shooting is usually high
+        //         $defenseRating = rand(75, 95);   // Good defense but not always elite
+        //         $passingRating = rand(80, 95);   // Playmaking ability is strong
+        //         $reboundingRating = rand(75, 90); // Rebounding is typically good
+        //         break;
+        //     case 'starter':
+        //         $shootingRating = rand(75, 90);  // Good shooters but not as elite
+        //         $defenseRating = rand(70, 85);   // Solid defense but not top-tier
+        //         $passingRating = rand(70, 85);   // Passing is good, not exceptional
+        //         $reboundingRating = rand(70, 85); // Good, balanced rebounding
+        //         break;
+        //     case 'role player':
+        //         $shootingRating = rand(65, 80);  // Some role players can shoot well, others not as much
+        //         $defenseRating = rand(65, 85);   // Role players often excel in defense
+        //         $passingRating = rand(60, 80);   // Passing varies more for role players
+        //         $reboundingRating = rand(65, 85); // Role players often contribute in rebounding
+        //         break;
+        //     case 'bench':
+        //         $shootingRating = rand(50, 70);  // Less scoring ability
+        //         $defenseRating = rand(55, 75);   // Bench players may have defensive specialties
+        //         $passingRating = rand(50, 70);   // Passing abilities are typically lower
+        //         $reboundingRating = rand(55, 75); // Bench players often provide hustle on the boards
+        //         break;
+        // }
 
+        $shootingRating = rand(40, 99); // Shooting is usually high
+        $defenseRating = rand(40, 99);   // Good defense but not always elite
+        $passingRating = rand(40, 99);   // Playmaking ability is strong
+        $reboundingRating = rand(40, 99); // Rebounding is typically good
 
         // Calculate overall rating
         $overallRating = ($shootingRating + $defenseRating + $passingRating + $reboundingRating) / 4;

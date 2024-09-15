@@ -64,22 +64,27 @@ class RatingsController extends Controller
 
             // Rank players and assign roles
             $rankedPlayers = $stats->values();
-            // Update player roles based on the new distribution: 2 star players, 3 starters, 4 role players, 3 bench players
+            // Update player roles based on the new distribution: 3 star players, 2 starters, 4 role players, 3 bench players
             foreach ($rankedPlayers->take(3) as $playerStat) {
+                // Top 3 players become star players
                 Player::where('id', $playerStat->player_id)->update(['role' => 'star player']);
             }
 
-            foreach ($rankedPlayers->slice(3, 3) as $playerStat) {
+            foreach ($rankedPlayers->slice(3, 2) as $playerStat) {
+                // Next 2 players become starters
                 Player::where('id', $playerStat->player_id)->update(['role' => 'starter']);
             }
 
             foreach ($rankedPlayers->slice(5, 4) as $playerStat) {
+                // Next 4 players become role players
                 Player::where('id', $playerStat->player_id)->update(['role' => 'role player']);
             }
 
             foreach ($rankedPlayers->slice(9, 3) as $playerStat) {
+                // Last 3 players become bench players
                 Player::where('id', $playerStat->player_id)->update(['role' => 'bench']);
             }
+
 
 
             // Fetch updated players
@@ -140,7 +145,7 @@ class RatingsController extends Controller
                 if (rand(1, 100) <= 20) {
                     // 10% chance to be injury-prone
                     // Assign a random value between 10 and 100 in increments of 10
-                    $player->injury_prone_percentage = rand(1, 10) * 10;
+                    $player->injury_prone_percentage = rand(0, 30);
                 } else {
                     $player->injury_prone_percentage = 0;
                 }
