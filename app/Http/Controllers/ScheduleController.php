@@ -1373,6 +1373,7 @@ class ScheduleController extends Controller
                                    'updated_at' => now(),
                                ]
                            );
+                        }
                     }
                 }
 
