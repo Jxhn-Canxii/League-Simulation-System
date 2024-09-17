@@ -1316,7 +1316,7 @@ class ScheduleController extends Controller
 
                     // Simulate player stats for overtime
                     foreach ($homePlayers as $player) {
-                        if (isset($homeMinutes[$player->id]) && $homeMinutes[$player->id] > 0) {
+                        if (isset($homeMinutes[$player['id']])) {
                             // Simulate overtime performance
                             $overtimeMinutes = $additionalMinutes;
                             $points = round(($player->shooting_rating / 100) * rand(0, 10 * ($overtimeMinutes / 6)));
@@ -1346,7 +1346,7 @@ class ScheduleController extends Controller
                     }
 
                     foreach ($awayPlayers as $player) {
-                        if (isset($awayMinutes[$player->id]) && $awayMinutes[$player->id] > 0) {
+                        if (isset($awayMinutes[$player['id']])) {
                             // Simulate overtime performance
                             $overtimeMinutes = $additionalMinutes;
                             $points = round(($player->shooting_rating / 100) * rand(0, 10 * ($overtimeMinutes / 6)));
