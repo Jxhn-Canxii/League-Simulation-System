@@ -27,17 +27,6 @@
                     v-if="seasons.is_new_season == 2"
                 >
                     <button
-                        @click.prevent="updatePlayerStatus()"
-                        class="px-2 py-2 bg-blue-500 rounded font-bold text-md float-end text-white shadow"
-                    >
-                        <i class="fa fa-users"></i> Update Player Status
-                    </button>
-                </div>
-                <div
-                    class="flex overflow-hidden justify-end gap-5 p-2"
-                    v-if="seasons.is_new_season == 3 || seasons.is_new_season == 5"
-                >
-                    <button
                         @click.prevent="isPlayerSigningModalOpen = true"
                         v-bind:class="{
                             'opacity-25': isPlayerSigningModalOpen,
@@ -50,7 +39,22 @@
                 </div>
                 <div
                     class="flex overflow-hidden justify-end gap-5 p-2"
-                    v-if="seasons.is_new_season == 4 || seasons.is_new_season == 5"
+                    v-if="
+                        seasons.is_new_season == 3 || seasons.is_new_season == 5
+                    "
+                >
+                    <button
+                        @click.prevent="updatePlayerStatus()"
+                        class="px-2 py-2 bg-blue-500 rounded font-bold text-md float-end text-white shadow"
+                    >
+                        <i class="fa fa-users"></i> Update Player Status
+                    </button>
+                </div>
+                <div
+                    class="flex overflow-hidden justify-end gap-5 p-2"
+                    v-if="
+                        seasons.is_new_season == 4 || seasons.is_new_season == 5
+                    "
                 >
                     <button
                         @click.prevent="isAddModalOpen = true"
@@ -73,40 +77,66 @@
                         class="mt-1 p-2 text-md shadow border rounded-md w-full"
                     />
                 </div>
-                <table class="w-full whitespace-no-wrap overflow-x-auto border border-gray-200">
+                <table
+                    class="w-full whitespace-no-wrap overflow-x-auto border border-gray-200"
+                >
                     <thead>
-                        <tr class="border-b bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                            <th class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                        <tr
+                            class="border-b bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
+                        >
+                            <th
+                                class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
+                            >
                                 Season
                             </th>
-                            <th class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                            <th
+                                class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
+                            >
                                 Finals MVP
                             </th>
-                            <th class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                            <th
+                                class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
+                            >
                                 Finals Champion
                             </th>
-                            <th class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                            <th
+                                class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
+                            >
                                 Finals Runner Up
                             </th>
-                            <th class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                            <th
+                                class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
+                            >
                                 Regular Champion
                             </th>
-                            <th class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                            <th
+                                class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
+                            >
                                 West
                             </th>
-                            <th class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                            <th
+                                class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
+                            >
                                 East
                             </th>
-                            <th class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                            <th
+                                class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
+                            >
                                 North
                             </th>
-                            <th class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                            <th
+                                class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
+                            >
                                 South
                             </th>
-                            <th class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                            <th
+                                class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
+                            >
                                 Worst
                             </th>
-                            <th class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                            <th
+                                class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
+                            >
                                 Action
                             </th>
                         </tr>
@@ -120,49 +150,141 @@
                                 season.finals_winner_id === season.champion_id
                                     ? 'bg-stone-700 text-yellow-400 font-extrabold'
                                     : '',
-                                season.winner_conference_name === season.loser_conference_name
+                                season.winner_conference_name ===
+                                season.loser_conference_name
                                     ? 'bg-slate-600 text-yellow-500 font-extrabold'
                                     : '',
-                                index > 0 && seasons.seasons[index - 1].champion_name === season.champion_name
+                                index > 0 &&
+                                seasons.seasons[index - 1].champion_name ===
+                                    season.champion_name
                                     ? 'bg-green-200'
                                     : '',
                                 'border border-gray-200',
                             ]"
                         >
                             <td class="border px-1 py-1 text-xs text-nowrap">
-                                <p class="whitespace-no-wrap uppercase">{{ season.name }}</p>
+                                <p class="whitespace-no-wrap uppercase">
+                                    {{ season.name }}
+                                </p>
                             </td>
-                            <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap">
+                            <td
+                                class="border border-gray-200 px-1 py-1 text-xs text-nowrap"
+                            >
                                 <p>{{ season.finals_mvp ?? "TBD" }}</p>
                             </td>
-                            <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap">
-                                <p class="font-extrabold text-yellow-500">{{ season.finals_winner_name ?? "TBD" }} ({{ season.finals_winner_score > season.finals_loser_score ? season.finals_winner_score : season.finals_loser_score }})</p>
+                            <td
+                                class="border border-gray-200 px-1 py-1 text-xs text-nowrap"
+                            >
+                                <p class="font-extrabold text-yellow-500">
+                                    {{ season.finals_winner_name ?? "TBD" }} ({{
+                                        season.finals_winner_score >
+                                        season.finals_loser_score
+                                            ? season.finals_winner_score
+                                            : season.finals_loser_score
+                                    }})
+                                </p>
                             </td>
-                            <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap">
-                                <p>{{ season.finals_loser_name ?? "TBD" }} ({{ season.finals_winner_score < season.finals_loser_score ? season.finals_winner_score : season.finals_loser_score }})</p>
+                            <td
+                                class="border border-gray-200 px-1 py-1 text-xs text-nowrap"
+                            >
+                                <p>
+                                    {{ season.finals_loser_name ?? "TBD" }} ({{
+                                        season.finals_winner_score <
+                                        season.finals_loser_score
+                                            ? season.finals_winner_score
+                                            : season.finals_loser_score
+                                    }})
+                                </p>
                             </td>
-                            <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap">
-                                <p>{{ season.type == 1 ? "n/a" : season.champion_name }}</p>
+                            <td
+                                class="border border-gray-200 px-1 py-1 text-xs text-nowrap"
+                            >
+                                <p>
+                                    {{
+                                        season.type == 1
+                                            ? "n/a"
+                                            : season.champion_name
+                                    }}
+                                </p>
                             </td>
-                            <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap bg-red-100">
-                                <p :class="season.finals_winner_id == season.west_champion_id ? 'font-bold text-red-500' : ''">{{ season.west_champion_name ?? "TBD" }}</p>
+                            <td
+                                class="border border-gray-200 px-1 py-1 text-xs text-nowrap bg-red-100"
+                            >
+                                <p
+                                    :class="
+                                        season.finals_winner_id ==
+                                        season.west_champion_id
+                                            ? 'font-bold text-red-500'
+                                            : ''
+                                    "
+                                >
+                                    {{ season.west_champion_name ?? "TBD" }}
+                                </p>
                             </td>
-                            <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap bg-blue-100">
-                                <p :class="season.finals_winner_id == season.east_champion_id ? 'font-bold text-blue-500' : ''">{{ season.east_champion_name ?? "TBD" }}</p>
+                            <td
+                                class="border border-gray-200 px-1 py-1 text-xs text-nowrap bg-blue-100"
+                            >
+                                <p
+                                    :class="
+                                        season.finals_winner_id ==
+                                        season.east_champion_id
+                                            ? 'font-bold text-blue-500'
+                                            : ''
+                                    "
+                                >
+                                    {{ season.east_champion_name ?? "TBD" }}
+                                </p>
                             </td>
-                            <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap bg-green-100">
-                                <p :class="season.finals_winner_id == season.north_champion_id ? 'font-bold text-green-500' : ''">{{ season.north_champion_name ?? "TBD" }}</p>
+                            <td
+                                class="border border-gray-200 px-1 py-1 text-xs text-nowrap bg-green-100"
+                            >
+                                <p
+                                    :class="
+                                        season.finals_winner_id ==
+                                        season.north_champion_id
+                                            ? 'font-bold text-green-500'
+                                            : ''
+                                    "
+                                >
+                                    {{ season.north_champion_name ?? "TBD" }}
+                                </p>
                             </td>
-                            <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap bg-yellow-100">
-                                <p :class="season.finals_winner_id == season.south_champion_id ? 'font-bold text-yellow-500' : ''">{{ season.south_champion_name ?? "TBD" }}</p>
+                            <td
+                                class="border border-gray-200 px-1 py-1 text-xs text-nowrap bg-yellow-100"
+                            >
+                                <p
+                                    :class="
+                                        season.finals_winner_id ==
+                                        season.south_champion_id
+                                            ? 'font-bold text-yellow-500'
+                                            : ''
+                                    "
+                                >
+                                    {{ season.south_champion_name ?? "TBD" }}
+                                </p>
                             </td>
-                            <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap">
-                                <p>{{ season.type == 1 ? "n/a" : season.weakest_name }}</p>
+                            <td
+                                class="border border-gray-200 px-1 py-1 text-xs text-nowrap"
+                            >
+                                <p>
+                                    {{
+                                        season.type == 1
+                                            ? "n/a"
+                                            : season.weakest_name
+                                    }}
+                                </p>
                             </td>
-                            <td class="border border-gray-200 px-1 py-1 text-xs text-nowrap">
+                            <td
+                                class="border border-gray-200 px-1 py-1 text-xs text-nowrap"
+                            >
                                 <button
-                                    @click.prevent="(isViewModalOpen = true), (season_id = season.id)"
-                                    v-bind:class="{ 'opacity-25': isViewModalOpen }"
+                                    @click.prevent="
+                                        (isViewModalOpen = true),
+                                            (season_id = season.id)
+                                    "
+                                    v-bind:class="{
+                                        'opacity-25': isViewModalOpen,
+                                    }"
                                     v-bind:disabled="isViewModalOpen"
                                     class="px-1 py-1 bg-blue-500 mb-2 rounded font-bold text-xs text-white shadow"
                                 >
@@ -171,8 +293,13 @@
                             </td>
                         </tr>
                         <tr v-else>
-                            <td colspan="11" class="border-b text-center font-bold text-sm border-gray-200 bg-white px-2 py-1">
-                                <p class="text-red-500 whitespace-no-wrap">No Data Found!</p>
+                            <td
+                                colspan="11"
+                                class="border-b text-center font-bold text-sm border-gray-200 bg-white px-2 py-1"
+                            >
+                                <p class="text-red-500 whitespace-no-wrap">
+                                    No Data Found!
+                                </p>
                             </td>
                         </tr>
                     </tbody>
@@ -248,28 +375,28 @@
                                 >
                             </li>
                             <li
-                            @click="changeTab('Awards')"
-                            :class="{
-                                'text-yellow-500 border-b-2 border-yellow-500':
-                                    currentTab === 'Awards',
-                            }"
-                            class="whitespace-nowrap group flex items-center px-3 py-2 cursor-pointer relative flex-shrink-0 max-w-xs"
-                        >
-                            <i
-                                class="fa fa-medal mr-2 text-gray-500 group-hover:text-yellow-500"
-                                title="Playoffs"
-                            ></i>
-                            <span
-                                class="text-truncate hidden sm:inline md:inline"
-                                >Awards</span
+                                @click="changeTab('Awards')"
+                                :class="{
+                                    'text-yellow-500 border-b-2 border-yellow-500':
+                                        currentTab === 'Awards',
+                                }"
+                                class="whitespace-nowrap group flex items-center px-3 py-2 cursor-pointer relative flex-shrink-0 max-w-xs"
                             >
-                            <!-- Warning Badge Notification Counter -->
-                            <span
-                                hidden
-                                class="bg-red-500 text-white rounded-full h-4 w-4 text-center m-1 text-xs"
-                                >6</span
-                            >
-                        </li>
+                                <i
+                                    class="fa fa-medal mr-2 text-gray-500 group-hover:text-yellow-500"
+                                    title="Playoffs"
+                                ></i>
+                                <span
+                                    class="text-truncate hidden sm:inline md:inline"
+                                    >Awards</span
+                                >
+                                <!-- Warning Badge Notification Counter -->
+                                <span
+                                    hidden
+                                    class="bg-red-500 text-white rounded-full h-4 w-4 text-center m-1 text-xs"
+                                    >6</span
+                                >
+                            </li>
                         </ul>
                     </div>
                     <!-- Modify the existing content based on the currentTab -->
@@ -458,12 +585,17 @@
             <Modal :show="isPlayerAwardsModalOpen" :maxWidth="'6xl'">
                 <button
                     class="flex float-end bg-gray-100 p-3"
-                    @click.prevent="isPlayerAwardsModalOpen = false,fetchSeasons()"
+                    @click.prevent="
+                        (isPlayerAwardsModalOpen = false), fetchSeasons()
+                    "
                 >
                     <i class="fa fa-times text-black-600"></i>
                 </button>
                 <div class="mt-4 p-3 block">
-                    <Awards @newSeason="handleNewSeason" :team_ids="seasons.team_ids" />
+                    <Awards
+                        @newSeason="handleNewSeason"
+                        :team_ids="seasons.team_ids"
+                    />
                 </div>
             </Modal>
         </AuthenticatedLayout>
@@ -588,7 +720,7 @@ const updatePlayerStatus = async () => {
             const is_last = i === team_ids.length - 1;
 
             // Update player status for each team and get the response
-            await updatePlayerStatusPerTeam(i,team_id, is_last);
+            await updatePlayerStatusPerTeam(i, team_id, is_last);
         }
         await fetchSeasons(); // Refresh seasons after each team update
     } catch (error) {
@@ -617,11 +749,13 @@ const updatePlayerStatusPerTeam = async (index, team_id, is_last) => {
         const improvedPlayers = response.data.improved_players || [];
         const declinedPlayers = response.data.declined_players || [];
         const reSignedPlayers = response.data.re_signed_players || [];
-        const teamName = response.data.team_name || 'none';
+        const teamName = response.data.team_name || "none";
 
         // Build the HTML message for Swal
         let htmlMessage = `
-            <p style="font-size: 12px;">Player status for team #${index + 1} ${teamName} has been updated.</p>
+            <p style="font-size: 12px;">Player status for team #${
+                index + 1
+            } ${teamName} has been updated.</p>
             <div style="display: flex; flex-direction: column; align-items: center;">
 
                 <!-- Improved Players Table -->
@@ -635,13 +769,17 @@ const updatePlayerStatusPerTeam = async (index, team_id, is_last) => {
                         </tr>
                     </thead>
                     <tbody>
-                        ${improvedPlayers.map(player => `
+                        ${improvedPlayers
+                            .map(
+                                (player) => `
                             <tr>
                                 <td style="border: 1px solid #ddd; padding: 4px;">${player.name}</td>
                                 <td style="border: 1px solid #ddd; padding: 4px;">${player.role}</td>
                                 <td style="border: 1px solid #ddd; padding: 4px;">${player.contract_years} years</td>
                             </tr>
-                        `).join('')}
+                        `
+                            )
+                            .join("")}
                     </tbody>
                 </table>
 
@@ -656,13 +794,17 @@ const updatePlayerStatusPerTeam = async (index, team_id, is_last) => {
                         </tr>
                     </thead>
                     <tbody>
-                        ${declinedPlayers.map(player => `
+                        ${declinedPlayers
+                            .map(
+                                (player) => `
                             <tr>
                                 <td style="border: 1px solid #ddd; padding: 4px;">${player.name}</td>
                                 <td style="border: 1px solid #ddd; padding: 4px;">${player.role}</td>
                                 <td style="border: 1px solid #ddd; padding: 4px;">${player.contract_years} years</td>
                             </tr>
-                        `).join('')}
+                        `
+                            )
+                            .join("")}
                     </tbody>
                 </table>
 
@@ -677,13 +819,17 @@ const updatePlayerStatusPerTeam = async (index, team_id, is_last) => {
                         </tr>
                     </thead>
                     <tbody>
-                        ${reSignedPlayers.map(player => `
+                        ${reSignedPlayers
+                            .map(
+                                (player) => `
                             <tr>
                                 <td style="border: 1px solid #ddd; padding: 4px;">${player.name}</td>
                                 <td style="border: 1px solid #ddd; padding: 4px;">${player.role}</td>
                                 <td style="border: 1px solid #ddd; padding: 4px;">${player.contract_years} years</td>
                             </tr>
-                        `).join('')}
+                        `
+                            )
+                            .join("")}
                     </tbody>
                 </table>
             </div>
@@ -694,7 +840,7 @@ const updatePlayerStatusPerTeam = async (index, team_id, is_last) => {
             title: `Team ${teamName} Player Update`,
             html: htmlMessage,
             showConfirmButton: true,
-            position: 'top', // Position the alert at the top of the screen
+            position: "top", // Position the alert at the top of the screen
         });
 
         // Close the processing status alert
@@ -724,7 +870,7 @@ const seasonsDropdown = async () => {
         const response = await axios.post(route("seasons.dropdown"), {
             season_id: 0,
         });
-        localStorage.setItem('seasons',JSON.stringify(response.data));
+        localStorage.setItem("seasons", JSON.stringify(response.data));
     } catch (error) {
         console.error("Error fetching team info:", error);
     }

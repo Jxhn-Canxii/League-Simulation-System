@@ -41,6 +41,28 @@ class AwardsController extends Controller
             ->get();
 
         foreach ($players as $player) {
+
+            // Deduct contract_years by 1 and increment age by 1
+            $updatedContractYears = $player->contract_years - 1;
+            $updatedAge = $player->age + 1;
+            $isRookie = 0; // All players are no longer rookies
+
+            // Check for retirement
+            $isActive = $player->age < $player->retirement_age ? 1 : 0;
+            $teamIdForRetired = $isActive == 1 ? $teamId : 0;
+
+            // Update the player's age, contract_years, and is_rookie status
+            DB::table('players')
+                ->where('id', $player->id)
+                ->update([
+                    'contract_years' => $updatedContractYears,
+                    'age' => $updatedAge,
+                    'is_rookie' => $isRookie,
+                    'is_active' => $isActive,
+                    'team_id' => $teamIdForRetired,
+                    'updated_at' => now(),
+                ]);
+
             // Get the aggregated stats for the player in the specified season
             $playerStats = DB::table('player_game_stats')
                 ->where('player_id', $player->id)
@@ -137,7 +159,7 @@ class AwardsController extends Controller
         $seasonId = $request->input('season_id');
         $awardsName = $request->input('awards_name');
         // Fetch awards along with player and team names for the updated season
-        if($seasonId > 0){
+        if ($seasonId > 0) {
             $awards = DB::table('season_awards')
                 ->leftJoin('players', 'season_awards.player_id', '=', 'players.id')
                 ->leftJoin('teams', 'season_awards.team_id', '=', 'teams.id')
@@ -155,24 +177,24 @@ class AwardsController extends Controller
                 )
                 ->orderBy('season_awards.id', 'desc')  // Order by id in descending order
                 ->get();
-        }else{
+        } else {
             $awards = DB::table('season_awards')
-            ->leftJoin('players', 'season_awards.player_id', '=', 'players.id')
-            ->leftJoin('teams', 'season_awards.team_id', '=', 'teams.id')
-            ->where('season_awards.award_name', $awardsName)
-            ->select(
-                'season_awards.id',
-                'season_awards.player_id',
-                'players.name as player_name',
-                'teams.name as team_name',
-                'season_awards.award_name',
-                'season_awards.award_description',
-                'season_awards.season_id',
-                'season_awards.team_id',
-                'season_awards.created_at'
-            )
-            ->orderBy('season_awards.id', 'desc')  // Order by id in descending order
-            ->get();
+                ->leftJoin('players', 'season_awards.player_id', '=', 'players.id')
+                ->leftJoin('teams', 'season_awards.team_id', '=', 'teams.id')
+                ->where('season_awards.award_name', $awardsName)
+                ->select(
+                    'season_awards.id',
+                    'season_awards.player_id',
+                    'players.name as player_name',
+                    'teams.name as team_name',
+                    'season_awards.award_name',
+                    'season_awards.award_description',
+                    'season_awards.season_id',
+                    'season_awards.team_id',
+                    'season_awards.created_at'
+                )
+                ->orderBy('season_awards.id', 'desc')  // Order by id in descending order
+                ->get();
         }
 
         return response()->json([

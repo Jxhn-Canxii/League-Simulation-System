@@ -112,9 +112,6 @@ class RatingsController extends Controller
                 ];
                 $oldRole = $player->role;
 
-                // Deduct contract_years by 1
-                $player->contract_years -= 1;
-                $player->is_rookie = 0;
 
                 // Check if contract_years is 0
                 if ($player->contract_years == 0) {
@@ -137,9 +134,6 @@ class RatingsController extends Controller
                         $player->team_id = 0;
                     }
                 }
-
-                // Increment age by 1
-                $player->age += 1;
 
                 // Determine if the player should have an injury_prone_percentage of 0
                 if (rand(1, 100) <= 20) {
@@ -178,12 +172,6 @@ class RatingsController extends Controller
                 } elseif ($player->overall_rating < $oldRatings['overall'] || $this->rolePriority[$player->role] > $this->rolePriority[$oldRole]) {
                     // Player declined if the overall rating decreased or the role was demoted (lower priority)
                     $declinedPlayers[] = $player;
-                }
-
-                // Check for retirement
-                if ($player->age >= $player->retirement_age) {
-                    $player->is_active = 0;
-                    $player->team_id = 0;
                 }
 
                 // Save the updated player data
@@ -242,7 +230,7 @@ class RatingsController extends Controller
                 // Update season status
                 $season = Seasons::find($seasonId);
                 if ($season) {
-                    $season->status = 10;
+                    $season->status = 11;
                     $season->save();
                 } else {
                     \Log::warning('Season not found for ID:', ['seasonId' => $seasonId]);
