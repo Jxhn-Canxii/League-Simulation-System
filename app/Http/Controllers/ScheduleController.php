@@ -1319,16 +1319,16 @@ class ScheduleController extends Controller
                         if (isset($homeMinutes[$player['id']])) {
                             // Simulate overtime performance
                             $overtimeMinutes = $additionalMinutes;
-                            $points = round(($player->shooting_rating / 100) * rand(0, 10 * ($overtimeMinutes / 6)));
-                            $assists = round(($player->passing_rating / 100) * rand(0, 3 * ($overtimeMinutes / 6)));
-                            $rebounds = round(($player->rebounding_rating / 100) * rand(0, 3 * ($overtimeMinutes / 6)));
-                            $steals = round(($player->defense_rating / 100) * rand(0, 2 * ($overtimeMinutes / 6)));
-                            $blocks = round(($player->defense_rating / 100) * rand(0, 2 * ($overtimeMinutes / 6)));
+                            $points = round(($player['shooting_rating'] / 100) * rand(0, 10 * ($overtimeMinutes / 6)));
+                            $assists = round(($player['passing_rating'] / 100) * rand(0, 3 * ($overtimeMinutes / 6)));
+                            $rebounds = round(($player['rebounding_rating'] / 100) * rand(0, 3 * ($overtimeMinutes / 6)));
+                            $steals = round(($player['defense_rating'] / 100) * rand(0, 2 * ($overtimeMinutes / 6)));
+                            $blocks = round(($player['defense_rating'] / 100) * rand(0, 2 * ($overtimeMinutes / 6)));
 
                             // Update player game stats for overtime
                             PlayerGameStats::updateOrCreate(
                                 [
-                                    'player_id' => $player->id,
+                                    'player_id' => $player['id'],
                                     'game_id' => $schedule->game_id,
                                     'team_id' => $schedule->home_id,
                                     'season_id' => $seasonId
@@ -1348,31 +1348,31 @@ class ScheduleController extends Controller
                     foreach ($awayPlayers as $player) {
                         if (isset($awayMinutes[$player['id']])) {
                             // Simulate overtime performance
-                            $overtimeMinutes = $additionalMinutes;
-                            $points = round(($player->shooting_rating / 100) * rand(0, 10 * ($overtimeMinutes / 6)));
-                            $assists = round(($player->passing_rating / 100) * rand(0, 3 * ($overtimeMinutes / 6)));
-                            $rebounds = round(($player->rebounding_rating / 100) * rand(0, 3 * ($overtimeMinutes / 6)));
-                            $steals = round(($player->defense_rating / 100) * rand(0, 2 * ($overtimeMinutes / 6)));
-                            $blocks = round(($player->defense_rating / 100) * rand(0, 2 * ($overtimeMinutes / 6)));
+                           // Simulate overtime performance
+                           $overtimeMinutes = $additionalMinutes;
+                           $points = round(($player['shooting_rating'] / 100) * rand(0, 10 * ($overtimeMinutes / 6)));
+                           $assists = round(($player['passing_rating'] / 100) * rand(0, 3 * ($overtimeMinutes / 6)));
+                           $rebounds = round(($player['rebounding_rating'] / 100) * rand(0, 3 * ($overtimeMinutes / 6)));
+                           $steals = round(($player['defense_rating'] / 100) * rand(0, 2 * ($overtimeMinutes / 6)));
+                           $blocks = round(($player['defense_rating'] / 100) * rand(0, 2 * ($overtimeMinutes / 6)));
 
-                            // Update player game stats for overtime
-                            PlayerGameStats::updateOrCreate(
-                                [
-                                    'player_id' => $player->id,
-                                    'game_id' => $schedule->game_id,
-                                    'team_id' => $schedule->away_id,
-                                    'season_id' => $seasonId
-                                ],
-                                [
-                                    'points' => DB::raw('points + ' . $points),
-                                    'assists' => DB::raw('assists + ' . $assists),
-                                    'rebounds' => DB::raw('rebounds + ' . $rebounds),
-                                    'steals' => DB::raw('steals + ' . $steals),
-                                    'blocks' => DB::raw('blocks + ' . $blocks),
-                                    'updated_at' => now(),
-                                ]
-                            );
-                        }
+                           // Update player game stats for overtime
+                           PlayerGameStats::updateOrCreate(
+                               [
+                                   'player_id' => $player['id'],
+                                   'game_id' => $schedule->game_id,
+                                   'team_id' => $schedule->home_id,
+                                   'season_id' => $seasonId
+                               ],
+                               [
+                                   'points' => DB::raw('points + ' . $points),
+                                   'assists' => DB::raw('assists + ' . $assists),
+                                   'rebounds' => DB::raw('rebounds + ' . $rebounds),
+                                   'steals' => DB::raw('steals + ' . $steals),
+                                   'blocks' => DB::raw('blocks + ' . $blocks),
+                                   'updated_at' => now(),
+                               ]
+                           );
                     }
                 }
 
