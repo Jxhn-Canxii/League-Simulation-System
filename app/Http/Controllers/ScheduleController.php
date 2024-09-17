@@ -1289,22 +1289,14 @@ class ScheduleController extends Controller
                     }
                 }
 
-                $schedule->update([
-                    'home_score' => $homeScore,
-                    'away_score' => $awayScore,
-                    'status' => 2, // Set status to completed
-                    'updated_at' => now(),
-                ]);
                 // Handle overtimes if scores are tied
                 while ($homeScore === $awayScore) {
                     // Simulate an additional 6 minutes of play
                     $additionalMinutes = 6;
-                    $additionalHomeScore = rand(0, $additionalMinutes * 3); // Random points for additional minutes
-                    $additionalAwayScore = rand(0, $additionalMinutes * 3); // Random points for additional minutes
 
-                    // Update scores
-                    $homeScore += $additionalHomeScore;
-                    $awayScore += $additionalAwayScore;
+                    $homeMinutes = $this->distributeMinutes($homePlayers,  $additionalMinutes);
+                    $awayMinutes = $this->distributeMinutes($awayPlayers,  $additionalMinutes);
+
 
                     // Update game result with additional scores
                     $schedule->update([
@@ -1342,6 +1334,8 @@ class ScheduleController extends Controller
                                     'updated_at' => now(),
                                 ]
                             );
+
+                            $homeScore += $points;
                         }
                     }
 
@@ -1373,11 +1367,19 @@ class ScheduleController extends Controller
                                    'updated_at' => now(),
                                ]
                            );
+
+                           $awayScore += $points;
                         }
                     }
                 }
 
 
+                $schedule->update([
+                    'home_score' => $homeScore,
+                    'away_score' => $awayScore,
+                    'status' => 2, // Set status to completed
+                    'updated_at' => now(),
+                ]);
             }
 
             // Commit the transaction
