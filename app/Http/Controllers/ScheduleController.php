@@ -1382,6 +1382,20 @@ class ScheduleController extends Controller
                 ]);
             }
 
+
+            // Check if all rounds have been simulated for the season
+            $allRoundsSimulatedForSeason = Schedules::where('season_id', $seasonId)
+                ->where('status', 1)
+                ->doesntExist();
+
+            if ($allRoundsSimulatedForSeason) {
+                // Update the season's status to 2
+                $season = Seasons::find($seasonId);
+                if ($season) {
+                    $season->status = 2; // Example status for completed season
+                    $season->save();
+                }
+            }
             // Commit the transaction
             DB::commit();
 
