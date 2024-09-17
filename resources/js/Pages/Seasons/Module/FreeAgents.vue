@@ -39,7 +39,7 @@
                             <i class="fa fa-user"></i> Add Rookie Player
                         </button>
                         <button
-                            @click.prevent="addMultiplePlayers(1000)"
+                            @click.prevent="addMultiplePlayers(50)"
                             class="px-4 py-2 bg-green-700 text-white rounded mb-4 text-sm"
                         >
                             <i class="fa fa-user"></i> Add Rookie Player From Api
