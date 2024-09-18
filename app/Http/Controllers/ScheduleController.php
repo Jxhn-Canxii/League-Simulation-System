@@ -171,60 +171,49 @@ class ScheduleController extends Controller
 
             // Create player game stats for each game
             foreach ($matches as $match) {
-                // Retrieve home team players
                 $homeTeamPlayers = Player::where('team_id', $match['home_id'])->get();
-                // Retrieve away team players
                 $awayTeamPlayers = Player::where('team_id', $match['away_id'])->get();
 
-                // Process home team players
                 foreach ($homeTeamPlayers as $player) {
-                    // Check if the player is associated with the correct team
-                    if ($player->team_id === $match['home_id']) {
-                        PlayerGameStats::updateOrCreate(
-                            [
-                                'season_id' => $seasonId,
-                                'game_id' => $match['game_id'],
-                                'player_id' => $player->id,
-                                'team_id' => $match['home_id'],
-                            ],
-                            [
-                                'points' => 0,
-                                'rebounds' => 0,
-                                'assists' => 0,
-                                'steals' => 0,
-                                'blocks' => 0,
-                                'turnovers' => 0,
-                                'fouls' => 0,
-                            ]
-                        );
-                    }
+                    PlayerGameStats::updateOrCreate(
+                        [
+                            'season_id' => $seasonId,
+                            'game_id' => $match['game_id'],
+                            'player_id' => $player->id,
+                            'team_id' => $match['home_id'],
+                        ],
+                        [
+                            'points' => 0,
+                            'rebounds' => 0,
+                            'assists' => 0,
+                            'steals' => 0,
+                            'blocks' => 0,
+                            'turnovers' => 0,
+                            'fouls' => 0,
+                        ]
+                    );
                 }
 
-                // Process away team players
                 foreach ($awayTeamPlayers as $player) {
-                    // Check if the player is associated with the correct team
-                    if ($player->team_id === $match['away_id']) {
-                        PlayerGameStats::updateOrCreate(
-                            [
-                                'season_id' => $seasonId,
-                                'game_id' => $match['game_id'],
-                                'player_id' => $player->id,
-                                'team_id' => $match['away_id'],
-                            ],
-                            [
-                                'points' => 0,
-                                'rebounds' => 0,
-                                'assists' => 0,
-                                'steals' => 0,
-                                'blocks' => 0,
-                                'turnovers' => 0,
-                                'fouls' => 0,
-                            ]
-                        );
-                    }
+                    PlayerGameStats::updateOrCreate(
+                        [
+                            'season_id' => $seasonId,
+                            'game_id' => $match['game_id'],
+                            'player_id' => $player->id,
+                            'team_id' => $match['away_id'],
+                        ],
+                        [
+                            'points' => 0,
+                            'rebounds' => 0,
+                            'assists' => 0,
+                            'steals' => 0,
+                            'blocks' => 0,
+                            'turnovers' => 0,
+                            'fouls' => 0,
+                        ]
+                    );
                 }
             }
-
         }
     }
 
