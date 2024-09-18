@@ -24,6 +24,7 @@ class Player extends Model
         'retirement_age',
         'injury_prone_percentage',
         'role',
+        'type',
         'shooting_rating',
         'defense_rating',
         'passing_rating',

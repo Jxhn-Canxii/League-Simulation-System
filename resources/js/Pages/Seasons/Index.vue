@@ -27,14 +27,10 @@
                     v-if="seasons.is_new_season == 2"
                 >
                     <button
-                        @click.prevent="isPlayerSigningModalOpen = true"
-                        v-bind:class="{
-                            'opacity-25': isPlayerSigningModalOpen,
-                        }"
-                        v-bind:disabled="isPlayerSigningModalOpen"
-                        class="px-2 py-2 bg-red-500 rounded font-bold text-md float-end text-white shadow"
+                        @click.prevent="updatePlayerStatus()"
+                        class="px-2 py-2 bg-blue-500 rounded font-bold text-md float-end text-white shadow"
                     >
-                        <i class="fa fa-users"></i> Player Signings
+                        <i class="fa fa-users"></i> Update Player Status
                     </button>
                 </div>
                 <div
@@ -44,10 +40,14 @@
                     "
                 >
                     <button
-                        @click.prevent="updatePlayerStatus()"
-                        class="px-2 py-2 bg-blue-500 rounded font-bold text-md float-end text-white shadow"
+                        @click.prevent="isPlayerSigningModalOpen = true"
+                        v-bind:class="{
+                            'opacity-25': isPlayerSigningModalOpen,
+                        }"
+                        v-bind:disabled="isPlayerSigningModalOpen"
+                        class="px-2 py-2 bg-red-500 rounded font-bold text-md float-end text-white shadow"
                     >
-                        <i class="fa fa-users"></i> Update Player Status
+                        <i class="fa fa-users"></i> Player Signings
                     </button>
                 </div>
                 <div

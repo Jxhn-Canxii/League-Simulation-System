@@ -42,27 +42,6 @@ class AwardsController extends Controller
 
         foreach ($players as $player) {
 
-            // Deduct contract_years by 1 and increment age by 1
-            $updatedContractYears = $player->contract_years - 1;
-            $updatedAge = $player->age + 1;
-            $isRookie = 0; // All players are no longer rookies
-
-            // Check for retirement
-            $isActive = $player->age < $player->retirement_age ? 1 : 0;
-            $teamIdForRetired = $isActive == 1 ? $teamId : 0;
-
-            // Update the player's age, contract_years, and is_rookie status
-            DB::table('players')
-                ->where('id', $player->id)
-                ->update([
-                    'contract_years' => $updatedContractYears,
-                    'age' => $updatedAge,
-                    'is_rookie' => $isRookie,
-                    'is_active' => $isActive,
-                    'team_id' => $teamIdForRetired,
-                    'updated_at' => now(),
-                ]);
-
             // Get the aggregated stats for the player in the specified season
             $playerStats = DB::table('player_game_stats')
                 ->where('player_id', $player->id)

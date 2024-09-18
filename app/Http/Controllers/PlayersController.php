@@ -421,8 +421,6 @@ class PlayersController extends Controller
             'name' => 'required|string|max:255|unique:players,name',
         ]);
 
-        // Check if the team already has 12 players
-
         // Check if a player with the same name already exists in any team
         $existingPlayer = Player::where('name', $request->name)->first();
         if ($existingPlayer) {
@@ -435,45 +433,31 @@ class PlayersController extends Controller
         // Generate random attributes
         $age = mt_rand(18, 25);
         $retirementAge = rand($age + 1, 45); // Retirement age should be greater than current age
-        $injuryPronePercentage = rand(0, 30); // Random injury-prone percentage between 0 and 100
-        $contractYears = 0; // Random contract years between 1 and 5
+        $injuryPronePercentage = rand(0, 100); // Random injury-prone percentage between 0 and 100
+        $contractYears = rand(1, 5); // Random contract years between 1 and 5
+
+        // Get random archetype and attributes
+        $attributes = $this->getRandomArchetypeAndAttributes();
+        $selectedArchetype = $attributes['archetype'];
+        $shootingRating = $attributes['shooting_rating'];
+        $defenseRating = $attributes['defense_rating'];
+        $passingRating = $attributes['passing_rating'];
+        $reboundingRating = $attributes['rebounding_rating'];
 
         // Randomize player role
-        $roles = ['starter', 'star player', 'role player', 'bench'];
+        $roles = ['star player', 'starter', 'role player', 'bench'];
         $role = $roles[array_rand($roles)];
 
-        // Randomize player ratings based on role
-        // switch ($role) {
-        //     case 'star player':
-        //         $shootingRating = rand(85, 100); // Shooting is usually high
-        //         $defenseRating = rand(75, 95);   // Good defense but not always elite
-        //         $passingRating = rand(80, 95);   // Playmaking ability is strong
-        //         $reboundingRating = rand(75, 90); // Rebounding is typically good
-        //         break;
-        //     case 'starter':
-        //         $shootingRating = rand(75, 90);  // Good shooters but not as elite
-        //         $defenseRating = rand(70, 85);   // Solid defense but not top-tier
-        //         $passingRating = rand(70, 85);   // Passing is good, not exceptional
-        //         $reboundingRating = rand(70, 85); // Good, balanced rebounding
-        //         break;
-        //     case 'role player':
-        //         $shootingRating = rand(65, 80);  // Some role players can shoot well, others not as much
-        //         $defenseRating = rand(65, 85);   // Role players often excel in defense
-        //         $passingRating = rand(60, 80);   // Passing varies more for role players
-        //         $reboundingRating = rand(65, 85); // Role players often contribute in rebounding
-        //         break;
-        //     case 'bench':
-        //         $shootingRating = rand(50, 70);  // Less scoring ability
-        //         $defenseRating = rand(55, 75);   // Bench players may have defensive specialties
-        //         $passingRating = rand(50, 70);   // Passing abilities are typically lower
-        //         $reboundingRating = rand(55, 75); // Bench players often provide hustle on the boards
-        //         break;
-        // }
-
-        $shootingRating = rand(40, 99); // Shooting is usually high
-        $defenseRating = rand(40, 99);   // Good defense but not always elite
-        $passingRating = rand(40, 99);   // Playmaking ability is strong
-        $reboundingRating = rand(40, 99); // Rebounding is typically good
+        // Modify ratings slightly based on role if needed
+        switch ($role) {
+            case 'star player':
+                $shootingRating = min($shootingRating + rand(0, 10), 99);
+                $defenseRating = min($defenseRating + rand(0, 10), 99);
+                $passingRating = min($passingRating + rand(0, 10), 99);
+                $reboundingRating = min($reboundingRating + rand(0, 10), 99);
+                break;
+                // Add modifications for other roles as necessary
+        }
 
         // Calculate overall rating
         $overallRating = ($shootingRating + $defenseRating + $passingRating + $reboundingRating) / 4;
@@ -487,10 +471,11 @@ class PlayersController extends Controller
             'age' => $age,
             'retirement_age' => $retirementAge,
             'injury_prone_percentage' => $injuryPronePercentage,
-            'contract_years' => $contractYears,
+            'contract_years' => 0,
             'contract_expires_at' => $contractExpiresAt,
             'is_active' => true,
             'role' => $role,
+            'type' => $selectedArchetype, // Save archetype name
             'shooting_rating' => $shootingRating,
             'defense_rating' => $defenseRating,
             'passing_rating' => $passingRating,
@@ -506,6 +491,131 @@ class PlayersController extends Controller
         ]);
     }
 
+    /**
+     * Get a random archetype and its attributes.
+     *
+     * @return array
+     */
+    private function getRandomArchetypeAndAttributes()
+    {
+        // Define archetypes and their attribute ranges
+        // Define archetypes and their attribute ranges
+        $archetypes = [
+            'playmaker' => [
+                'shooting' => [70, 85],
+                'defense' => [65, 80],
+                'passing' => [85, 99],
+                'rebounding' => [60, 75],
+            ],
+            'defender' => [
+                'shooting' => [60, 75],
+                'defense' => [85, 99],
+                'passing' => [60, 75],
+                'rebounding' => [70, 85],
+            ],
+            'scorer' => [
+                'shooting' => [85, 99],
+                'defense' => [60, 75],
+                'passing' => [65, 80],
+                'rebounding' => [60, 75],
+            ],
+            'all-rounder' => [
+                'shooting' => [75, 90],
+                'defense' => [75, 90],
+                'passing' => [75, 90],
+                'rebounding' => [75, 90],
+            ],
+            'hustler' => [
+                'shooting' => [60, 75],
+                'defense' => [70, 85],
+                'passing' => [60, 75],
+                'rebounding' => [65, 80],
+            ],
+            'underperformer' => [
+                'shooting' => [50, 65],
+                'defense' => [50, 65],
+                'passing' => [50, 65],
+                'rebounding' => [50, 65],
+            ],
+            'project' => [
+                'shooting' => [40, 60],
+                'defense' => [40, 60],
+                'passing' => [40, 60],
+                'rebounding' => [40, 60],
+            ],
+            'journeyman' => [
+                'shooting' => [55, 70],
+                'defense' => [55, 70],
+                'passing' => [55, 70],
+                'rebounding' => [55, 70],
+            ],
+            'benchwarmer' => [
+                'shooting' => [45, 60],
+                'defense' => [45, 60],
+                'passing' => [45, 60],
+                'rebounding' => [45, 60],
+            ],
+            'shooter' => [
+                'shooting' => [80, 95],
+                'defense' => [50, 65],
+                'passing' => [55, 70],
+                'rebounding' => [50, 65],
+            ],
+            'playoff-clutch' => [
+                'shooting' => [75, 90],
+                'defense' => [70, 85],
+                'passing' => [70, 85],
+                'rebounding' => [65, 80],
+            ],
+            'spot-up-shooter' => [
+                'shooting' => [85, 99],
+                'defense' => [50, 65],
+                'passing' => [50, 65],
+                'rebounding' => [50, 65],
+            ],
+            'energy-guy' => [
+                'shooting' => [60, 75],
+                'defense' => [65, 80],
+                'passing' => [55, 70],
+                'rebounding' => [60, 75],
+            ],
+            'weak-link' => [
+                'shooting' => [45, 60],
+                'defense' => [45, 60],
+                'passing' => [45, 60],
+                'rebounding' => [45, 60],
+            ],
+            'training-camp' => [
+                'shooting' => [40, 55],
+                'defense' => [40, 55],
+                'passing' => [40, 55],
+                'rebounding' => [40, 55],
+            ],
+            'specialist' => [
+                'shooting' => [70, 85],
+                'defense' => [50, 65],
+                'passing' => [50, 65],
+                'rebounding' => [50, 65],
+            ],
+        ];
+
+
+        // Randomly select an archetype
+        $archetypeKeys = array_keys($archetypes);
+        $selectedArchetype = $archetypeKeys[array_rand($archetypeKeys)];
+        $archetypeAttributes = $archetypes[$selectedArchetype];
+
+        // Generate random ratings based on the selected archetype
+        $attributes = [
+            'archetype' => $selectedArchetype,
+            'shooting_rating' => rand($archetypeAttributes['shooting'][0], $archetypeAttributes['shooting'][1]),
+            'defense_rating' => rand($archetypeAttributes['defense'][0], $archetypeAttributes['defense'][1]),
+            'passing_rating' => rand($archetypeAttributes['passing'][0], $archetypeAttributes['passing'][1]),
+            'rebounding_rating' => rand($archetypeAttributes['rebounding'][0], $archetypeAttributes['rebounding'][1]),
+        ];
+
+        return $attributes;
+    }
 
 
     // Generate a random age ensuring it is either at least 19 or exactly 30
@@ -1035,7 +1145,7 @@ class PlayersController extends Controller
         $playerDetails = \DB::table('players')
             ->join('teams', 'players.team_id', '=', 'teams.id', 'left') // Join teams table to get team details
             ->where('players.id', $playerId)
-            ->select('players.id as player_id', 'players.name as player_name', 'players.age as age', 'teams.name as team_name', 'players.role', 'players.contract_years', 'players.is_rookie', 'players.overall_rating')
+            ->select('players.id as player_id', 'players.name as player_name', 'players.age as age', 'teams.name as team_name', 'players.role', 'players.contract_years', 'players.is_rookie', 'players.overall_rating','players.type')
             ->first();
 
         if (!$playerDetails) {

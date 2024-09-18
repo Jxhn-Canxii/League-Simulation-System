@@ -112,6 +112,18 @@ class RatingsController extends Controller
                 ];
                 $oldRole = $player->role;
 
+                // Deduct contract_years by 1 and increment age by 1
+                $player->contract_years -= 1;
+                $player->age += 1;
+                $player->is_rookie = 0; // All players are no longer rookies
+
+                // Check for retirement
+                if($player->age >= $player->retirement_age){
+                    $player->is_active = 0;
+                    $player->team_id = 0;
+                }
+
+
 
                 // Check if contract_years is 0
                 if ($player->contract_years == 0) {
@@ -230,7 +242,7 @@ class RatingsController extends Controller
                 // Update season status
                 $season = Seasons::find($seasonId);
                 if ($season) {
-                    $season->status = 11;
+                    $season->status = 10;
                     $season->save();
                 } else {
                     \Log::warning('Season not found for ID:', ['seasonId' => $seasonId]);
