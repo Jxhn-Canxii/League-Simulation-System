@@ -634,6 +634,19 @@ class ScheduleController extends Controller
                 'error' => 'No schedules found for the given season, conference, and round.',
             ], 404);
         }
+        // Check if all rounds have been simulated for the season
+        $allRoundsSimulatedForSeason = Schedules::where('season_id', $seasonId)
+        ->where('status', 1)
+        ->doesntExist();
+
+        if ($allRoundsSimulatedForSeason) {
+            // Update the season's status to 2
+            $season = Seasons::find($seasonId);
+            if ($season) {
+                $season->status = 2; // Example status for completed season
+                $season->save();
+            }
+        }
 
         // Define role-based priority and maximum points
         $rolePriority = [
