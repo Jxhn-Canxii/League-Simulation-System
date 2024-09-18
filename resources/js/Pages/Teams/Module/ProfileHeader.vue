@@ -7,7 +7,10 @@
             <i class="fa fa-user text-blue-500 mr-2"></i>
             Player Details
         </h3>
-        <p class="text-nowrap text-sm">
+        <p class="first-letter:uppercase">
+            <strong>Player ID:</strong> #{{ main_performance.player_details.player_id ?? "-" }}
+        </p>
+        <p class="text-nowrap">
             <strong>Name:</strong> {{ main_performance.player_details.player_name ?? "-" }} ,{{ main_performance.player_details.age ?? "N/A" }}
         </p>
         <p>
