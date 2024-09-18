@@ -133,87 +133,98 @@ class ScheduleController extends Controller
                 $roundCounter++; // Increment round number after each round
             }
 
-            // Generate reverse matches for double round-robin (second leg)
-            for ($round = 0; $round < ($numTeams - 1); $round++) {
-                for ($i = 0; $i < $numTeams / 2; $i++) {
-                    $homeIndex = ($round + $i) % ($numTeams - 1);
-                    $awayIndex = ($numTeams - 1 - $i + $round) % ($numTeams - 1);
+            // // Generate reverse matches for double round-robin (second leg)
+            // for ($round = 0; $round < ($numTeams - 1); $round++) {
+            //     for ($i = 0; $i < $numTeams / 2; $i++) {
+            //         $homeIndex = ($round + $i) % ($numTeams - 1);
+            //         $awayIndex = ($numTeams - 1 - $i + $round) % ($numTeams - 1);
 
-                    if ($i == 0) {
-                        $awayIndex = $numTeams - 1;
-                    }
+            //         if ($i == 0) {
+            //             $awayIndex = $numTeams - 1;
+            //         }
 
-                    $homeTeam = $conferenceTeams[$homeIndex];
-                    $awayTeam = $conferenceTeams[$awayIndex];
+            //         $homeTeam = $conferenceTeams[$homeIndex];
+            //         $awayTeam = $conferenceTeams[$awayIndex];
 
-                    // Ensure both teams are not null (bye team)
-                    if ($homeTeam && $awayTeam && $homeTeam->id != $awayTeam->id) {
-                        // Second leg match (reverse of the first leg)
-                        $gameId = $seasonId . '-' . ($roundCounter + 1) . '-' . $conferenceId . '-' . $gameIdCounter;
-                        $matches[] = [
-                            'season_id' => $seasonId,
-                            'game_id' => $gameId,
-                            'round' => $roundCounter + 1, // Continue round number
-                            'conference_id' => $conferenceId,
-                            'home_id' => $awayTeam->id,
-                            'away_id' => $homeTeam->id,
-                            'home_score' => 0, // Initialize with default score
-                            'away_score' => 0, // Initialize with default score
-                        ];
-                        $gameIdCounter++;
-                    }
-                }
-                $roundCounter++; // Increment round number after each round
-            }
+            //         // Ensure both teams are not null (bye team)
+            //         if ($homeTeam && $awayTeam && $homeTeam->id != $awayTeam->id) {
+            //             // Second leg match (reverse of the first leg)
+            //             $gameId = $seasonId . '-' . ($roundCounter + 1) . '-' . $conferenceId . '-' . $gameIdCounter;
+            //             $matches[] = [
+            //                 'season_id' => $seasonId,
+            //                 'game_id' => $gameId,
+            //                 'round' => $roundCounter + 1, // Continue round number
+            //                 'conference_id' => $conferenceId,
+            //                 'home_id' => $awayTeam->id,
+            //                 'away_id' => $homeTeam->id,
+            //                 'home_score' => 0, // Initialize with default score
+            //                 'away_score' => 0, // Initialize with default score
+            //             ];
+            //             $gameIdCounter++;
+            //         }
+            //     }
+            //     $roundCounter++; // Increment round number after each round
+            // }
 
             // Save matches to the database
             Schedules::insert($matches);
 
             // Create player game stats for each game
             foreach ($matches as $match) {
+                // Retrieve home team players
                 $homeTeamPlayers = Player::where('team_id', $match['home_id'])->get();
+                // Retrieve away team players
                 $awayTeamPlayers = Player::where('team_id', $match['away_id'])->get();
 
+                // Process home team players
                 foreach ($homeTeamPlayers as $player) {
-                    PlayerGameStats::updateOrCreate(
-                        [
-                            'season_id' => $seasonId,
-                            'game_id' => $match['game_id'],
-                            'player_id' => $player->id,
-                            'team_id' => $match['home_id'],
-                        ],
-                        [
-                            'points' => 0,
-                            'rebounds' => 0,
-                            'assists' => 0,
-                            'steals' => 0,
-                            'blocks' => 0,
-                            'turnovers' => 0,
-                            'fouls' => 0,
-                        ]
-                    );
+                    // Check if the player is associated with the correct team
+                    if ($player->team_id === $match['home_id']) {
+                        PlayerGameStats::updateOrCreate(
+                            [
+                                'season_id' => $seasonId,
+                                'game_id' => $match['game_id'],
+                                'player_id' => $player->id,
+                                'team_id' => $match['home_id'],
+                            ],
+                            [
+                                'points' => 0,
+                                'rebounds' => 0,
+                                'assists' => 0,
+                                'steals' => 0,
+                                'blocks' => 0,
+                                'turnovers' => 0,
+                                'fouls' => 0,
+                            ]
+                        );
+                    }
                 }
 
+                // Process away team players
                 foreach ($awayTeamPlayers as $player) {
-                    PlayerGameStats::updateOrCreate(
-                        [
-                            'season_id' => $seasonId,
-                            'game_id' => $match['game_id'],
-                            'player_id' => $player->id,
-                            'team_id' => $match['away_id'],
-                        ],
-                        [
-                            'points' => 0,
-                            'rebounds' => 0,
-                            'assists' => 0,
-                            'steals' => 0,
-                            'blocks' => 0,
-                            'turnovers' => 0,
-                            'fouls' => 0,
-                        ]
-                    );
+                    // Check if the player is associated with the correct team
+                    if ($player->team_id === $match['away_id']) {
+                        PlayerGameStats::updateOrCreate(
+                            [
+                                'season_id' => $seasonId,
+                                'game_id' => $match['game_id'],
+                                'player_id' => $player->id,
+                                'team_id' => $match['away_id'],
+                            ],
+                            [
+                                'points' => 0,
+                                'rebounds' => 0,
+                                'assists' => 0,
+                                'steals' => 0,
+                                'blocks' => 0,
+                                'turnovers' => 0,
+                                'fouls' => 0,
+                            ]
+                        );
+                    }
                 }
             }
+
         }
     }
 
@@ -369,17 +380,17 @@ class ScheduleController extends Controller
                 ];
             } else {
                 $performanceFactor = rand(80, 120) / 100; // Randomize within 80% to 120%
-                $pointsPerMinute = 0.3 + ($player->shooting_rating / 100);
+                $pointsPerMinute = 0.5 + ($player->shooting_rating / 200);
                 $points = round($pointsPerMinute * $minutes * $performanceFactor);
 
                 $points = rand(0,$points);
 
-                $assistPerMinute = 0.2 + ($player->passing_rating / 100);
+                $assistPerMinute = 0.2 + ($player->passing_rating / 200);
                 $assists = round($assistPerMinute * $minutes * $performanceFactor);
 
                 $assists = rand(0,$assists);
 
-                $reboundPerMinute = 0.3 + ($player->rebounding_rating / 100);
+                $reboundPerMinute = 0.3 + ($player->rebounding_rating / 200);
                 $rebounds = round($reboundPerMinute * $minutes * $performanceFactor);
 
                 $rebounds = rand(0,$rebounds);
@@ -464,17 +475,17 @@ class ScheduleController extends Controller
                 ];
             } else {
                 $performanceFactor = rand(80, 120) / 100; // Randomize within 80% to 120%
-                $pointsPerMinute = 0.3 + ($player->shooting_rating / 100);
+                $pointsPerMinute = 0.5 + ($player->shooting_rating / 200);
                 $points = round($pointsPerMinute * $minutes * $performanceFactor);
 
                 $points = rand(0,$points);
 
-                $assistPerMinute = 0.2 + ($player->passing_rating / 100);
+                $assistPerMinute = 0.2 + ($player->passing_rating / 200);
                 $assists = round($assistPerMinute * $minutes * $performanceFactor);
 
                 $assists = rand(0,$assists);
 
-                $reboundPerMinute = 0.3 + ($player->rebounding_rating / 100);
+                $reboundPerMinute = 0.3 + ($player->rebounding_rating / 200);
                 $rebounds = round($reboundPerMinute * $minutes * $performanceFactor);
 
                 $rebounds = rand(0,$rebounds);
@@ -719,7 +730,7 @@ class ScheduleController extends Controller
                         $performanceFactor = rand(80, 120) / 100; // Randomize within 80% to 120%
 
                         // Base stats with simplified defensive adjustments
-                        $pointsPerMinute = 0.1 + ($player['shooting_rating'] / 200); // Reduced impact
+                        $pointsPerMinute = 0.5 + ($player['shooting_rating'] / 200); // Reduced impact
                         $points = round($pointsPerMinute * $minutes * $performanceFactor);
 
                         // Ensure at least 10 points if scoring in double digits
@@ -814,7 +825,7 @@ class ScheduleController extends Controller
                         $performanceFactor = rand(80, 120) / 100; // Randomize within 80% to 120%
 
                         // Base stats with simplified defensive adjustments
-                        $pointsPerMinute = 0.1 + ($player['shooting_rating'] / 200); // Reduced impact
+                        $pointsPerMinute = 0.5 + ($player['shooting_rating'] / 200); // Reduced impact
                         $points = round($pointsPerMinute * $minutes * $performanceFactor);
 
                         // Ensure at least 10 points if scoring in double digits
