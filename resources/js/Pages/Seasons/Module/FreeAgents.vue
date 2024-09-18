@@ -61,6 +61,7 @@
                                 <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Name</th>
                                 <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Age</th>
                                 <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                                <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Archetype</th>
                                 <!-- New columns for ratings -->
                                 <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Overall Rating">Overall</th>
                                 <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Shooting Rating">Shooting</th>
@@ -87,6 +88,7 @@
                                         {{ player.role }}
                                     </span>
                                 </td>
+                                <td class="px-2 py-1 whitespace-nowrap border">{{ player.type }}</td>
                                 <!-- New columns for ratings -->
                                 <td class="px-2 py-1 whitespace-nowrap border">{{ parseFloat(player.overall_rating || 0).toFixed(1) }}</td>
                                 <td class="px-2 py-1 whitespace-nowrap border">{{ parseFloat(player.shooting_rating || 0).toFixed(1) }}</td>
