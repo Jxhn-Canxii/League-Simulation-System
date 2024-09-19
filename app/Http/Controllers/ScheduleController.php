@@ -83,7 +83,7 @@ class ScheduleController extends Controller
             ], 500);
         }
     }
-    private function createDoubleRoundRobinScheduleByConference($seasonId, $leagueId)
+    private function createDoubleRoundRobinScheduleByConferenceV1($seasonId, $leagueId)
     {
         // Retrieve teams based on league_id
         $teams = Teams::where('league_id', $leagueId)->get();
@@ -222,6 +222,155 @@ class ScheduleController extends Controller
             }
         }
     }
+    private function createDoubleRoundRobinScheduleByConference($seasonId, $leagueId)
+{
+    // Retrieve teams based on league_id
+    $teams = Teams::where('league_id', $leagueId)->get();
+
+    // Group teams by conference_id and shuffle each conference's teams
+    $teamsByConference = $teams->groupBy('conference_id')->map(function ($conferenceTeams) {
+        return $conferenceTeams->shuffle();
+    });
+
+    // Generate matches for each conference
+    foreach ($teamsByConference as $conferenceId => $conferenceTeams) {
+        $roundCounter = 0; // Initialize round counter
+        $numTeams = count($conferenceTeams);
+        $gameIdCounter = 1; // Initialize game ID counter
+        $matches = [];
+
+        // Handle odd number of teams by adding a bye (null team)
+        $hasBye = ($numTeams % 2 != 0);
+        if ($hasBye) {
+            $conferenceTeams->push(null); // Add a bye team (null) to make the number even
+        }
+
+        $numTeams = count($conferenceTeams); // Update team count after adding bye
+
+        // Generate matches for each round
+        for ($round = 0; $round < ($numTeams - 1); $round++) {
+            for ($i = 0; $i < $numTeams / 2; $i++) {
+                $homeIndex = ($round + $i) % ($numTeams - 1);
+                $awayIndex = ($numTeams - 1 - $i + $round) % ($numTeams - 1);
+
+                if ($i == 0) {
+                    $awayIndex = $numTeams - 1;
+                }
+
+                $homeTeam = $conferenceTeams[$homeIndex];
+                $awayTeam = $conferenceTeams[$awayIndex];
+
+                // Skip match if either team is null (bye)
+                if (!$homeTeam || !$awayTeam || $homeTeam->id == $awayTeam->id) {
+                    continue; // Skip if bye or duplicate teams
+                }
+
+                // First leg match
+                $gameId = $seasonId . '-' . ($roundCounter + 1) . '-' . $conferenceId . '-' . $gameIdCounter;
+                $matches[] = [
+                    'season_id' => $seasonId,
+                    'game_id' => $gameId,
+                    'round' => $roundCounter + 1, // Continue round number
+                    'conference_id' => $conferenceId,
+                    'home_id' => $homeTeam->id,
+                    'away_id' => $awayTeam->id,
+                    'home_score' => 0, // Initialize with default score
+                    'away_score' => 0, // Initialize with default score
+                ];
+                $gameIdCounter++;
+            }
+            $roundCounter++; // Increment round number after each round
+        }
+
+        // Generate reverse matches for double round-robin (second leg)
+        for ($round = 0; $round < ($numTeams - 1); $round++) {
+            for ($i = 0; $i < $numTeams / 2; $i++) {
+                $homeIndex = ($round + $i) % ($numTeams - 1);
+                $awayIndex = ($numTeams - 1 - $i + $round) % ($numTeams - 1);
+
+                if ($i == 0) {
+                    $awayIndex = $numTeams - 1;
+                }
+
+                $homeTeam = $conferenceTeams[$homeIndex];
+                $awayTeam = $conferenceTeams[$awayIndex];
+
+                // Skip match if either team is null (bye)
+                if (!$homeTeam || !$awayTeam || $homeTeam->id == $awayTeam->id) {
+                    continue; // Skip if bye or duplicate teams
+                }
+
+                // Second leg match (reverse of the first leg)
+                $gameId = $seasonId . '-' . ($roundCounter + 1) . '-' . $conferenceId . '-' . $gameIdCounter;
+                $matches[] = [
+                    'season_id' => $seasonId,
+                    'game_id' => $gameId,
+                    'round' => $roundCounter + 1, // Continue round number
+                    'conference_id' => $conferenceId,
+                    'home_id' => $awayTeam->id,
+                    'away_id' => $homeTeam->id,
+                    'home_score' => 0, // Initialize with default score
+                    'away_score' => 0, // Initialize with default score
+                ];
+                $gameIdCounter++;
+            }
+            $roundCounter++; // Increment round number after each round
+        }
+
+        // Save matches to the database
+        Schedules::insert($matches);
+
+        // Create player game stats for each game
+        foreach ($matches as $match) {
+            $homeTeamPlayers = Player::where('team_id', $match['home_id'])->get();
+            $awayTeamPlayers = Player::where('team_id', $match['away_id'])->get();
+
+            foreach ($homeTeamPlayers as $player) {
+                if ($player->team_id == $match['home_id']) {
+                    PlayerGameStats::updateOrCreate(
+                        [
+                            'season_id' => $seasonId,
+                            'game_id' => $match['game_id'],
+                            'player_id' => $player->id,
+                            'team_id' => $match['home_id'],
+                        ],
+                        [
+                            'points' => 0,
+                            'rebounds' => 0,
+                            'assists' => 0,
+                            'steals' => 0,
+                            'blocks' => 0,
+                            'turnovers' => 0,
+                            'fouls' => 0,
+                        ]
+                    );
+                }
+            }
+
+            foreach ($awayTeamPlayers as $player) {
+                if ($player->team_id == $match['away_id']) {
+                    PlayerGameStats::updateOrCreate(
+                        [
+                            'season_id' => $seasonId,
+                            'game_id' => $match['game_id'],
+                            'player_id' => $player->id,
+                            'team_id' => $match['away_id'],
+                        ],
+                        [
+                            'points' => 0,
+                            'rebounds' => 0,
+                            'assists' => 0,
+                            'steals' => 0,
+                            'blocks' => 0,
+                            'turnovers' => 0,
+                            'fouls' => 0,
+                        ]
+                    );
+                }
+            }
+        }
+    }
+}
 
     private function maxPoints()
     {
@@ -640,19 +789,6 @@ class ScheduleController extends Controller
                 'error' => 'No schedules found for the given season, conference, and round.',
             ], 404);
         }
-        // Check if all rounds have been simulated for the season
-        $allRoundsSimulatedForSeason = Schedules::where('season_id', $seasonId)
-        ->where('status', 1)
-        ->doesntExist();
-
-        if ($allRoundsSimulatedForSeason) {
-            // Update the season's status to 2
-            $season = Seasons::find($seasonId);
-            if ($season) {
-                $season->status = 2; // Example status for completed season
-                $season->save();
-            }
-        }
 
         // Define role-based priority and maximum points
         $rolePriority = [
@@ -967,6 +1103,19 @@ class ScheduleController extends Controller
                 ]);
             }
 
+            // Check if all rounds have been simulated for the season
+            $allRoundsSimulatedForSeason = Schedules::where('season_id', $seasonId)
+                ->where('status', 1)
+                ->doesntExist();
+
+                if ($allRoundsSimulatedForSeason) {
+                    // Update the season's status to 2
+                    $season = Seasons::find($seasonId);
+                    if ($season) {
+                        $season->status = 2; // Example status for completed season
+                        $season->save();
+                    }
+                }
             // Commit the transaction
             DB::commit();
 
