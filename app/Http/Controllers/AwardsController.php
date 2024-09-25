@@ -49,14 +49,14 @@ class AwardsController extends Controller
                 ->select(
                     'player_id',
                     DB::raw('COUNT(*) as total_games_played'),
-                    DB::raw('AVG(points) as avg_points_per_game'),
-                    DB::raw('AVG(rebounds) as avg_rebounds_per_game'),
-                    DB::raw('AVG(assists) as avg_assists_per_game'),
-                    DB::raw('AVG(steals) as avg_steals_per_game'),
-                    DB::raw('AVG(blocks) as avg_blocks_per_game'),
-                    DB::raw('AVG(turnovers) as avg_turnovers_per_game'),
-                    DB::raw('AVG(fouls) as avg_fouls_per_game'),
-                    DB::raw('AVG(minutes) as avg_minutes_per_game')
+                    DB::raw('GREATEST(AVG(points), 0) as avg_points_per_game'), // No negative values
+                    DB::raw('GREATEST(AVG(rebounds), 0) as avg_rebounds_per_game'), // No negative values
+                    DB::raw('GREATEST(AVG(assists), 0) as avg_assists_per_game'), // No negative values
+                    DB::raw('GREATEST(AVG(steals), 0) as avg_steals_per_game'), // No negative values
+                    DB::raw('GREATEST(AVG(blocks), 0) as avg_blocks_per_game'), // No negative values
+                    DB::raw('GREATEST(AVG(turnovers), 0) as avg_turnovers_per_game'), // No negative values
+                    DB::raw('GREATEST(AVG(fouls), 0) as avg_fouls_per_game'), // No negative values
+                    DB::raw('GREATEST(AVG(minutes), 0) as avg_minutes_per_game') // No negative values
                 )
                 ->groupBy('player_id')
                 ->first();
