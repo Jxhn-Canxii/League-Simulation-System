@@ -32,14 +32,14 @@
                         </button>
                     </div>
                     <div>
-                        <button
+                        <!-- <button
                             @click="showAddPlayerModal = true"
                             class="px-4 py-2 bg-green-500 text-white rounded mb-4 mr-2 text-sm"
                         >
                             <i class="fa fa-user"></i> Add Rookie Player
-                        </button>
+                        </button> -->
                         <button
-                            @click.prevent="addMultiplePlayers(1000)"
+                            @click.prevent="addMultiplePlayers(100)"
                             class="px-4 py-2 bg-green-700 text-white rounded mb-4 text-sm"
                         >
                             <i class="fa fa-user"></i> Add Rookie Player From Api

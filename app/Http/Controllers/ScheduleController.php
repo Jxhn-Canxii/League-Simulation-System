@@ -83,8 +83,6 @@ class ScheduleController extends Controller
             ], 500);
         }
     }
-    use Illuminate\Support\Facades\DB; // Ensure you include this for DB transactions
-
     private function createDoubleRoundRobinScheduleByConference($seasonId, $leagueId)
     {
         DB::beginTransaction(); // Start transaction
