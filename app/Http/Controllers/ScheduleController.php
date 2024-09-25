@@ -151,9 +151,9 @@ class ScheduleController extends Controller
                                         'season_id' => $seasonId,
                                         'game_id' => $match['game_id'],
                                         'player_id' => $homePlayer->id,
-                                        'team_id' => $match['home_id'],
                                     ],
                                     [
+                                        'team_id' => $match['home_id'],
                                         'points' => 0,
                                         'rebounds' => 0,
                                         'assists' => 0,
@@ -173,9 +173,9 @@ class ScheduleController extends Controller
                                         'season_id' => $seasonId,
                                         'game_id' => $match['game_id'],
                                         'player_id' => $awayPlayer->id,
-                                        'team_id' => $match['away_id'],
                                     ],
                                     [
+                                        'team_id' => $match['away_id'],
                                         'points' => 0,
                                         'rebounds' => 0,
                                         'assists' => 0,
