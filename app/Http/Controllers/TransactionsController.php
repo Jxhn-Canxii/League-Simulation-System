@@ -107,9 +107,12 @@ class TransactionsController extends Controller
                 ->where('id', $this->getLatestSeasonId())
                 ->update(['status' => 11]);
 
+            // Update player roles based on the last season's stats
+            $this->updateTeamRolesBasedOnStats();
+
             return response()->json([
                 'error' => false,
-                'message' => 'All teams have signed 12 players.',
+                'message' => 'All teams have signed 12 players, and roles have been updated based on last season\'s stats.',
                 'team_count' => $teamsCount,
             ], 200);
         } else {
@@ -182,6 +185,41 @@ class TransactionsController extends Controller
         }
     }
 
+    private function updateTeamRolesBasedOnStats()
+    {
+        // Fetch player stats for the last season
+        $seasonId = $this->getLatestSeasonId();
+        $teams = DB::table('teams')->pluck('id');
+
+        foreach ($teams as $teamId) {
+            // Fetch players for each team based on last season's stats
+            $playerStats = DB::table('player_season_stats')
+                ->where('season_id', $seasonId)
+                ->where('team_id', $teamId)
+                ->orderByDesc(DB::raw('(avg_points_per_game + avg_rebounds_per_game + avg_assists_per_game + avg_steals_per_game + avg_blocks_per_game)'))
+                ->get();
+
+            // Assign top 3 players as 'star player', next 3 as 'starter', next 3 as 'role player', and last 3 as 'bench'
+            foreach ($playerStats as $index => $playerStat) {
+                $role = '';
+
+                if ($index < 3) {
+                    $role = 'star player';
+                } elseif ($index < 6) {
+                    $role = 'starter';
+                } elseif ($index < 9) {
+                    $role = 'role player';
+                } else {
+                    $role = 'bench';
+                }
+
+                // Update the player's role in the database
+                DB::table('players')
+                    ->where('id', $playerStat->player_id)
+                    ->update(['role' => $role]);
+            }
+        }
+    }
     private function determineContractYears($role)
     {
         switch ($role) {
