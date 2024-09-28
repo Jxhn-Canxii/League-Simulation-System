@@ -393,15 +393,16 @@ class ScheduleController extends Controller
                     'game_id' => $gameData->game_id,
                     'season_id' => $currentSeasonId,
                     'team_id' => $player->team_id,
-                    'points' => $points,
-                    'rebounds' => $rebounds,
-                    'assists' => $assists,
-                    'steals' => max($steals, 0), // Ensure no negative values
-                    'blocks' => max($blocks, 0), // Ensure no negative values
-                    'turnovers' => $turnovers,
-                    'fouls' => $fouls,
+                    'points' => max($points, 0),      // Ensure no negative values
+                    'rebounds' => max($rebounds, 0),  // Ensure no negative values
+                    'assists' => max($assists, 0),    // Ensure no negative values
+                    'steals' => max($steals, 0),      // Ensure no negative values
+                    'blocks' => max($blocks, 0),      // Ensure no negative values
+                    'turnovers' => max($turnovers, 0),// Ensure no negative values
+                    'fouls' => max($fouls, 0),        // Ensure no negative values
                     'minutes' => $minutes,
                 ];
+
             }
         }
 
@@ -488,15 +489,16 @@ class ScheduleController extends Controller
                     'game_id' => $gameData->game_id,
                     'season_id' => $currentSeasonId,
                     'team_id' => $player->team_id,
-                    'points' => $points,
-                    'rebounds' => $rebounds,
-                    'assists' => $assists,
-                    'steals' => max($steals, 0), // Ensure no negative values
-                    'blocks' => max($blocks, 0), // Ensure no negative values
-                    'turnovers' => $turnovers,
-                    'fouls' => $fouls,
+                    'points' => max($points, 0),      // Ensure no negative values
+                    'rebounds' => max($rebounds, 0),  // Ensure no negative values
+                    'assists' => max($assists, 0),    // Ensure no negative values
+                    'steals' => max($steals, 0),      // Ensure no negative values
+                    'blocks' => max($blocks, 0),      // Ensure no negative values
+                    'turnovers' => max($turnovers, 0),// Ensure no negative values
+                    'fouls' => max($fouls, 0),        // Ensure no negative values
                     'minutes' => $minutes,
                 ];
+
             }
         }
 
@@ -713,16 +715,17 @@ class ScheduleController extends Controller
                         $fouls = round(rand(0, 4));
 
                         $playerGameStats->update([
-                            'points' => $points,
-                            'assists' => $assists,
-                            'rebounds' => $rebounds,
-                            'steals' => $steals,
-                            'blocks' => $blocks,
-                            'turnovers' => $turnovers,
-                            'fouls' => $fouls,
-                            'minutes' => $minutes,
+                            'points' => max(0, $points),       // Ensure non-negative points
+                            'assists' => max(0, $assists),     // Ensure non-negative assists
+                            'rebounds' => max(0, $rebounds),   // Ensure non-negative rebounds
+                            'steals' => max(0, $steals),       // Ensure non-negative steals
+                            'blocks' => max(0, $blocks),       // Ensure non-negative blocks
+                            'turnovers' => max(0, $turnovers), // Ensure non-negative turnovers
+                            'fouls' => max(0, $fouls),         // Ensure non-negative fouls
+                            'minutes' => max(0, $minutes),     // Ensure non-negative minutes
                             'updated_at' => now(),
                         ]);
+
 
                         $homeScore += $points;
                     }
@@ -791,16 +794,17 @@ class ScheduleController extends Controller
                         $fouls = round(rand(0, 4));
 
                         $playerGameStats->update([
-                            'points' => $points,
-                            'assists' => $assists,
-                            'rebounds' => $rebounds,
-                            'steals' => $steals,
-                            'blocks' => $blocks,
-                            'turnovers' => $turnovers,
-                            'fouls' => $fouls,
-                            'minutes' => $minutes,
+                            'points' => max(0, $points),       // Ensure non-negative points
+                            'assists' => max(0, $assists),     // Ensure non-negative assists
+                            'rebounds' => max(0, $rebounds),   // Ensure non-negative rebounds
+                            'steals' => max(0, $steals),       // Ensure non-negative steals
+                            'blocks' => max(0, $blocks),       // Ensure non-negative blocks
+                            'turnovers' => max(0, $turnovers), // Ensure non-negative turnovers
+                            'fouls' => max(0, $fouls),         // Ensure non-negative fouls
+                            'minutes' => max(0, $minutes),     // Ensure non-negative minutes
                             'updated_at' => now(),
                         ]);
+
 
                         $awayScore += $points;
                     }
@@ -833,14 +837,15 @@ class ScheduleController extends Controller
                             // Update player game stats for overtime if exists
                             if ($playerGameStats) {
                                 $playerGameStats->update([
-                                    'points' => DB::raw('points + ' . $points),
-                                    'assists' => DB::raw('assists + ' . $assists),
-                                    'rebounds' => DB::raw('rebounds + ' . $rebounds),
-                                    'steals' => DB::raw('steals + ' . $steals),
-                                    'blocks' => DB::raw('blocks + ' . $blocks),
+                                    'points' => DB::raw('points + ' . max(0, $points)),       // Ensure non-negative points
+                                    'assists' => DB::raw('assists + ' . max(0, $assists)),    // Ensure non-negative assists
+                                    'rebounds' => DB::raw('rebounds + ' . max(0, $rebounds)), // Ensure non-negative rebounds
+                                    'steals' => DB::raw('steals + ' . max(0, $steals)),       // Ensure non-negative steals
+                                    'blocks' => DB::raw('blocks + ' . max(0, $blocks)),       // Ensure non-negative blocks
                                     'updated_at' => now(),
                                 ]);
                             }
+
 
                             $homeScore += $points;
                         }
@@ -867,14 +872,15 @@ class ScheduleController extends Controller
                             // Update player game stats for overtime if exists
                             if ($playerGameStats) {
                                 $playerGameStats->update([
-                                    'points' => DB::raw('points + ' . $points),
-                                    'assists' => DB::raw('assists + ' . $assists),
-                                    'rebounds' => DB::raw('rebounds + ' . $rebounds),
-                                    'steals' => DB::raw('steals + ' . $steals),
-                                    'blocks' => DB::raw('blocks + ' . $blocks),
+                                    'points' => DB::raw('points + ' . max(0, $points)),       // Ensure non-negative points
+                                    'assists' => DB::raw('assists + ' . max(0, $assists)),    // Ensure non-negative assists
+                                    'rebounds' => DB::raw('rebounds + ' . max(0, $rebounds)), // Ensure non-negative rebounds
+                                    'steals' => DB::raw('steals + ' . max(0, $steals)),       // Ensure non-negative steals
+                                    'blocks' => DB::raw('blocks + ' . max(0, $blocks)),       // Ensure non-negative blocks
                                     'updated_at' => now(),
                                 ]);
                             }
+
 
                             $awayScore += $points;
                         }

@@ -271,9 +271,8 @@ class TransactionsController extends Controller
         foreach ($teams as $teamId) {
             // Fetch all players for each team (including rookies and non-rookies), ranked by overall_rating
             $players = DB::table('players')
-                ->join('player_season_stats', 'players.id', '=', 'player_season_stats.player_id')
-                ->where('player_season_stats.season_id', $seasonId)
-                ->where('player_season_stats.team_id', $teamId)
+                ->where('players.team_id', $teamId)
+                ->where('players.is_active', 1)
                 ->orderByDesc('players.overall_rating') // Sort by overall_rating
                 ->get();
 
