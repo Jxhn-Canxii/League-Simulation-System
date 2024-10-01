@@ -398,11 +398,10 @@ class ScheduleController extends Controller
                     'assists' => max($assists, 0),    // Ensure no negative values
                     'steals' => max($steals, 0),      // Ensure no negative values
                     'blocks' => max($blocks, 0),      // Ensure no negative values
-                    'turnovers' => max($turnovers, 0),// Ensure no negative values
+                    'turnovers' => max($turnovers, 0), // Ensure no negative values
                     'fouls' => max($fouls, 0),        // Ensure no negative values
                     'minutes' => $minutes,
                 ];
-
             }
         }
 
@@ -494,11 +493,10 @@ class ScheduleController extends Controller
                     'assists' => max($assists, 0),    // Ensure no negative values
                     'steals' => max($steals, 0),      // Ensure no negative values
                     'blocks' => max($blocks, 0),      // Ensure no negative values
-                    'turnovers' => max($turnovers, 0),// Ensure no negative values
+                    'turnovers' => max($turnovers, 0), // Ensure no negative values
                     'fouls' => max($fouls, 0),        // Ensure no negative values
                     'minutes' => $minutes,
                 ];
-
             }
         }
 
@@ -1045,7 +1043,7 @@ class ScheduleController extends Controller
     }
 
     // Method to handle finals logic
-    private function updateFinalsWinner($gameData, $winnerId, $homeScore, $awayScore)
+    private function updateFinalsWinnerV1($gameData, $winnerId, $homeScore, $awayScore)
     {
         // Find the MVP of the winning team
         $mvpPlayer = PlayerGameStats::join('players', 'player_game_stats.player_id', '=', 'players.id')
@@ -1070,6 +1068,46 @@ class ScheduleController extends Controller
                 'finals_mvp_id' => $finalsMVPId,
             ]);
     }
+    private function updateFinalsWinner($gameData, $winnerId, $homeScore, $awayScore)
+    {
+        // Find the best statistical player (MVP) from the winning team
+        $mvpPlayer = PlayerGameStats::join('players', 'player_game_stats.player_id', '=', 'players.id')
+            ->where('player_game_stats.team_id', $winnerId)
+            ->where('player_game_stats.game_id', $gameData->game_id)
+            // Calculate a weighted performance metric for the MVP
+            ->select(
+                'player_game_stats.*',
+                DB::raw('(
+                player_game_stats.points * 1.0 +
+                player_game_stats.rebounds * 1.2 +
+                player_game_stats.assists * 1.5 +
+                player_game_stats.steals * 2.0 +
+                player_game_stats.blocks * 2.0 -
+                player_game_stats.turnovers * 1.5
+            ) as mvp_score')
+            )
+            ->orderByDesc('mvp_score') // Order by the calculated performance score
+            ->first();
+
+        // If an MVP player is found, set the player's name and id
+        $finalsMVP = $mvpPlayer ? $mvpPlayer->name : '';
+        $finalsMVPId = $mvpPlayer ? $mvpPlayer->player_id : '';
+
+        // Update the season's finals information
+        DB::table('seasons')
+            ->where('id', $gameData->season_id)
+            ->update([
+                'finals_winner_id' => $winnerId,
+                'finals_loser_id' => $winnerId === $gameData->home_team_id ? $gameData->away_team_id : $gameData->home_team_id,
+                'finals_winner_name' => $winnerId === $gameData->home_team_id ? $gameData->home_team_name : $gameData->away_team_name,
+                'finals_loser_name' => $winnerId === $gameData->home_team_id ? $gameData->away_team_name : $gameData->home_team_name,
+                'finals_winner_score' => $winnerId === $gameData->home_team_id ? $homeScore : $awayScore,
+                'finals_loser_score' => $winnerId === $gameData->home_team_id ? $awayScore : $homeScore,
+                'finals_mvp' => $finalsMVP,
+                'finals_mvp_id' => $finalsMVPId,
+            ]);
+    }
+
     //start playoff algo
     public static function playoffschedule(Request $request)
     {
