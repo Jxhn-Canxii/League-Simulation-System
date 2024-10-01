@@ -298,6 +298,26 @@ class TransactionsController extends Controller
             }
         }
 
+        // Update injury_prone_percentage for 10% to 30% of players around the league
+        $totalPlayers = DB::table('players')->where('is_active', 1)->count();
+        $playersToUpdate = rand(ceil($totalPlayers * 0.1), ceil($totalPlayers * 0.3));
+
+        // Select random players to update their injury_prone_percentage
+        $randomPlayers = DB::table('players')
+            ->where('is_active', 1)
+            ->inRandomOrder()
+            ->limit($playersToUpdate)
+            ->get();
+
+        foreach ($randomPlayers as $player) {
+            $injuryPronePercentage = rand(0, 100); // Random value between 0% and 100%
+
+            // Update injury_prone_percentage for the player
+            DB::table('players')
+                ->where('id', $player->id)
+                ->update(['injury_prone_percentage' => $injuryPronePercentage]);
+        }
+
         return true;
     }
 

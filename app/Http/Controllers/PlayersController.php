@@ -433,7 +433,6 @@ class PlayersController extends Controller
         // Generate random attributes
         $age = mt_rand(18, 25);
         $retirementAge = rand($age + 1, 45); // Retirement age should be greater than current age
-        $injuryPronePercentage = rand(0, 100); // Random injury-prone percentage between 0 and 100
         $contractYears = rand(1, 5); // Random contract years between 1 and 5
 
         // Get random archetype and attributes
@@ -470,7 +469,7 @@ class PlayersController extends Controller
             'team_id' => 0,
             'age' => $age,
             'retirement_age' => $retirementAge,
-            'injury_prone_percentage' => $injuryPronePercentage,
+            'injury_prone_percentage' => 0,
             'contract_years' => 0,
             'contract_expires_at' => $contractExpiresAt,
             'is_active' => true,
