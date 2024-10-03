@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-ini_set('max_execution_time', 300); // 300 seconds = 5 minutes
+ini_set('max_execution_time', 600); // 300 seconds = 5 minutes
 
 use Illuminate\Http\Request;
 use Exception;
@@ -13,6 +13,7 @@ use App\Models\Schedules;
 use App\Models\Conference;
 use App\Models\Player;
 use App\Models\PlayerGameStats;
+use App\Http\Controllers\AwardsController;
 use Illuminate\Support\Facades\DB;
 
 class ScheduleController extends Controller
@@ -102,7 +103,7 @@ class ScheduleController extends Controller
                 $gameIdCounter = 1; // Initialize game ID counter
                 $matches = [];
 
-                // Generate matches for each round
+                // Generate matches for each round 1st leg
                 for ($round = 0; $round < ($numTeams - 1); $round++) {
                     for ($i = 0; $i < $numTeams / 2; $i++) {
                         $homeIndex = ($round + $i) % ($numTeams - 1);
@@ -134,7 +135,38 @@ class ScheduleController extends Controller
                     }
                     $roundCounter++; // Increment round number after each round
                 }
+                //  // Generate matches for each round 2nd leg
+                //  for ($round = 0; $round < ($numTeams - 1); $round++) {
+                //     for ($i = 0; $i < $numTeams / 2; $i++) {
+                //         $homeIndex = ($round + $i) % ($numTeams - 1);
+                //         $awayIndex = ($numTeams - 1 - $i + $round) % ($numTeams - 1);
 
+                //         if ($i == 0) {
+                //             $awayIndex = $numTeams - 1;
+                //         }
+
+                //         $homeTeam = $conferenceTeams[$homeIndex];
+                //         $awayTeam = $conferenceTeams[$awayIndex];
+
+                //         // Ensure both teams are not null (bye team)
+                //         if ($homeTeam->id != $awayTeam->id) {
+                //             // First leg match
+                //             $gameId = $seasonId . '-' . ($roundCounter + 1) . '-' . $conferenceId . '-' . $gameIdCounter;
+                //             $matches[] = [
+                //                 'season_id' => $seasonId,
+                //                 'game_id' => $gameId,
+                //                 'round' => $roundCounter + 1, // Continue round number
+                //                 'conference_id' => $conferenceId,
+                //                 'home_id' => $homeTeam->id,
+                //                 'away_id' => $awayTeam->id,
+                //                 'home_score' => 0, // Initialize with default score
+                //                 'away_score' => 0, // Initialize with default score
+                //             ];
+                //             $gameIdCounter++;
+                //         }
+                //     }
+                //     $roundCounter++; // Increment round number after each round
+                // }
                 // Save matches to the database
                 Schedules::insert($matches);
 
@@ -1077,21 +1109,23 @@ class ScheduleController extends Controller
             // Calculate a weighted performance metric for the MVP
             ->select(
                 'player_game_stats.*',
+                'players.name as mvp_name', // Include the player's name
                 DB::raw('(
-                player_game_stats.points * 1.0 +
-                player_game_stats.rebounds * 1.2 +
-                player_game_stats.assists * 1.5 +
-                player_game_stats.steals * 2.0 +
-                player_game_stats.blocks * 2.0 -
-                player_game_stats.turnovers * 1.5
-            ) as mvp_score')
+        player_game_stats.points * 1.0 +
+        player_game_stats.rebounds * 1.2 +
+        player_game_stats.assists * 1.5 +
+        player_game_stats.steals * 2.0 +
+        player_game_stats.blocks * 2.0 -
+        player_game_stats.turnovers * 1.5
+    ) as mvp_score')
             )
             ->orderByDesc('mvp_score') // Order by the calculated performance score
             ->first();
 
         // If an MVP player is found, set the player's name and id
-        $finalsMVP = $mvpPlayer ? $mvpPlayer->name : '';
+        $finalsMVP = $mvpPlayer ? $mvpPlayer->mvp_name : ''; // Use the player's name from the 'mvp_name' alias
         $finalsMVPId = $mvpPlayer ? $mvpPlayer->player_id : '';
+
 
         // Update the season's finals information
         DB::table('seasons')

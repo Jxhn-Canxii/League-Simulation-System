@@ -677,6 +677,73 @@ const leagueDropdown = async () => {
         console.error("Error fetching leagues:", error);
     }
 };
+const prepareCurrentSeasonStats = async () => {
+    try {
+        const team_ids = seasons.value.team_ids;
+
+        for (let i = 0; i < team_ids.length; i++) {
+            const team_id = team_ids[i];
+            const is_last = i === team_ids.length - 1;
+
+            // Update player status for each team and get the response
+            await updatePlayerStatusPerTeam(i, team_id,team_ids.length);
+        }
+    } catch (error) {
+        console.error(error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: 'Failed to update player status for some or all teams. Please try again later.',
+        });
+    }
+}
+const updatePlayerStatusPerTeam = async (index, team_id, team_count) => {
+    try {
+        // const total_teams = team_count + 1;
+
+        // Show the initial Swal with a progress bar
+        Swal.fire({
+            title: 'Preparing Season Stats',
+            html: `<div id="progress-container">
+                    <p>Processing team ${team_id}/${team_count}</p>
+                    <div class="progress">
+                        <div id="progress-bar" class="progress-bar" role="progressbar" style="width: ${((index / team_count) * 100)}%;" aria-valuenow="${index}" aria-valuemin="0" aria-valuemax="${team_count}"></div>
+                    </div>
+                   </div>`,
+            showConfirmButton: true,
+            allowOutsideClick: false,
+            position: 'top',
+            willOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        // Make the request
+        const response = await axios.post(route('store.player.stats'), { team_id: team_id });
+
+        // Update progress bar after response
+        const progressPercentage = ((index / team_count) * 100);
+        document.getElementById('progress-bar').style.width = `${progressPercentage}%`;
+
+        // After completion of all teams, show a success message
+        if (index === team_count) {
+            Swal.fire({
+                title: 'Success!',
+                text: 'All player stats updated successfully.',
+                icon: 'success',
+                showConfirmButton: true,
+            });
+        }
+
+    } catch (error) {
+        console.error(error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: 'Failed to update player stats. Please try again later.',
+        });
+    }
+};
 const createNewSeason = async () => {
     if (form.league_id == 0) {
         Swal.fire({
@@ -695,10 +762,11 @@ const createNewSeason = async () => {
                 title: "Success!",
                 text: response.data.message, // Assuming the response contains a 'message' field
             });
-            form.reset("name", "type", "league_id");
-            isProcessing.value = false;
+            prepareCurrentSeasonStats();
             fetchSeasons();
             seasonsDropdown();
+            form.reset("name", "type", "league_id");
+            isProcessing.value = false;
         } catch (error) {
             console.error("Error creating schedule:", error);
             // Show error message using Swal2 if needed
@@ -708,161 +776,6 @@ const createNewSeason = async () => {
                 text: error.response.data.message,
             });
         }
-    }
-};
-const updatePlayerStatus = async () => {
-    try {
-        const team_ids = seasons.value.team_ids;
-        console.log(team_ids);
-
-        for (let i = 0; i < team_ids.length; i++) {
-            const team_id = team_ids[i];
-            const is_last = i === team_ids.length - 1;
-
-            // Update player status for each team and get the response
-            await updatePlayerStatusPerTeam(i, team_id, is_last);
-        }
-        await fetchSeasons(); // Refresh seasons after each team update
-    } catch (error) {
-        console.error(error);
-
-        // Show error message using Swal2 if there's an error in the loop
-        Swal.fire({
-            icon: "error",
-            title: "Error!",
-            text: "Failed to update player status for some or all teams. Please try again later.",
-        });
-    }
-};
-
-const updatePlayerStatusPerTeam = async (index, team_id, is_last) => {
-    try {
-        // isProcessing.value = true;
-
-        form.is_last = is_last;
-        form.team_id = team_id;
-
-        // Call the update function
-        const response = await axios.post(route("update.player.status"), form);
-
-        // Extract improved, declined, and re-signed players from the response
-        const improvedPlayers = response.data.improved_players || [];
-        const declinedPlayers = response.data.declined_players || [];
-        const reSignedPlayers = response.data.re_signed_players || [];
-        const teamName = response.data.team_name || "none";
-
-        // Build the HTML message for Swal
-        let htmlMessage = `
-            <p style="font-size: 12px;">Player status for team #${
-                index + 1
-            } ${teamName} has been updated.</p>
-            <div style="display: flex; flex-direction: column; align-items: center;">
-
-                <!-- Improved Players Table -->
-                <table style="width:90%; border-collapse: collapse; font-size: 10px; margin-bottom: 10px;">
-                    <thead>
-                        <tr><th colspan="3" style="text-align: center; padding: 4px;">Improved Players</th></tr>
-                        <tr>
-                            <th style="border: 1px solid #ddd; padding: 4px;">Player</th>
-                            <th style="border: 1px solid #ddd; padding: 4px;">Role</th>
-                            <th style="border: 1px solid #ddd; padding: 4px;">Contract Years</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${improvedPlayers
-                            .map(
-                                (player) => `
-                            <tr>
-                                <td style="border: 1px solid #ddd; padding: 4px;">${player.name}</td>
-                                <td style="border: 1px solid #ddd; padding: 4px;">${player.role}</td>
-                                <td style="border: 1px solid #ddd; padding: 4px;">${player.contract_years} years</td>
-                            </tr>
-                        `
-                            )
-                            .join("")}
-                    </tbody>
-                </table>
-
-                <!-- Declined Players Table -->
-                <table style="width:90%; border-collapse: collapse; font-size: 10px; margin-bottom: 10px;">
-                    <thead>
-                        <tr><th colspan="3" style="text-align: center; padding: 4px;">Declined Players</th></tr>
-                        <tr>
-                            <th style="border: 1px solid #ddd; padding: 4px;">Player</th>
-                            <th style="border: 1px solid #ddd; padding: 4px;">Role</th>
-                            <th style="border: 1px solid #ddd; padding: 4px;">Contract Years</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${declinedPlayers
-                            .map(
-                                (player) => `
-                            <tr>
-                                <td style="border: 1px solid #ddd; padding: 4px;">${player.name}</td>
-                                <td style="border: 1px solid #ddd; padding: 4px;">${player.role}</td>
-                                <td style="border: 1px solid #ddd; padding: 4px;">${player.contract_years} years</td>
-                            </tr>
-                        `
-                            )
-                            .join("")}
-                    </tbody>
-                </table>
-
-                <!-- Re-Signed Players Table -->
-                 <table style="width:90%; border-collapse: collapse; font-size: 10px;">
-                    <thead>
-                        <tr><th colspan="3" style="text-align: center; padding: 4px;">Re-Signed Players</th></tr>
-                        <tr>
-                            <th style="border: 1px solid #ddd; padding: 4px;">Player</th>
-                            <th style="border: 1px solid #ddd; padding: 4px;">Role</th>
-                            <th style="border: 1px solid #ddd; padding: 4px;">Contract Years</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${reSignedPlayers
-                            .map(
-                                (player) => `
-                            <tr>
-                                <td style="border: 1px solid #ddd; padding: 4px;">${player.name}</td>
-                                <td style="border: 1px solid #ddd; padding: 4px;">${player.role}</td>
-                                <td style="border: 1px solid #ddd; padding: 4px;">${player.contract_years} years</td>
-                            </tr>
-                        `
-                            )
-                            .join("")}
-                    </tbody>
-                </table>
-            </div>
-        `;
-
-        // Show success alert with the table-like message
-        Swal.fire({
-            title: `Team ${teamName} Player Update`,
-            html: htmlMessage,
-            showConfirmButton: true,
-            position: "top", // Position the alert at the top of the screen
-        });
-
-        // Close the processing status alert
-
-        // isAddModalOpen.value = false;
-        // isProcessing.value = false;
-        // Return the response to the main function
-        return response;
-    } catch (error) {
-        console.error(error);
-
-        // Close the processing status alert if there's an error
-        // Swal.close();
-
-        // Show error message using Swal2
-        Swal.fire({
-            icon: "error",
-            title: "Error!",
-            text: `Failed to update player status for team ID ${team_id}. Please try again later.`,
-        });
-
-        // isProcessing.value = false;
     }
 };
 const seasonsDropdown = async () => {
