@@ -101,17 +101,20 @@ class AwardsController extends Controller
         $request->validate([
             'season_id' => 'required|exists:seasons,id',
         ]);
-        // Fetch awards along with player and team names for the latest season
+        // Fetch awards along with player, team, and season names for the latest season
         $awards = DB::table('season_awards')
             ->leftJoin('players', 'season_awards.player_id', '=', 'players.id')
             ->leftJoin('teams', 'players.team_id', '=', 'teams.id')
-            ->where('season_awards.season_id',  $request->season_id)
+            ->leftJoin('seasons', 'season_awards.season_id', '=', 'seasons.id') // Join the seasons table
+            ->where('season_awards.season_id', $request->season_id)
             ->select(
                 'season_awards.*',
                 'players.name as player_name',
-                'teams.name as team_name'
+                'teams.name as team_name',
+                'seasons.name as season_name' // Select the season name
             )
             ->get();
+
 
         return response()->json([
             'message' => 'Season awards stored successfully.',
@@ -142,6 +145,7 @@ class AwardsController extends Controller
             $awards = DB::table('season_awards')
                 ->leftJoin('players', 'season_awards.player_id', '=', 'players.id')
                 ->leftJoin('teams', 'season_awards.team_id', '=', 'teams.id')
+                ->leftJoin('seasons', 'season_awards.season_id', '=', 'seasons.id') // Join the seasons table
                 ->where('season_awards.season_id', $seasonId)
                 ->select(
                     'season_awards.id',
@@ -152,7 +156,8 @@ class AwardsController extends Controller
                     'season_awards.award_description',
                     'season_awards.season_id',
                     'season_awards.team_id',
-                    'season_awards.created_at'
+                    'season_awards.created_at',
+                    'seasons.name as season_name' // Select the season name
                 )
                 ->orderBy('season_awards.id', 'desc')  // Order by id in descending order
                 ->get();
@@ -160,6 +165,7 @@ class AwardsController extends Controller
             $awards = DB::table('season_awards')
                 ->leftJoin('players', 'season_awards.player_id', '=', 'players.id')
                 ->leftJoin('teams', 'season_awards.team_id', '=', 'teams.id')
+                ->leftJoin('seasons', 'season_awards.season_id', '=', 'seasons.id') // Join the seasons table
                 ->where('season_awards.award_name', $awardsName)
                 ->select(
                     'season_awards.id',
@@ -170,7 +176,8 @@ class AwardsController extends Controller
                     'season_awards.award_description',
                     'season_awards.season_id',
                     'season_awards.team_id',
-                    'season_awards.created_at'
+                    'season_awards.created_at',
+                    'seasons.name as season_name' // Select the season name
                 )
                 ->orderBy('season_awards.id', 'desc')  // Order by id in descending order
                 ->get();

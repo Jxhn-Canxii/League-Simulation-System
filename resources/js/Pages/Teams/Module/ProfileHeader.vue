@@ -126,7 +126,7 @@
             </h4>
             <div v-for="(season, index) in main_performance.awards" :title="season.team_name" :key="index" class="flex text-nowrap items-center mb-2">
                 <i class="fa fa-medal text-yellow-500 mr-2"></i>
-                <p class="text-xs">{{ season.award_name }} (Season {{ season.season }})</p>
+                <p class="text-xs">{{ season.award_name }} ({{ season.season_name }})</p>
             </div>
         </div>
     </div>
