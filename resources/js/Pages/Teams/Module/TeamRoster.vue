@@ -16,7 +16,6 @@
         <div class="flex justify-between items-center mb-4">
             <div>
                 <select v-model="season_id" @change="seasonBehavior()" class="mt-1 block w-full sm:w-auto border-gray-300 rounded-md shadow-sm sm:text-sm">
-                    <option value="0">Latest</option>
                     <option v-for="(season, ss) in seasons" :key="season.season_id" :value="season.season_id">{{ season.name }}</option>
                 </select>
             </div>
@@ -35,6 +34,11 @@
             <table class="min-w-full divide-y divide-gray-200 text-xs">
                 <thead class="bg-gray-50 text-nowrap">
                     <tr>
+                        <th
+                            class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                            No.
+                        </th>
                         <th
                             class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
                         >
@@ -118,6 +122,9 @@
                         @click.prevent="showPlayerProfile(player)"
                         class="hover:bg-gray-100"
                     >
+                        <td class="px-2 py-1 whitespace-nowrap border">
+                            {{ index + 1 }}
+                        </td>
                         <td class="px-2 py-1 whitespace-nowrap border">
                             {{ player.name }}<sup>{{ player.is_rookie ? 'R':'V'}}</sup>
                         </td>
@@ -295,7 +302,7 @@ const newPlayerName = ref("");
 const team_roster = ref([]);
 const team_info = ref([]);
 const seasons = ref([]);
-const season_id = ref(0);
+const season_id = ref();
 watch(
     () => props.team_id,
     async (newId, oldId) => {
@@ -337,6 +344,8 @@ const fetchTeamRoster = async (id) => {
 const seasonsDropdown = async () => {
     try {
         seasons.value = JSON.parse(localStorage.getItem('seasons'));
+        console.log(seasons.value[0].season_id ?? 0);
+        season_id.value = seasons.value[0].season_id ?? 0;
     } catch (error) {
         console.error("Error fetching seasons dropdown:", error);
     }
