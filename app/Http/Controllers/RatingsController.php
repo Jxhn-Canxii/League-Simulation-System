@@ -206,13 +206,13 @@ class RatingsController extends Controller
             if ($isLast) {
                 \Log::info('Processing last update.');
 
-                // Assign non-re-signed players to teams with fewer than 12 players
+                // Assign non-re-signed players to teams with fewer than 15 players
                 $freeAgents = Player::where('team_id', 0)->where('is_active', 1)->get();
                 $teamsWithFewMembers = DB::table('teams')
                     ->leftJoin('players', 'teams.id', '=', 'players.team_id')
                     ->select('teams.id', 'teams.name', DB::raw('COUNT(players.id) as player_count'))
                     ->groupBy('teams.id', 'teams.name')
-                    ->havingRaw('COUNT(players.id) < 12')
+                    ->havingRaw('COUNT(players.id) < 15')
                     ->get();
 
                 foreach ($freeAgents as $agent) {
@@ -222,7 +222,7 @@ class RatingsController extends Controller
 
                     // Randomly select a team from the incomplete teams
                     $team = $teamsWithFewMembers->random();
-                    $playersNeeded = 12 - $team->player_count;
+                    $playersNeeded = 15 - $team->player_count;
 
                     // Update the agent's team and contract years
                     $agent->team_id = $team->id;

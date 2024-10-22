@@ -440,15 +440,15 @@ class PlayersController extends Controller
             'team_id' => 'required|exists:teams,id',
         ]);
 
-        // Check if the team already has 12 players
+        // Check if the team already has 15 players
         $playerCount = Player::where('team_id', $request->team_id)
             ->where('is_active', 1) // Ensure players are active
             ->count();
 
-        if ($playerCount >= 12) {
+        if ($playerCount >= 15) {
             return response()->json([
                 'error' => true,
-                'message' => 'Team already has 12 players. Cannot add more.',
+                'message' => 'Team already has 15 players. Cannot add more.',
             ], 400);
         }
 

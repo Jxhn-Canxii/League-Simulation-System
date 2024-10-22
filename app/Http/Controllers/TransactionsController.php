@@ -23,12 +23,12 @@ class TransactionsController extends Controller
             'player_id' => 'required|exists:players,id',
         ]);
 
-        // Fetch teams with fewer than 12 players
+        // Fetch teams with fewer than 15 players
         $teamIds = DB::table('teams')
             ->leftJoin('players', 'teams.id', '=', 'players.team_id')
             ->select('teams.id')
             ->groupBy('teams.id')
-            ->havingRaw('SUM(CASE WHEN players.is_active = 1 THEN 1 ELSE 0 END) < 12')
+            ->havingRaw('SUM(CASE WHEN players.is_active = 1 THEN 1 ELSE 0 END) < 15')
             ->pluck('teams.id');
 
 
@@ -36,7 +36,7 @@ class TransactionsController extends Controller
 
         if ($teamsCount === 0) {
             return response()->json([
-                'message' => 'No teams available with fewer than 12 players.',
+                'message' => 'No teams available with fewer than 15 players.',
             ], 400);
         }
 
@@ -83,12 +83,12 @@ class TransactionsController extends Controller
     }
     public function assignRemainingFreeAgents()
     {
-        // Fetch teams with fewer than 12 players
+        // Fetch teams with fewer than 15 players
         $teamsWithFewMembers = DB::table('teams')
             ->leftJoin('players', 'teams.id', '=', 'players.team_id')
             ->select('teams.id', 'teams.name', DB::raw('COUNT(players.id) as player_count'))
             ->groupBy('teams.id', 'teams.name')
-            ->havingRaw('COUNT(players.id) < 12')
+            ->havingRaw('COUNT(players.id) < 15')
             ->get();
 
         // Fetch free agents (players with team_id = 0)
@@ -112,14 +112,14 @@ class TransactionsController extends Controller
             if ($update) {
                 return response()->json([
                     'error' => true,
-                    'message' => 'All teams have signed 12 players, and roles have been updated based on last season\'s stats.',
+                    'message' => 'All teams have signed 15 players, and roles have been updated based on last season\'s stats.',
                     'team_count' => $teamsCount,
                 ], 401);
             }
         } else {
             if ($remainingFreeAgents === 0) {
                 $incompleteTeams = $teamsWithFewMembers->map(function ($team) {
-                    $playersNeeded = 12 - $team->player_count;
+                    $playersNeeded = 15 - $team->player_count;
                     return [
                         'team_name' => $team->name,
                         'players_needed' => $playersNeeded,
@@ -134,13 +134,13 @@ class TransactionsController extends Controller
                 ], 400);
             }
 
-            // Randomly assign each free agent to a team with fewer than 12 players
+            // Randomly assign each free agent to a team with fewer than 15 players
             foreach ($freeAgents as $agent) {
                 if ($remainingFreeAgents <= 0) break;
 
                 // Randomly select a team from the incomplete teams
                 $team = $teamsWithFewMembers->random();
-                $playersNeeded = 12 - $team->player_count;
+                $playersNeeded = 15 - $team->player_count;
 
                 // Update the agent's team and contract years
                 $agent->team_id = $team->id;
@@ -165,10 +165,10 @@ class TransactionsController extends Controller
                 ->leftJoin('players', 'teams.id', '=', 'players.team_id')
                 ->select('teams.name', DB::raw('COUNT(players.id) as player_count'))
                 ->groupBy('teams.name')
-                ->havingRaw('COUNT(players.id) < 12')
+                ->havingRaw('COUNT(players.id) < 15')
                 ->get()
                 ->map(function ($team) {
-                    $playersNeeded = 12 - $team->player_count;
+                    $playersNeeded = 15 - $team->player_count;
                     return [
                         'team_name' => $team->name,
                         'players_needed' => $playersNeeded,
@@ -210,7 +210,7 @@ class TransactionsController extends Controller
                     $role = 'star player';
                 } elseif ($index < 5) {
                     $role = 'starter';
-                } elseif ($index < 9) {
+                } elseif ($index < 10) {
                     $role = 'role player';
                 } else {
                     $role = 'bench';
@@ -285,8 +285,8 @@ class TransactionsController extends Controller
                     $role = 'star player'; // Top 3 players
                 } elseif ($index < 5) {
                     $role = 'starter'; // Next 2 players
-                } elseif ($index < 9) {
-                    $role = 'role player'; // Next 4 players
+                } elseif ($index < 10) {
+                    $role = 'role player'; // Next 5 players
                 } else {
                     $role = 'bench'; // Remaining players
                 }
