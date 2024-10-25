@@ -678,10 +678,11 @@ const simulatePerRound = async () => {
 
         // Pass an additional parameter if it's the last round
         await simulateRoundGames(round, isLastRound);
+        await fetchConferenceStandings(activeConferenceTab.value);
+        await fetchConferenceSchedules(activeConferenceTab.value);
     }
 
-    await fetchConferenceStandings(activeConferenceTab.value);
-    await fetchConferenceSchedules(activeConferenceTab.value);
+
 };
 
 const simulateRoundGames = async (round, isLast) => {
