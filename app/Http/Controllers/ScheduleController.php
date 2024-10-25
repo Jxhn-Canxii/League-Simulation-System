@@ -1256,6 +1256,7 @@ class ScheduleController extends Controller
         $scheduleIds = Schedules::where('season_id', $seasonId)
             ->where('conference_id', $conferenceId)
             ->where('status', 1)
+            ->orderByDesc('id')
             ->pluck('id')
             ->toArray(); // Get the IDs as an array
 
