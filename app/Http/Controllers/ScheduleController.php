@@ -1255,6 +1255,7 @@ class ScheduleController extends Controller
         // Retrieve schedule IDs for the given season and conference
         $scheduleIds = Schedules::where('season_id', $seasonId)
             ->where('conference_id', $conferenceId)
+            ->where('status', 1)
             ->pluck('id')
             ->toArray(); // Get the IDs as an array
 
