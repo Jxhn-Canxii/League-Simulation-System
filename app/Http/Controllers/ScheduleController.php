@@ -171,57 +171,57 @@ class ScheduleController extends Controller
                 // Save matches to the database
                 Schedules::insert($matches);
 
-                // Create player game stats for each game
-                if ($matches) {
-                    foreach ($matches as $match) {
-                        $homeTeamPlayers = Player::where('team_id', $match['home_id'])->get();
-                        $awayTeamPlayers = Player::where('team_id', $match['away_id'])->get();
+                // // Create player game stats for each game
+                // if ($matches) {
+                //     foreach ($matches as $match) {
+                //         $homeTeamPlayers = Player::where('team_id', $match['home_id'])->get();
+                //         $awayTeamPlayers = Player::where('team_id', $match['away_id'])->get();
 
-                        foreach ($homeTeamPlayers as $homePlayer) {
-                            if ($homePlayer->team_id == $match['home_id']) {
-                                PlayerGameStats::updateOrCreate(
-                                    [
-                                        'season_id' => $seasonId,
-                                        'game_id' => $match['game_id'],
-                                        'player_id' => $homePlayer->id,
-                                        'team_id' => $match['home_id'],
-                                    ],
-                                    [
-                                        'points' => 0,
-                                        'rebounds' => 0,
-                                        'assists' => 0,
-                                        'steals' => 0,
-                                        'blocks' => 0,
-                                        'turnovers' => 0,
-                                        'fouls' => 0,
-                                    ]
-                                );
-                            }
-                        }
+                //         foreach ($homeTeamPlayers as $homePlayer) {
+                //             if ($homePlayer->team_id == $match['home_id']) {
+                //                 PlayerGameStats::updateOrCreate(
+                //                     [
+                //                         'season_id' => $seasonId,
+                //                         'game_id' => $match['game_id'],
+                //                         'player_id' => $homePlayer->id,
+                //                         'team_id' => $match['home_id'],
+                //                     ],
+                //                     [
+                //                         'points' => 0,
+                //                         'rebounds' => 0,
+                //                         'assists' => 0,
+                //                         'steals' => 0,
+                //                         'blocks' => 0,
+                //                         'turnovers' => 0,
+                //                         'fouls' => 0,
+                //                     ]
+                //                 );
+                //             }
+                //         }
 
-                        foreach ($awayTeamPlayers as $awayPlayer) {
-                            if ($awayPlayer->team_id == $match['away_id']) {
-                                PlayerGameStats::updateOrCreate(
-                                    [
-                                        'season_id' => $seasonId,
-                                        'game_id' => $match['game_id'],
-                                        'player_id' => $awayPlayer->id,
-                                        'team_id' => $match['away_id'],
-                                    ],
-                                    [
-                                        'points' => 0,
-                                        'rebounds' => 0,
-                                        'assists' => 0,
-                                        'steals' => 0,
-                                        'blocks' => 0,
-                                        'turnovers' => 0,
-                                        'fouls' => 0,
-                                    ]
-                                );
-                            }
-                        }
-                    }
-                }
+                //         foreach ($awayTeamPlayers as $awayPlayer) {
+                //             if ($awayPlayer->team_id == $match['away_id']) {
+                //                 PlayerGameStats::updateOrCreate(
+                //                     [
+                //                         'season_id' => $seasonId,
+                //                         'game_id' => $match['game_id'],
+                //                         'player_id' => $awayPlayer->id,
+                //                         'team_id' => $match['away_id'],
+                //                     ],
+                //                     [
+                //                         'points' => 0,
+                //                         'rebounds' => 0,
+                //                         'assists' => 0,
+                //                         'steals' => 0,
+                //                         'blocks' => 0,
+                //                         'turnovers' => 0,
+                //                         'fouls' => 0,
+                //                     ]
+                //                 );
+                //             }
+                //         }
+                //     }
+                // }
             }
 
             DB::commit(); // Commit transaction if all operations succeed
