@@ -727,7 +727,7 @@ class ScheduleController extends Controller
                     'blocks' => 0,
                     'turnovers' => 0,
                     'fouls' => 0,
-                    'minutes' => $minutes,
+                    'minutes' => 0,
                 ];
             } else {
                 $performanceFactor = rand(80, 120) / 100; // Randomize within 80% to 120%
@@ -778,7 +778,7 @@ class ScheduleController extends Controller
                     'blocks' => max($blocks, 0),      // Ensure no negative values
                     'turnovers' => max($turnovers, 0), // Ensure no negative values
                     'fouls' => max($fouls, 0),        // Ensure no negative values
-                    'minutes' => $minutes,
+                    'minutes' =>  max($minutes, 0),
                 ];
             }
         }
@@ -822,7 +822,7 @@ class ScheduleController extends Controller
                     'blocks' => 0,
                     'turnovers' => 0,
                     'fouls' => 0,
-                    'minutes' => $minutes,
+                    'minutes' => 0,
                 ];
             } else {
                 $performanceFactor = rand(80, 120) / 100; // Randomize within 80% to 120%
@@ -873,7 +873,7 @@ class ScheduleController extends Controller
                     'blocks' => max($blocks, 0),      // Ensure no negative values
                     'turnovers' => max($turnovers, 0), // Ensure no negative values
                     'fouls' => max($fouls, 0),        // Ensure no negative values
-                    'minutes' => $minutes,
+                   'minutes' =>  max($minutes, 0),
                 ];
             }
         }
