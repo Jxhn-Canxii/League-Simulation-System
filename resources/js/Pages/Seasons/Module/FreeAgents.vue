@@ -214,6 +214,7 @@ const addPlayer = async (name) => {
             name: name,
         });
         // return response.data.message; // Return success message for logging
+        fetchFreeAgent(); // Refresh free agent list
 
         Swal.fire({
             icon: "success",
@@ -253,7 +254,6 @@ const addMultiplePlayers = async (count) => {
             console.log(`Player ${index + 1}: ${message}`);
         });
 
-        fetchFreeAgent(); // Refresh free agent list
     } catch (error) {
         console.error("Error adding multiple players:", error);
         Swal.fire({
