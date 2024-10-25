@@ -1126,7 +1126,7 @@ class ScheduleController extends Controller
 
         return $boxScore;
     }
-    public function simulateperroundv1(Request $request)
+    public function simulateperround(Request $request)
     {
         // Validate the request data
         $request->validate([
