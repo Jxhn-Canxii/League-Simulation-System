@@ -913,6 +913,19 @@ class ScheduleController extends Controller
         // Save the updated scores
         $gameData->save();
 
+        // Check if all rounds have been simulated for the season
+        $allRoundsSimulatedForSeason = Schedules::where('season_id', $currentSeasonId)
+        ->where('status', 1)
+        ->doesntExist();
+
+        if ($allRoundsSimulatedForSeason) {
+            // Update the season's status to 2
+            $season = Seasons::find($currentSeasonId);
+            if ($season) {
+                $season->status = 2; // Example status for completed season
+                $season->save();
+            }
+        }
         // Return the simulation result
         return response()->json([
             'message' => 'Game simulated successfully',
