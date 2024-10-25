@@ -14,6 +14,7 @@ use App\Models\Conference;
 use App\Models\Player;
 use App\Models\PlayerGameStats;
 use App\Http\Controllers\AwardsController;
+use App\Http\Controllers\PlayersController;
 use Illuminate\Support\Facades\DB;
 
 class ScheduleController extends Controller
@@ -907,9 +908,174 @@ class ScheduleController extends Controller
         // Save the updated scores
         $gameData->save();
 
+        $gameResult = $this->getBoxScore($request->schedule_id);
+
         // Return the simulation result
         return response()->json([
             'message' => 'Game simulated successfully',
+            'data' => $gameData,
+        ]);
+    }
+    private function getBoxScore($game_id)
+    {
+
+        // Fetch game details from the schedules table
+        $game = \DB::table('schedule_view')
+            ->where('game_id', $game_id)
+            ->first();
+
+        if (!$game) {
+            return response()->json([
+                'message' => 'Game not found',
+            ], 404);
+        }
+
+        $playerStats = \DB::table('player_game_stats')
+            ->where('player_game_stats.game_id', $game_id)
+            ->leftJoin('players', 'player_game_stats.player_id', '=', 'players.id') // Join with players
+            ->leftJoin('teams', 'player_game_stats.team_id', '=', 'teams.id') // Join with teams to get team names
+            ->leftJoin('player_ratings', function ($join) {
+                $join->on('player_ratings.player_id', '=', 'players.id')
+                    ->on('player_ratings.season_id', '=', 'player_game_stats.season_id'); // Assuming season_id should match
+            })
+            ->select(
+                'player_game_stats.player_id',
+                'players.name as player_name',
+                'players.is_rookie as is_rookie',
+                'player_game_stats.team_id',
+                'teams.name as team_name',
+                'player_ratings.role as player_role',
+                'player_game_stats.points',
+                'player_game_stats.assists',
+                'player_game_stats.rebounds',
+                'player_game_stats.steals',
+                'player_game_stats.blocks',
+                'player_game_stats.turnovers',
+                'player_game_stats.fouls',
+                'player_game_stats.minutes'
+            )
+            ->get()
+            ->keyBy('player_id');
+
+
+        // Fetch all players that might be relevant to the game (ignoring team_id here)
+        $players = \DB::table('players')
+            ->whereIn('id', $playerStats->pluck('player_id')->toArray())
+            ->get()
+            ->keyBy('id');
+
+        // Determine the best player based on overall stats
+        $bestPlayer = $playerStats->sort(function ($a, $b) {
+            $aStats = $a->points + $a->assists + $a->rebounds + $a->steals + $a->blocks;
+            $bStats = $b->points + $b->assists + $b->rebounds + $b->steals + $b->blocks;
+            return $bStats <=> $aStats;
+        })->first();
+
+        // Determine the winning team
+        $winningTeamId = $game->home_score > $game->away_score ? $game->home_id : $game->away_id;
+
+        // Filter player stats for the winning team
+        $winningTeamPlayersStats = $playerStats->filter(function ($stat) use ($winningTeamId) {
+            return $stat->team_id == $winningTeamId;
+        });
+
+        // Determine the best player of the winning team
+        $bestWinningTeamPlayer = $winningTeamPlayersStats->sort(function ($a, $b) {
+            $aStats = $a->points + $a->assists + $a->rebounds + $a->steals + $a->blocks;
+            $bStats = $b->points + $b->assists + $b->rebounds + $b->steals + $b->blocks;
+            return $bStats <=> $aStats;
+        })->first();
+
+        // Fetch player details for the best player of the winning team if exists
+        $bestWinningTeamPlayerDetails = $bestWinningTeamPlayer ? [
+            'name' => $bestWinningTeamPlayer->player_name,
+            'team' => $bestWinningTeamPlayer->team_name,
+            'points' => $bestWinningTeamPlayer->points,
+            'assists' => $bestWinningTeamPlayer->assists,
+            'rebounds' => $bestWinningTeamPlayer->rebounds,
+            'steals' => $bestWinningTeamPlayer->steals,
+            'blocks' => $bestWinningTeamPlayer->blocks,
+            'turnovers' => $bestWinningTeamPlayer->turnovers,
+            'fouls' => $bestWinningTeamPlayer->fouls,
+            'role' => $bestWinningTeamPlayer->player_role,
+            'minutes' => $bestWinningTeamPlayer->minutes,
+        ] : null;
+
+        // Split player stats into home and away teams, using the game team IDs
+        $homeTeamPlayers = $players->filter(function ($player) use ($game, $playerStats) {
+            $playerStat = $playerStats->get($player->id);
+            return $playerStat && $playerStat->team_id == $game->home_id;
+        });
+
+        $awayTeamPlayers = $players->filter(function ($player) use ($game, $playerStats) {
+            $playerStat = $playerStats->get($player->id);
+            return $playerStat && $playerStat->team_id == $game->away_id;
+        });
+
+        // Convert home team player stats to an array, including those with no recorded stats
+        $homeTeamPlayersArray = $homeTeamPlayers->map(function ($player) use ($playerStats) {
+            $stats = $playerStats->get($player->id);
+
+            return [
+                'player_id' => $player->id,
+                'name' => $player->name,
+                'role' => $player->role,
+                'is_rookie' => $player->is_rookie,
+                'points' => $stats ? $stats->points : 0,
+                'assists' => $stats ? $stats->assists : 0,
+                'rebounds' => $stats ? $stats->rebounds : 0,
+                'steals' => $stats ? $stats->steals : 0,
+                'blocks' => $stats ? $stats->blocks : 0,
+                'turnovers' => $stats ? $stats->turnovers : 0,
+                'fouls' => $stats ? $stats->fouls : 0,
+                'minutes' => $stats ? $stats->minutes : 'DNP',
+            ];
+        })->values()->toArray();
+
+        // Convert away team player stats to an array, including those with no recorded stats
+        $awayTeamPlayersArray = $awayTeamPlayers->map(function ($player) use ($playerStats) {
+            $stats = $playerStats->get($player->id);
+
+            return [
+                'player_id' => $player->id,
+                'name' => $player->name,
+                'role' => $player->role,
+                'is_rookie' => $player->is_rookie,
+                'points' => $stats ? $stats->points : 0,
+                'assists' => $stats ? $stats->assists : 0,
+                'rebounds' => $stats ? $stats->rebounds : 0,
+                'steals' => $stats ? $stats->steals : 0,
+                'blocks' => $stats ? $stats->blocks : 0,
+                'turnovers' => $stats ? $stats->turnovers : 0,
+                'fouls' => $stats ? $stats->fouls : 0,
+                'minutes' => $stats ? $stats->minutes : 'DNP',
+            ];
+        })->values()->toArray();
+
+        // Format data for box score
+        $boxScore = [
+            'game_id' => $game->game_id,
+            'round' => $game->round,
+            'home_team' => [
+                'team_id' => $game->home_id,
+                'name' => $game->home_team_name,
+                'score' => $game->home_score,
+            ],
+            'away_team' => [
+                'team_id' => $game->away_id,
+                'name' => $game->away_team_name,
+                'score' => $game->away_score,
+            ],
+            'player_stats' => [
+                'home' => $homeTeamPlayersArray,
+                'away' => $awayTeamPlayersArray,
+            ],
+            'best_player' => $bestWinningTeamPlayerDetails,
+            'total_players_played' => $playerStats->count(),
+        ];
+
+        return response()->json([
+            'box_score' => $boxScore,
         ]);
     }
     public function simulateperroundv1(Request $request)
