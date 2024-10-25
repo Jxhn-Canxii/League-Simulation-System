@@ -653,12 +653,12 @@ class ScheduleController extends Controller
                 'schedules.status'
             )
             ->findOrFail($request->schedule_id);
-
+            $gameResult = $this->getBoxScore($gameData->game_id);
         // Check if the game status is already completed
         if ($gameData->status == 2) {
             return response()->json([
                 'message' => 'Game has already been simulated.',
-                'data' => $gameData,
+                'data' => $gameResult,
             ], 400); // You can return a different status code if desired
         }
 
@@ -734,12 +734,10 @@ class ScheduleController extends Controller
         // Save the updated scores
         $gameData->save();
 
-        $gameResult = $this->getBoxScore($request->schedule_id);
-
         // Return the simulation result
         return response()->json([
             'message' => 'Game simulated successfully',
-            'data' => $gameData,
+            'data' => $gameResult,
         ]);
     }
 
