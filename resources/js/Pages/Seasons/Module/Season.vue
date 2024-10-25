@@ -4,11 +4,11 @@
         v-if="isHide"
         class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-500"
     >
-        <div class="bg-white p-6 rounded-md shadow-lg max-w-4xl w-full">
+        <div class="bg-white p-6 rounded-md shadow-lg w-screen h-screen">
             <h2 class="text-lg font-semibold text-gray-800 mb-2 text-left">
                 {{ season_info?.seasons[0].name ?? "" }} Standings
             </h2>
-            <div class="grid grid-cols-1 gap-6">
+            <div class="grid grid-cols-3 gap-6">
                 <div class="block">
                     <table
                         class="min-w-full divide-y divide-gray-200 text-sm"
@@ -142,6 +142,10 @@
                         >Simulating Round #
                         {{ parseFloat(currentRound) }}</small
                     >
+                </div>
+                <div class="block md:col-span-2">
+                    <GameResults v-if="activeGameId != 0" :key="activeGameId" :game_id="activeGameId" />
+                    <p v-else class="text-red-500 font-bold">No game results</p>
                 </div>
             </div>
         </div>
@@ -604,6 +608,7 @@ const currentTab = ref("info");
 const currentRound = ref(0);
 const topPlayersKey = ref(0); // Key for TopPlayers component
 const activeConferenceTab = ref(false);
+const activeGameId = ref(0);
 const props = defineProps({
     season_id: {
         type: Number,
@@ -722,23 +727,25 @@ const simulateRoundGames = async (round, isLast) => {
         });
     }
 };
-const simulateGame = async (game_id) => {
+const simulateGame = async (schedule_id) => {
     try {
         isHide.value = true;
         const response = await axios.post(route("game.simulate.regular"), {
-            schedule_id: game_id, // Assuming the parameter name should be schedule_id
+            schedule_id: schedule_id, // Assuming the parameter name should be schedule_id
         });
         // await localStorage.setItem('season-key',generateRandomKey());
         // isHide.value = false;
         topPlayersKey.value++; // Trigger update of TopPlayers component
         await fetchConferenceStandings(activeConferenceTab.value);
         await fetchConferenceSchedules(activeConferenceTab.value);
+
+        activeGameId.value = response.data.game_id ?? 0;
         // Show success message using Swal2
-        Swal.fire({
-            icon: "success",
-            title: "Success!",
-            text: response.data.message, // Assuming the response contains a 'message' field
-        });
+        // Swal.fire({
+        //     icon: "success",
+        //     title: "Success!",
+        //     text: response.data.message, // Assuming the response contains a 'message' field
+        // });
     } catch (error) {
         console.error("Error simulating per conference:", error);
         // Show error message using Swal2 if needed

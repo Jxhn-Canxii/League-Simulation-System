@@ -620,317 +620,350 @@ class ScheduleController extends Controller
             'schedule_id' => 'required|exists:schedules,id',
         ]);
 
-        // Fetch game data
-        $gameData = Schedules::join('teams as home', 'schedules.home_id', '=', 'home.id')
-            ->join('teams as away', 'schedules.away_id', '=', 'away.id')
-            ->join('standings_view as home_standings', function ($join) {
-                $join->on('home.id', '=', 'home_standings.team_id')
-                    ->whereColumn('home_standings.season_id', 'schedules.season_id');
-            })
-            ->join('standings_view as away_standings', function ($join) {
-                $join->on('away.id', '=', 'away_standings.team_id')
-                    ->whereColumn('away_standings.season_id', 'schedules.season_id');
-            })
-            ->select(
-                'schedules.id',
-                'schedules.round',
-                'schedules.season_id',
-                'schedules.game_id',
-                'home.id as home_team_id',
-                'home.name as home_team_name',
-                'away.id as away_team_id',
-                'away.name as away_team_name',
-                'home_standings.overall_rank as home_overall_rank',
-                'away_standings.overall_rank as away_overall_rank',
-                'home_standings.conference_name as home_conference_name',
-                'away_standings.conference_name as away_conference_name',
-                'home_standings.conference_rank as home_conference_rank',
-                'away_standings.conference_rank as away_conference_rank',
-                'home_standings.wins as home_current_performance',
-                'away_standings.wins as away_current_performance',
-                'schedules.home_score',
-                'schedules.away_score',
-                'schedules.status'
-            )
-            ->findOrFail($request->schedule_id);
-            $gameResult = $this->getBoxScore($gameData->game_id);
-        // Check if the game status is already completed
-        if ($gameData->status == 2) {
-            return response()->json([
-                'message' => 'Game has already been simulated.',
-                'data' => $gameResult,
-            ], 400); // You can return a different status code if desired
-        }
+        // Start a database transaction
+        DB::beginTransaction();
 
-        // Fetch current season ID
-        $currentSeasonId = $gameData->season_id;
+        try {
+            // Fetch game data
+            $gameData = Schedules::join('teams as home', 'schedules.home_id', '=', 'home.id')
+                ->join('teams as away', 'schedules.away_id', '=', 'away.id')
+                ->join('standings_view as home_standings', function ($join) {
+                    $join->on('home.id', '=', 'home_standings.team_id')
+                        ->whereColumn('home_standings.season_id', 'schedules.season_id');
+                })
+                ->join('standings_view as away_standings', function ($join) {
+                    $join->on('away.id', '=', 'away_standings.team_id')
+                        ->whereColumn('away_standings.season_id', 'schedules.season_id');
+                })
+                ->select(
+                    'schedules.id',
+                    'schedules.round',
+                    'schedules.season_id',
+                    'schedules.game_id',
+                    'home.id as home_team_id',
+                    'home.name as home_team_name',
+                    'away.id as away_team_id',
+                    'away.name as away_team_name',
+                    'home_standings.overall_rank as home_overall_rank',
+                    'away_standings.overall_rank as away_overall_rank',
+                    'home_standings.conference_name as home_conference_name',
+                    'away_standings.conference_name as away_conference_name',
+                    'home_standings.conference_rank as home_conference_rank',
+                    'away_standings.conference_rank as away_conference_rank',
+                    'home_standings.wins as home_current_performance',
+                    'away_standings.wins as away_current_performance',
+                    'schedules.home_score',
+                    'schedules.away_score',
+                    'schedules.status'
+                )
+                ->findOrFail($request->schedule_id);
 
-        // Define role-based priority and maximum points
-        $rolePriority = [
-            'star player' => 1,
-            'starter' => 2,
-            'role player' => 3,
-            'bench' => 4,
-        ];
-
-        // Define total minutes available for each team
-        $totalMinutes = 240;
-
-        // Fetch and prioritize players for home and away teams
-        $homeTeamPlayers = Player::where('team_id', $gameData->home_team_id)->get()
-            ->sortBy(function ($player) use ($rolePriority) {
-                return $rolePriority[$player->role] ?? 5; // Default to a lower priority if role not found
-            })->values();
-
-        $awayTeamPlayers = Player::where('team_id', $gameData->away_team_id)->get()
-            ->sortBy(function ($player) use ($rolePriority) {
-                return $rolePriority[$player->role] ?? 5; // Default to a lower priority if role not found
-            })->values();
-
-        // Initialize arrays to hold player game stats and minutes
-        $playerGameStats = [];
-
-        // Distribute minutes to players considering injury status
-        $homeMinutes = $this->distributeMinutes($homeTeamPlayers, $totalMinutes);
-        $awayMinutes = $this->distributeMinutes($awayTeamPlayers, $totalMinutes);
-
-       // Simulate player game stats for home team
-       foreach ($homeTeamPlayers as $player) {
-        $minutes = $homeMinutes[$player->id] ?? 0;
-
-        // Calculate the total number of games played by the away team
-        $totalGames = Schedules::where('season_id', $currentSeasonId)
-            ->where('status', 2) // Assuming 2 represents completed games
-            ->where(function ($query) use ($player) {
-                $query->where('away_id', $player->team_id)
-                    ->orWhere('home_id', $player->team_id);
-            })
-            ->count();
-
-        // Calculate average defensive stats per game for the away team
-        $awayTeamDefensiveStats = [
-            'blocks' => $gameData->away_team_id ? PlayerGameStats::where('team_id', $gameData->away_team_id)
-                ->where('season_id', $currentSeasonId)
-                ->selectRaw('SUM(blocks) / ?', [$totalGames])
-                ->value('SUM(blocks)') : 0,
-            'steals' => $gameData->away_team_id ? PlayerGameStats::where('team_id', $gameData->away_team_id)
-                ->where('season_id', $currentSeasonId)
-                ->selectRaw('SUM(steals) / ?', [$totalGames])
-                ->value('SUM(steals)') : 0,
-        ];
-
-        // If minutes is 0, player did not play
-        if ($minutes === 0) {
-            $playerGameStats[] = [
-                'player_id' => $player->id,
-                'game_id' => $gameData->game_id,
-                'season_id' => $currentSeasonId,
-                'team_id' => $player->team_id,
-                'points' => 0,
-                'rebounds' => 0,
-                'assists' => 0,
-                'steals' => 0,
-                'blocks' => 0,
-                'turnovers' => 0,
-                'fouls' => 0,
-                'minutes' => 0,
-            ];
-        } else {
-            $performanceFactor = rand(80, 120) / 100; // Randomize within 80% to 120%
-            $pointsPerMinute = 0.5 + ($player->shooting_rating / 200);
-            $points = round($pointsPerMinute * $minutes * $performanceFactor);
-
-            $points = rand(0, $points);
-
-            $assistPerMinute = 0.2 + ($player->passing_rating / 200);
-            $assists = round($assistPerMinute * $minutes * $performanceFactor);
-
-            $assists = rand(0, $assists);
-
-            $reboundPerMinute = 0.3 + ($player->rebounding_rating / 200);
-            $rebounds = round($reboundPerMinute * $minutes * $performanceFactor);
-
-            $rebounds = rand(0, $rebounds);
-
-            // Apply defensive adjustments based on away team's defensive stats
-            $defensiveImpact = ($awayTeamDefensiveStats['blocks'] + $awayTeamDefensiveStats['steals']) / 20; // Scale factor
-            $points -= round($defensiveImpact * $minutes * 0.1); // Adjust points based on opponent's defense
-            $points = max($points, 0); // Ensure no negative points
-
-            // Apply similar adjustments for assists and rebounds if needed
-            // Uncomment if you want to adjust these stats
-            // $assists -= round($defensiveImpact * $minutes * 0.1);
-            // $assists = max($assists, 0); // Ensure no negative assists
-            // $rebounds -= round($defensiveImpact * $minutes * 0.1);
-            // $rebounds = max($rebounds, 0); // Ensure no negative rebounds
-
-            $steals = round($minutes * (0.05 - $defensiveImpact / 50)); // Adjust steals based on opponent's defense
-            $blocks = round($minutes * (0.03 - $defensiveImpact / 50)); // Adjust blocks based on opponent's defense
-
-            // Turnovers and fouls
-            $turnovers = round(rand(0, 2));
-            $fouls = round(rand(0, 4));
-
-            // Update player game stats
-            $playerGameStats[] = [
-                'player_id' => $player->id,
-                'game_id' => $gameData->game_id,
-                'season_id' => $currentSeasonId,
-                'team_id' => $player->team_id,
-                'points' => max($points, 0),      // Ensure no negative values
-                'rebounds' => max($rebounds, 0),  // Ensure no negative values
-                'assists' => max($assists, 0),    // Ensure no negative values
-                'steals' => max($steals, 0),      // Ensure no negative values
-                'blocks' => max($blocks, 0),      // Ensure no negative values
-                'turnovers' => max($turnovers, 0), // Ensure no negative values
-                'fouls' => max($fouls, 0),        // Ensure no negative values
-                'minutes' => max($minutes, 0),
-            ];
-        }
-    }
-
-    // Simulate player game stats for away team
-    foreach ($awayTeamPlayers as $player) {
-        $minutes = $awayMinutes[$player->id] ?? 0;
-
-        // Calculate the total number of games played by the home team
-        $totalGames = Schedules::where('season_id', $currentSeasonId)
-            ->where('status', 2) // Assuming 2 represents completed games
-            ->where(function ($query) use ($player) {
-                $query->where('away_id', $player->team_id)
-                    ->orWhere('home_id', $player->team_id);
-            })
-            ->count();
-
-        // Calculate average defensive stats per game for the home team
-        $homeTeamDefensiveStats = [
-            'blocks' => $gameData->home_team_id ? PlayerGameStats::where('team_id', $gameData->home_team_id)
-                ->where('season_id', $currentSeasonId)
-                ->selectRaw('SUM(blocks) / ?', [$totalGames])
-                ->value('SUM(blocks)') : 0,
-            'steals' => $gameData->home_team_id ? PlayerGameStats::where('team_id', $gameData->home_team_id)
-                ->where('season_id', $currentSeasonId)
-                ->selectRaw('SUM(steals) / ?', [$totalGames])
-                ->value('SUM(steals)') : 0,
-        ];
-
-        // If minutes is 0, player did not play
-        if ($minutes === 0) {
-            $playerGameStats[] = [
-                'player_id' => $player->id,
-                'game_id' => $gameData->game_id,
-                'season_id' => $currentSeasonId,
-                'team_id' => $player->team_id,
-                'points' => 0,
-                'rebounds' => 0,
-                'assists' => 0,
-                'steals' => 0,
-                'blocks' => 0,
-                'turnovers' => 0,
-                'fouls' => 0,
-                'minutes' => 0,
-            ];
-        } else {
-            $performanceFactor = rand(80, 120) / 100; // Randomize within 80% to 120%
-            $pointsPerMinute = 0.5 + ($player->shooting_rating / 200);
-            $points = round($pointsPerMinute * $minutes * $performanceFactor);
-
-            $points = rand(0, $points);
-
-            $assistPerMinute = 0.2 + ($player->passing_rating / 200);
-            $assists = round($assistPerMinute * $minutes * $performanceFactor);
-
-            $assists = rand(0, $assists);
-
-            $reboundPerMinute = 0.3 + ($player->rebounding_rating / 200);
-            $rebounds = round($reboundPerMinute * $minutes * $performanceFactor);
-
-            $rebounds = rand(0, $rebounds);
-
-            // Apply defensive adjustments based on home team's defensive stats
-            $defensiveImpact = ($homeTeamDefensiveStats['blocks'] + $homeTeamDefensiveStats['steals']) / 20; // Scale factor
-            $points -= round($defensiveImpact * $minutes * 0.1); // Adjust points based on opponent's defense
-            $points = max($points, 0); // Ensure no negative points
-
-            // Apply similar adjustments for assists and rebounds if needed
-            // Uncomment if you want to adjust these stats
-            // $assists -= round($defensiveImpact * $minutes * 0.1);
-            // $assists = max($assists, 0); // Ensure no negative assists
-            // $rebounds -= round($defensiveImpact * $minutes * 0.1);
-            // $rebounds = max($rebounds, 0); // Ensure no negative rebounds
-
-            $steals = round($minutes * (0.05 - $defensiveImpact / 50)); // Adjust steals based on opponent's defense
-            $blocks = round($minutes * (0.03 - $defensiveImpact / 50)); // Adjust blocks based on opponent's defense
-
-            // Turnovers and fouls
-            $turnovers = round(rand(0, 2));
-            $fouls = round(rand(0, 4));
-
-            // Update player game stats
-            $playerGameStats[] = [
-                'player_id' => $player->id,
-                'game_id' => $gameData->game_id,
-                'season_id' => $currentSeasonId,
-                'team_id' => $player->team_id,
-                'points' => max($points, 0),      // Ensure no negative values
-                'rebounds' => max($rebounds, 0),  // Ensure no negative values
-                'assists' => max($assists, 0),    // Ensure no negative values
-                'steals' => max($steals, 0),      // Ensure no negative values
-                'blocks' => max($blocks, 0),      // Ensure no negative values
-                'turnovers' => max($turnovers, 0), // Ensure no negative values
-                'fouls' => max($fouls, 0),        // Ensure no negative values
-                'minutes' => max($minutes, 0),
-            ];
-        }
-    }
-        // Update or insert player game stats
-        foreach ($playerGameStats as $stats) {
-            PlayerGameStats::updateOrCreate(
-                [
-                    'player_id' => $stats['player_id'],
-                    'game_id' => $stats['game_id'],
-                    'season_id' => $stats['season_id'],
-                    'team_id' => $stats['team_id'],
-                ],
-                $stats
-            );
-        }
-
-        // Calculate scores based on player stats
-        $homeScore = PlayerGameStats::where('team_id', $gameData->home_team_id)
-            ->where('game_id', $gameData->game_id)
-            ->sum('points');
-
-        $awayScore = PlayerGameStats::where('team_id', $gameData->away_team_id)
-            ->where('game_id', $gameData->game_id)
-            ->sum('points');
-
-        // Update the scores
-        $gameData->home_score = $homeScore;
-        $gameData->away_score = $awayScore;
-        $gameData->status = 2; // Marking the game as completed
-
-        // Save the updated scores
-        $gameData->save();
-
-        // Check if all rounds have been simulated for the season
-        $allRoundsSimulatedForSeason = Schedules::where('season_id', $currentSeasonId)
-        ->where('status', 1)
-        ->doesntExist();
-
-        if ($allRoundsSimulatedForSeason) {
-            // Update the season's status to 2
-            $season = Seasons::find($currentSeasonId);
-            if ($season) {
-                $season->status = 2; // Example status for completed season
-                $season->save();
+            // Check if the game status is already completed
+            if ($gameData->status == 2) {
+                return response()->json([
+                    'message' => 'Game has already been simulated.',
+                ], 400);
             }
+
+            // Fetch current season ID
+            $currentSeasonId = $gameData->season_id;
+
+            // Define role-based priority and maximum points
+            $rolePriority = [
+                'star player' => 1,
+                'starter' => 2,
+                'role player' => 3,
+                'bench' => 4,
+            ];
+
+            // Define total minutes available for each team
+            $totalMinutes = 240;
+
+            // Fetch and prioritize players for home and away teams
+            $homeTeamPlayers = Player::where('team_id', $gameData->home_team_id)->get()
+                ->sortBy(function ($player) use ($rolePriority) {
+                    return $rolePriority[$player->role] ?? 5;
+                })->values();
+
+            $awayTeamPlayers = Player::where('team_id', $gameData->away_team_id)->get()
+                ->sortBy(function ($player) use ($rolePriority) {
+                    return $rolePriority[$player->role] ?? 5;
+                })->values();
+
+            // Initialize arrays to hold player game stats and minutes
+            $playerGameStats = [];
+
+            // Distribute minutes to players considering injury status
+            $homeMinutes = $this->distributeMinutes($homeTeamPlayers, $totalMinutes);
+            $awayMinutes = $this->distributeMinutes($awayTeamPlayers, $totalMinutes);
+            // Simulate player game stats for home team
+            foreach ($homeTeamPlayers as $player) {
+                $minutes = $homeMinutes[$player->id] ?? 0;
+
+                // Calculate the total number of games played by the away team
+                $totalGames = Schedules::where('season_id', $currentSeasonId)
+                    ->where('status', 2) // Assuming 2 represents completed games
+                    ->where(function ($query) use ($player) {
+                        $query->where('away_id', $player->team_id)
+                            ->orWhere('home_id', $player->team_id);
+                    })
+                    ->count();
+
+                // Calculate average defensive stats per game for the away team
+                $awayTeamDefensiveStats = [
+                    'blocks' => $gameData->away_team_id ? PlayerGameStats::where('team_id', $gameData->away_team_id)
+                        ->where('season_id', $currentSeasonId)
+                        ->selectRaw('SUM(blocks) / ?', [$totalGames])
+                        ->value('SUM(blocks)') : 0,
+                    'steals' => $gameData->away_team_id ? PlayerGameStats::where('team_id', $gameData->away_team_id)
+                        ->where('season_id', $currentSeasonId)
+                        ->selectRaw('SUM(steals) / ?', [$totalGames])
+                        ->value('SUM(steals)') : 0,
+                ];
+
+                // If minutes is 0, player did not play
+                if ($minutes === 0) {
+                    $playerGameStats[] = [
+                        'player_id' => $player->id,
+                        'game_id' => $gameData->game_id,
+                        'season_id' => $currentSeasonId,
+                        'team_id' => $player->team_id,
+                        'points' => 0,
+                        'rebounds' => 0,
+                        'assists' => 0,
+                        'steals' => 0,
+                        'blocks' => 0,
+                        'turnovers' => 0,
+                        'fouls' => 0,
+                        'minutes' => 0,
+                    ];
+                } else {
+                    $performanceFactor = rand(80, 120) / 100; // Randomize within 80% to 120%
+                    $pointsPerMinute = 0.5 + ($player->shooting_rating / 200);
+                    $points = round($pointsPerMinute * $minutes * $performanceFactor);
+
+                    $points = rand(0, $points);
+
+                    $assistPerMinute = 0.2 + ($player->passing_rating / 200);
+                    $assists = round($assistPerMinute * $minutes * $performanceFactor);
+
+                    $assists = rand(0, $assists);
+
+                    $reboundPerMinute = 0.3 + ($player->rebounding_rating / 200);
+                    $rebounds = round($reboundPerMinute * $minutes * $performanceFactor);
+
+                    $rebounds = rand(0, $rebounds);
+
+                    // Apply defensive adjustments based on away team's defensive stats
+                    $defensiveImpact = ($awayTeamDefensiveStats['blocks'] + $awayTeamDefensiveStats['steals']) / 20; // Scale factor
+                    $points -= round($defensiveImpact * $minutes * 0.1); // Adjust points based on opponent's defense
+                    $points = max($points, 0); // Ensure no negative points
+
+                    // Apply similar adjustments for assists and rebounds if needed
+                    // Uncomment if you want to adjust these stats
+                    // $assists -= round($defensiveImpact * $minutes * 0.1);
+                    // $assists = max($assists, 0); // Ensure no negative assists
+                    // $rebounds -= round($defensiveImpact * $minutes * 0.1);
+                    // $rebounds = max($rebounds, 0); // Ensure no negative rebounds
+
+                    $steals = round($minutes * (0.05 - $defensiveImpact / 50)); // Adjust steals based on opponent's defense
+                    $blocks = round($minutes * (0.03 - $defensiveImpact / 50)); // Adjust blocks based on opponent's defense
+
+                    // Turnovers and fouls
+                    $turnovers = round(rand(0, 2));
+                    $fouls = round(rand(0, 4));
+
+                    // Update player game stats
+                    $playerGameStats[] = [
+                        'player_id' => $player->id,
+                        'game_id' => $gameData->game_id,
+                        'season_id' => $currentSeasonId,
+                        'team_id' => $player->team_id,
+                        'points' => max($points, 0),      // Ensure no negative values
+                        'rebounds' => max($rebounds, 0),  // Ensure no negative values
+                        'assists' => max($assists, 0),    // Ensure no negative values
+                        'steals' => max($steals, 0),      // Ensure no negative values
+                        'blocks' => max($blocks, 0),      // Ensure no negative values
+                        'turnovers' => max($turnovers, 0), // Ensure no negative values
+                        'fouls' => max($fouls, 0),        // Ensure no negative values
+                        'minutes' => max($minutes, 0),
+                    ];
+                }
+            }
+
+            // Simulate player game stats for away team
+            foreach ($awayTeamPlayers as $player) {
+                $minutes = $awayMinutes[$player->id] ?? 0;
+
+                // Calculate the total number of games played by the home team
+                $totalGames = Schedules::where('season_id', $currentSeasonId)
+                    ->where('status', 2) // Assuming 2 represents completed games
+                    ->where(function ($query) use ($player) {
+                        $query->where('away_id', $player->team_id)
+                            ->orWhere('home_id', $player->team_id);
+                    })
+                    ->count();
+
+                // Calculate average defensive stats per game for the home team
+                $homeTeamDefensiveStats = [
+                    'blocks' => $gameData->home_team_id ? PlayerGameStats::where('team_id', $gameData->home_team_id)
+                        ->where('season_id', $currentSeasonId)
+                        ->selectRaw('SUM(blocks) / ?', [$totalGames])
+                        ->value('SUM(blocks)') : 0,
+                    'steals' => $gameData->home_team_id ? PlayerGameStats::where('team_id', $gameData->home_team_id)
+                        ->where('season_id', $currentSeasonId)
+                        ->selectRaw('SUM(steals) / ?', [$totalGames])
+                        ->value('SUM(steals)') : 0,
+                ];
+
+                // If minutes is 0, player did not play
+                if ($minutes === 0) {
+                    $playerGameStats[] = [
+                        'player_id' => $player->id,
+                        'game_id' => $gameData->game_id,
+                        'season_id' => $currentSeasonId,
+                        'team_id' => $player->team_id,
+                        'points' => 0,
+                        'rebounds' => 0,
+                        'assists' => 0,
+                        'steals' => 0,
+                        'blocks' => 0,
+                        'turnovers' => 0,
+                        'fouls' => 0,
+                        'minutes' => 0,
+                    ];
+                } else {
+                    $performanceFactor = rand(80, 120) / 100; // Randomize within 80% to 120%
+                    $pointsPerMinute = 0.5 + ($player->shooting_rating / 200);
+                    $points = round($pointsPerMinute * $minutes * $performanceFactor);
+
+                    $points = rand(0, $points);
+
+                    $assistPerMinute = 0.2 + ($player->passing_rating / 200);
+                    $assists = round($assistPerMinute * $minutes * $performanceFactor);
+
+                    $assists = rand(0, $assists);
+
+                    $reboundPerMinute = 0.3 + ($player->rebounding_rating / 200);
+                    $rebounds = round($reboundPerMinute * $minutes * $performanceFactor);
+
+                    $rebounds = rand(0, $rebounds);
+
+                    // Apply defensive adjustments based on home team's defensive stats
+                    $defensiveImpact = ($homeTeamDefensiveStats['blocks'] + $homeTeamDefensiveStats['steals']) / 20; // Scale factor
+                    $points -= round($defensiveImpact * $minutes * 0.1); // Adjust points based on opponent's defense
+                    $points = max($points, 0); // Ensure no negative points
+
+                    // Apply similar adjustments for assists and rebounds if needed
+                    // Uncomment if you want to adjust these stats
+                    // $assists -= round($defensiveImpact * $minutes * 0.1);
+                    // $assists = max($assists, 0); // Ensure no negative assists
+                    // $rebounds -= round($defensiveImpact * $minutes * 0.1);
+                    // $rebounds = max($rebounds, 0); // Ensure no negative rebounds
+
+                    $steals = round($minutes * (0.05 - $defensiveImpact / 50)); // Adjust steals based on opponent's defense
+                    $blocks = round($minutes * (0.03 - $defensiveImpact / 50)); // Adjust blocks based on opponent's defense
+
+                    // Turnovers and fouls
+                    $turnovers = round(rand(0, 2));
+                    $fouls = round(rand(0, 4));
+
+                    // Update player game stats
+                    $playerGameStats[] = [
+                        'player_id' => $player->id,
+                        'game_id' => $gameData->game_id,
+                        'season_id' => $currentSeasonId,
+                        'team_id' => $player->team_id,
+                        'points' => max($points, 0),      // Ensure no negative values
+                        'rebounds' => max($rebounds, 0),  // Ensure no negative values
+                        'assists' => max($assists, 0),    // Ensure no negative values
+                        'steals' => max($steals, 0),      // Ensure no negative values
+                        'blocks' => max($blocks, 0),      // Ensure no negative values
+                        'turnovers' => max($turnovers, 0), // Ensure no negative values
+                        'fouls' => max($fouls, 0),        // Ensure no negative values
+                        'minutes' => max($minutes, 0),
+                    ];
+                }
+            }
+
+            // Update or insert player game stats
+            foreach ($playerGameStats as $stats) {
+                // Log the player game stats
+                \Log::info('Saving player game stats:', $stats);
+
+                try {
+                    \Log::info('Saving player game stats:', $stats);
+
+                    PlayerGameStats::updateOrCreate(
+                        [
+                            'player_id' => $stats['player_id'],
+                            'game_id' => $stats['game_id'],
+                            'season_id' => $stats['season_id'],
+                            'team_id' => $stats['team_id'],
+                        ],
+                        $stats
+                    );
+                } catch (\Exception $e) {
+                    \Log::error('Error saving player game stats:', [
+                        'stats' => $stats,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+
+            }
+
+            // Calculate scores based on player stats
+            $homeScore = PlayerGameStats::where('team_id', $gameData->home_team_id)
+                ->where('game_id', $gameData->game_id)
+                ->sum('points');
+
+            $awayScore = PlayerGameStats::where('team_id', $gameData->away_team_id)
+                ->where('game_id', $gameData->game_id)
+                ->sum('points');
+
+            // Update the scores
+            $gameData->home_score = $homeScore;
+            $gameData->away_score = $awayScore;
+            $gameData->status = 2;
+
+            // Save the updated scores
+            $gameData->save();
+
+            // Check if all rounds have been simulated for the season
+            $allRoundsSimulatedForSeason = Schedules::where('season_id', $currentSeasonId)
+                ->where('status', 1)
+                ->doesntExist();
+
+            if ($allRoundsSimulatedForSeason) {
+                // Update the season's status to 2
+                $season = Seasons::find($currentSeasonId);
+                if ($season) {
+                    $season->status = 2;
+                    $season->save();
+                }
+            }
+
+            // Commit the transaction
+            DB::commit();
+
+            // $gameResult = $this->getBoxScore($gameData->game_id);
+
+            // Return the simulation result
+            return response()->json([
+                'message' => 'Game simulated successfully',
+                'game_id' => $gameData->game_id,
+                // 'data' => $gameResult,
+                // 'playerGameStats' => $playerGameStats,
+            ]);
+        } catch (\Exception $e) {
+            // Rollback the transaction if anything fails
+            DB::rollBack();
+
+            // Return error response
+            return response()->json([
+                'message' => 'An error occurred during simulation: ' . $e->getMessage(),
+            ], 500);
         }
-        // Return the simulation result
-        return response()->json([
-            'message' => 'Game simulated successfully',
-            'data' => $gameResult,
-        ]);
     }
 
     private function getBoxScore($game_id)
