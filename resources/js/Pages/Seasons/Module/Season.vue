@@ -144,6 +144,7 @@
                     >
                 </div>
                 <div class="block md:col-span-2">
+                    <h1 class="text-center">Current Game</h1>
                     <GameResults v-if="activeGameId != 0" :key="activeGameId" :game_id="activeGameId" />
                     <p v-else class="text-red-500 font-bold">No game results</p>
                 </div>
