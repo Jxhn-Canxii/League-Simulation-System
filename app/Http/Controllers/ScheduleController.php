@@ -1074,9 +1074,7 @@ class ScheduleController extends Controller
             'total_players_played' => $playerStats->count(),
         ];
 
-        return response()->json([
-            'box_score' => $boxScore,
-        ]);
+        return $boxScore;
     }
     public function simulateperroundv1(Request $request)
     {
