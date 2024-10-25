@@ -678,10 +678,7 @@ const simulatePerRound = async () => {
 
         // Pass an additional parameter if it's the last round
         await simulateRoundGames(round, isLastRound);
-        await fetchConferenceStandings(activeConferenceTab.value);
-        await fetchConferenceSchedules(activeConferenceTab.value);
     }
-
 
 };
 
@@ -700,7 +697,9 @@ const simulateRoundGames = async (round, isLast) => {
         for (const gameId of gameIds) {
             // Perform an action with each game ID
             console.log(`Processing Game ID: ${gameId}`);
-            simulateGame(gameId);
+            await simulateGame(gameId);
+            await fetchConferenceStandings(activeConferenceTab.value);
+            await fetchConferenceSchedules(activeConferenceTab.value);
             // You can also add more logic here, like fetching game details or updating the state
         }
         topPlayersKey.value = round;
