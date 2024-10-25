@@ -668,34 +668,6 @@ const fetchConferenceSchedules = async (id) => {
         console.error("Error fetching season standings:", error);
     }
 };
-const simulateConference = async () => {
-    try {
-        isHide.value = true;
-        const response = await axios.post(route("game.simulate.conference"), {
-            season_id: props.season_id, // Assuming the parameter name should be schedule_id
-            conference_id: activeConferenceTab.value,
-        });
-        // await localStorage.setItem('season-key',generateRandomKey());
-        await fetchConferenceStandings(activeConferenceTab.value);
-        await fetchConferenceSchedules(activeConferenceTab.value);
-        isHide.value = false;
-        topPlayersKey.value++; // Trigger update of TopPlayers component
-        // Show success message using Swal2
-        Swal.fire({
-            icon: "success",
-            title: "Success!",
-            text: response.data.message, // Assuming the response contains a 'message' field
-        });
-    } catch (error) {
-        console.error("Error simulating per conference:", error);
-        // Show error message using Swal2 if needed
-        Swal.fire({
-            icon: "error",
-            title: "Error!",
-            text: "Failed to simulate the game. Please try again later.",
-        });
-    }
-};
 const simulatePerRound = async () => {
     const rounds = season_schedules.value.rounds;
     const lastRoundIndex = rounds.length - 1; // Get the index of the last round
@@ -705,22 +677,31 @@ const simulatePerRound = async () => {
         const isLastRound = index === lastRoundIndex;
 
         // Pass an additional parameter if it's the last round
-        await simulateRound(round, isLastRound);
+        await simulateRoundGames(round, isLastRound);
     }
+
+    await fetchConferenceStandings(activeConferenceTab.value);
+    await fetchConferenceSchedules(activeConferenceTab.value);
 };
 
-const simulateRound = async (round, isLast) => {
+const simulateRoundGames = async (round, isLast) => {
     try {
         isHide.value = true;
         currentRound.value = round;
-        const response = await axios.post(route("game.simulate.round"), {
+        const response = await axios.post(route("game.per.round"), {
             season_id: props.season_id, // Assuming the parameter name should be schedule_id
             round: round,
             conference_id: activeConferenceTab.value,
         });
         // await localStorage.setItem('season-key',generateRandomKey());
-        await fetchConferenceStandings(activeConferenceTab.value);
-        await fetchConferenceSchedules(activeConferenceTab.value);
+        const gameIds = response.data.schedule_ids; // Assuming the response contains 'game_ids'
+        // Loop through each game ID
+        for (const gameId of gameIds) {
+            // Perform an action with each game ID
+            console.log(`Processing Game ID: ${gameId}`);
+            simulateGame(gameId);
+            // You can also add more logic here, like fetching game details or updating the state
+        }
         topPlayersKey.value = round;
         if (isLast) {
             Swal.fire({
@@ -742,7 +723,31 @@ const simulateRound = async (round, isLast) => {
         });
     }
 };
-
+const simulateGame = async (game_id) => {
+    try {
+        isHide.value = true;
+        const response = await axios.post(route("game.simulate.regular"), {
+            schedule_id: game_id, // Assuming the parameter name should be schedule_id
+        });
+        // await localStorage.setItem('season-key',generateRandomKey());
+        isHide.value = false;
+        topPlayersKey.value++; // Trigger update of TopPlayers component
+        // Show success message using Swal2
+        Swal.fire({
+            icon: "success",
+            title: "Success!",
+            text: response.data.message, // Assuming the response contains a 'message' field
+        });
+    } catch (error) {
+        console.error("Error simulating per conference:", error);
+        // Show error message using Swal2 if needed
+        Swal.fire({
+            icon: "error",
+            title: "Error!",
+            text: "Failed to simulate the game. Please try again later.",
+        });
+    }
+};
 //team modal
 watch(
     () => props.season_id,

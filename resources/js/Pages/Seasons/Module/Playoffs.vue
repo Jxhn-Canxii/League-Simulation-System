@@ -419,32 +419,6 @@ const fetchSeasonPlayoffs = async (type) => {
         console.error("Error fetching season playoffs:", error);
     }
 };
-const simulateGamev2 = async (id,type,index,round) => {
-    try {
-        isHide.value = true;
-        activeIndex.value = index;
-        const response = await axios.post(route("game.simulate"), {
-            schedule_id: id, // Assuming the parameter name should be schedule_id
-        });
-
-        season_playoffs.value.playoffs[round][index] = response.data.schedule;
-        // Show success message using Swal2
-        // Swal.fire({
-        //     icon: "success",
-        //     title: "Success!",
-        //     text: response.data.message, // Assuming the response contains a 'message' field
-        // });
-        isHide.value = false;
-    } catch (error) {
-        console.error("Error simulating the game:", error);
-        // Show error message using Swal2 if needed
-        Swal.fire({
-            icon: "error",
-            title: "Error!",
-            text: "Failed to simulate the game. Please try again later.",
-        });
-    }
-};
 const simulateGame = async (id, type, index, round) => {
     try {
         isHide.value = true;
@@ -461,7 +435,7 @@ const simulateGame = async (id, type, index, round) => {
             },
         });
 
-        const response = await axios.post(route("game.simulate"), {
+        const response = await axios.post(route("game.simulate.playoff"), {
             schedule_id: id, // Assuming the parameter name should be schedule_id
         });
 

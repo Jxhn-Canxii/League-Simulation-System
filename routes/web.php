@@ -73,7 +73,9 @@ Route::middleware('auth')->group(function () {
 
         //simulation and scheduling
         Route::post('create', [ScheduleController::class, 'createSeasonAndSchedule'])->name('schedule.create');
-        Route::post('game', [ScheduleController::class, 'simulate'])->name('game.simulate');
+        Route::post('game-playoff', [ScheduleController::class, 'simulateplayoff'])->name('game.simulate.playoff');
+        Route::post('game-regular', [ScheduleController::class, 'simulateregular'])->name('game.simulate.regular');
+        Route::post('get-round-schedule-ids', [ScheduleController::class, 'getScheduleIds'])->name('game.per.round');
         Route::post('game_per_round', [ScheduleController::class, 'simulateperround'])->name('game.simulate.round');
         Route::post('game_per_conference', [ScheduleController::class, 'simulateperconference'])->name('game.simulate.conference');
         Route::post('all_game', [ScheduleController::class, 'simulateall'])->name('game.simulate.all');
