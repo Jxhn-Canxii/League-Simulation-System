@@ -14,7 +14,7 @@
                         class="min-w-full divide-y divide-gray-200 text-sm"
                         v-if="
                             season_standings &&
-                            season_standings.standings.length > 0
+                            season_standings.standings?.length > 0
                         "
                     >
                         <thead class="bg-gray-50 text-xs">
@@ -50,6 +50,7 @@
                             class="bg-rose-200 divide-y divide-gray-200 text-sm"
                         >
                             <tr
+                                v-if="season_standings?.standings?.length > 0"
                                 v-for="(
                                     team, index
                                 ) in season_standings.standings"
@@ -377,14 +378,14 @@
             <div class="md:col-span-4 sm:col-span-1 overflow-y-auto">
                 <h2 class="text-lg font-semibold text-gray-800 mb-2">
                     Schedule and Results ({{
-                        season_schedules?.schedules.length
+                        season_schedules?.schedules?.length
                     }})
                 </h2>
                 <div class="flex justify-end mb-2"></div>
                 <div
                     v-if="
                         season_schedules &&
-                        season_schedules.schedules.length > 0
+                        season_schedules.schedules?.length > 0
                     "
                     class="grid md:grid-cols-2 sm:col-span-1 gap-6"
                 >
@@ -698,8 +699,6 @@ const simulateRoundGames = async (round, isLast) => {
             // Perform an action with each game ID
             console.log(`Processing Game ID: ${gameId}`);
             await simulateGame(gameId);
-            await fetchConferenceStandings(activeConferenceTab.value);
-            await fetchConferenceSchedules(activeConferenceTab.value);
             // You can also add more logic here, like fetching game details or updating the state
         }
         topPlayersKey.value = round;
@@ -730,8 +729,10 @@ const simulateGame = async (game_id) => {
             schedule_id: game_id, // Assuming the parameter name should be schedule_id
         });
         // await localStorage.setItem('season-key',generateRandomKey());
-        isHide.value = false;
+        // isHide.value = false;
         topPlayersKey.value++; // Trigger update of TopPlayers component
+        await fetchConferenceStandings(activeConferenceTab.value);
+        await fetchConferenceSchedules(activeConferenceTab.value);
         // Show success message using Swal2
         Swal.fire({
             icon: "success",
