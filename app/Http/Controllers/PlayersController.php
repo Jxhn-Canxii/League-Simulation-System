@@ -935,22 +935,22 @@ class PlayersController extends Controller
         $seasonId = $request->season_id;
         $conferenceId = $request->conference_id;
         $round = $request->round;
-
         $excludedRounds = ['quarter_finals', 'round_of_16', 'round_of_32', 'semi_finals', 'interconference_semi_finals', 'finals'];
 
         // Fetch player stats for the given season and conference
         $playerStats = \DB::table('player_game_stats')
             ->join('players', 'player_game_stats.player_id', '=', 'players.id')
             ->join('teams', 'players.team_id', '=', 'teams.id')
-            ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id')  // Join with the schedule table
-            ->where('teams.conference_id', $conferenceId)
+            ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id')
             ->where('player_game_stats.season_id', $seasonId)
-            ->whereNotIn('schedules.round', $excludedRounds)  // Exclude specified rounds using the schedule table
+            ->where('players.conference_id', $conferenceId)
+            ->whereNotIn('schedules.round', $excludedRounds)
             ->select(
                 'players.id as player_id',
                 'players.name as player_name',
                 'players.team_id',
                 'teams.name as team_name',
+                'players.is_rookie',
                 \DB::raw('SUM(player_game_stats.points) as total_points'),
                 \DB::raw('SUM(player_game_stats.rebounds) as total_rebounds'),
                 \DB::raw('SUM(player_game_stats.assists) as total_assists'),
@@ -958,33 +958,26 @@ class PlayersController extends Controller
                 \DB::raw('SUM(player_game_stats.blocks) as total_blocks'),
                 \DB::raw('SUM(player_game_stats.turnovers) as total_turnovers'),
                 \DB::raw('SUM(player_game_stats.fouls) as total_fouls'),
-                \DB::raw('SUM(player_game_stats.minutes) as total_minutes'), // Added to help determine DNP status
+                \DB::raw('SUM(player_game_stats.minutes) as total_minutes'),
                 \DB::raw('COUNT(DISTINCT CASE WHEN player_game_stats.minutes > 0 THEN player_game_stats.game_id END) as games_played')
             )
-            ->groupBy('players.id', 'players.name', 'players.team_id', 'teams.name')
+            ->groupBy('players.id', 'players.name', 'players.team_id', 'teams.name', 'players.is_rookie')
             ->get();
 
-        // Initialize an array to hold formatted player stats
         $formattedPlayerStats = [];
-
         $allRoundsSimulated = Schedules::where('season_id', $seasonId)
             ->where('conference_id', $conferenceId)
             ->where('status', 1)
             ->doesntExist();
 
         foreach ($playerStats as $stats) {
-            // Calculate averages
-            $gamesPlayed = $allRoundsSimulated ? $stats->games_played : (float) ($round + 1) * 2;
+            $gamesPlayed = $allRoundsSimulated ? $stats->games_played : (($round + 1) * 2);
 
             $averagePointsPerGame = $stats->games_played > 0 ? $stats->total_points / $gamesPlayed : 0;
             $averageReboundsPerGame = $stats->games_played > 0 ? $stats->total_rebounds / $gamesPlayed : 0;
             $averageAssistsPerGame = $stats->games_played > 0 ? $stats->total_assists / $gamesPlayed : 0;
-            $averageStealsPerGame = $stats->games_played > 0 ? $stats->total_steals / $gamesPlayed : 0;
-            $averageBlocksPerGame = $stats->games_played > 0 ? $stats->total_blocks / $gamesPlayed : 0;
-            $averageTurnoversPerGame = $stats->games_played > 0 ? $stats->total_turnovers / $gamesPlayed : 0;
-            $averageFoulsPerGame = $stats->games_played > 0 ? $stats->total_fouls / $gamesPlayed : 0;
 
-            // Calculate composite score
+            // Composite score formula for MVP
             $compositeScore = ($stats->total_points * 1.5) +
                 ($stats->total_rebounds * 1.2) +
                 ($stats->total_assists * 1.2) +
@@ -993,42 +986,36 @@ class PlayersController extends Controller
                 ($stats->total_turnovers * 1.0) -
                 ($stats->total_fouls * 0.5);
 
-            // Append player with stats and team name
             $formattedPlayerStats[] = [
                 'player_id' => $stats->player_id,
                 'player_name' => $stats->player_name,
                 'team_name' => $stats->team_name,
-                'team_id' => $stats->team_id,
-                'total_points' => $stats->total_points,
-                'total_rebounds' => $stats->total_rebounds,
-                'total_assists' => $stats->total_assists,
-                'total_steals' => $stats->total_steals,
-                'total_blocks' => $stats->total_blocks,
-                'total_turnovers' => $stats->total_turnovers,
-                'total_fouls' => $stats->total_fouls,
-                'games_played' => $stats->games_played,
-                'average_points_per_game' => $averagePointsPerGame,
-                'average_rebounds_per_game' => $averageReboundsPerGame,
-                'average_assists_per_game' => $averageAssistsPerGame,
-                'average_steals_per_game' => $averageStealsPerGame,
-                'average_blocks_per_game' => $averageBlocksPerGame,
-                'average_turnovers_per_game' => $averageTurnoversPerGame,
-                'average_fouls_per_game' => $averageFoulsPerGame,
                 'composite_score' => $compositeScore,
+                'is_rookie' => $stats->is_rookie === 1, // Check if rookie
+                'average_points' => $averagePointsPerGame,
+                'average_rebounds' => $averageReboundsPerGame,
+                'average_assists' => $averageAssistsPerGame,
             ];
         }
 
-        // Sort players by composite score in descending order and get the top 15
-        $topPlayers = collect($formattedPlayerStats)
-            ->sortByDesc('composite_score')
-            ->take(15)
-            ->values()
-            ->toArray();
+        // Fetch top 5 leaders for each stat
+        $topPoints = collect($formattedPlayerStats)->sortByDesc('average_points')->take(5)->values();
+        $topRebounds = collect($formattedPlayerStats)->sortByDesc('average_rebounds')->take(5)->values();
+        $topAssists = collect($formattedPlayerStats)->sortByDesc('average_assists')->take(5)->values();
+
+        // MVP and Rookie of the Season Leaders
+        $mvpLeaders = collect($formattedPlayerStats)->sortByDesc('composite_score')->take(5)->values();
+        $rookieLeaders = collect($formattedPlayerStats)->where('is_rookie', true)->sortByDesc('composite_score')->take(5)->values();
 
         return response()->json([
-            'best_players' => $topPlayers,
+            'top_point_leaders' => $topPoints,
+            'top_rebound_leaders' => $topRebounds,
+            'top_assist_leaders' => $topAssists,
+            'mvp_leaders' => $mvpLeaders,
+            'rookie_leaders' => $rookieLeaders,
         ]);
     }
+
 
     public function getPlayerPlayoffPerformance(Request $request)
     {

@@ -922,6 +922,84 @@ class ScheduleController extends Controller
                 ->sum('points');
 
             // Update the scores
+            while ($homeScore === $awayScore) {
+                // Simulate an additional 6 minutes of play
+                $additionalMinutes = 6;
+
+                $homeMinutes = $this->distributeMinutes($homeTeamPlayers, $additionalMinutes);
+                $awayMinutes = $this->distributeMinutes($awayTeamPlayers, $additionalMinutes);
+
+                foreach ($homeTeamPlayers as $player) {
+                    if (isset($homeMinutes[$player['id']])) {
+                        // Simulate overtime performance
+                        $overtimeMinutes = $additionalMinutes;
+                        $points = round(($player['shooting_rating'] / 100) * rand(0, 10 * ($overtimeMinutes / 6)));
+                        $assists = round(($player['passing_rating'] / 100) * rand(0, 3 * ($overtimeMinutes / 6)));
+                        $rebounds = round(($player['rebounding_rating'] / 100) * rand(0, 3 * ($overtimeMinutes / 6)));
+                        $steals = round(($player['defense_rating'] / 100) * rand(0, 2 * ($overtimeMinutes / 6)));
+                        $blocks = round(($player['defense_rating'] / 100) * rand(0, 2 * ($overtimeMinutes / 6)));
+
+                        // Retrieve player game stats for the home team
+                        $playerGameStats = PlayerGameStats::where([
+                            'player_id' => $player['id'],
+                            'game_id' => $gameData->game_id,
+                            'team_id' => $gameData->away_id,
+                            'season_id' => $currentSeasonId,
+                        ])->first();
+
+                        // Update player game stats for overtime if exists
+                        if ($playerGameStats) {
+                            $playerGameStats->update([
+                                'points' => DB::raw('points + ' . max(0, $points)),       // Ensure non-negative points
+                                'assists' => DB::raw('assists + ' . max(0, $assists)),    // Ensure non-negative assists
+                                'rebounds' => DB::raw('rebounds + ' . max(0, $rebounds)), // Ensure non-negative rebounds
+                                'steals' => DB::raw('steals + ' . max(0, $steals)),       // Ensure non-negative steals
+                                'blocks' => DB::raw('blocks + ' . max(0, $blocks)),       // Ensure non-negative blocks
+                                'updated_at' => now(),
+                            ]);
+                        }
+
+
+                        $homeScore += $points;
+                    }
+                }
+
+                foreach ($awayTeamPlayers as $player) {
+                    if (isset($awayMinutes[$player['id']])) {
+                        // Simulate overtime performance
+                        $overtimeMinutes = $additionalMinutes;
+                        $points = round(($player['shooting_rating'] / 100) * rand(0, 10 * ($overtimeMinutes / 6)));
+                        $assists = round(($player['passing_rating'] / 100) * rand(0, 3 * ($overtimeMinutes / 6)));
+                        $rebounds = round(($player['rebounding_rating'] / 100) * rand(0, 3 * ($overtimeMinutes / 6)));
+                        $steals = round(($player['defense_rating'] / 100) * rand(0, 2 * ($overtimeMinutes / 6)));
+                        $blocks = round(($player['defense_rating'] / 100) * rand(0, 2 * ($overtimeMinutes / 6)));
+
+                        // Retrieve player game stats for the away team
+                        $playerGameStats = PlayerGameStats::where([
+                            'player_id' => $player['id'],
+                            'game_id' => $gameData->game_id,
+                            'team_id' => $gameData->away_id,
+                            'season_id' => $currentSeasonId,
+                        ])->first();
+
+                        // Update player game stats for overtime if exists
+                        if ($playerGameStats) {
+                            $playerGameStats->update([
+                                'points' => DB::raw('points + ' . max(0, $points)),       // Ensure non-negative points
+                                'assists' => DB::raw('assists + ' . max(0, $assists)),    // Ensure non-negative assists
+                                'rebounds' => DB::raw('rebounds + ' . max(0, $rebounds)), // Ensure non-negative rebounds
+                                'steals' => DB::raw('steals + ' . max(0, $steals)),       // Ensure non-negative steals
+                                'blocks' => DB::raw('blocks + ' . max(0, $blocks)),       // Ensure non-negative blocks
+                                'updated_at' => now(),
+                            ]);
+                        }
+
+
+                        $awayScore += $points;
+                    }
+                }
+            }
+
             $gameData->home_score = $homeScore;
             $gameData->away_score = $awayScore;
             $gameData->status = 2;
@@ -1479,7 +1557,7 @@ class ScheduleController extends Controller
         $scheduleIds = Schedules::where('season_id', $seasonId)
             ->where('conference_id', $conferenceId)
             ->where('status', 1)
-            ->orderByDesc('id')
+            ->orderBy('id')
             ->pluck('id')
             ->toArray(); // Get the IDs as an array
 

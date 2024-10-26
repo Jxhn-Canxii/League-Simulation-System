@@ -2,7 +2,7 @@
     <!-- Overlay Container -->
     <div
         v-if="isHide"
-        class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-500"
+        class="bg-gray-900 bg-opacity-75 flex items-center justify-center z-500"
     >
         <div class="bg-white p-6 rounded-md shadow-lg w-screen h-screen overflow-scroll">
             <h2 class="text-lg font-semibold text-gray-800 mb-2 text-left">
@@ -142,6 +142,15 @@
                         >Simulating Round #
                         {{ parseFloat(currentRound) }}</small
                     >
+                    <div class="flex mt-4">
+                        <!-- <TopPlayers
+                            v-if="season_info?.seasons"
+                            :season_id="season_info.seasons[0].id"
+                            :conference_id="activeConferenceTab"
+                            :key="topPlayersKey"
+                            :round="currentRound ?? 0"
+                        /> -->
+                    </div>
                 </div>
                 <div class="block md:col-span-2">
                     <h1 class="text-center">Current Game</h1>
@@ -367,16 +376,13 @@
                 </ul>
 
                 <div class="flex mt-4">
-                    <TopPlayers
-                        v-if="
-                            season_info?.seasons &&
-                            season_info?.seasons[0].status == 8
-                        "
+                    <!-- <TopPlayers
+                        v-if="season_info?.seasons"
                         :season_id="season_info.seasons[0].id"
                         :conference_id="activeConferenceTab"
                         :key="topPlayersKey"
                         :round="currentRound ?? 0"
-                    />
+                    /> -->
                 </div>
             </div>
             <!-- Schedule and Results UI (Right Side) -->
