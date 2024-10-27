@@ -124,7 +124,7 @@ Route::middleware('auth')->group(function () {
         Route::post('waive', [PlayersController::class, 'waivePlayer'])->name('players.waive');
         Route::post('extend-contract', [PlayersController::class, 'extendContract'])->name('players.contract.extend');
         Route::post('/box-score', [PlayersController::class, 'getBoxScore'])->name('game.boxscore');
-        Route::post('/top-10-players', [PlayersController::class, 'getBestPlayersInConference'])->name('top.players.conference.season');
+        Route::post('/top-10-players', [AwardsController::class, 'getBestPlayersInConference'])->name('top.players.conference.season');
         Route::post('/free-agents', [PlayersController::class, 'getFreeAgents'])->name('players.free.agents');
         Route::post('/all-players', [PlayersController::class, 'getAllPlayers'])->name('players.list.all');
         Route::post('/player-season-performance', [PlayersController::class, 'getPlayerSeasonPerformance'])->name('players.season.performance');

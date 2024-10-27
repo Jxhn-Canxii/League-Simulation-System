@@ -51,8 +51,8 @@
                 <td class="py-1 px-3 text-xs">{{ player.assists }}</td>
                 <td class="py-1 px-3 text-xs">{{ player.steals }}</td>
                 <td class="py-1 px-3 text-xs">{{ player.blocks }}</td>
-                <td class="py-1 px-3 text-xs">{{ player.turnovers }}</td>
-                <td class="py-1 px-3 text-xs">{{ player.fouls }}</td>
+                <td class="py-1 px-3 text-xs">{{ player.minutes > 0 ? player.turnovers : 0 }}</td>
+                <td class="py-1 px-3 text-xs">{{ player.minutes > 0 ? player.fouls : 0  }}</td>
               </tr>
               <tr v-if="sortedHomePlayers.length === 0">
                 <td colspan="10" class="py-1 px-3 text-center text-xs">No player statistics available.</td>
@@ -89,8 +89,8 @@
                 <td class="py-1 px-3 text-xs">{{ player.assists }}</td>
                 <td class="py-1 px-3 text-xs">{{ player.steals }}</td>
                 <td class="py-1 px-3 text-xs">{{ player.blocks }}</td>
-                <td class="py-1 px-3 text-xs">{{ player.turnovers }}</td>
-                <td class="py-1 px-3 text-xs">{{ player.fouls }}</td>
+                <td class="py-1 px-3 text-xs">{{ player.minutes > 0 ? player.turnovers : 0 }}</td>
+                <td class="py-1 px-3 text-xs">{{ player.minutes > 0 ? player.fouls : 0  }}</td>
               </tr>
               <tr v-if="sortedAwayPlayers.length === 0">
                 <td colspan="10" class="py-1 px-3 text-center text-xs">No player statistics available.</td>
