@@ -31,7 +31,7 @@ class Player extends Model
         'rebounding_rating',
         'overall_rating',
         'draft_id',
-        'drafted_order',
+        'draft_order',
         'drafted_team_id',
         'is_drafted',
         'draft_status',
