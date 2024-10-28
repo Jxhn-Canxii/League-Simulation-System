@@ -93,7 +93,7 @@ class RatingsController extends Controller
                 DB::table('transactions')->insert([
                 'player_id' => $playerStat->player_id,
                 'season_id' => $seasonId,
-                'details' => 'Waived by ' . ($teamName ?? 'Unknown Team'),
+                'details' => 'Waived by ' . ($teamName),
                 'from_team_id' => $teamId,
                 'to_team_id' => 0,
                 'status' => 'waived',
