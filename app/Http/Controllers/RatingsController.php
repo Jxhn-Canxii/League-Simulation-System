@@ -161,7 +161,7 @@ class RatingsController extends Controller
                         DB::table('transactions')->insert([
                             'player_id' => $player->id,
                             'season_id' => $seasonId,
-                            'details' => 'Released by' . $teamName,
+                            'details' => 'Released by ' . $teamName,
                             'from_team_id' => 0,
                             'to_team_id' => 0,
                             'status' => 'released',
