@@ -263,13 +263,16 @@ class TransactionsController extends Controller
                 $agent->save();
 
                 // Log the transaction
+                $fromTeamName = $fromTeamId ? DB::table('teams')->where('id', $fromTeamId)->value('name') : 'Free Agent';
+                $toTeamName = $team->name;
+
                 DB::table('transactions')->insert([
                     'player_id' => $agent->id,
                     'season_id' => $currentseasonId,
-                    'details' => 'Signed to ' . $team->name,
+                    'details' => 'Transferred from ' . $fromTeamName . ' to ' . $toTeamName,
                     'from_team_id' => $fromTeamId,
                     'to_team_id' => $team->id,
-                    'status' => 'signed',
+                    'status' => 'transfer',
                 ]);
 
                 // Reduce the number of players needed for that team
