@@ -337,6 +337,15 @@ class DraftController extends Controller
                     ], 400);
                 }
             }
+
+            // After drafting logic but before DB::commit()
+            DB::table('players')
+            ->where('draft_id', $currentSeasonId)
+            ->where('is_drafted', 0)
+            ->update([
+                'draft_status' => 'Undrafted',
+            ]);
+
             // Update the season status to 11 after drafting
             $seasonUpdate = DB::table('seasons')
                 ->where('id', $latestSeasonId)
