@@ -81,7 +81,7 @@ class TransactionsController extends Controller
             'team_count' =>  $teamsCount,
         ]);
     }
-    public function assignRemainingFreeAgents()
+    public function assignRemainingFreeAgentsV1()
     {
         // Fetch teams with fewer than 15 players
         $teamsWithFewMembers = DB::table('teams')
@@ -146,6 +146,129 @@ class TransactionsController extends Controller
                 $agent->team_id = $team->id;
                 $agent->contract_years = $this->determineContractYears($agent->role);
                 $agent->save();
+
+                // Reduce the number of players needed for that team
+                $team->player_count++;
+
+                // Remove the team from the list if it no longer needs more players
+                if ($playersNeeded <= 1) {
+                    $teamsWithFewMembers = $teamsWithFewMembers->filter(function ($t) use ($team) {
+                        return $t->id !== $team->id;
+                    });
+                }
+
+                $remainingFreeAgents--;
+            }
+
+            // Check for incomplete teams after assignment
+            $incompleteTeams = DB::table('teams')
+                ->leftJoin('players', 'teams.id', '=', 'players.team_id')
+                ->select('teams.name', DB::raw('COUNT(players.id) as player_count'))
+                ->groupBy('teams.name')
+                ->havingRaw('COUNT(players.id) < 15')
+                ->get()
+                ->map(function ($team) {
+                    $playersNeeded = 15 - $team->player_count;
+                    return [
+                        'team_name' => $team->name,
+                        'players_needed' => $playersNeeded,
+                    ];
+                })
+                ->filter(function ($team) {
+                    return $team['players_needed'] > 0;
+                });
+
+            return response()->json([
+                'message' => 'Free agents have been assigned to teams.',
+                'remaining_free_agents' => $remainingFreeAgents,
+                'incomplete_teams' => $incompleteTeams,
+            ]);
+        }
+    }
+    public function assignRemainingFreeAgents()
+    {
+        // Fetch teams with fewer than 15 players
+        $teamsWithFewMembers = DB::table('teams')
+            ->leftJoin('players', 'teams.id', '=', 'players.team_id')
+            ->select('teams.id', 'teams.name', DB::raw('COUNT(players.id) as player_count'))
+            ->groupBy('teams.id', 'teams.name')
+            ->havingRaw('COUNT(players.id) < 15')
+            ->get();
+
+        // Fetch free agents (players with team_id = 0)
+        $freeAgents = Player::where('team_id', 0)
+            ->where('contract_years', 0)
+            ->where('is_active', 1)
+            ->orderByRaw("FIELD(role, 'star player', 'starter', 'role player', 'bench')")
+            ->get();
+
+        $remainingFreeAgents = $freeAgents->count();
+        $teamsCount = $teamsWithFewMembers->count();
+
+        if ($teamsCount === 0) {
+            // Update the last season's status to 12 if there are no incomplete teams
+            DB::table('seasons')
+                ->where('id', $this->getLatestSeasonId())
+                ->update(['status' => 12]);
+
+            // Update player roles based on the last season's stats
+            $update = $this->updateTeamRolesBasedOnStats();
+            if ($update) {
+                return response()->json([
+                    'error' => true,
+                    'message' => 'All teams have signed 15 players, and roles have been updated based on last season\'s stats.',
+                    'team_count' => $teamsCount,
+                ], 401);
+            }
+        } else {
+            if ($remainingFreeAgents === 0) {
+                $incompleteTeams = $teamsWithFewMembers->map(function ($team) {
+                    $playersNeeded = 15 - $team->player_count;
+                    return [
+                        'team_name' => $team->name,
+                        'players_needed' => $playersNeeded,
+                    ];
+                })->filter(function ($team) {
+                    return $team['players_needed'] > 0;
+                });
+
+                return response()->json([
+                    'message' => 'No free agents available.',
+                    'incomplete_teams' => $incompleteTeams,
+                ], 400);
+            }
+
+            // Randomly assign each free agent to a team with fewer than 15 players
+            foreach ($freeAgents as $agent) {
+                if ($remainingFreeAgents <= 0) break;
+
+                // Get the player's last team from player_season_stats
+                $lastSeasonStats = DB::table('player_season_stats')
+                    ->where('player_id', $agent->id)
+                    ->orderBy('season_id', 'desc') // Assuming season_id indicates the order of seasons
+                    ->first(['team_id']);
+
+                $fromTeamId = $lastSeasonStats ? $lastSeasonStats->team_id : 0; // Default to 0 if no stats
+
+                // Randomly select a team from the incomplete teams
+                $team = $teamsWithFewMembers->random();
+                $playersNeeded = 15 - $team->player_count;
+
+                // Update the agent's team and contract years
+                $agent->team_id = $team->id;
+                $agent->contract_years = $this->determineContractYears($agent->role);
+                $agent->save();
+
+                // Log the transaction
+                DB::table('transactions')->insert([
+                    'player_id' => $agent->id,
+                    'details' => 'Signed to ' . $team->name,
+                    'from_team_id' => $fromTeamId,
+                    'to_team_id' => $team->id,
+                    'status' => 'completed',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
 
                 // Reduce the number of players needed for that team
                 $team->player_count++;
