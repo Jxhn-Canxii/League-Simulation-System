@@ -6,6 +6,7 @@
         <hr class="my-4 border-t border-gray-200" />
         <!-- Available Players Section -->
         <button
+            v-if="!isHide"
             @click.prevent="draftPlayer()"
             class="px-2 py-2 bg-blue-500 rounded font-bold text-md float-end text-white shadow"
         >
@@ -160,7 +161,7 @@ const teams = ref([]);
 const availablePlayers = ref([]);
 const draftOrder = ref([]);
 const draftResults = ref([]);
-
+const isHide = ref(true);
 const search = ref({
     page_num: 1,
     total_pages: 0,
@@ -178,6 +179,7 @@ const fetchAvailablePlayers = async () => {
     try {
         const response = await axios.post(route("draft.list"), search.value); // Update with your API endpoint
         availablePlayers.value = response.data;
+
     } catch (error) {
         console.error("Error fetching available players:", error);
     }
@@ -190,6 +192,7 @@ const fetchDraftOrder = async () => {
     try {
         const response = await axios.get(route("draft.orders")); // Update with your API endpoint
         draftOrder.value = response.data.draft_order;
+        isHide.value = false;
     } catch (error) {
         console.error("Error fetching teams:", error);
     }
@@ -226,6 +229,7 @@ const draftPlayer = async () => {
             await fetchDraftResults();
             await fetchAvailablePlayers();
 
+            isHide.value = true;
             emits("newSeason", Math.random());
         }
     } catch (error) {
