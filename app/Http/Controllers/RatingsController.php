@@ -81,8 +81,25 @@ class RatingsController extends Controller
             }
 
             foreach ($rankedPlayers->slice(9, 3) as $playerStat) {
+                $teamName = Teams::find($playerStat->team_id)->name ?? 'Unknown Team';
+
                 // Last 3 players become bench players
-                Player::where('id', $playerStat->player_id)->update(['role' => 'bench']);
+                Player::where('id', $playerStat->player_id)->update([
+                    'role' => 'bench',
+                    'contract_years' => 0,
+                    'team_id' => 0
+                ]);
+
+                DB::table('transactions')->insert([
+                'player_id' => $playerStat->player_id,
+                'season_id' => $seasonId,
+                'details' => 'Waived by ' . ($teamName ?? 'Unknown Team'),
+                'from_team_id' => $teamId,
+                'to_team_id' => 0,
+                'status' => 'waived',
+                ]);
+
+
             }
 
 
