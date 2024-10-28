@@ -226,8 +226,8 @@ const draftPlayer = async () => {
             await fetchDraftResults();
             await fetchAvailablePlayers();
 
+            emits("newSeason", Math.random());
         }
-        emits("newSeason", is_new_season);
     } catch (error) {
         console.error("Error fetching draft history:", error);
 
