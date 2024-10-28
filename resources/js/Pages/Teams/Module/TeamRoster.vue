@@ -42,6 +42,11 @@
                         <th
                             class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
                         >
+                           Draft
+                        </th>
+                        <th
+                            class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                        >
                             Name
                         </th>
                         <th
@@ -124,6 +129,9 @@
                     >
                         <td class="px-2 py-1 whitespace-nowrap border">
                             {{ index + 1 }}
+                        </td>
+                        <td class="px-2 py-1 whitespace-nowrap border">
+                            {{ player.draft_status }} {{ player.drafted_team ? '('+player.drafted_team+ ')' : ''}}
                         </td>
                         <td class="px-2 py-1 whitespace-nowrap border">
                             {{ player.name }}<sup>{{ player.is_rookie ? 'R':'V'}}</sup>
