@@ -344,6 +344,7 @@ class DraftController extends Controller
             ->where('is_drafted', 0)
             ->update([
                 'draft_status' => 'Undrafted',
+                'is_rookie' => 0,
             ]);
 
             // Update the season status to 11 after drafting
