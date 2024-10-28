@@ -86,7 +86,26 @@ class RatingsController extends Controller
             }
 
 
+                 // Select the 5 players with the worst statistics and update them
+            // $worstPlayers = $rankedPlayers->slice(-3);
 
+            // foreach ($worstPlayers as $playerStat) {
+
+            //     // Log the transaction for the waived player
+            //     DB::table('transactions')->insert([
+            //         'player_id' => $playerStat->player_id,
+            //         'season_id' => $seasonId,
+            //         'details' => 'Waived by ' . ($teamName ?? 'Unknown Team'),
+            //         'from_team_id' => $teamId,
+            //         'to_team_id' => 0,
+            //         'status' => 'waived',
+            //     ]);
+
+            //     Player::where('id', $playerStat->player_id)->update([
+            //         'contract_years' => 0,
+            //         'team_id' => 0
+            //     ]);
+            // }
             // Fetch updated players
             $players = $query->get();
 
@@ -214,26 +233,6 @@ class RatingsController extends Controller
                 // Log the updated ratings
                 $this->logPlayerRatings($player, $seasonId);
 
-                     // Select the 5 players with the worst statistics and update them
-                    $worstPlayers = $rankedPlayers->slice(-3);
-
-                    foreach ($worstPlayers as $playerStat) {
-
-                        // Log the transaction for the waived player
-                        DB::table('transactions')->insert([
-                            'player_id' => $playerStat->player_id,
-                            'season_id' => $seasonId,
-                            'details' => 'Waived by ' . ($teamName ?? 'Unknown Team'),
-                            'from_team_id' => $teamId,
-                            'to_team_id' => 0,
-                            'status' => 'waived',
-                        ]);
-
-                        Player::where('id', $playerStat->player_id)->update([
-                            'contract_years' => 0,
-                            'team_id' => 0
-                        ]);
-                    }
             }
 
 

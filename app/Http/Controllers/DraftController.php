@@ -134,14 +134,16 @@ class DraftController extends Controller
                         ->where('is_active', 1) // Only count active players
                         ->count();
 
+                    $spotAvailable = $currentTeamMembersCount < 15;
+
                     DB::table('players')->where('id', $selectedPlayer->id)->update([
                         'draft_id' => $currentSeasonId,
                         'draft_order' => $pickNumber,
                         'drafted_team_id' => $team->team_id,
                         'is_drafted' => 1,
                         'draft_status' => $draftStatus,
-                        'team_id' => $team->team_id,
-                        'contract_years' => $contract,
+                        'team_id' => $spotAvailable ? $team->team_id : 0,
+                        'contract_years' => $spotAvailable ? $contract : 0,
                     ]);
 
                     // Log the transaction
@@ -207,20 +209,20 @@ class DraftController extends Controller
 
                     // Check if the team already has 15 members
                     $currentTeamMembersCount = DB::table('players')
-                        ->where('team_id', $team->team_id)
-                        ->where('is_active', 1) // Only count active players
-                        ->count();
+                    ->where('team_id', $team->team_id)
+                    ->where('is_active', 1) // Only count active players
+                    ->count();
 
+                    $spotAvailable = $currentTeamMembersCount < 15;
 
-                    // Update player details for drafted player
                     DB::table('players')->where('id', $selectedPlayer->id)->update([
                         'draft_id' => $currentSeasonId,
-                        'draft_order' => $pickNumberTwo,
+                        'draft_order' => $pickNumber,
                         'drafted_team_id' => $team->team_id,
                         'is_drafted' => 1,
                         'draft_status' => $draftStatus,
-                        'team_id' => $team->team_id,
-                        'contract_years' => $contract,
+                        'team_id' => $spotAvailable ? $team->team_id : 0,
+                        'contract_years' => $spotAvailable ? $contract : 0,
                     ]);
 
                     // Log the transaction
