@@ -340,9 +340,6 @@ class PlayersController extends Controller
         $currentPage = $request->input('page_num', 1); // Current page number
         $search = $request->input('search', ''); // Search term
 
-        // Calculate the offset for the query
-        $offset = ($currentPage - 1) * $perPage;
-
         // Define role priorities
         $rolePriorities = [
             'star player' => 1,
@@ -352,13 +349,14 @@ class PlayersController extends Controller
         ];
 
         // Build the query with optional search filter
-        $query = Player::select('*')
-            ->where('contract_years', 0)
-            ->where('is_active', 1);
+        $query = Player::select('players.*', 'teams.acronym as drafted_team')
+            ->where('players.contract_years', 0)
+            ->where('players.is_active', 1)
+            ->leftJoin('teams', 'players.drafted_team_id', '=', 'teams.id'); // Join teams on players.drafted_team_id
 
         // Apply search filter if provided
         if ($search) {
-            $query->where('name', 'like', "%{$search}%");
+            $query->where('players.name', 'like', "%{$search}%");
         }
 
         // Add role priority sorting
@@ -368,6 +366,9 @@ class PlayersController extends Controller
 
         // Get total number of records
         $total = $query->count();
+
+        // Calculate the offset for the query
+        $offset = ($currentPage - 1) * $perPage;
 
         // Fetch the paginated data
         $freeAgents = $query->offset($offset)
@@ -385,6 +386,7 @@ class PlayersController extends Controller
             'free_agents' => $freeAgents,
         ]);
     }
+
     public function getAllPlayers(Request $request)
     {
         // Get pagination parameters from the request

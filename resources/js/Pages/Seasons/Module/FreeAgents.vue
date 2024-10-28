@@ -58,6 +58,11 @@
                                 <th
                                     class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
                                 >
+                                    Draft
+                                </th>
+                                <th
+                                    class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                                >
                                     Name
                                 </th>
                                 <th
@@ -124,6 +129,9 @@
                                 :key="player.player_id"
                                 class="hover:bg-gray-100"
                             >
+                                <td class="px-2 py-1 whitespace-nowrap border">
+                                    {{ player.draft_status }} {{ player.drafted_team ? '('+player.drafted_team+ ')' : ''}}
+                                </td>
                                 <td class="px-2 py-1 whitespace-nowrap border">
                                     {{ player.name }}
                                 </td>

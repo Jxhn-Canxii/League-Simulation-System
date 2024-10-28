@@ -91,6 +91,7 @@ class DraftController extends Controller
         try {
             // Get the latest season_id from the standings_view
             $latestSeasonId = DB::table('standings_view')->max('season_id');
+            $currentSeasonId = $latestSeasonId + 1; // Current season id for the draft
 
             // Fetch standings for the latest season, sorted by overall rank
             $draftOrder = DB::table('standings_view')
@@ -99,22 +100,22 @@ class DraftController extends Controller
                 ->orderBy('overall_rank', 'desc')
                 ->get();
 
+
             // Fetch rookie players sorted by overall rating (highest first)
             $availablePlayers = DB::table('players')
                 ->where('is_rookie', 1)
                 ->where('team_id', 0) // Only include players not yet assigned to a team
+                ->where('draft_id', $currentSeasonId) // Only include players that has the same draft_id
                 ->orderBy('overall_rating', 'desc')
                 ->get();
 
-            $totalTeams = $draftOrder->count();
-            $currentSeasonId = $latestSeasonId + 1; // Current season id for the draft
-
-            if (count($availablePlayers) < 80) {
+            if (count($availablePlayers) < 160) {
                 return response()->json([
                     'error' => true,
                     'message' => 'Rookies not enough for teams!',
                 ], 400);
             }
+
 
             $pickNumber = 1; // Track pick number
             // Perform the drafting
