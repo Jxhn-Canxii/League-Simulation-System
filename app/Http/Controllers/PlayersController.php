@@ -575,7 +575,7 @@ class PlayersController extends Controller
             'rebounding_rating' => $reboundingRating,
             'overall_rating' => $overallRating,
             'draft_id' => $currentSeasonId,
-            'drafted_order' => 0,
+            'draft_order' => 0,
             'drafted_team_id' => 0,
             'is_drafted' => 0,
             'draft_status' => 'Rookie',
