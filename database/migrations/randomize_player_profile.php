@@ -16,7 +16,7 @@ SET
     `draft_order` = 0,
     `draft_status` = '',
     `age` = FLOOR(RAND() * (25 - 18 + 1)) + 18,  -- Random age between 18 and 25
-    `retirement_age` = FLOOR(RAND() * (40 - `age` + 1)) + `age`  -- Random retirement age from age to 40
+    `retirement_age` = FLOOR(RAND() * (40 - `age` + 1)) + `age`,  -- Random retirement age from age to 40
     `injury_prone_percentage` = FLOOR(RAND() * 100) + 1,  -- Random injury prone percentage between 1 and 100
     `shooting_rating` = FLOOR(RAND() * (99 - 60 + 1)) + 60,  -- Random shooting rating between 60 and 99
     `defense_rating` = FLOOR(RAND() * (99 - 60 + 1)) + 60,  -- Random defense rating between 60 and 99
