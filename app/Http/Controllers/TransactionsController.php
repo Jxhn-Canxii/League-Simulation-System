@@ -265,9 +265,7 @@ class TransactionsController extends Controller
                     'details' => 'Signed to ' . $team->name,
                     'from_team_id' => $fromTeamId,
                     'to_team_id' => $team->id,
-                    'status' => 'completed',
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'status' => 'signed',
                 ]);
 
                 // Reduce the number of players needed for that team
