@@ -154,18 +154,18 @@ class RatingsController extends Controller
                         ]);
                     } else {
 
-                        DB::table('transactions')->insert([
-                            'player_id' => $player->id,
-                            'season_id' => $seasonId,
-                            'details' => `Released by` . $teamName,
-                            'from_team_id' => $player->team_id,
-                            'to_team_id' => 0,
-                            'status' => 'released',
-                        ]);
-
                         // Player does not re-sign, set as free agent
                         $player->contract_years = 0;
                         $player->team_id = 0;
+
+                        DB::table('transactions')->insert([
+                            'player_id' => $player->id,
+                            'season_id' => $seasonId,
+                            'details' => 'Released by' . $teamName,
+                            'from_team_id' => 0,
+                            'to_team_id' => 0,
+                            'status' => 'released',
+                        ]);
                     }
                 }
 
