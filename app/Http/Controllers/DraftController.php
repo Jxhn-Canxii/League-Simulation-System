@@ -136,7 +136,7 @@ class DraftController extends Controller
 
                     if ($currentTeamMembersCount < 15) {
                         // Update player details for drafted player
-                        $updatePlayer = DB::table('players')->where('id', $selectedPlayer->id)->update([
+                        DB::table('players')->where('id', $selectedPlayer->id)->update([
                             'draft_id' => $currentSeasonId,
                             'draft_order' => $pickNumber,
                             'drafted_team_id' => $team->team_id,
@@ -157,7 +157,7 @@ class DraftController extends Controller
                         ]);
                     } else {
                         // If team already has 15 members, do not update team_id and contract_years
-                        $updatePlayer = DB::table('players')->where('id', $selectedPlayer->id)->update([
+                        DB::table('players')->where('id', $selectedPlayer->id)->update([
                             'draft_id' => $currentSeasonId,
                             'draft_order' => $pickNumber,
                             'drafted_team_id' => $team->team_id,
@@ -246,7 +246,7 @@ class DraftController extends Controller
 
                     if ($currentTeamMembersCount < 15) {
                         // Update player details for drafted player
-                        $updatePlayer = DB::table('players')->where('id', $selectedPlayer->id)->update([
+                        DB::table('players')->where('id', $selectedPlayer->id)->update([
                             'draft_id' => $currentSeasonId,
                             'draft_order' => $pickNumberTwo,
                             'drafted_team_id' => $team->team_id,
@@ -267,7 +267,7 @@ class DraftController extends Controller
                         ]);
                     } else {
                         // If team already has 15 members, do not update team_id and contract_years
-                        $updatePlayer = DB::table('players')->where('id', $selectedPlayer->id)->update([
+                        DB::table('players')->where('id', $selectedPlayer->id)->update([
                             'draft_id' => $currentSeasonId,
                             'draft_order' => $pickNumberTwo,
                             'drafted_team_id' => $team->team_id,
