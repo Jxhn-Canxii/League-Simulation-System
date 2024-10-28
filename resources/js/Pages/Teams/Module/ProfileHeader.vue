@@ -17,7 +17,7 @@
             <strong>Team:</strong> {{ main_performance.player_details.team_name ?? "-" }}
         </p>
         <p>
-            <strong>Draft:</strong> {{ main_performance.player_details.draft_status ?? "-" }}
+            <strong>Draft:</strong> {{ main_performance.player_details.draft_status ?? "-" }} {{ main_performance.player_details.drafted_team ? '('+main_performance.player_details.drafted_team + ')' : ''}}
         </p>
         <p>
             <strong>Draft Class:</strong> {{ main_performance.player_details.draft_class ?? "-" }}

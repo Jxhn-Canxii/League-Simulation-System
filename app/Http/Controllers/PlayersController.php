@@ -1130,9 +1130,10 @@ class PlayersController extends Controller
         // Fetch player and team details
         $playerDetails = \DB::table('players')
             ->join('teams', 'players.team_id', '=', 'teams.id', 'left') // Join teams table to get team details
+            ->join('teams as drafted_teams', 'players.drafted_team_id', '=', 'drafted_teams.id', 'left') // Join teams table to get team details
             ->join('seasons', 'players.draft_id', '=', 'seasons.id', 'left')
             ->where('players.id', $playerId)
-            ->select('players.id as player_id', 'players.name as player_name', 'players.age as age', 'teams.name as team_name', 'players.role', 'players.contract_years', 'players.is_rookie', 'players.overall_rating', 'players.type','players.draft_status as draft_status','seasons.name as draft_class')
+            ->select('players.id as player_id', 'players.name as player_name', 'players.age as age', 'teams.name as team_name', 'players.role', 'players.contract_years', 'players.is_rookie', 'players.overall_rating', 'players.type','players.draft_status as draft_status','seasons.name as draft_class','drafted_teams.acronym as drafted_team')
             ->first();
 
         if (!$playerDetails) {
