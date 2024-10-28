@@ -280,6 +280,8 @@ class DraftController extends Controller
                 ->where('draft_id', $currentSeasonId)
                 ->where('is_drafted', 0)
                 ->update([
+                    'team_id' => 0,
+                    'contract_years' => 0,
                     'draft_status' => 'Undrafted',
                     'is_rookie' => 0,
                 ]);

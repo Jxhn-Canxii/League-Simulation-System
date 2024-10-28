@@ -157,14 +157,14 @@ class RatingsController extends Controller
                         DB::table('transactions')->insert([
                             'player_id' => $player->id,
                             'season_id' => $seasonId,
-                            'details' => `has been waived by` . $teamName,
+                            'details' => `Released by` . $teamName,
                             'from_team_id' => $player->team_id,
                             'to_team_id' => 0,
-                            'status' => 'waived',
+                            'status' => 'released',
                         ]);
 
                         // Player does not re-sign, set as free agent
-                        $player->contract_years += 0;
+                        $player->contract_years = 0;
                         $player->team_id = 0;
                     }
                 }

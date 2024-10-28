@@ -344,6 +344,7 @@ class PlayersController extends Controller
             'players' => $playerStats,
             'season_id' => $seasonId,
             'team_id' => $teamId,
+            'stats_count' => count($playerStatsData),
         ]);
     }
 
