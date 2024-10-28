@@ -12,6 +12,7 @@ use App\Http\Controllers\PlayersController;
 use App\Http\Controllers\TransactionsController;
 use App\Http\Controllers\RatingsController;
 use App\Http\Controllers\AwardsController;
+use App\Http\Controllers\DraftController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -84,6 +85,11 @@ Route::middleware('auth')->group(function () {
     });
     Route::prefix('ratings/')->group(function(){
         Route::post('update-player-status', [RatingsController::class, 'updateActivePlayers'])->name('update.player.status');
+
+    });
+    Route::prefix('draft/')->group(function(){
+        Route::post('draft-order', [DraftController::class, 'draft_order'])->name('draft.order');
+        Route::post('draft-players', [DraftController::class, 'draft'])->name('draft.players');
 
     });
     Route::prefix('seasons/')->group(function(){

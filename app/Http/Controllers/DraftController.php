@@ -123,6 +123,16 @@ class DraftController extends Controller
                         'status' => 'draft',
                     ]);
 
+                    // Save to the drafts table
+                    DB::table('drafts')->insert([
+                        'team_id' => $team->team_id,
+                        'player_id' => $selectedPlayer->id,
+                        'season_id' => $currentSeasonId,
+                        'round' => $round,
+                        'pick_number' => $pickNumber,
+                        'draft_status' => $draftStatus,
+                    ]);
+
                     $draftResults[] = [
                         'team_id' => $team->team_id,
                         'player_id' => $selectedPlayer->id,
