@@ -1,76 +1,179 @@
 <template>
     <div class="draft-board">
-      <h2 class="text-xl font-semibold text-gray-800">Draft Board</h2>
+        <h2 class="text-xl font-semibold text-gray-800">Draft Board</h2>
 
-      <!-- Divider -->
-      <hr class="my-4 border-t border-gray-200" />
-
-      <!-- Teams Section -->
-      <div class="grid grid-cols-3 gap-4 mb-8">
-        <div v-for="team in teams" :key="team.id" class="team-card border p-4 rounded-lg">
-          <h3 class="font-bold text-lg">{{ team.name }}</h3>
-          <p class="text-gray-600">Drafted Players:</p>
-          <ul>
-            <li v-for="player in team.draftedPlayers" :key="player.id" class="text-gray-800">
-              {{ player.name }}
-            </li>
-          </ul>
-          <button @click="draftPlayer(team.id)" class="mt-2 bg-blue-500 text-white px-2 py-1 rounded">
-            Draft Player
-          </button>
+        <!-- Divider -->
+        <hr class="my-4 border-t border-gray-200" />
+        <!-- Available Players Section -->
+        <button
+            @click.prevent="draftPlayer()"
+            class="px-2 py-2 bg-blue-500 rounded font-bold text-md float-end text-white shadow"
+        >
+            <i class="fa fa-users"></i> Draft
+        </button>
+        <h3 class="text-lg font-semibold text-gray-800">Draft Results</h3>
+        <hr class="my-4 border-t border-gray-200" />
+        <div class="overflow-x-auto mb-8" v-if="draftOrder.length > 0">
+            <table class="min-w-full divide-y divide-gray-200 text-xs">
+                <thead class="bg-gray-50 text-nowrap">
+                    <tr>
+                        <th
+                            class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                            Round #
+                        </th>
+                        <th
+                            class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                            Pick #
+                        </th>
+                        <th
+                            class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                            Name
+                        </th>
+                        <th
+                            class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                            Team
+                        </th>
+                        <th
+                            class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                            Overall Rating
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <tr
+                        v-for="player in draftOrder"
+                        :key="player.id"
+                        class="hover:bg-gray-100"
+                    >
+                        <td class="px-2 py-1 whitespace-nowrap border">
+                            {{ player.round }}
+                        </td>
+                        <td class="px-2 py-1 whitespace-nowrap border">
+                            {{ player.pick }}
+                        </td>
+                        <td class="px-2 py-1 whitespace-nowrap border">
+                            -
+                        </td>
+                        <td class="px-2 py-1 whitespace-nowrap border">
+                            {{ player.team_name }}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
-      </div>
-
-      <!-- Available Players Section -->
-      <h3 class="text-lg font-semibold text-gray-800">Available Players</h3>
-      <hr class="my-4 border-t border-gray-200" />
-      <div class="overflow-x-auto mb-8">
-        <table class="min-w-full divide-y divide-gray-200 text-xs">
-          <thead class="bg-gray-50 text-nowrap">
-            <tr>
-              <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Name</th>
-              <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Team</th>
-              <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Position</th>
-              <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Overall Rating</th>
-              <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"></th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-for="player in availablePlayers" :key="player.id" class="hover:bg-gray-100">
-              <td class="px-2 py-1 whitespace-nowrap border">{{ player.name }}</td>
-              <td class="px-2 py-1 whitespace-nowrap border">{{ player.team_name }}</td>
-              <td class="px-2 py-1 whitespace-nowrap border">{{ player.position }}</td>
-              <td class="px-2 py-1 whitespace-nowrap border">{{ player.overall_rating }}</td>
-              <td class="px-2 py-1 whitespace-nowrap border">
-                <button @click="selectPlayer(player)" class="bg-green-500 text-white px-2 py-1 rounded">
-                  Select
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Draft History Section -->
-      <h3 class="text-lg font-semibold text-gray-800">Draft History</h3>
-      <hr class="my-4 border-t border-gray-200" />
-      <ul>
-        <li v-for="history in draftHistory" :key="history.id" class="text-gray-800">
-          {{ history.team_name }} drafted {{ history.player_name }} (Round {{ history.round }}, Pick {{ history.pick_number }})
-        </li>
-      </ul>
+        <div class="overflow-x-auto mb-8" v-else">
+            <table class="min-w-full divide-y divide-gray-200 text-xs">
+                <thead class="bg-gray-50 text-nowrap">
+                    <tr>
+                        <th
+                            class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                            Round #
+                        </th>
+                        <th
+                            class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                            Pick #
+                        </th>
+                        <th
+                            class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                            Name
+                        </th>
+                        <th
+                            class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                            Team
+                        </th>
+                        <th
+                            class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                            Overall Rating
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <tr
+                        v-for="player in draftResults"
+                        :key="player.id"
+                        class="hover:bg-gray-100"
+                    >
+                        <td class="px-2 py-1 whitespace-nowrap border">
+                            {{ player.name }}
+                        </td>
+                        <td class="px-2 py-1 whitespace-nowrap border">
+                            {{ player.overall_rating }}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <!-- Available Players Section -->
+        <h3 class="text-lg font-semibold text-gray-800">Available Players</h3>
+        <hr class="my-4 border-t border-gray-200" />
+        <div class="overflow-x-auto mb-8">
+            <table class="min-w-full divide-y divide-gray-200 text-xs">
+                <thead class="bg-gray-50 text-nowrap">
+                    <tr>
+                        <th
+                            class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                            Name
+                        </th>
+                        <th
+                            class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                            Overall Rating
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <tr
+                        v-for="player in availablePlayers.rookies"
+                        :key="player.id"
+                        class="hover:bg-gray-100"
+                    >
+                        <td class="px-2 py-1 whitespace-nowrap border">
+                            {{ player.name }}
+                        </td>
+                        <td class="px-2 py-1 whitespace-nowrap border">
+                            {{ player.overall_rating }}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="flex w-full overflow-auto">
+            <Paginator
+                v-if="availablePlayers.total"
+                :page_number="search.page_num"
+                :total_rows="availablePlayers.total ?? 0"
+                :itemsperpage="search.itemsperpage"
+                @page_num="handlePagination"
+            />
+        </div>
     </div>
-  </template>
+</template>
 
-  <script setup>
-  import { ref, onMounted } from "vue";
-  import axios from "axios";
+<script setup>
+import { ref, onMounted } from "vue";
+import Swal from "sweetalert2";
+import axios from "axios";
 
-  const teams = ref([]);
-  const availablePlayers = ref([]);
-  const draftHistory = ref([]);
+import Paginator from "@/Components/Paginator.vue";
 
-  const search = ref({
+const emits = defineEmits(["newSeason"]);
+const teams = ref([]);
+const availablePlayers = ref([]);
+const draftOrder = ref([]);
+const draftResults = ref([]);
+
+const search = ref({
     page_num: 1,
     total_pages: 0,
     total: 0,
@@ -78,60 +181,83 @@
     itemsperpage: 10,
 });
 
-  onMounted(async () => {
-    await fetchTeams();
+onMounted(async () => {
+    await fetchDraftOrder();
+    await fetchDraftResults();
     await fetchAvailablePlayers();
-    await fetchDraftHistory();
-  });
+});
 
-  const fetchTeams = async () => {
+const fetchAvailablePlayers = async () => {
     try {
-      const response = await axios.get(route("draft.orders")); // Update with your API endpoint
-      teams.value = response.data;
+        const response = await axios.post(route("draft.list"), search.value); // Update with your API endpoint
+        availablePlayers.value = response.data;
     } catch (error) {
-      console.error("Error fetching teams:", error);
+        console.error("Error fetching available players:", error);
     }
-  };
-
-  const fetchAvailablePlayers = async () => {
+};
+const handlePagination = (page_num) => {
+    search.value.page_num = page_num;
+    fetchAvailablePlayers();
+};
+const fetchDraftOrder = async () => {
     try {
-      const response = await axios.post(route("players.free.agents"),search.value); // Update with your API endpoint
-      availablePlayers.value = response.data;
+        const response = await axios.get(route("draft.orders")); // Update with your API endpoint
+        draftOrder.value = response.data.draft_order;
     } catch (error) {
-      console.error("Error fetching available players:", error);
+        console.error("Error fetching teams:", error);
     }
-  };
-
-  const fetchDraftHistory = async () => {
+};
+const fetchDraftResults = async () => {
     try {
-      const response = await axios.get(route("draft.history")); // Update with your API endpoint
-      draftHistory.value = response.data;
+        const response = await axios.get(route("draft.results")); // Update with your API endpoint
+        draftResults.value = response.data.draft_results;
     } catch (error) {
-      console.error("Error fetching draft history:", error);
+        console.error("Error fetching draft history:", error);
     }
-  };
+};
 
-  const selectPlayer = (player) => {
+const selectPlayer = (player) => {
     // Logic to handle player selection
     console.log("Selected player:", player);
     // Call API to draft the player
-  };
+};
 
-  const draftPlayer = (teamId) => {
+const draftPlayer = async () => {
     try {
-      const response = await axios.get(route("draft.players")); // Update with your API endpoint
-      draftHistory.value = response.data;
-    } catch (error) {
-      console.error("Error fetching draft history:", error);
-    }
-  };
-  </script>
+        const response = await axios.post(route("draft.players")); // Update with your API endpoint
 
-  <style scoped>
-  .draft-board {
+        // Show success alert
+        await Swal.fire({
+            title: 'Success!',
+            text: 'Player drafted successfully!',
+            icon: 'success',
+            confirmButtonText: 'OK'
+        });
+
+        await fetchDraftResults();
+        await fetchAvailablePlayers();
+
+        emits("newSeason", is_new_season);
+    } catch (error) {
+        console.error("Error fetching draft history:", error);
+
+        // Show error alert
+        await Swal.fire({
+            title: 'Error!',
+            text: 'Failed to draft player. Please try again.',
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
+    }
+};
+
+</script>
+
+<style scoped>
+.draft-board {
     padding: 16px;
-  }
-  .team-card {
+}
+.team-card {
     background: #f9fafb; /* Tailwind gray-50 */
-  }
-  </style>
+}
+</style>

@@ -40,11 +40,11 @@
                     "
                 >
                     <button
-                        @click.prevent="isPlayerSigningModalOpen = true"
+                        @click.prevent="isDraftModalOpen = true"
                         v-bind:class="{
-                            'opacity-25': isPlayerSigningModalOpen,
+                            'opacity-25': isDraftModalOpen,
                         }"
-                        v-bind:disabled="isPlayerSigningModalOpen"
+                        v-bind:disabled="isDraftModalOpen"
                         class="px-2 py-2 bg-yellow-500 rounded font-bold text-md float-end text-white shadow"
                     >
                         <i class="fa fa-user-plus"></i> Rookie Draft
@@ -599,6 +599,17 @@
                     <FreeAgents @newSeason="handleNewSeason" />
                 </div>
             </Modal>
+            <Modal :show="isDraftModalOpen" :maxWidth="'6xl'">
+                <button
+                    class="flex float-end bg-gray-100 p-3"
+                    @click.prevent="isDraftModalOpen = false"
+                >
+                    <i class="fa fa-times text-black-600"></i>
+                </button>
+                <div class="mt-4 p-3 block">
+                    <Draft @newSeason="handleNewSeason" />
+                </div>
+            </Modal>
             <Modal :show="isPlayerAwardsModalOpen" :maxWidth="'6xl'">
                 <button
                     class="flex float-end bg-gray-100 p-3"
@@ -634,10 +645,12 @@ import Playoffs from "@/Pages/Seasons/Module/Playoffs.vue";
 import FreeAgents from "@/Pages/Seasons/Module/FreeAgents.vue";
 import Awards from "./Module/Awards.vue";
 import SeasonAwards from "./Module/SeasonAwards.vue";
+import Draft from "./Module/Draft.vue";
 
 const isAddModalOpen = ref(false);
 const isViewModalOpen = ref(false);
 const isPlayerSigningModalOpen = ref(false);
+const isDraftModalOpen = ref(false);
 const isPlayerAwardsModalOpen = ref(false);
 const seasons = ref([]);
 const leagues_dropdown = ref([]);

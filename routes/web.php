@@ -88,8 +88,10 @@ Route::middleware('auth')->group(function () {
 
     });
     Route::prefix('draft/')->group(function(){
-        Route::post('draft-order', [DraftController::class, 'draft_order'])->name('draft.order');
-        Route::post('draft-players', [DraftController::class, 'draft'])->name('draft.players');
+        Route::post('players-list', [DraftController::class, 'rookieDraftees'])->name('draft.list');
+        Route::get('draft-order', [DraftController::class, 'draftOrder'])->name('draft.orders');
+        Route::get('draft-results', [DraftController::class, 'draftResults'])->name('draft.results');
+        Route::post('draft-players', [DraftController::class, 'draftPlayers'])->name('draft.players');
 
     });
     Route::prefix('seasons/')->group(function(){
