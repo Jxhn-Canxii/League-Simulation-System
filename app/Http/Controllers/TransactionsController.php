@@ -279,10 +279,10 @@ class TransactionsController extends Controller
                     DB::table('players')->where('id', $agent->id)->update([
                         'draft_id' => 0,
                         'draft_order' => 0,
-                        'drafted_team_id' => $team->team_id,
+                        'drafted_team_id' => $team->id,
                         'is_drafted' => 1,
                         'draft_status' => 'Special Draft',
-                        'team_id' => $team->team_id
+                        'team_id' => $team->id
                     ]);
                 }
 
