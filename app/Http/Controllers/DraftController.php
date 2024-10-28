@@ -21,7 +21,6 @@ class DraftController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-
      public function draft_order()
      {
          // Get the latest season_id from the standings_view
@@ -91,6 +90,8 @@ class DraftController extends Controller
 
         // Perform the drafting
         foreach ($draftOrder as $team) {
+            $currentSeasonId = $latestSeasonId + 1;
+
             if ($availablePlayers->isNotEmpty()) {
                 $selectedPlayer = $availablePlayers->shift(); // Get the highest-rated rookie player
 
@@ -106,11 +107,84 @@ class DraftController extends Controller
                     'team_id' => $team->team_id // Optional: if you want to update the team_id field as well
                 ]);
 
+               // Determine the round and pick number
+               $round = ceil($pickNumber / $totalTeams);
+               $draftStatus = `Season .$currentSeasonId. R #' . $round . ' P #' . $pickNumber . '`;
+
+
+               $draftResults[] = [
+                   'team_id' => $team->team_id,
+                   'player_id' => $selectedPlayer->id,
+                   'player_name' => $selectedPlayer->name,
+                   'overall_rating' => $selectedPlayer->overall_rating,
+                   'draft_id' =>  $currentSeasonId,
+                   'draft_order' => $pickNumber,
+                   'draft_status' => $draftStatus, // Store draft status
+                   'round' => $round, // Store the round
+                   'pick_number' => $pickNumber, // Store the pick number
+               ];
+
+                $pickNumber++; // Increment pick number
+            } else {
+                // If no players are available, mark undrafted status
+                DB::table('players')->where('id', $selectedPlayer->id)->update([
+                    'draft_id' =>  $currentSeasonId,
+                    'is_drafted' => 0,
+                    'draft_status' => 'undrafted',
+                ]);
+            }
+        }
+
+        // Return the draft results as a JSON response
+        return response()->json([
+            'season_id' => $latestSeasonId,
+            'draft_results' => $draftResults,
+        ]);
+    }
+
+    public function draft_history()
+    {
+        // Get the latest season_id from the standings_view
+        $latestSeasonId = DB::table('standings_view')->max('season_id');
+
+        // Fetch standings for the latest season, sorted by overall rank
+        $draftOrder = DB::table('standings_view')
+            ->select('team_id', 'wins', 'losses', 'overall_rank')
+            ->where('season_id', $latestSeasonId)
+            ->orderBy('overall_rank', 'asc')
+            ->get();
+
+        // Fetch rookie players sorted by overall rating (highest first)
+        $availablePlayers = DB::table('players')
+            ->where('is_rookie', 1)
+            ->whereNull('team_id') // Only include players not yet assigned to a team
+            ->orderBy('overall_rating', 'desc')
+            ->get();
+
+        // Initialize the drafted players array
+        $draftResults = [];
+        $totalTeams = $draftOrder->count();
+        $pickNumber = 1; // Track pick number
+
+        // Perform the drafting
+        foreach ($draftOrder as $team) {
+            $currentSeasonId = $latestSeasonId + 1;
+
+            if ($availablePlayers->isNotEmpty()) {
+                $selectedPlayer = $availablePlayers->shift(); // Get the highest-rated rookie player
+
+                // Determine the round and pick number
+                $round = ceil($pickNumber / $totalTeams);
+                $draftStatus = `Season .$currentSeasonId. R #' . $round . ' P #' . $pickNumber . '`;
+
+
                 $draftResults[] = [
                     'team_id' => $team->team_id,
                     'player_id' => $selectedPlayer->id,
                     'player_name' => $selectedPlayer->name,
                     'overall_rating' => $selectedPlayer->overall_rating,
+                    'draft_id' =>  $currentSeasonId,
+                    'draft_order' => $pickNumber,
                     'draft_status' => $draftStatus, // Store draft status
                     'round' => $round, // Store the round
                     'pick_number' => $pickNumber, // Store the pick number
@@ -120,6 +194,7 @@ class DraftController extends Controller
             } else {
                 // If no players are available, mark undrafted status
                 DB::table('players')->where('id', $selectedPlayer->id)->update([
+                    'draft_id' =>  $currentSeasonId,
                     'is_drafted' => 0,
                     'draft_status' => 'undrafted',
                 ]);
