@@ -187,6 +187,9 @@ class TransactionsController extends Controller
     }
     public function assignRemainingFreeAgents()
     {
+
+        $seasonId = $this->getLatestSeasonId();
+        $currentseasonId = $seasonId + 1;
         // Fetch teams with fewer than 15 players
         $teamsWithFewMembers = DB::table('teams')
             ->leftJoin('players', 'teams.id', '=', 'players.team_id')
@@ -262,6 +265,7 @@ class TransactionsController extends Controller
                 // Log the transaction
                 DB::table('transactions')->insert([
                     'player_id' => $agent->id,
+                    'season_id' => $currentseasonId,
                     'details' => 'Signed to ' . $team->name,
                     'from_team_id' => $fromTeamId,
                     'to_team_id' => $team->id,

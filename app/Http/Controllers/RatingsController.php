@@ -97,6 +97,9 @@ class RatingsController extends Controller
                     ->where('season_id', $seasonId)
                     ->exists();
 
+                // get team name
+                $teamName = Teams::find($player->team_id)->name ?? 'Unknown Team';
+
                 if ($ratingExists) {
                     // Skip updating this player if already updated
                     continue;
@@ -140,7 +143,26 @@ class RatingsController extends Controller
                         // Player re-signs, assign contract length based on role
                         $player->contract_years += $this->getContractYearsBasedOnRole($player->role);
                         $reSignedPlayers[] = $player; // Track re-signed player
+
+                        DB::table('transactions')->insert([
+                            'player_id' => $player->id,
+                            'season_id' => $seasonId,
+                            'details' => 'Re-signed with ' . $teamName,
+                            'from_team_id' => $player->team_id,
+                            'to_team_id' => $player->team_id,
+                            'status' => 'resigned',
+                        ]);
                     } else {
+
+                        DB::table('transactions')->insert([
+                            'player_id' => $player->id,
+                            'season_id' => $seasonId,
+                            'details' => `has been waived by` . $teamName,
+                            'from_team_id' => $player->team_id,
+                            'to_team_id' => 0,
+                            'status' => 'waived',
+                        ]);
+
                         // Player does not re-sign, set as free agent
                         $player->contract_years += 0;
                         $player->team_id = 0;

@@ -21,6 +21,3 @@ SET
         (`shooting_rating` + `defense_rating` + `passing_rating` + `rebounding_rating`) / 4
     ),
     `updated_at` = NOW()
-WHERE
-    `team_id` = 0 AND
-    `contract_years` = 0;
