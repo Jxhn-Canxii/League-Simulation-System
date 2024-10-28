@@ -130,7 +130,7 @@
                         <td class="px-2 py-1 whitespace-nowrap border">
                             {{ index + 1 }}
                         </td>
-                        <td class="px-2 py-1 whitespace-nowrap border" :title="'Draft class'+player.draft_class">
+                        <td class="px-2 py-1 whitespace-nowrap border" :title="'Draft class: '+player.draft_class">
                             {{ player.draft_status }} {{ player.drafted_team ? '('+player.drafted_team+ ')' : ''}}
                         </td>
                         <td class="px-2 py-1 whitespace-nowrap border">
