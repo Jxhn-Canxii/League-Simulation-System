@@ -512,7 +512,9 @@ class PlayersController extends Controller
 
         $latestSeasonId = DB::table('standings_view')->max('season_id');
 
-        $currentSeasonId = $latestSeasonId + 1;
+        // Start at 1 if no records are found, otherwise increment the latest season ID
+        $currentSeasonId = $latestSeasonId ? (int) $latestSeasonId + 1 : 1;
+
         // Check if a player with the same name already exists in any team
         $existingPlayer = Player::where('name', $request->name)->first();
         if ($existingPlayer) {

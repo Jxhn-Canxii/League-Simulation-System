@@ -30,6 +30,11 @@ class Player extends Model
         'passing_rating',
         'rebounding_rating',
         'overall_rating',
+        'draft_id',
+        'drafted_order',
+        'drafted_team_id',
+        'is_drafted',
+        'draft_status',
     ];
 
     // The attributes that are hidden for arrays (optional)
