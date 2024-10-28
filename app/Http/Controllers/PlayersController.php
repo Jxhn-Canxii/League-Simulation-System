@@ -510,8 +510,6 @@ class PlayersController extends Controller
             'name' => 'required|string|max:255|unique:players,name',
         ]);
 
-        $latestSeasonId = DB::table('standings_view')->max('season_id');
-
         // Check if a player with the same name already exists in any team
         $existingPlayer = Player::where('name', $request->name)->first();
         if ($existingPlayer) {
@@ -571,7 +569,6 @@ class PlayersController extends Controller
             'passing_rating' => $passingRating,
             'rebounding_rating' => $reboundingRating,
             'overall_rating' => $overallRating,
-            'draft_id' =>  $latestSeasonId + 1,
             'is_rookie' => true,
         ]);
 
@@ -927,99 +924,6 @@ class PlayersController extends Controller
             'box_score' => $boxScore,
         ]);
     }
-    public function getBestPlayersInConference(Request $request)
-    {
-        $request->validate([
-            'season_id' => 'required|exists:seasons,id',
-            'conference_id' => 'required|exists:conferences,id',
-            'round' => 'required|min:0',
-        ]);
-
-        $seasonId = $request->season_id;
-        $conferenceId = $request->conference_id;
-        $round = $request->round;
-        $excludedRounds = ['quarter_finals', 'round_of_16', 'round_of_32', 'semi_finals', 'interconference_semi_finals', 'finals'];
-
-        // Fetch player stats for the given season and conference
-        $playerStats = \DB::table('player_game_stats')
-            ->join('players', 'player_game_stats.player_id', '=', 'players.id')
-            ->join('teams', 'players.team_id', '=', 'teams.id')
-            ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id')
-            ->where('player_game_stats.season_id', $seasonId)
-            ->where('players.conference_id', $conferenceId)
-            ->whereNotIn('schedules.round', $excludedRounds)
-            ->select(
-                'players.id as player_id',
-                'players.name as player_name',
-                'players.team_id',
-                'teams.name as team_name',
-                'players.is_rookie',
-                \DB::raw('SUM(player_game_stats.points) as total_points'),
-                \DB::raw('SUM(player_game_stats.rebounds) as total_rebounds'),
-                \DB::raw('SUM(player_game_stats.assists) as total_assists'),
-                \DB::raw('SUM(player_game_stats.steals) as total_steals'),
-                \DB::raw('SUM(player_game_stats.blocks) as total_blocks'),
-                \DB::raw('SUM(player_game_stats.turnovers) as total_turnovers'),
-                \DB::raw('SUM(player_game_stats.fouls) as total_fouls'),
-                \DB::raw('SUM(player_game_stats.minutes) as total_minutes'),
-                \DB::raw('COUNT(DISTINCT CASE WHEN player_game_stats.minutes > 0 THEN player_game_stats.game_id END) as games_played')
-            )
-            ->groupBy('players.id', 'players.name', 'players.team_id', 'teams.name', 'players.is_rookie')
-            ->get();
-
-        $formattedPlayerStats = [];
-        $allRoundsSimulated = Schedules::where('season_id', $seasonId)
-            ->where('conference_id', $conferenceId)
-            ->where('status', 1)
-            ->doesntExist();
-
-        foreach ($playerStats as $stats) {
-            $gamesPlayed = $allRoundsSimulated ? $stats->games_played : (($round + 1) * 2);
-
-            $averagePointsPerGame = $stats->games_played > 0 ? $stats->total_points / $gamesPlayed : 0;
-            $averageReboundsPerGame = $stats->games_played > 0 ? $stats->total_rebounds / $gamesPlayed : 0;
-            $averageAssistsPerGame = $stats->games_played > 0 ? $stats->total_assists / $gamesPlayed : 0;
-
-            // Composite score formula for MVP
-            $compositeScore = ($stats->total_points * 1.5) +
-                ($stats->total_rebounds * 1.2) +
-                ($stats->total_assists * 1.2) +
-                ($stats->total_steals * 1.5) +
-                ($stats->total_blocks * 1.5) -
-                ($stats->total_turnovers * 1.0) -
-                ($stats->total_fouls * 0.5);
-
-            $formattedPlayerStats[] = [
-                'player_id' => $stats->player_id,
-                'player_name' => $stats->player_name,
-                'team_name' => $stats->team_name,
-                'composite_score' => $compositeScore,
-                'is_rookie' => $stats->is_rookie === 1, // Check if rookie
-                'average_points' => $averagePointsPerGame,
-                'average_rebounds' => $averageReboundsPerGame,
-                'average_assists' => $averageAssistsPerGame,
-            ];
-        }
-
-        // Fetch top 5 leaders for each stat
-        $topPoints = collect($formattedPlayerStats)->sortByDesc('average_points')->take(5)->values();
-        $topRebounds = collect($formattedPlayerStats)->sortByDesc('average_rebounds')->take(5)->values();
-        $topAssists = collect($formattedPlayerStats)->sortByDesc('average_assists')->take(5)->values();
-
-        // MVP and Rookie of the Season Leaders
-        $mvpLeaders = collect($formattedPlayerStats)->sortByDesc('composite_score')->take(5)->values();
-        $rookieLeaders = collect($formattedPlayerStats)->where('is_rookie', true)->sortByDesc('composite_score')->take(5)->values();
-
-        return response()->json([
-            'top_point_leaders' => $topPoints,
-            'top_rebound_leaders' => $topRebounds,
-            'top_assist_leaders' => $topAssists,
-            'mvp_leaders' => $mvpLeaders,
-            'rookie_leaders' => $rookieLeaders,
-        ]);
-    }
-
-
     public function getPlayerPlayoffPerformance(Request $request)
     {
         // Validate the request data
@@ -1226,8 +1130,9 @@ class PlayersController extends Controller
         // Fetch player and team details
         $playerDetails = \DB::table('players')
             ->join('teams', 'players.team_id', '=', 'teams.id', 'left') // Join teams table to get team details
+            ->join('seasons', 'players.draft_id', '=', 'seasons.id', 'left')
             ->where('players.id', $playerId)
-            ->select('players.id as player_id', 'players.name as player_name', 'players.age as age', 'teams.name as team_name', 'players.role', 'players.contract_years', 'players.is_rookie', 'players.overall_rating', 'players.type')
+            ->select('players.id as player_id', 'players.name as player_name', 'players.age as age', 'teams.name as team_name', 'players.role', 'players.contract_years', 'players.is_rookie', 'players.overall_rating', 'players.type','players.draft_status as draft_status','seasons.name as draft_class')
             ->first();
 
         if (!$playerDetails) {

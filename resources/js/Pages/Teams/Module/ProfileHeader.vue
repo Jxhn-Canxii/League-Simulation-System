@@ -17,6 +17,12 @@
             <strong>Team:</strong> {{ main_performance.player_details.team_name ?? "-" }}
         </p>
         <p>
+            <strong>Draft:</strong> {{ main_performance.player_details.draft_status ?? "-" }}
+        </p>
+        <p>
+            <strong>Draft Class:</strong> {{ main_performance.player_details.draft_class ?? "-" }}
+        </p>
+        <p>
             <strong>Role:</strong>
             <span  :class="roleClasses(main_performance.player_details.role)">
                 {{ main_performance.player_details.role }}
