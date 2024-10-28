@@ -32,7 +32,7 @@ class DraftController extends Controller
         $draftOrder = DB::table('standings_view')
             ->select('team_id', 'team_name', 'wins', 'losses', 'overall_rank')
             ->where('season_id', $latestSeasonId)
-            ->orderBy('overall_rank', 'asc')
+            ->orderBy('overall_rank', 'desc')
             ->get();
 
         // Prepare the draft order for two rounds
@@ -52,15 +52,14 @@ class DraftController extends Controller
             ];
 
             // Second round (reverse order)
-            $reverseIndex = $totalTeams - 1 - $index;
             $twoRoundDraftOrder[] = [
                 'round' => 2,
-                'pick' => $index + 1, // Pick number for the second round starts after the first round
-                'team_id' => $draftOrder[$reverseIndex]->team_id,
-                'team_name' => $draftOrder[$reverseIndex]->team_name,
-                'wins' => $draftOrder[$reverseIndex]->wins,
-                'losses' => $draftOrder[$reverseIndex]->losses,
-                'overall_rank' => $draftOrder[$reverseIndex]->overall_rank,
+                'pick' => $index + 1, // Pick number starts at 1
+                'team_id' => $team->team_id,
+                'team_name' => $team->team_name,
+                'wins' => $team->wins,
+                'losses' => $team->losses,
+                'overall_rank' => $team->overall_rank,
             ];
         }
 
@@ -97,13 +96,13 @@ class DraftController extends Controller
             $draftOrder = DB::table('standings_view')
                 ->select('team_id', 'wins', 'losses', 'overall_rank', 'team_name')
                 ->where('season_id', $latestSeasonId)
-                ->orderBy('overall_rank', 'asc')
+                ->orderBy('overall_rank', 'desc')
                 ->get();
 
             // Fetch rookie players sorted by overall rating (highest first)
             $availablePlayers = DB::table('players')
                 ->where('is_rookie', 1)
-                ->whereNull('team_id') // Only include players not yet assigned to a team
+                ->where('team_id',0) // Only include players not yet assigned to a team
                 ->orderBy('overall_rating', 'desc')
                 ->get();
 
@@ -111,6 +110,12 @@ class DraftController extends Controller
             $pickNumber = 1; // Track pick number
             $currentSeasonId = $latestSeasonId + 1; // Current season id for the draft
 
+            if(count($availablePlayers) < 80){
+                return response()->json([
+                    'error' => true,
+                    'message' => 'Rookie not enough for teams!',
+                ],400);
+            }
             // Perform the drafting
             foreach ($draftOrder as $team) {
                 if ($availablePlayers->isNotEmpty()) {
@@ -118,7 +123,7 @@ class DraftController extends Controller
 
                     // Determine the round and pick number
                     $round = ceil($pickNumber / $totalTeams);
-                    $draftStatus = "Season {$currentSeasonId} R [{$round}] P [{$pickNumber}]";
+                    $draftStatus = "S{$currentSeasonId} R{$round} P{$pickNumber}";
 
                     // Update player details for drafted player
                     $updatePlayer = DB::table('players')->where('id', $selectedPlayer->id)->update([
@@ -185,7 +190,11 @@ class DraftController extends Controller
                 } else {
                     // No more players available to draft
                     \Log::info('No more available players to draft.');
-                    break; // Exit loop if no players are available
+
+                    return response()->json([
+                        'error' => true,
+                        'message' => 'No rookie available',
+                    ],400);
                 }
             }
 
@@ -204,9 +213,11 @@ class DraftController extends Controller
 
             // Return the draft results as a JSON response
             return response()->json([
+                'error' => false,
                 'season_id' => $currentSeasonId,
                 'draft_results' => $draftResults,
-            ]);
+                'message' => 'Draft Success!'
+            ],200);
         } catch (\Exception $e) {
             DB::rollBack(); // Rollback transaction on error
 

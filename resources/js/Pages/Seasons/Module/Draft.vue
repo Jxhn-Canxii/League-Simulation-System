@@ -30,17 +30,7 @@
                         <th
                             class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
                         >
-                            Name
-                        </th>
-                        <th
-                            class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
-                        >
                             Team
-                        </th>
-                        <th
-                            class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                            Overall Rating
                         </th>
                     </tr>
                 </thead>
@@ -57,16 +47,13 @@
                             {{ player.pick }}
                         </td>
                         <td class="px-2 py-1 whitespace-nowrap border">
-                            -
-                        </td>
-                        <td class="px-2 py-1 whitespace-nowrap border">
                             {{ player.team_name }}
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
-        <div class="overflow-x-auto mb-8" v-else">
+        <div class="overflow-x-auto mb-8"  v-if="draftResults.length > 0">
             <table class="min-w-full divide-y divide-gray-200 text-xs">
                 <thead class="bg-gray-50 text-nowrap">
                     <tr>
@@ -90,11 +77,6 @@
                         >
                             Team
                         </th>
-                        <th
-                            class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                            Overall Rating
-                        </th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -104,10 +86,16 @@
                         class="hover:bg-gray-100"
                     >
                         <td class="px-2 py-1 whitespace-nowrap border">
-                            {{ player.name }}
+                            {{ player.round }}
                         </td>
                         <td class="px-2 py-1 whitespace-nowrap border">
-                            {{ player.overall_rating }}
+                            {{ player.pick_number }}
+                        </td>
+                        <td class="px-2 py-1 whitespace-nowrap border">
+                            {{ player.player_name }}
+                        </td>
+                        <td class="px-2 py-1 whitespace-nowrap border">
+                            {{ player.name }}
                         </td>
                     </tr>
                 </tbody>
@@ -183,7 +171,6 @@ const search = ref({
 
 onMounted(async () => {
     await fetchDraftOrder();
-    await fetchDraftResults();
     await fetchAvailablePlayers();
 });
 
@@ -209,6 +196,7 @@ const fetchDraftOrder = async () => {
 };
 const fetchDraftResults = async () => {
     try {
+        draftOrder.value = [];
         const response = await axios.get(route("draft.results")); // Update with your API endpoint
         draftResults.value = response.data.draft_results;
     } catch (error) {
@@ -226,17 +214,19 @@ const draftPlayer = async () => {
     try {
         const response = await axios.post(route("draft.players")); // Update with your API endpoint
 
-        // Show success alert
-        await Swal.fire({
-            title: 'Success!',
-            text: 'Player drafted successfully!',
-            icon: 'success',
-            confirmButtonText: 'OK'
-        });
+        if(response){
+              // Show success alert
+            await Swal.fire({
+                title: 'Success!',
+                text: 'Player drafted successfully!',
+                icon: 'success',
+                confirmButtonText: 'OK'
+            });
 
-        await fetchDraftResults();
-        await fetchAvailablePlayers();
+            await fetchDraftResults();
+            await fetchAvailablePlayers();
 
+        }
         emits("newSeason", is_new_season);
     } catch (error) {
         console.error("Error fetching draft history:", error);
