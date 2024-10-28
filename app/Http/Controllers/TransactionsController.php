@@ -211,7 +211,7 @@ class TransactionsController extends Controller
         if ($teamsCount === 0) {
             // Update the last season's status to 12 if there are no incomplete teams
             DB::table('seasons')
-                ->where('id', $this->getLatestSeasonId())
+                ->where('id', $seasonId )
                 ->update(['status' => 12]);
 
             // Update player roles based on the last season's stats
@@ -274,6 +274,18 @@ class TransactionsController extends Controller
                     'to_team_id' => $team->id,
                     'status' => 'transfer',
                 ]);
+
+                if($seasonId == 0){
+                    DB::table('players')->where('id', $agent->id)->update([
+                        'draft_id' => 0,
+                        'draft_order' => 0,
+                        'drafted_team_id' => $team->team_id,
+                        'is_drafted' => 1,
+                        'draft_status' => 'Special Draft',
+                        'team_id' => $team->team_id
+                    ]);
+                }
+
 
                 // Reduce the number of players needed for that team
                 $team->player_count++;
@@ -471,6 +483,8 @@ class TransactionsController extends Controller
 
         if ($latestSeasonId) {
             return $latestSeasonId;
+        }else{
+            return 0;
         }
 
         // Handle the case where no seasons are found
