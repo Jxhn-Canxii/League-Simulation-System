@@ -5,7 +5,7 @@
         <!-- Divider -->
         <hr class="my-4 border-t border-gray-200" />
         <!-- Available Players Section -->
-        <div class="flex justify-end">
+        <div class="flex justify-end space-x-2">
             <button
                 @click.prevent="addMultiplePlayers(100)"
                 class="px-2 py-2 bg-green-500 rounded font-bold text-md float-end text-white shadow"

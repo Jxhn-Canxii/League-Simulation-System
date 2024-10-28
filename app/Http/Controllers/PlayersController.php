@@ -510,6 +510,9 @@ class PlayersController extends Controller
             'name' => 'required|string|max:255|unique:players,name',
         ]);
 
+        $latestSeasonId = DB::table('standings_view')->max('season_id');
+
+        $currentSeasonId = $latestSeasonId + 1;
         // Check if a player with the same name already exists in any team
         $existingPlayer = Player::where('name', $request->name)->first();
         if ($existingPlayer) {
@@ -569,6 +572,11 @@ class PlayersController extends Controller
             'passing_rating' => $passingRating,
             'rebounding_rating' => $reboundingRating,
             'overall_rating' => $overallRating,
+            'draft_id' => $currentSeasonId,
+            'drafted_order' => 0,
+            'drafted_team_id' => 0,
+            'is_drafted' => 0,
+            'draft_status' => 'Rookie',
             'is_rookie' => true,
         ]);
 
