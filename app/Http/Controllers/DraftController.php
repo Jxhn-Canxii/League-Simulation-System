@@ -188,19 +188,16 @@ class DraftController extends Controller
                     ], 400);
                 }
             }
-            $pickNumberTwo = 0;
+            $pickNumberTwo = 1;
             foreach ($draftOrder as $team) {
                 if ($availablePlayers->isNotEmpty()) {
                     $selectedPlayer = $availablePlayers->shift(); // Get the highest-rated rookie player
-                    $pickNumberTwo++; // Increment pick number
+
 
                     // Determine the round and pick number
                     $round = 2;
                     $draftStatus = "S{$currentSeasonId} R{$round} P{$pickNumberTwo}";
                     $contract = $this->determineContractYears($selectedPlayer->role);
-
-                    // Check if the team already has 15 members
-                    $currentTeamMembersCount = DB::table('players')->where('team_id', $team->team_id)->count();
 
                     // Update player details for drafted player
                     $updatePlayer = DB::table('players')->where('id', $selectedPlayer->id)->update([
@@ -251,6 +248,8 @@ class DraftController extends Controller
                         'round' => $round,
                         'pick_number' => $pickNumber,
                     ];
+
+                    $pickNumberTwo++; // Increment pick number
 
                 } else {
                     // No more players available to draft
