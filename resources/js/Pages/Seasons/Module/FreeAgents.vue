@@ -22,30 +22,27 @@
                     class="mt-1 mb-2 p-2 border rounded w-full"
                 />
                 <div class="flex justify-between">
-
+                    <div></div>
                     <div>
                         <button
                             @click="assignTeamsAuto()"
                             class="px-4 py-2 bg-rose-500 text-white rounded mb-4 text-sm"
                         >
-                        <i class="fa fa-users"></i> Distribute Free Agents
+                            <i class="fa fa-users"></i> Distribute Free Agents
                         </button>
-                    </div>
-                    <div>
                         <!-- <button
                             @click="showAddPlayerModal = true"
                             class="px-4 py-2 bg-green-500 text-white rounded mb-4 mr-2 text-sm"
                         >
                             <i class="fa fa-user"></i> Add Rookie Player
                         </button> -->
-                        <button
+                        <!-- <button
                             @click.prevent="addMultiplePlayers(100)"
                             class="px-4 py-2 bg-green-700 text-white rounded mb-4 text-sm"
                         >
                             <i class="fa fa-user"></i> Add Rookie Player From Api
-                        </button>
+                        </button> -->
                     </div>
-
                 </div>
                 <div
                     v-if="data.free_agents?.length === 0"
@@ -58,18 +55,67 @@
                         <thead class="bg-gray-50 text-nowrap">
                             <tr>
                                 <!-- Existing columns -->
-                                <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Age</th>
-                                <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                                <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Archetype</th>
+                                <th
+                                    class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                                >
+                                    Name
+                                </th>
+                                <th
+                                    class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                                >
+                                    Age
+                                </th>
+                                <th
+                                    class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                                >
+                                    Role
+                                </th>
+                                <th
+                                    class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                                >
+                                    Archetype
+                                </th>
                                 <!-- New columns for ratings -->
-                                <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Overall Rating">Overall</th>
-                                <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Shooting Rating">Shooting</th>
-                                <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Defense Rating">Defense</th>
-                                <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Passing Rating">Passing</th>
-                                <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Rebounding Rating">Rebounding</th>
-                                <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                <th
+                                    class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                                    title="Overall Rating"
+                                >
+                                    Overall
+                                </th>
+                                <th
+                                    class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                                    title="Shooting Rating"
+                                >
+                                    Shooting
+                                </th>
+                                <th
+                                    class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                                    title="Defense Rating"
+                                >
+                                    Defense
+                                </th>
+                                <th
+                                    class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                                    title="Passing Rating"
+                                >
+                                    Passing
+                                </th>
+                                <th
+                                    class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                                    title="Rebounding Rating"
+                                >
+                                    Rebounding
+                                </th>
+                                <th
+                                    class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                                >
+                                    Status
+                                </th>
+                                <th
+                                    class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                                >
+                                    Actions
+                                </th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
@@ -78,8 +124,12 @@
                                 :key="player.player_id"
                                 class="hover:bg-gray-100"
                             >
-                                <td class="px-2 py-1 whitespace-nowrap border">{{ player.name }}</td>
-                                <td class="px-2 py-1 whitespace-nowrap border">{{ player.age }}</td>
+                                <td class="px-2 py-1 whitespace-nowrap border">
+                                    {{ player.name }}
+                                </td>
+                                <td class="px-2 py-1 whitespace-nowrap border">
+                                    {{ player.age }}
+                                </td>
                                 <td class="px-2 py-1 whitespace-nowrap border">
                                     <span
                                         :class="roleClasses(player.role)"
@@ -88,22 +138,56 @@
                                         {{ player.role }}
                                     </span>
                                 </td>
-                                <td class="px-2 py-1 whitespace-nowrap border">{{ player.type }}</td>
+                                <td class="px-2 py-1 whitespace-nowrap border">
+                                    {{ player.type }}
+                                </td>
                                 <!-- New columns for ratings -->
-                                <td class="px-2 py-1 whitespace-nowrap border">{{ parseFloat(player.overall_rating || 0).toFixed(1) }}</td>
-                                <td class="px-2 py-1 whitespace-nowrap border">{{ parseFloat(player.shooting_rating || 0).toFixed(1) }}</td>
-                                <td class="px-2 py-1 whitespace-nowrap border">{{ parseFloat(player.defense_rating || 0).toFixed(1) }}</td>
-                                <td class="px-2 py-1 whitespace-nowrap border">{{ parseFloat(player.passing_rating || 0).toFixed(1) }}</td>
-                                <td class="px-2 py-1 whitespace-nowrap border">{{ parseFloat(player.rebounding_rating || 0).toFixed(1) }}</td>
+                                <td class="px-2 py-1 whitespace-nowrap border">
+                                    {{
+                                        parseFloat(
+                                            player.overall_rating || 0
+                                        ).toFixed(1)
+                                    }}
+                                </td>
+                                <td class="px-2 py-1 whitespace-nowrap border">
+                                    {{
+                                        parseFloat(
+                                            player.shooting_rating || 0
+                                        ).toFixed(1)
+                                    }}
+                                </td>
+                                <td class="px-2 py-1 whitespace-nowrap border">
+                                    {{
+                                        parseFloat(
+                                            player.defense_rating || 0
+                                        ).toFixed(1)
+                                    }}
+                                </td>
+                                <td class="px-2 py-1 whitespace-nowrap border">
+                                    {{
+                                        parseFloat(
+                                            player.passing_rating || 0
+                                        ).toFixed(1)
+                                    }}
+                                </td>
+                                <td class="px-2 py-1 whitespace-nowrap border">
+                                    {{
+                                        parseFloat(
+                                            player.rebounding_rating || 0
+                                        ).toFixed(1)
+                                    }}
+                                </td>
                                 <td class="px-2 py-1 whitespace-nowrap border">
                                     <span
                                         v-if="player.is_active"
                                         class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800"
-                                    >Active</span>
+                                        >Active</span
+                                    >
                                     <span
                                         v-else
                                         class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800"
-                                    >Waived</span>
+                                        >Waived</span
+                                    >
                                 </td>
                                 <td class="px-2 py-1 whitespace-nowrap border">
                                     <button
@@ -121,13 +205,13 @@
                 <!-- Pagination Controls -->
                 <div class="flex w-full overflow-auto">
                     <Paginator
-                      v-if="data.total"
-                      :page_number="search.page_num"
-                      :total_rows="data.total ?? 0"
-                      :itemsperpage="search.itemsperpage"
-                      @page_num="handlePagination"
+                        v-if="data.total"
+                        :page_number="search.page_num"
+                        :total_rows="data.total ?? 0"
+                        :itemsperpage="search.itemsperpage"
+                        @page_num="handlePagination"
                     />
-                  </div>
+                </div>
             </div>
         </div>
         <Modal :show="showAddPlayerModal" :maxWidth="'sm'">
@@ -138,7 +222,11 @@
                 </h3>
                 <!-- Form Fields -->
                 <div class="mb-4">
-                    <label for="playerName" class="block text-sm font-medium text-gray-700">Player Name</label>
+                    <label
+                        for="playerName"
+                        class="block text-sm font-medium text-gray-700"
+                        >Player Name</label
+                    >
                     <input
                         id="playerName"
                         v-model="newPlayer.name"
@@ -147,7 +235,11 @@
                     />
                 </div>
                 <div class="mb-4">
-                    <label for="playerTeam" class="block text-sm font-medium text-gray-700">Team ID</label>
+                    <label
+                        for="playerTeam"
+                        class="block text-sm font-medium text-gray-700"
+                        >Team ID</label
+                    >
                     <input
                         id="playerTeam"
                         v-model="newPlayer.team_id"
@@ -191,7 +283,9 @@ const teams = ref([]);
 const emits = defineEmits(["newSeason"]);
 const fetchRandomFullName = async () => {
     try {
-        const response = await axios.get('https://randomuser.me/api/?inc=name&gender=male'); // API URL for random male user
+        const response = await axios.get(
+            "https://randomuser.me/api/?inc=name&gender=male"
+        ); // API URL for random male user
         const { first, last } = response.data.results[0].name; // Extract first and last name
 
         // Function to check if a name contains only English alphabet letters
@@ -214,11 +308,9 @@ const addPlayer = async (name) => {
             name: name,
         });
         // return response.data.message; // Return success message for logging
-        fetchFreeAgent(); // Refresh free agent list
-
         Swal.fire({
             icon: "success",
-            title: name+ ' has added to Draft Pool!',
+            title: name + " has added to Draft Pool!",
             text: response.data.message, // Assuming the response contains a 'message' field
         });
     } catch (error) {
@@ -233,14 +325,14 @@ const addMultiplePlayers = async (count) => {
 
         for (let i = 0; i < count; i++) {
             const randomFullName = await fetchRandomFullName(); // Fetch random full name
-            if(randomFullName != null){
+            if (randomFullName != null) {
                 promises.push(addPlayer(randomFullName)); // Add the promise to the array
             }
-
         }
 
         // Wait for all promises to resolve
         const results = await Promise.all(promises);
+        fetchFreeAgent(); // Refresh free agent list
 
         // Notify success
         Swal.fire({
@@ -253,7 +345,6 @@ const addMultiplePlayers = async (count) => {
         results.forEach((message, index) => {
             console.log(`Player ${index + 1}: ${message}`);
         });
-
     } catch (error) {
         console.error("Error adding multiple players:", error);
         Swal.fire({
@@ -399,7 +490,9 @@ const assignTeamsAuto = async () => {
         Swal.fire({
             icon: "warning",
             title: "Error!",
-            text: error.response?.data?.message || "An unexpected error occurred.",
+            text:
+                error.response?.data?.message ||
+                "An unexpected error occurred.",
         });
 
         // Emitting new season status in case of error
