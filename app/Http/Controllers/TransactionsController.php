@@ -102,10 +102,10 @@ class TransactionsController extends Controller
         $teamsCount = $teamsWithFewMembers->count();
 
         if ($teamsCount === 0) {
-            // Update the last season's status to 10 if there are no incomplete teams
+            // Update the last season's status to 12 if there are no incomplete teams
             DB::table('seasons')
                 ->where('id', $this->getLatestSeasonId())
-                ->update(['status' => 11]);
+                ->update(['status' => 12]);
 
             // Update player roles based on the last season's stats
             $update = $this->updateTeamRolesBasedOnStats();
