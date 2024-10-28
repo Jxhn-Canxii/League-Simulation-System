@@ -222,7 +222,7 @@ class DraftController extends Controller
                     ], 400);
                 }
             }
-            $pickNumberTwo = 0;
+            $pickNumberTwo = 1;
             foreach ($draftOrder as $team) {
                 if ($availablePlayers->isNotEmpty()) {
                     $selectedPlayer = $availablePlayers->shift(); // Get the highest-rated rookie player
