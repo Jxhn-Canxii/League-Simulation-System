@@ -197,7 +197,11 @@ class PlayersController extends Controller
         if (count($playerStatsData) > 0) {
             foreach ($playerStatsData as $stats) {
                 // Fetch the player
-                $player = DB::table('players')->where('id', $stats->player_id)->first();
+                $player = DB::table('players')
+                ->select('players.*', 'teams.acronym as drafted_team','seasons.name as draft_class')
+                ->leftJoin('seasons', 'players.draft_id', '=', 'seasons.id')
+                ->leftJoin('teams', 'players.drafted_team_id', '=', 'teams.id')
+                ->where('players.id', $stats->player_id)->first();
 
                 if ($player) {
                     // Count the number of games played for the player
@@ -221,6 +225,9 @@ class PlayersController extends Controller
                         'is_active' => $player->is_active,
                         'is_rookie' => $player->is_rookie,
                         'retirement_age' => $player->retirement_age,
+                        'drafted_team' => $player->drafted_team,
+                        'draft_status' => $player->draft_status,
+                        'draft_class' => $player->draft_class,
                         'status' => $player->team_id == $teamId ? ($player->is_active ? 1 : 0) : 2,
                         'average_points_per_game' => (float)$stats->avg_points_per_game,
                         'average_rebounds_per_game' => (float)$stats->avg_rebounds_per_game,
@@ -235,7 +242,11 @@ class PlayersController extends Controller
             }
         } else {
             // Fetch players from the players table and set all stats to zero
+
             $players = DB::table('players')
+                ->select('players.*', 'teams.acronym as drafted_team','seasons.name as draft_class')
+                ->leftJoin('seasons', 'players.draft_id', '=', 'seasons.id')
+                ->leftJoin('teams', 'players.drafted_team_id', '=', 'teams.id')
                 ->where('team_id', $teamId)
                 ->get();
 
@@ -296,6 +307,9 @@ class PlayersController extends Controller
                         'is_active' => $player->is_active,
                         'is_rookie' => $player->is_rookie,
                         'retirement_age' => $player->retirement_age,
+                        'drafted_team' => $player->drafted_team,
+                        'draft_status' => $player->draft_status,
+                        'draft_class' => $player->draft_class,
                         'status' => $player->team_id == $teamId ? ($player->is_active ? 1 : 0) : 2,
                         'average_points_per_game' => $stats['average_points_per_game'],
                         'average_rebounds_per_game' => $stats['average_rebounds_per_game'],
