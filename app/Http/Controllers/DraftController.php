@@ -127,60 +127,26 @@ class DraftController extends Controller
                     $draftStatus = "S{$currentSeasonId} R{$round} P{$pickNumber}";
                     $contract = $this->determineContractYears($selectedPlayer->role);
 
-                    // Check if the team already has 15 members
-                    $currentTeamMembersCount = DB::table('players')->where('team_id', $team->team_id)->count();
+                     // Update player details for drafted player
+                    DB::table('players')->where('id', $selectedPlayer->id)->update([
+                        'draft_id' => $currentSeasonId,
+                        'draft_order' => $pickNumber,
+                        'drafted_team_id' => $team->team_id,
+                        'is_drafted' => 1,
+                        'draft_status' => $draftStatus,
+                        'team_id' => $team->team_id,
+                        'contract_years' => $contract,
+                    ]);
 
-                    if ($currentTeamMembersCount < 15) {
-                        // Update player details for drafted player
-                        $updatePlayer = DB::table('players')->where('id', $selectedPlayer->id)->update([
-                            'draft_id' => $currentSeasonId,
-                            'draft_order' => $pickNumber,
-                            'drafted_team_id' => $team->team_id,
-                            'is_drafted' => 1,
-                            'draft_status' => $draftStatus,
-                            'team_id' => $team->team_id,
-                            'contract_years' => $contract,
-                        ]);
-
-                         // Log the transaction
-                        DB::table('transactions')->insert([
-                            'player_id' => $selectedPlayer->id,
-                            'season_id' => $currentSeasonId,
-                            'details' => "Drafted by {$team->team_name} in round {$round}, pick {$pickNumber}",
-                            'from_team_id' => 0, // No previous team for drafted players
-                            'to_team_id' => $team->team_id,
-                            'status' => 'draft',
-                        ]);
-                    } else {
-                        // If team already has 15 members, do not update team_id and contract_years
-                        $updatePlayer = DB::table('players')->where('id', $selectedPlayer->id)->update([
-                            'draft_id' => $currentSeasonId,
-                            'draft_order' => $pickNumber,
-                            'drafted_team_id' => $team->team_id,
-                            'is_drafted' => 1,
-                            'draft_status' => $draftStatus,
-                        ]);
-
-                        //draft transactions
-                        DB::table('transactions')->insert([
-                            'player_id' => $selectedPlayer->id,
-                            'season_id' => $currentSeasonId,
-                            'details' => "Drafted by {$team->team_name} in round {$round}, pick {$pickNumber}",
-                            'from_team_id' => 0, // No previous team for drafted players
-                            'to_team_id' => $team->team_id,
-                            'status' => 'draft',
-                        ]);
-
-                        //waived transactions
-                        DB::table('transactions')->insert([
-                            'player_id' => $selectedPlayer->id,
-                            'season_id' => $currentSeasonId,
-                            'details' => "waived by {$team->team_name}",
-                            'from_team_id' => 0, // No previous team for drafted players
-                            'to_team_id' => 0,
-                            'status' => 'waived',
-                        ]);
-                    }
+                        // Log the transaction
+                    DB::table('transactions')->insert([
+                        'player_id' => $selectedPlayer->id,
+                        'season_id' => $currentSeasonId,
+                        'details' => "Drafted by {$team->team_name} in round {$round}, pick {$pickNumber}",
+                        'from_team_id' => 0, // No previous team for drafted players
+                        'to_team_id' => $team->team_id,
+                        'status' => 'draft',
+                    ]);
 
                     // Save to the drafts table
                     $draftInsert = DB::table('drafts')->insert([
@@ -222,10 +188,11 @@ class DraftController extends Controller
                     ], 400);
                 }
             }
-            $pickNumberTwo = 1;
+            $pickNumberTwo = 0;
             foreach ($draftOrder as $team) {
                 if ($availablePlayers->isNotEmpty()) {
                     $selectedPlayer = $availablePlayers->shift(); // Get the highest-rated rookie player
+                    $pickNumberTwo++; // Increment pick number
 
                     // Determine the round and pick number
                     $round = 2;
@@ -235,57 +202,26 @@ class DraftController extends Controller
                     // Check if the team already has 15 members
                     $currentTeamMembersCount = DB::table('players')->where('team_id', $team->team_id)->count();
 
-                    if ($currentTeamMembersCount < 15) {
-                        // Update player details for drafted player
-                        $updatePlayer = DB::table('players')->where('id', $selectedPlayer->id)->update([
-                            'draft_id' => $currentSeasonId,
-                            'draft_order' => $pickNumberTwo,
-                            'drafted_team_id' => $team->team_id,
-                            'is_drafted' => 1,
-                            'draft_status' => $draftStatus,
-                            'team_id' => $team->team_id,
-                            'contract_years' => $contract,
-                        ]);
+                    // Update player details for drafted player
+                    $updatePlayer = DB::table('players')->where('id', $selectedPlayer->id)->update([
+                        'draft_id' => $currentSeasonId,
+                        'draft_order' => $pickNumberTwo,
+                        'drafted_team_id' => $team->team_id,
+                        'is_drafted' => 1,
+                        'draft_status' => $draftStatus,
+                        'team_id' => $team->team_id,
+                        'contract_years' => $contract,
+                    ]);
 
-                         // Log the transaction
-                        DB::table('transactions')->insert([
-                            'player_id' => $selectedPlayer->id,
-                            'season_id' => $currentSeasonId,
-                            'details' => "Drafted by {$team->team_name} in round {$round}, pick {$pickNumberTwo}",
-                            'from_team_id' => 0, // No previous team for drafted players
-                            'to_team_id' => $team->team_id,
-                            'status' => 'draft',
-                        ]);
-                    } else {
-                        // If team already has 15 members, do not update team_id and contract_years
-                        $updatePlayer = DB::table('players')->where('id', $selectedPlayer->id)->update([
-                            'draft_id' => $currentSeasonId,
-                            'draft_order' => $pickNumberTwo,
-                            'drafted_team_id' => $team->team_id,
-                            'is_drafted' => 1,
-                            'draft_status' => $draftStatus,
-                        ]);
-
-                        //draft transactions
-                        DB::table('transactions')->insert([
-                            'player_id' => $selectedPlayer->id,
-                            'season_id' => $currentSeasonId,
-                            'details' => "Drafted by {$team->team_name} in round {$round}, pick {$pickNumber}",
-                            'from_team_id' => 0, // No previous team for drafted players
-                            'to_team_id' => $team->team_id,
-                            'status' => 'draft',
-                        ]);
-
-                        //waived transactions
-                        DB::table('transactions')->insert([
-                            'player_id' => $selectedPlayer->id,
-                            'season_id' => $currentSeasonId,
-                            'details' => "waived by {$team->team_name}",
-                            'from_team_id' => 0, // No previous team for drafted players
-                            'to_team_id' => 0,
-                            'status' => 'waived',
-                        ]);
-                    }
+                    // Log the transaction
+                    DB::table('transactions')->insert([
+                        'player_id' => $selectedPlayer->id,
+                        'season_id' => $currentSeasonId,
+                        'details' => "Drafted by {$team->team_name} in round {$round}, pick {$pickNumberTwo}",
+                        'from_team_id' => 0, // No previous team for drafted players
+                        'to_team_id' => $team->team_id,
+                        'status' => 'draft',
+                    ]);
 
                     // Save to the drafts table
                     $draftInsert = DB::table('drafts')->insert([
@@ -316,7 +252,6 @@ class DraftController extends Controller
                         'pick_number' => $pickNumber,
                     ];
 
-                    $pickNumberTwo++; // Increment pick number
                 } else {
                     // No more players available to draft
                     \Log::info('No more available players to draft.');
