@@ -263,9 +263,8 @@ const draftPlayer = async () => {
         // Show error alert
         await Swal.fire({
             title: 'Error!',
-            text: 'Failed to draft player. Please try again.',
+            text: error.response.data.message,
             icon: 'error',
-            confirmButtonText: 'OK'
         });
     }
 };
