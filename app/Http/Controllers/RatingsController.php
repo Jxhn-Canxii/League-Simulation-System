@@ -90,10 +90,13 @@ class RatingsController extends Controller
             foreach ($rankedPlayers->slice(9, 3) as $playerStat) {
                 // // Last 3 players become bench players
                 // Player::where('id', $playerStat->player_id)->update(['role' => 'bench']);
-                Player::where('id', $playerStat->player_id)->update([
+                DB::table('players')
+                ->where('id', $playerStat->player_id)
+                ->update([
                     'contract_years' => 0,
                     'team_id' => 0
                 ]);
+
                  // Log the transaction for the waived player
                  DB::table('transactions')->insert([
                     'player_id' => $playerStat->player_id,
@@ -138,9 +141,14 @@ class RatingsController extends Controller
 
                 // Check for retirement
                 if($player->age >= $player->retirement_age){
-                    $player->is_active = 0;
-                    $player->team_id = 0;
-                    $player->contract_years = 0;
+
+                    DB::table('players')
+                    ->where('id', $player->id)
+                    ->update([
+                        'is_active' => 0,
+                        'contract_years' => 0,
+                        'team_id' => 0
+                    ]);
 
                     DB::table('transactions')->insert([
                         'player_id' => $player->id,
@@ -183,6 +191,13 @@ class RatingsController extends Controller
                         // Player does not re-sign, set as free agent
                         $player->contract_years = 0;
                         $player->team_id = 0;
+
+                        DB::table('players')
+                        ->where('id', $player->id)
+                        ->update([
+                            'contract_years' => 0,
+                            'team_id' => 0
+                        ]);
 
                         DB::table('transactions')->insert([
                             'player_id' => $player->id,
