@@ -116,7 +116,7 @@ class DraftController extends Controller
                 ], 400);
             }
 
-
+            $availablePlayers = collect($availablePlayers);
             $pickNumber = 1; // Track pick number
             // Perform the drafting
             foreach ($draftOrder as $team) {
