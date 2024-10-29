@@ -681,6 +681,7 @@ const fetchConferenceSchedules = async (id) => {
         console.error("Error fetching season standings:", error);
     }
 };
+
 const simulatePerRound = async () => {
     const rounds = season_schedules.value.rounds;
     const lastRoundIndex = rounds.length - 1; // Get the index of the last round
