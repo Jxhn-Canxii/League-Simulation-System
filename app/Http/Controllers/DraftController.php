@@ -116,11 +116,11 @@ class DraftController extends Controller
                 ], 400);
             }
 
-            $availablePlayers = collect($availablePlayers);
+            // $availablePlayers = collect($availablePlayers);
             $pickNumber = 1; // Track pick number
             // Perform the drafting
             foreach ($draftOrder as $team) {
-                if ($availablePlayers->isNotEmpty()) {
+                if ($availablePlayers) {
                     $selectedPlayer = $availablePlayers->shift(); // Get the highest-rated rookie player
 
                     // Determine the round and pick number
@@ -199,7 +199,7 @@ class DraftController extends Controller
 
             $pickNumberTwo = 1;
             foreach ($draftOrder as $team) {
-                if ($availablePlayers->isNotEmpty()) {
+                if ($availablePlayers) {
                     $selectedPlayer = $availablePlayers->shift(); // Get the highest-rated rookie player
 
                     // Determine the round and pick number
