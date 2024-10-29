@@ -7,7 +7,7 @@
         <!-- Available Players Section -->
         <div class="flex justify-end space-x-2">
             <button
-                @click.prevent="addMultiplePlayers(100)"
+                @click.prevent="addMultiplePlayers(170)"
                 class="px-2 py-2 bg-green-500 rounded font-bold text-md float-end text-white shadow"
             >
                 <i class="fa fa-user"></i> Add Rookie Player From Api
