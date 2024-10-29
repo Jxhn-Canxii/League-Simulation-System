@@ -129,12 +129,17 @@ class DraftController extends Controller
                     $contract = $this->determineContractYears($selectedPlayer->role);
 
                     // Check if the team already has 15 members
-                    $currentTeamMembersCount = DB::table('players')
-                        ->where('team_id', $team->team_id)
-                        ->where('is_active', 1) // Only count active players
-                        ->count();
+                    $teamsWithFewMembers = DB::table('teams')
+                        ->leftJoin('players', 'teams.id', '=', 'players.team_id')
+                        ->select('teams.id', 'teams.name', DB::raw('COUNT(players.id) as player_count'))
+                        ->where('teams.id', $team->team_id) // Filter by specific team ID
+                        ->groupBy('teams.id', 'teams.name')
+                        ->havingRaw('COUNT(players.id) < 15')
+                        ->get();
 
-                    $spotAvailable = $currentTeamMembersCount < 15;
+
+                    // Check if there is a spot available
+                    $spotAvailable = $teamsWithFewMembers->isNotEmpty();
 
                     DB::table('players')->where('id', $selectedPlayer->id)->update([
                         'draft_id' => $currentSeasonId,
@@ -208,11 +213,17 @@ class DraftController extends Controller
                     $contract = $this->determineContractYears($selectedPlayer->role);
 
                     // Check if the team already has 15 members
-                    $currentTeamMembersCount = DB::table('players')
-                        ->where('team_id', $team->team_id)
-                        ->where('is_active', 1) // Only count active players
-                        ->count();
+                    $teamsWithFewMembers = DB::table('teams')
+                        ->leftJoin('players', 'teams.id', '=', 'players.team_id')
+                        ->select('teams.id', 'teams.name', DB::raw('COUNT(players.id) as player_count'))
+                        ->where('teams.id', $team->team_id) // Filter by specific team ID
+                        ->groupBy('teams.id', 'teams.name')
+                        ->havingRaw('COUNT(players.id) < 15')
+                        ->get();
 
+
+                    // Check if there is a spot available
+                    $spotAvailable = $teamsWithFewMembers->isNotEmpty();
 
                     // Update player details for drafted player
                     DB::table('players')->where('id', $selectedPlayer->id)->update([

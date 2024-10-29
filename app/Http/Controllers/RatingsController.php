@@ -90,7 +90,10 @@ class RatingsController extends Controller
             foreach ($rankedPlayers->slice(9, 3) as $playerStat) {
                 // // Last 3 players become bench players
                 // Player::where('id', $playerStat->player_id)->update(['role' => 'bench']);
-
+                Player::where('id', $playerStat->player_id)->update([
+                    'contract_years' => 0,
+                    'team_id' => 0
+                ]);
                  // Log the transaction for the waived player
                  DB::table('transactions')->insert([
                     'player_id' => $playerStat->player_id,
@@ -101,10 +104,6 @@ class RatingsController extends Controller
                     'status' => 'waived',
                 ]);
 
-                Player::where('id', $playerStat->player_id)->update([
-                    'contract_years' => 0,
-                    'team_id' => 0
-                ]);
             }
 
             // Fetch updated players
@@ -116,9 +115,6 @@ class RatingsController extends Controller
                     ->where('player_id', $player->id)
                     ->where('season_id', $seasonId)
                     ->exists();
-
-                // get team name
-                $teamName = Teams::find($player->team_id)->name ?? 'Unknown Team';
 
                 if ($ratingExists) {
                     // Skip updating this player if already updated
@@ -144,12 +140,13 @@ class RatingsController extends Controller
                 if($player->age >= $player->retirement_age){
                     $player->is_active = 0;
                     $player->team_id = 0;
+                    $player->contract_years = 0;
                 }
 
 
 
                 // Check if contract_years is 0
-                if ($player->contract_years == 0) {
+                if ($player->contract_years == 0 && $player->team_id ==  $teamId) {
                     // Determine if the player re-signs
                     $reSignChance = match ($player->role) {
                         'star player' => 70,
@@ -190,10 +187,10 @@ class RatingsController extends Controller
                 }
 
                 // Determine if the player should have an injury_prone_percentage of 0
-                if (rand(1, 100) <= 20) {
-                    // 10% chance to be injury-prone
+                if (rand(1, 100) <= 40) {
+                    // 40% chance to be injury-prone
                     // Assign a random value between 10 and 100 in increments of 10
-                    $player->injury_prone_percentage = rand(0, 30);
+                    $player->injury_prone_percentage = rand(0, 100);
                 } else {
                     $player->injury_prone_percentage = 0;
                 }
