@@ -42,8 +42,15 @@ class RatingsController extends Controller
             $players = $query->get();
 
             $seasonId = $this->getLatestSeasonId();
-            $latestSeason = Seasons::find($seasonId);
-            \Log::info('Latest season ID:', ['seasonId' => $seasonId]);
+
+            // Fetch the team name if team_id is provided
+            $teamName = '';
+            if ($teamId) {
+                $team = Teams::find($teamId);
+                if ($team) {
+                    $teamName = $team->name;
+                }
+            }
 
             $improvedPlayers = [];
             $declinedPlayers = [];
@@ -229,15 +236,6 @@ class RatingsController extends Controller
 
             }
 
-
-            // Fetch the team name if team_id is provided
-            $teamName = '';
-            if ($teamId) {
-                $team = Teams::find($teamId);
-                if ($team) {
-                    $teamName = $team->name;
-                }
-            }
 
             // Show alert if this is the last update
             if ($isLast) {
