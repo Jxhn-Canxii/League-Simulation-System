@@ -217,6 +217,19 @@ class TransactionsController extends Controller
             // Update player roles based on the last season's stats
             $update = $this->updateTeamRolesBasedOnStats();
             if ($update) {
+                // After drafting logic but before DB::commit()
+                if($seasonId == 0){
+                    DB::table('players')
+                    ->where('draft_id', 0)
+                    ->where('is_drafted', 0)
+                    ->update([
+                        'draft_id' => 0,
+                        'team_id' => 0,
+                        'contract_years' => 0,
+                        'draft_status' => 'Undrafted',
+                        'is_rookie' => 1,
+                    ]);
+                }
                 return response()->json([
                     'error' => true,
                     'message' => 'All teams have signed 15 players, and roles have been updated based on last season\'s stats.',
@@ -277,7 +290,7 @@ class TransactionsController extends Controller
 
                 if($seasonId == 0){
                     DB::table('players')->where('id', $agent->id)->update([
-                        'draft_id' => 0,
+                        'draft_id' => 1,
                         'draft_order' => 0,
                         'drafted_team_id' => $team->id,
                         'is_drafted' => 1,

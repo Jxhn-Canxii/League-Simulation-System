@@ -275,7 +275,7 @@ class DraftController extends Controller
                     'team_id' => 0,
                     'contract_years' => 0,
                     'draft_status' => 'Undrafted',
-                    'is_rookie' => 0,
+                    'is_rookie' => 1,
                 ]);
 
             // Update the season status to 11 after drafting
