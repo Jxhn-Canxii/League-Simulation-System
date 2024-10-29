@@ -141,6 +141,15 @@ class RatingsController extends Controller
                     $player->is_active = 0;
                     $player->team_id = 0;
                     $player->contract_years = 0;
+
+                    DB::table('transactions')->insert([
+                        'player_id' => $player->id,
+                        'season_id' => $seasonId,
+                        'details' => 'has retired from the league.',
+                        'from_team_id' => $player->team_id,
+                        'to_team_id' => 0,
+                        'status' => 'retired',
+                    ]);
                 }
 
 
