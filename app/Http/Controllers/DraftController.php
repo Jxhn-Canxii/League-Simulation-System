@@ -116,6 +116,7 @@ class DraftController extends Controller
                 ], 400);
             }
 
+            $availablePlayers = collect($availablePlayers);
 
             $pickNumber = 1; // Track pick number
             // Perform the drafting
@@ -142,8 +143,8 @@ class DraftController extends Controller
                         'drafted_team_id' => $team->team_id,
                         'is_drafted' => 1,
                         'draft_status' => $draftStatus,
-                        'team_id' => $spotAvailable ? $team->team_id : 0,
-                        'contract_years' => $spotAvailable ? $contract : 0,
+                        'team_id' => $team->team_id,
+                        'contract_years' => $contract,
                     ]);
 
                     // Log the transaction
@@ -221,8 +222,8 @@ class DraftController extends Controller
                         'drafted_team_id' => $team->team_id,
                         'is_drafted' => 1,
                         'draft_status' => $draftStatus,
-                        'team_id' => $spotAvailable ? $team->team_id : 0,
-                        'contract_years' => $spotAvailable ? $contract : 0,
+                        'team_id' => $team->team_id,
+                        'contract_years' => $contract,
                     ]);
 
                     // Log the transaction
