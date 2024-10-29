@@ -89,12 +89,13 @@ class RatingsController extends Controller
 
             foreach ($rankedPlayers->slice(9, 3) as $playerStat) {
                 // // Last 3 players become bench players
-                // Player::where('id', $playerStat->player_id)->update(['role' => 'bench']);
+                // Update the player's role to "bench" and set contract years and team ID
                 DB::table('players')
                 ->where('id', $playerStat->player_id)
                 ->update([
+                    'role' => 'bench', // Assign the role
                     'contract_years' => 0,
-                    'team_id' => 0
+                    'team_id' => 0,
                 ]);
 
                  // Log the transaction for the waived player
@@ -105,6 +106,12 @@ class RatingsController extends Controller
                     'from_team_id' => $teamId,
                     'to_team_id' => 0,
                     'status' => 'waived',
+                ]);
+
+                \Log::info('Player waived', [
+                    'player_id' => $playerStat->player_id,
+                    'team_name' => $teamName ?? 'Unknown Team',
+                    'season_id' => $seasonId,
                 ]);
 
             }
@@ -142,13 +149,9 @@ class RatingsController extends Controller
                 // Check for retirement
                 if($player->age >= $player->retirement_age){
 
-                    DB::table('players')
-                    ->where('id', $player->id)
-                    ->update([
-                        'is_active' => 0,
-                        'contract_years' => 0,
-                        'team_id' => 0
-                    ]);
+                    $player->is_active = 0;
+                    $player->contract_years = 0;
+                    $player->team_id = 0;
 
                     DB::table('transactions')->insert([
                         'player_id' => $player->id,
@@ -188,16 +191,8 @@ class RatingsController extends Controller
                         ]);
                     } else {
 
-                        // Player does not re-sign, set as free agent
                         $player->contract_years = 0;
                         $player->team_id = 0;
-
-                        DB::table('players')
-                        ->where('id', $player->id)
-                        ->update([
-                            'contract_years' => 0,
-                            'team_id' => 0
-                        ]);
 
                         DB::table('transactions')->insert([
                             'player_id' => $player->id,
@@ -249,8 +244,19 @@ class RatingsController extends Controller
                     $declinedPlayers[] = $player;
                 }
 
-                // Save the updated player data
-                $player->save();
+                DB::table('players')->where('id', $player->id)->update([
+                    'contract_years' => $player->contract_years,
+                    'team_id' => $player->team_id,
+                    'is_active' => $player->is_active,
+                    'age' => $player->age,
+                    'role' => $player->role,
+                    'shooting_rating' => $player->shooting_rating,
+                    'defense_rating' => $player->defense_rating,
+                    'passing_rating' => $player->passing_rating,
+                    'rebounding_rating' => $player->rebounding_rating,
+                    'overall_rating' => $player->overall_rating,
+                    'injury_prone_percentage' => $player->injury_prone_percentage,
+                ]);
 
                 // Log the updated ratings
                 $this->logPlayerRatings($player, $seasonId);
