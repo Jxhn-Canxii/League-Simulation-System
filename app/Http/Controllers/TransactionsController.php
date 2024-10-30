@@ -237,42 +237,67 @@ class TransactionsController extends Controller
 
     private function updateTeamRolesBasedOnStats()
     {
-        // Fetch player stats for the last season
         $seasonId = $this->getLatestSeasonId();
         $teams = DB::table('teams')->pluck('id');
 
         foreach ($teams as $teamId) {
-            // Fetch players for each team based on last season's stats (excluding rookies)
+            // Fetch veteran players' stats for the team
             $playerStats = DB::table('player_season_stats')
                 ->join('players', 'player_season_stats.player_id', '=', 'players.id')
                 ->where('player_season_stats.season_id', $seasonId)
-                ->where('player_season_stats.team_id', $teamId) // Specify the table for team_id
+                ->where('player_season_stats.team_id', $teamId)
                 ->orderByDesc(DB::raw('(avg_points_per_game + avg_rebounds_per_game + avg_assists_per_game + avg_steals_per_game + avg_blocks_per_game)'))
                 ->get();
 
-            // Assign roles to non-rookies first
-            foreach ($playerStats as $index => $playerStat) {
-                $role = '';
+            // Fetch rookies separately
+            $rookies = DB::table('players')
+                ->where('team_id', $teamId)
+                ->where('is_rookie', 1)
+                ->orderByDesc('overall_rating')
+                ->get();
 
-                if ($index < 3) {
-                    $role = 'star player';
-                } elseif ($index < 5) {
-                    $role = 'starter';
-                } elseif ($index < 10) {
-                    $role = 'role player';
+            // Initialize arrays for assigning roles
+            $starPlayers = [];
+            $starters = [];
+            $rolePlayers = [];
+            $benchPlayers = [];
+
+            // Add top rookies (overall_rating >= 90) to star players
+            foreach ($rookies as $rookie) {
+                if (count($starPlayers) < 3 && $rookie->overall_rating >= 90) {
+                    $starPlayers[] = $rookie->id;
+                } elseif (count($starters) < 2) {
+                    $starters[] = $rookie->id;
+                } elseif (count($rolePlayers) < 5) {
+                    $rolePlayers[] = $rookie->id;
                 } else {
-                    $role = 'bench';
+                    $benchPlayers[] = $rookie->id;
                 }
-
-                // Update the player's role in the database
-                DB::table('players')
-                    ->where('id', $playerStat->player_id)
-                    ->update(['role' => $role]);
             }
+
+            // Assign roles to veteran players, keeping team structure balanced
+            foreach ($playerStats as $index => $playerStat) {
+                if (count($starPlayers) < 3) {
+                    $starPlayers[] = $playerStat->player_id;
+                } elseif (count($starters) < 2) {
+                    $starters[] = $playerStat->player_id;
+                } elseif (count($rolePlayers) < 5) {
+                    $rolePlayers[] = $playerStat->player_id;
+                } else {
+                    $benchPlayers[] = $playerStat->player_id;
+                }
+            }
+
+            // Update each player's role in the database
+            DB::table('players')->whereIn('id', $starPlayers)->update(['role' => 'star player']);
+            DB::table('players')->whereIn('id', $starters)->update(['role' => 'starter']);
+            DB::table('players')->whereIn('id', $rolePlayers)->update(['role' => 'role player']);
+            DB::table('players')->whereIn('id', $benchPlayers)->update(['role' => 'bench']);
         }
 
         return true;
     }
+
     private function updateTeamRolesBasedOnStatsV2()
     {
         // Fetch player stats for the last season

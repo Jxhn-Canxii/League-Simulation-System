@@ -62,8 +62,8 @@
                             <td class="px-2 py-1 whitespace-nowrap border">{{ player.game_assists.toFixed(1) }}</td>
                             <td class="px-2 py-1 whitespace-nowrap border">{{ player.game_steals.toFixed(1) }}</td>
                             <td class="px-2 py-1 whitespace-nowrap border">{{ player.game_blocks.toFixed(1) }}</td>
-                            <td class="px-2 py-1 whitespace-nowrap border">{{ player.game_turnovers.toFixed(1) }}</td>
-                            <td class="px-2 py-1 whitespace-nowrap border">{{ player.game_fouls.toFixed(1) }}</td>
+                            <td class="px-2 py-1 whitespace-nowrap border">{{ player.game_minutes == 0 ? (0).toFixed(1) : player.game_turnovers.toFixed(1) }}</td>
+                            <td class="px-2 py-1 whitespace-nowrap border">{{ player.game_minutes == 0 ? (0).toFixed(1) : player.game_fouls.toFixed(1) }}</td>
                         </tr>
                     </tbody>
                 </table>

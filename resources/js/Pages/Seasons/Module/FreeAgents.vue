@@ -37,7 +37,7 @@
                             <i class="fa fa-user"></i> Add Rookie Player
                         </button> -->
                         <button
-                            @click.prevent="addMultiplePlayers(100)"
+                            @click.prevent="addMultiplePlayers(1600)"
                             class="px-4 py-2 bg-green-700 text-white rounded mb-4 text-sm"
                         >
                             <i class="fa fa-user"></i> Add Undrafted Rookie Player From Api
@@ -64,6 +64,11 @@
                                     class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
                                 >
                                     Name
+                                </th>
+                                <th
+                                    class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                                >
+                                    Country
                                 </th>
                                 <th
                                     class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
@@ -134,6 +139,9 @@
                                 </td>
                                 <td class="px-2 py-1 whitespace-nowrap border">
                                     {{ player.name }}
+                                </td>
+                                <td class="px-2 py-1 whitespace-nowrap border">
+                                    {{ player.country }}
                                 </td>
                                 <td class="px-2 py-1 whitespace-nowrap border">
                                     {{ player.age }}
