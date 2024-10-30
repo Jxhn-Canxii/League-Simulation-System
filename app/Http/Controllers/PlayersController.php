@@ -44,19 +44,19 @@ class PlayersController extends Controller
             foreach ($playerStatsData as $stats) {
                 // Fetch the player
                 $player = DB::table('players')
-                ->select('players.*', 'teams.acronym as drafted_team','seasons.name as draft_class')
-                ->leftJoin('seasons', 'players.draft_id', '=', 'seasons.id')
-                ->leftJoin('teams', 'players.drafted_team_id', '=', 'teams.id')
-                ->where('players.id', $stats->player_id)->first();
+                    ->select('players.*', 'teams.acronym as drafted_team', 'seasons.name as draft_class')
+                    ->leftJoin('seasons', 'players.draft_id', '=', 'seasons.id')
+                    ->leftJoin('teams', 'players.drafted_team_id', '=', 'teams.id')
+                    ->where('players.id', $stats->player_id)->first();
 
                 if ($player) {
                     // Count the number of games played for the player
                     $gamesPlayed = DB::table('player_game_stats')
-                    ->where('player_id', $player->id)
-                    ->where('team_id', $teamId)
-                    ->where('season_id', $seasonId)
-                    ->where('minutes', '>', 0) // Only count games where minutes > 0
-                    ->count(); // Directly count the rows
+                        ->where('player_id', $player->id)
+                        ->where('team_id', $teamId)
+                        ->where('season_id', $seasonId)
+                        ->where('minutes', '>', 0) // Only count games where minutes > 0
+                        ->count(); // Directly count the rows
 
                     // If season status is 11 and the player has 0 games played, skip this player
                     if ($seasonStatus == 11 && $gamesPlayed == 0) {
@@ -90,7 +90,7 @@ class PlayersController extends Controller
             // Fetch players from the players table and set all stats to zero
 
             $players = DB::table('players')
-                ->select('players.*', 'teams.acronym as drafted_team','seasons.name as draft_class')
+                ->select('players.*', 'teams.acronym as drafted_team', 'seasons.name as draft_class')
                 ->leftJoin('seasons', 'players.draft_id', '=', 'seasons.id')
                 ->leftJoin('teams', 'players.drafted_team_id', '=', 'teams.id')
                 ->where('team_id', $teamId)
@@ -100,14 +100,15 @@ class PlayersController extends Controller
             $playerGameStats = DB::table('player_game_stats')
                 ->select(
                     'player_id',
-                    DB::raw('AVG(points) AS avg_points'),
-                    DB::raw('AVG(rebounds) AS avg_rebounds'),
-                    DB::raw('AVG(assists) AS avg_assists'),
-                    DB::raw('AVG(steals) AS avg_steals'),
-                    DB::raw('AVG(blocks) AS avg_blocks'),
-                    DB::raw('AVG(turnovers) AS avg_turnovers'),
-                    DB::raw('AVG(fouls) AS avg_fouls'),
-                    DB::raw('COUNT(*) AS games_played')
+                    DB::raw('COUNT(CASE WHEN minutes > 0 THEN 1 END) as games_played'),
+                    DB::raw('SUM(CASE WHEN minutes > 0 THEN points ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_points'),
+                    DB::raw('SUM(CASE WHEN minutes > 0 THEN rebounds ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_rebounds'),
+                    DB::raw('SUM(CASE WHEN minutes > 0 THEN assists ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_assists'),
+                    DB::raw('SUM(CASE WHEN minutes > 0 THEN steals ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_steals'),
+                    DB::raw('SUM(CASE WHEN minutes > 0 THEN blocks ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_blocks'),
+                    DB::raw('SUM(CASE WHEN minutes > 0 THEN turnovers ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_turnovers'),
+                    DB::raw('SUM(CASE WHEN minutes > 0 THEN fouls ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_fouls'),
+                    DB::raw('SUM(CASE WHEN minutes > 0 THEN minutes ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_minutes')
                 )
                 ->where('season_id', $seasonId) // Filter by the specific season
                 ->groupBy('player_id')
@@ -1003,7 +1004,7 @@ class PlayersController extends Controller
             ->join('teams as drafted_teams', 'players.drafted_team_id', '=', 'drafted_teams.id', 'left') // Join teams table to get team details
             ->join('seasons', 'players.draft_id', '=', 'seasons.id', 'left')
             ->where('players.id', $playerId)
-            ->select('players.id as player_id', 'players.name as player_name', 'players.age as age', 'teams.name as team_name', 'players.role', 'players.contract_years', 'players.is_rookie', 'players.overall_rating', 'players.type','players.draft_status as draft_status','seasons.name as draft_class','drafted_teams.acronym as drafted_team')
+            ->select('players.id as player_id', 'players.name as player_name', 'players.age as age', 'teams.name as team_name', 'players.role', 'players.contract_years', 'players.is_rookie', 'players.overall_rating', 'players.type', 'players.draft_status as draft_status', 'seasons.name as draft_class', 'drafted_teams.acronym as drafted_team')
             ->first();
 
         if (!$playerDetails) {
