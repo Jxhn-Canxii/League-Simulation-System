@@ -131,6 +131,10 @@ class TransactionsController extends Controller
                     'message' => 'All teams have signed 15 players, and roles have been updated based on last season\'s stats.',
                     'team_count' => $teamsCount,
                 ], 401);
+            }else{
+                return response()->json([
+                    'message' => 'Role assigning error!',
+                ], 400);
             }
         } else {
             if ($remainingFreeAgents === 0) {
@@ -241,62 +245,76 @@ class TransactionsController extends Controller
         $teams = DB::table('teams')->pluck('id');
 
         foreach ($teams as $teamId) {
-            // Fetch veteran players' stats for the team
-            $playerStats = DB::table('player_season_stats')
-                ->join('players', 'player_season_stats.player_id', '=', 'players.id')
-                ->where('player_season_stats.season_id', $seasonId)
-                ->where('player_season_stats.team_id', $teamId)
-                ->orderByDesc(DB::raw('(avg_points_per_game + avg_rebounds_per_game + avg_assists_per_game + avg_steals_per_game + avg_blocks_per_game)'))
-                ->get();
+            DB::beginTransaction();
 
-            // Fetch rookies separately
-            $rookies = DB::table('players')
-                ->where('team_id', $teamId)
-                ->where('is_rookie', 1)
-                ->orderByDesc('overall_rating')
-                ->get();
+            try {
+                // Fetch veteran players' stats for the team
+                $playerStats = DB::table('player_season_stats')
+                    ->join('players', 'player_season_stats.player_id', '=', 'players.id')
+                    ->where('player_season_stats.season_id', $seasonId)
+                    ->where('player_season_stats.team_id', $teamId)
+                    ->orderByDesc(DB::raw('(avg_points_per_game + avg_rebounds_per_game + avg_assists_per_game + avg_steals_per_game + avg_blocks_per_game)'))
+                    ->get();
 
-            // Initialize arrays for assigning roles
-            $starPlayers = [];
-            $starters = [];
-            $rolePlayers = [];
-            $benchPlayers = [];
+                // Fetch rookies separately
+                $rookies = DB::table('players')
+                    ->where('team_id', $teamId)
+                    ->where('is_rookie', 1)
+                    ->orderByDesc('overall_rating')
+                    ->get();
 
-            // Add top rookies (overall_rating >= 90) to star players
-            foreach ($rookies as $rookie) {
-                if (count($starPlayers) < 3 && $rookie->overall_rating >= 90) {
-                    $starPlayers[] = $rookie->id;
-                } elseif (count($starters) < 2) {
-                    $starters[] = $rookie->id;
-                } elseif (count($rolePlayers) < 5) {
-                    $rolePlayers[] = $rookie->id;
-                } else {
-                    $benchPlayers[] = $rookie->id;
+                // Initialize arrays for assigning roles
+                $starPlayers = [];
+                $starters = [];
+                $rolePlayers = [];
+                $benchPlayers = [];
+
+                // Add top rookies (overall_rating >= 90) to star players
+                foreach ($rookies as $rookie) {
+                    if (count($starPlayers) < 3 && $rookie->overall_rating >= 90) {
+                        $starPlayers[] = $rookie->id;
+                    } elseif (count($starters) < 2) {
+                        $starters[] = $rookie->id;
+                    } elseif (count($rolePlayers) < 5) {
+                        $rolePlayers[] = $rookie->id;
+                    } else {
+                        $benchPlayers[] = $rookie->id;
+                    }
                 }
-            }
 
-            // Assign roles to veteran players, keeping team structure balanced
-            foreach ($playerStats as $index => $playerStat) {
-                if (count($starPlayers) < 3) {
-                    $starPlayers[] = $playerStat->player_id;
-                } elseif (count($starters) < 2) {
-                    $starters[] = $playerStat->player_id;
-                } elseif (count($rolePlayers) < 5) {
-                    $rolePlayers[] = $playerStat->player_id;
-                } else {
-                    $benchPlayers[] = $playerStat->player_id;
+                // Assign roles to veteran players, keeping team structure balanced
+                foreach ($playerStats as $index => $playerStat) {
+                    if (count($starPlayers) < 3) {
+                        $starPlayers[] = $playerStat->player_id;
+                    } elseif (count($starters) < 2) {
+                        $starters[] = $playerStat->player_id;
+                    } elseif (count($rolePlayers) < 5) {
+                        $rolePlayers[] = $playerStat->player_id;
+                    } else {
+                        $benchPlayers[] = $playerStat->player_id;
+                    }
                 }
-            }
 
-            // Update each player's role in the database
-            DB::table('players')->whereIn('id', $starPlayers)->update(['role' => 'star player']);
-            DB::table('players')->whereIn('id', $starters)->update(['role' => 'starter']);
-            DB::table('players')->whereIn('id', $rolePlayers)->update(['role' => 'role player']);
-            DB::table('players')->whereIn('id', $benchPlayers)->update(['role' => 'bench']);
+                // Update each player's role in the database
+                DB::table('players')->whereIn('id', $starPlayers)->update(['role' => 'star player']);
+                DB::table('players')->whereIn('id', $starters)->update(['role' => 'starter']);
+                DB::table('players')->whereIn('id', $rolePlayers)->update(['role' => 'role player']);
+                DB::table('players')->whereIn('id', $benchPlayers)->update(['role' => 'bench']);
+
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                // Log the error message and stack trace for debugging
+                \Log::error('Error assigning role for '.$teamId.' '. $e->getMessage());
+
+                return false; // Return false if an error occurs during the update
+            }
         }
 
-        return true;
+        return true; // Return true if all updates succeed
     }
+
 
     private function updateTeamRolesBasedOnStatsV2()
     {
