@@ -269,6 +269,10 @@ class RatingsController extends Controller
             if ($isLast) {
                 \Log::info('Processing last update.');
 
+                ///lastly update all active players to non rookie
+                DB::table('players')->where('is_active', 1)->update([
+                    'is_rookie' => 0,
+                ]);
                 // Update season status
                 $season = Seasons::find($seasonId);
                 if ($season) {
