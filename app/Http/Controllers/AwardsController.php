@@ -48,18 +48,19 @@ class AwardsController extends Controller
                 ->where('season_id', $latestSeasonId)
                 ->select(
                     'player_id',
-                    DB::raw('COUNT(*) as total_games_played'),
-                    DB::raw('GREATEST(AVG(points), 0) as avg_points_per_game'), // No negative values
-                    DB::raw('GREATEST(AVG(rebounds), 0) as avg_rebounds_per_game'), // No negative values
-                    DB::raw('GREATEST(AVG(assists), 0) as avg_assists_per_game'), // No negative values
-                    DB::raw('GREATEST(AVG(steals), 0) as avg_steals_per_game'), // No negative values
-                    DB::raw('GREATEST(AVG(blocks), 0) as avg_blocks_per_game'), // No negative values
-                    DB::raw('GREATEST(AVG(turnovers), 0) as avg_turnovers_per_game'), // No negative values
-                    DB::raw('GREATEST(AVG(fouls), 0) as avg_fouls_per_game'), // No negative values
-                    DB::raw('GREATEST(AVG(minutes), 0) as avg_minutes_per_game') // No negative values
+                    DB::raw('COUNT(CASE WHEN minutes > 0 THEN 1 END) as total_games_played'),
+                    DB::raw('SUM(CASE WHEN minutes > 0 THEN points ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_points_per_game'),
+                    DB::raw('SUM(CASE WHEN minutes > 0 THEN rebounds ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_rebounds_per_game'),
+                    DB::raw('SUM(CASE WHEN minutes > 0 THEN assists ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_assists_per_game'),
+                    DB::raw('SUM(CASE WHEN minutes > 0 THEN steals ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_steals_per_game'),
+                    DB::raw('SUM(CASE WHEN minutes > 0 THEN blocks ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_blocks_per_game'),
+                    DB::raw('SUM(CASE WHEN minutes > 0 THEN turnovers ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_turnovers_per_game'),
+                    DB::raw('SUM(CASE WHEN minutes > 0 THEN fouls ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_fouls_per_game'),
+                    DB::raw('SUM(CASE WHEN minutes > 0 THEN minutes ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_minutes_per_game')
                 )
                 ->groupBy('player_id')
                 ->first();
+
 
             if ($playerStats) {
                 // Get the player's role for the specified season
