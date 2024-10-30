@@ -301,9 +301,9 @@ const addMultiplePlayers = async (count) => {
         const promises = [];
 
         for (let i = 0; i < count; i++) {
-            const playerInfo = await fetchRandomFullName(); // Fetch random full name
+            const randomFullName = await fetchRandomFullName(); // Fetch random full name
             if(randomFullName != null){
-                promises.push(addPlayer(playerInfo)); // Add the promise to the array
+                promises.push(addPlayer(randomFullName)); // Add the promise to the array
             }
 
         }
