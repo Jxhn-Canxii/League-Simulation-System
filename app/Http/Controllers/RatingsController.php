@@ -152,7 +152,7 @@ class RatingsController extends Controller
                     DB::table('transactions')->insert([
                         'player_id' => $player->id,
                         'season_id' => $seasonId,
-                        'details' => 'has retired from the league.',
+                        'details' => 'has retired from the league.[Last team: '.$teamName.']',
                         'from_team_id' => $player->team_id,
                         'to_team_id' => 0,
                         'status' => 'retired',
