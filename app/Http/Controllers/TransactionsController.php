@@ -235,7 +235,7 @@ class TransactionsController extends Controller
         }
     }
 
-    private function updateTeamRolesBasedOnStatsV1()
+    private function updateTeamRolesBasedOnStats()
     {
         // Fetch player stats for the last season
         $seasonId = $this->getLatestSeasonId();
@@ -331,83 +331,6 @@ class TransactionsController extends Controller
 
         return true;
     }
-    private function updateTeamRolesBasedOnStats()
-    {
-        // Fetch player stats for the last season
-        $seasonId = $this->getLatestSeasonId();
-        $teams = DB::table('teams')->pluck('id');
-
-        foreach ($teams as $teamId) {
-            // Fetch players for each team based on last season's stats
-            $playerStats = DB::table('player_season_stats')
-                ->join('players', 'player_season_stats.player_id', '=', 'players.id')
-                ->where('player_season_stats.season_id', $seasonId)
-                ->where('player_season_stats.team_id', $teamId)
-                ->orderByDesc(DB::raw('(avg_points_per_game + avg_rebounds_per_game + avg_assists_per_game + avg_steals_per_game + avg_blocks_per_game)'))
-                ->get();
-
-            $rookieRolesAssigned = 0;
-            $nonRookieRoles = [];
-
-            // First, assign roles to non-rookies
-            foreach ($playerStats as $index => $playerStat) {
-                if ($playerStat->is_rookie) {
-                    continue; // Skip rookies in this loop
-                }
-
-                $role = '';
-
-                if ($index < 3) {
-                    $role = 'star player';
-                } elseif ($index < 5) {
-                    $role = 'starter';
-                } elseif ($index < 10) {
-                    $role = 'role player';
-                } else {
-                    $role = 'bench';
-                }
-
-                // Store the role for later use
-                $nonRookieRoles[] = $role;
-
-                // Update the player's role in the database
-                DB::table('players')
-                    ->where('id', $playerStat->player_id)
-                    ->update(['role' => $role]);
-            }
-
-            // Now assign roles to rookies while balancing with non-rookies
-            foreach ($playerStats as $playerStat) {
-                if ($playerStat->is_rookie) {
-                    $role = '';
-
-                    // Check how many rookies are already assigned roles
-                    if ($rookieRolesAssigned < 2) { // Limit the number of rookies in key roles
-                        if (count($nonRookieRoles) < 3) {
-                            $role = 'starter'; // Give a rookie a starting role if not too many non-rookies
-                        } else {
-                            $role = 'bench'; // Otherwise, assign to bench
-                        }
-                    } else {
-                        $role = 'bench'; // Limit rookies to bench if already maxed out
-                    }
-
-                    // Update the player's role in the database
-                    DB::table('players')
-                        ->where('id', $playerStat->player_id)
-                        ->update(['role' => $role]);
-
-                    // Increment the count of rookies assigned roles
-                    if ($role !== 'bench') {
-                        $rookieRolesAssigned++;
-                    }
-                }
-            }
-        }
-
-        return true;
-    }
-
     private function determineContractYears($role)
     {
         switch ($role) {
