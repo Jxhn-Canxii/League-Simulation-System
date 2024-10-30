@@ -270,7 +270,7 @@ const draftPlayer = async () => {
 };
 const fetchRandomFullName = async () => {
     try {
-        https://randomuser.me/api/?inc=name,gender,location,nat&gender=male
+        // https://randomuser.me/api/?inc=name,gender,location,nat&gender=male
         const response = await axios.get(' https://randomuser.me/api/?inc=name,gender,location,nat&gender=male'); // API URL for random male user
         const { first, last } = response.data.results[0].name; // Extract first and last name
         const { city, state, country} = response.data.results[0].location; // Extract first and last name
@@ -282,7 +282,7 @@ const fetchRandomFullName = async () => {
             name: name,
             nationality: nationality,
             address: address,
-        }
+        };
         // Function to check if a name contains only English alphabet letters
         const isEnglishReadable = (name) => /^[A-Za-z]+$/.test(name);
 

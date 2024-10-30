@@ -36,12 +36,12 @@
                         >
                             <i class="fa fa-user"></i> Add Rookie Player
                         </button> -->
-                        <!-- <button
+                        <button
                             @click.prevent="addMultiplePlayers(100)"
                             class="px-4 py-2 bg-green-700 text-white rounded mb-4 text-sm"
                         >
-                            <i class="fa fa-user"></i> Add Rookie Player From Api
-                        </button> -->
+                            <i class="fa fa-user"></i> Add Undrafted Rookie Player From Api
+                        </button>
                     </div>
                 </div>
                 <div
@@ -291,16 +291,24 @@ const teams = ref([]);
 const emits = defineEmits(["newSeason"]);
 const fetchRandomFullName = async () => {
     try {
-        const response = await axios.get(
-            "https://randomuser.me/api/?inc=name&gender=male"
-        ); // API URL for random male user
+        // https://randomuser.me/api/?inc=name,gender,location,nat&gender=male
+        const response = await axios.get(' https://randomuser.me/api/?inc=name,gender,location,nat&gender=male'); // API URL for random male user
         const { first, last } = response.data.results[0].name; // Extract first and last name
+        const { city, state, country} = response.data.results[0].location; // Extract first and last name
+        const nationality = response.data.results[0].nat; // Extract first and last name
+        const address = `${city}, ${state}, ${country}`; // Extract first and last name
+        const name = `${first} ${last}`;
 
+        const data = {
+            name: name,
+            nationality: nationality,
+            address: address,
+        };
         // Function to check if a name contains only English alphabet letters
         const isEnglishReadable = (name) => /^[A-Za-z]+$/.test(name);
 
         if (isEnglishReadable(first) && isEnglishReadable(last)) {
-            return `${first} ${last}`; // Return full name if valid
+            return data; // Return full name if valid
         } else {
             return null; // Return null if the name is not valid
         }
@@ -309,11 +317,12 @@ const fetchRandomFullName = async () => {
         return null; // Return null on error
     }
 };
-
-const addPlayer = async (name) => {
+const addPlayer = async (info) => {
     try {
         const response = await axios.post(route("players.add.free.agent"), {
-            name: name,
+            name: info.name,
+            address: info.address,
+            nationality: info.nationality,
         });
         // return response.data.message; // Return success message for logging
         Swal.fire({
