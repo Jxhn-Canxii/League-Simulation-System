@@ -11,7 +11,7 @@
             <strong>Player ID:</strong> #{{ main_performance.player_details.player_id ?? "-" }}
         </p>
         <p class="text-nowrap">
-            <strong>Name:</strong> {{ main_performance.player_details.player_name ?? "-" }} ,{{ main_performance.player_details.age ?? "N/A" }}
+            <strong>Name:</strong> {{ main_performance.player_details.player_name ?? "-" }} ,{{ main_performance.player_details.age ?? "N/A" }} <sup>{{ main_performance.player_details.nationality ?? "N/A" }}</sup>
         </p>
         <p>
             <strong>Team:</strong> {{ main_performance.player_details.team_name ?? "-" }}
