@@ -68,6 +68,11 @@
                                 <th
                                     class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
                                 >
+                                    Experience
+                                </th>
+                                <th
+                                    class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                                >
                                     Country
                                 </th>
                                 <th
@@ -139,6 +144,9 @@
                                 </td>
                                 <td class="px-2 py-1 whitespace-nowrap border">
                                     {{ player.name }}
+                                </td>
+                                <td class="px-2 py-1 whitespace-nowrap border">
+                                    {{ player.is_rookie == 1 ? 'Rookie' : 'Veteran' }}
                                 </td>
                                 <td class="px-2 py-1 whitespace-nowrap border">
                                     {{ player.country }}
