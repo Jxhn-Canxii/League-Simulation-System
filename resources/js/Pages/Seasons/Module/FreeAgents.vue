@@ -22,7 +22,6 @@
                     class="mt-1 mb-2 p-2 border rounded w-full"
                 />
                 <div class="flex justify-between">
-                    <div></div>
                     <div>
                         <button
                             @click="assignTeamsAuto()"
@@ -30,6 +29,9 @@
                         >
                             <i class="fa fa-users"></i> Distribute Free Agents
                         </button>
+                    </div>
+                    <div>
+
                         <!-- <button
                             @click="showAddPlayerModal = true"
                             class="px-4 py-2 bg-green-500 text-white rounded mb-4 mr-2 text-sm"
@@ -37,10 +39,10 @@
                             <i class="fa fa-user"></i> Add Rookie Player
                         </button> -->
                         <button
-                            @click.prevent="addMultiplePlayers(1600)"
+                            @click.prevent="addMultiplePlayers(100)"
                             class="px-4 py-2 bg-green-700 text-white rounded mb-4 text-sm"
                         >
-                            <i class="fa fa-user"></i> Add Undrafted Rookie Player From Api
+                            <i class="fa fa-user"></i> Add Undrafted Rookie
                         </button>
                     </div>
                 </div>
@@ -50,7 +52,7 @@
                 >
                     No free agents found.
                 </div>
-                <div v-else class="overflow-x-auto mt-4">
+                <div v-else class="overflow-auto mt-4">
                     <table class="min-w-full divide-y divide-gray-200 text-xs">
                         <thead class="bg-gray-50 text-nowrap">
                             <tr>
@@ -101,25 +103,25 @@
                                     class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
                                     title="Shooting Rating"
                                 >
-                                    Shooting
+                                    SH
                                 </th>
                                 <th
                                     class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
                                     title="Defense Rating"
                                 >
-                                    Defense
+                                    DEF
                                 </th>
                                 <th
                                     class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
                                     title="Passing Rating"
                                 >
-                                    Passing
+                                    PAS
                                 </th>
                                 <th
                                     class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
                                     title="Rebounding Rating"
                                 >
-                                    Rebounding
+                                   REB
                                 </th>
                                 <th
                                     class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
