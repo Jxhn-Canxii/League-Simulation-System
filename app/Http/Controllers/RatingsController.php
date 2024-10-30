@@ -149,10 +149,6 @@ class RatingsController extends Controller
                 // Check for retirement
                 if($player->age >= $player->retirement_age){
 
-                    $player->is_active = 0;
-                    $player->contract_years = 0;
-                    $player->team_id = 0;
-
                     DB::table('transactions')->insert([
                         'player_id' => $player->id,
                         'season_id' => $seasonId,
@@ -161,6 +157,10 @@ class RatingsController extends Controller
                         'to_team_id' => 0,
                         'status' => 'retired',
                     ]);
+
+                    $player->is_active = 0;
+                    $player->contract_years = 0;
+                    $player->team_id = 0;
                 }
 
 
@@ -191,17 +191,17 @@ class RatingsController extends Controller
                         ]);
                     } else {
 
-                        $player->contract_years = 0;
-                        $player->team_id = 0;
-
                         DB::table('transactions')->insert([
                             'player_id' => $player->id,
                             'season_id' => $seasonId,
                             'details' => 'Released by ' . $teamName,
-                            'from_team_id' => 0,
+                            'from_team_id' => $player->team_id,
                             'to_team_id' => 0,
                             'status' => 'released',
                         ]);
+
+                        $player->contract_years = 0;
+                        $player->team_id = 0;
                     }
                 }
 
