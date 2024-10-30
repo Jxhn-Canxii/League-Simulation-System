@@ -247,7 +247,6 @@ class TransactionsController extends Controller
                 ->join('players', 'player_season_stats.player_id', '=', 'players.id')
                 ->where('player_season_stats.season_id', $seasonId)
                 ->where('player_season_stats.team_id', $teamId) // Specify the table for team_id
-                ->where('players.is_rookie', 0) // Exclude rookies
                 ->orderByDesc(DB::raw('(avg_points_per_game + avg_rebounds_per_game + avg_assists_per_game + avg_steals_per_game + avg_blocks_per_game)'))
                 ->get();
 
