@@ -298,10 +298,10 @@ const fetchRandomFullName = async () => {
         const nationality = response.data.results[0].nat; // Extract first and last name
         const address = `${city}, ${state}, ${country}`; // Extract first and last name
         const name = `${first} ${last}`;
-
+        const country_formatted = `${country} ,${nationality}`,
         const data = {
             name: name,
-            nationality: nationality,
+            country: country_formatted,
             address: address,
         };
         // Function to check if a name contains only English alphabet letters
@@ -322,7 +322,7 @@ const addPlayer = async (info) => {
         const response = await axios.post(route("players.add.free.agent"), {
             name: info.name,
             address: info.address,
-            nationality: info.nationality,
+            country: info.country,
         });
         // return response.data.message; // Return success message for logging
         Swal.fire({

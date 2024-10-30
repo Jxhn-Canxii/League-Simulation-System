@@ -25,7 +25,7 @@
                             <thead class="bg-gray-50 text-nowrap">
                                 <tr>
                                     <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                    <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Nationality</th>
+                                    <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Country</th>
                                     <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Current Team</th>
                                     <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Remaining Contract</th>
                                     <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Age</th>
@@ -37,7 +37,7 @@
                             <tbody class="bg-white divide-y divide-gray-200">
                                 <tr v-for="player in data.free_agents" :key="player.player_id" @click.prevent="showPlayerProfile(player)" class="hover:bg-gray-100">
                                     <td class="px-2 py-1 whitespace-nowrap border">{{ player.name }}</td>
-                                    <td class="px-2 py-1 whitespace-nowrap border">{{ player.nationality }}</td>
+                                    <td class="px-2 py-1 whitespace-nowrap border">{{ player.country }}</td>
                                     <td class="px-2 py-1 whitespace-nowrap border">{{ player.team_name ?? '-' }}</td>
                                     <td class="px-2 py-1 whitespace-nowrap border">{{ player.contract_years ?? 0 }} yrs.</td>
                                     <td class="px-2 py-1 whitespace-nowrap border">{{ player.age }}</td>

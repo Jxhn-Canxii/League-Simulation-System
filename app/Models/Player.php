@@ -15,7 +15,7 @@ class Player extends Model
     // The attributes that are mass assignable
     protected $fillable = [
         'name',
-        'nationality',
+        'country',
         'address',
         'team_id',
         'contract_years',

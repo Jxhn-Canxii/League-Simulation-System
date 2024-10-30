@@ -261,7 +261,7 @@ class PlayersController extends Controller
 
         // Build the query with optional search filter and join with teams
         $query = DB::table('players')
-            ->select('players.id as player_id','players.nationality', 'players.name', 'players.age', 'players.role', 'players.is_active', 'players.retirement_age', 'players.contract_years', DB::raw("IF(players.team_id = 0, 'none', teams.name) as team_name"))
+            ->select('players.id as player_id','players.country', 'players.name', 'players.age', 'players.role', 'players.is_active', 'players.retirement_age', 'players.contract_years', DB::raw("IF(players.team_id = 0, 'none', teams.name) as team_name"))
             ->leftJoin('teams', 'players.team_id', '=', 'teams.id');
 
         // Apply search filter if provided
@@ -370,7 +370,7 @@ class PlayersController extends Controller
         $request->validate([
             'name' => 'required|string|max:255|unique:players,name',
             'address' => 'required|string|max:255',
-            'nationality' => 'required|string',
+            'country' => 'required|string',
         ]);
 
         $latestSeasonId = DB::table('standings_view')->max('season_id');
@@ -424,7 +424,7 @@ class PlayersController extends Controller
         $player = Player::create([
             'name' => $request->name,
             'address' => $request->address,
-            'nationality' => $request->nationality,
+            'country' => $request->country,
             'team_id' => 0,
             'age' => $age,
             'retirement_age' => $retirementAge,
@@ -1008,7 +1008,7 @@ class PlayersController extends Controller
             ->join('teams as drafted_teams', 'players.drafted_team_id', '=', 'drafted_teams.id', 'left') // Join teams table to get team details
             ->join('seasons', 'players.draft_id', '=', 'seasons.id', 'left')
             ->where('players.id', $playerId)
-            ->select('players.id as player_id', 'players.name as player_name','players.nationality as nationality','players.address as address', 'players.age as age', 'teams.name as team_name', 'players.role', 'players.contract_years', 'players.is_rookie', 'players.overall_rating', 'players.type', 'players.draft_status as draft_status', 'seasons.name as draft_class', 'drafted_teams.acronym as drafted_team')
+            ->select('players.id as player_id', 'players.name as player_name','players.country as country','players.address as address', 'players.age as age', 'teams.name as team_name', 'players.role', 'players.contract_years', 'players.is_rookie', 'players.overall_rating', 'players.type', 'players.draft_status as draft_status', 'seasons.name as draft_class', 'drafted_teams.acronym as drafted_team')
             ->first();
 
         if (!$playerDetails) {
