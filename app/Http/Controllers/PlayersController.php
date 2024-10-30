@@ -369,6 +369,8 @@ class PlayersController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255|unique:players,name',
+            'address' => 'required|string|max:255',
+            'nationality' => 'required|string',
         ]);
 
         $latestSeasonId = DB::table('standings_view')->max('season_id');
@@ -421,6 +423,8 @@ class PlayersController extends Controller
 
         $player = Player::create([
             'name' => $request->name,
+            'address' => $request->address,
+            'nationality' => $request->nationality,
             'team_id' => 0,
             'age' => $age,
             'retirement_age' => $retirementAge,
