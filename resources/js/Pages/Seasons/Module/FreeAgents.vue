@@ -116,11 +116,11 @@
                                 >
                                     Status
                                 </th>
-                                <th
+                                <!-- <th
                                     class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
                                 >
                                     Actions
-                                </th>
+                                </th> -->
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
@@ -197,14 +197,14 @@
                                         >Waived</span
                                     >
                                 </td>
-                                <td class="px-2 py-1 whitespace-nowrap border">
+                                <!-- <td class="px-2 py-1 whitespace-nowrap border">
                                     <button
                                         @click="assignTeams(player.player_id)"
                                         class="px-2 py-1 bg-blue-500 text-white rounded-l text-xs"
                                     >
                                         Assign New Team
                                     </button>
-                                </td>
+                                </td> -->
                             </tr>
                         </tbody>
                     </table>
