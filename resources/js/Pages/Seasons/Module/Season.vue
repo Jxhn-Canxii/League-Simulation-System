@@ -746,6 +746,7 @@ const simulateRoundGames = async (round, isLast) => {
 const simulateGame = async (schedule_id) => {
     try {
         isHide.value = true;
+        activeGameId.value = 0;
         const response = await axios.post(route("game.simulate.regular"), {
             schedule_id: schedule_id, // Assuming the parameter name should be schedule_id
         });
@@ -755,7 +756,9 @@ const simulateGame = async (schedule_id) => {
         await fetchConferenceStandings(activeConferenceTab.value);
         await fetchConferenceSchedules(activeConferenceTab.value);
 
-        activeGameId.value = response.data.game_id ?? 0;
+        setTimeout(() => {
+            activeGameId.value = response.data.game_id ?? 0;
+        }, 3000);
         // Show success message using Swal2
         // Swal.fire({
         //     icon: "success",
