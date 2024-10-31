@@ -18,11 +18,17 @@
                 </template>
                 Seasons
             </nav-link>
-            <nav-link :href="route('dashboard')" :active="route().current('dashboard')">
+            <nav-link :href="route('records.index')" :active="route().current('records.index')">
+                <template #icon>
+                    <i class="fa fa-book"></i>
+                </template>
+                Records
+            </nav-link>
+            <nav-link :href="route('analytics.index')" :active="route().current('analytics.index')">
                 <template #icon>
                     <i class="fa fa-chart-line"></i>
                 </template>
-                Statistics
+                Analytics
             </nav-link>
             <nav-link :href="route('awards.index')" :active="route().current('awards.index')">
                 <template #icon>
@@ -30,7 +36,7 @@
                 </template>
                 Awards
             </nav-link>
-            <nav-link :href="route('transactions.index')" :active="route().current('transactions.index')">
+            <nav-link :href="route('players.index')" :active="route().current('players.index')">
                 <template #icon>
                     <i class="fa fa-users"></i>
                 </template>

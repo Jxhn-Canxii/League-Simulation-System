@@ -84,7 +84,7 @@ const search_topscorers = ref({
 
 const fetchTopScorers = async (page = 1) => {
     try {
-        const response = await axios.post(route("dashboard.team.topscorer"),search_topscorers.value);
+        const response = await axios.post(route("records.team.topscorer"),search_topscorers.value);
         top_scorers.value = response.data;
 } catch (error) {
         console.error("Error fetching champions:", error);

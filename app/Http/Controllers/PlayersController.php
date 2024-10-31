@@ -10,10 +10,17 @@ use App\Models\Teams;
 use App\Models\PlayerGameStats;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class PlayersController extends Controller
 {
 
+    public function index()
+    {
+        return Inertia::render('Players/Index', [
+            'status' => session('status'),
+        ]);
+    }
     public function listPlayers(Request $request)
     {
         $request->validate([

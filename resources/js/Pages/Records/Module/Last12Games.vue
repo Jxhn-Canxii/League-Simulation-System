@@ -54,7 +54,7 @@ const recent_results = ref([]);
 
 const fetchRecentResults = async () => {
     try {
-        const response = await axios.post(route("dashboard.recent"));
+        const response = await axios.post(route("records.recent"));
         recent_results.value = response.data;
 } catch (error) {
         console.error("Error fetching recent results:", error);

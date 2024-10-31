@@ -46,7 +46,7 @@ const rivals = ref([]);
 
 const fetchRivalry = async () => {
     try {
-        const response = await axios.post(route("dashboard.rivalries"));
+        const response = await axios.post(route("records.rivalries"));
         rivals.value = response.data;
 } catch (error) {
         console.error("Error fetching recent results:", error);

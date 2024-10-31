@@ -40,7 +40,7 @@ const playoffs = ref([]);
 
 const fetchMostPlayoffAppearance = async () => {
     try {
-        const response = await axios.post(route("dashboard.playoff.appearances"));
+        const response = await axios.post(route("records.playoff.appearances"));
         playoffs.value = response.data;
 } catch (error) {
         console.error("Error fetching champions:", error);

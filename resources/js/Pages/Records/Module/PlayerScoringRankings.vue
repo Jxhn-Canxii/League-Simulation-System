@@ -72,7 +72,7 @@ const search_scorers = ref({
 
 const fetchScorers = async (page = 1) => {
     try {
-        const response = await axios.post(route("dashboard.player.topscorer"),search_scorers.value);
+        const response = await axios.post(route("records.player.topscorer"),search_scorers.value);
         scorers.value = response.data;
 } catch (error) {
         console.error("Error fetching top scorer of all time:", error);

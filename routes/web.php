@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\RecordsController;
 use App\Http\Controllers\TeamsController;
 use App\Http\Controllers\LeaguesController;
 use App\Http\Controllers\ScheduleController;
@@ -13,6 +13,7 @@ use App\Http\Controllers\TransactionsController;
 use App\Http\Controllers\RatingsController;
 use App\Http\Controllers\AwardsController;
 use App\Http\Controllers\DraftController;
+use App\Http\Controllers\AnalyticsController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -39,15 +40,15 @@ Route::get('/', function () {
 
 
 Route::middleware('auth')->group(function () {
-    Route::prefix('dashboard/')->group(function(){
-        Route::get('', [DashboardController::class, 'index'])->name('dashboard');
-        Route::post('champions', [DashboardController::class, 'champions'])->name('dashboard.champions');
-        Route::post('recent', [DashboardController::class, 'recent'])->name('dashboard.recent');
-        Route::post('topscorerteams', [DashboardController::class, 'topscorerteams'])->name('dashboard.team.topscorer');
-        Route::post('winningestteams', [DashboardController::class, 'winningestteams'])->name('dashboard.team.winningest');
-        Route::post('rivals', [DashboardController::class, 'get_rivalries'])->name('dashboard.rivalries');
-        Route::post('playoff_appearances', [DashboardController::class, 'playoff_appearances'])->name('dashboard.playoff.appearances');
-        Route::post('topscorerplayers', [DashboardController::class, 'topscorerplayers'])->name('dashboard.player.topscorer');
+    Route::prefix('records/')->group(function(){
+        Route::get('', [RecordsController::class, 'index'])->name('records.index');
+        Route::post('champions', [RecordsController::class, 'champions'])->name('records.champions');
+        Route::post('recent', [RecordsController::class, 'recent'])->name('records.recent');
+        Route::post('topscorerteams', [RecordsController::class, 'topscorerteams'])->name('records.team.topscorer');
+        Route::post('winningestteams', [RecordsController::class, 'winningestteams'])->name('records.team.winningest');
+        Route::post('rivals', [RecordsController::class, 'get_rivalries'])->name('records.rivalries');
+        Route::post('playoff_appearances', [RecordsController::class, 'playoff_appearances'])->name('records.playoff.appearances');
+        Route::post('topscorerplayers', [RecordsController::class, 'topscorerplayers'])->name('records.player.topscorer');
 
     });
 
@@ -85,6 +86,10 @@ Route::middleware('auth')->group(function () {
     });
     Route::prefix('ratings/')->group(function(){
         Route::post('update-player-status', [RatingsController::class, 'updateActivePlayers'])->name('update.player.status');
+
+    });
+    Route::prefix('analytics/')->group(function(){
+        Route::get('', [AnalyticsController::class, 'index'])->name('analytics.index');
 
     });
     Route::prefix('draft/')->group(function(){
@@ -126,6 +131,7 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::prefix('players/')->group(function(){
+        Route::get('', [PlayersController::class, 'index'])->name('players.index');
         Route::post('list', [PlayersController::class, 'listPlayers'])->name('players.list');
         Route::post('add', [PlayersController::class, 'addPlayer'])->name('players.add');
         Route::post('add-free-agent', [PlayersController::class, 'addFreeAgentPlayer'])->name('players.add.free.agent');
@@ -144,7 +150,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/player-best-alltime-by-team', [PlayersController::class, 'getTop10PlayersByTeam'])->name('best.team.players.alltime');
     });
     Route::prefix('transactions/')->group(function(){
-        Route::get('', [TransactionsController::class, 'index'])->name('transactions.index');
         Route::post('/assign-team-free-agents', [TransactionsController::class, 'assignPlayerToRandomTeam'])->name('assign.freeagent.teams');
         Route::post('/auto-assign-team-free-agents', [TransactionsController::class, 'assignRemainingFreeAgents'])->name('auto.assign.freeagent.teams');
 

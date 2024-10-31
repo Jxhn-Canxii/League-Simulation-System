@@ -75,7 +75,7 @@ const search_champions = ref({
 
 const fetchChampions = async (page = 1) => {
     try {
-        const response = await axios.post(route("dashboard.champions"),search_champions.value);
+        const response = await axios.post(route("records.champions"),search_champions.value);
         champions.value = response.data;
 } catch (error) {
         console.error("Error fetching champions:", error);

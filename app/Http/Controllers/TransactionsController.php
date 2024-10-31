@@ -10,12 +10,6 @@ use Inertia\Inertia;
 
 class TransactionsController extends Controller
 {
-    public function index()
-    {
-        return Inertia::render('Transactions/Index', [
-            'status' => session('status'),
-        ]);
-    }
 
     public function assignPlayerToRandomTeam(Request $request)
     {

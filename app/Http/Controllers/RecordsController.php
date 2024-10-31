@@ -8,11 +8,11 @@ use Inertia\Inertia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
-class DashboardController extends Controller
+class RecordsController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Dashboard/Index');
+        return Inertia::render('Records/Index');
     }
     public function champions(Request $request)
     {
