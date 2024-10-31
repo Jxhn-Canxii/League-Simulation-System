@@ -9,7 +9,7 @@
                 {{ season_info?.seasons[0].name ?? "" }} Standings
             </h2>
             <div class="grid grid-cols-3 gap-6">
-                <div class="flex">
+                <div class="block">
                     <div class="block">
                         <table
                             class="min-w-full divide-y divide-gray-200 text-sm"
@@ -154,7 +154,7 @@
                         </div>
                     </div>
                     <div class="block">
-                        <TopStatistics :key="activeGameId" />
+                        <SeasonTimeLine :key="activeGameId" />
                     </div>
                 </div>
 
@@ -610,6 +610,7 @@ import GameResults from "@/Pages/Seasons/Module/GameResults.vue";
 import TopPlayers from "@/Pages/Seasons/Module/TopPlayers.vue";
 import Top10Player from "@/Pages/Teams/Module/Top10Player.vue";
 import TopStatistics from "@/Pages/Analytics/Module/TopStatistics.vue";
+import SeasonTimeLine from "@/Pages/Analytics/Module/SeasonTimeLine.vue";
 
 const season_info = ref(false);
 const season_conference = ref(false);
