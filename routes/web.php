@@ -90,6 +90,9 @@ Route::middleware('auth')->group(function () {
     });
     Route::prefix('analytics/')->group(function(){
         Route::get('', [AnalyticsController::class, 'index'])->name('analytics.index');
+        Route::get('get-all-standings', [AnalyticsController::class, 'get_all_standings'])->name('analytics.standings');
+
+
 
     });
     Route::prefix('draft/')->group(function(){

@@ -10,45 +10,30 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import Chart from 'chart.js/auto';
+import axios from 'axios'; // Ensure axios is imported
 
-const teamsList = ref([]);
-const selectedTeam = ref(null);
 let seasonChartInstance = null; // Reference to the season chart instance
+const standings = ref([]); // Standings data fetched from API
 
-// Sample data for all-time wins and losses for 5 teams
-const allTimeData = [
-    { label: 'Team A', wins: 800, losses: 200 },
-    { label: 'Team B', wins: 750, losses: 250 },
-    { label: 'Team C', wins: 700, losses: 300 },
-    { label: 'Team D', wins: 650, losses: 350 },
-    { label: 'Team E', wins: 600, losses: 400 },
-];
-
-// Sample data for season progression for each team
-const seasonData = {
-    'Team A': [30, 35, 40, 42, 0, 55, 60, 70, 75, 80],
-    'Team B': [25, 30, 35, 40, 45, 50, 55, 60, 65, 70],
-    'Team C': [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
-    'Team D': [15, 20, 25, 30, 35, 40, 45, 50, 55, 60],
-    'Team E': [10, 15, 20, 25, 30, 35, 40, 45, 50, 55],
+const showChart = async () => {
+    await fetchAllStandings(); // Fetch standings
+    await renderSeasonProgressionChart(); // Render the chart
 };
 
-const sampleData = () => {
-    teamsList.value = allTimeData;
-    selectedTeam.value = teamsList.value[0].label; // Set default selected team
+const fetchAllStandings = async () => {
+    try {
+        const response = await axios.get(route("analytics.standings")); // Adjust this route as necessary
+        standings.value = response.data; // Store fetched standings data
+    } catch (error) {
+        console.error("Error fetching standings:", error);
+    }
 };
 
-const renderSeasonProgressionChart = () => {
+const renderSeasonProgressionChart = async () => {
     const ctx = document.getElementById('seasonProgressionChart').getContext('2d');
 
-    // Prepare data for all teams
-    const datasets = teamsList.value.map(team => ({
-        label: team.label,
-        data: seasonData[team.label],
-        borderColor: getRandomColor(),
-        fill: false,
-        tension: 0.1,
-    }));
+    // Prepare datasets for each team using the provided data structure
+    const datasets = standings.value.datasets;
 
     // Resetting any existing chart instance
     if (seasonChartInstance) {
@@ -58,7 +43,7 @@ const renderSeasonProgressionChart = () => {
     seasonChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: Array.from({ length: 10 }, (_, i) => `Season ${i + 1}`),
+            labels: standings.value.labels, // Generate labels based on data length
             datasets: datasets,
         },
         options: {
@@ -88,20 +73,8 @@ const renderSeasonProgressionChart = () => {
     });
 };
 
-const getRandomColor = () => {
-    const r = Math.floor(Math.random() * 256);
-    const g = Math.floor(Math.random() * 256);
-    const b = Math.floor(Math.random() * 256);
-    return `rgba(${r}, ${g}, ${b}, 1)`; // Solid color for lines
-};
-
-const updateSeasonChart = () => {
-    renderSeasonProgressionChart(); // This will now display all teams
-};
-
 onMounted(() => {
-    sampleData(); // Use sample data for teams
-    renderSeasonProgressionChart(); // Render the season progression chart for all teams
+    showChart(); // Call to fetch data and render the chart
 });
 </script>
 
