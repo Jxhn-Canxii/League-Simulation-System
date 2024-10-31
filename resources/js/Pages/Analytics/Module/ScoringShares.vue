@@ -2,9 +2,9 @@
     <div class="grid gap-6 mb-8 md:grid-cols-1 xl:grid-cols-1 overflow-auto shadow">
         <div class="p-6 bg-white rounded-lg shadow-md">
             <div class="flex justify-between">
-                <h2 class="text-lg font-semibold text-gray-800">Championships by Team</h2>
+                <h2 class="text-lg font-semibold text-gray-800">Scoring by Team</h2>
             </div>
-            <canvas id="championsChart"></canvas>
+            <canvas id="scoringChart"></canvas>
         </div>
     </div>
 </template>
@@ -16,34 +16,31 @@ import Chart from 'chart.js/auto';
 const teamsList = ref([]);
 let chartInstance = null; // Reference to the chart instance
 
-
-const champions = ref([]);
-const search_champions = ref({
+const top_scorers = ref([]);
+const search_topscorers = ref({
     page_num: 1,
     total_pages: 0,
     per_page: 80,
     total: 0,
     search: '',
 });
-
 const showChart = async () => {
-    await fetchChampions();
+    await fetchTopScorers();
     await renderChart();
 }
-
-const fetchChampions = async (page = 1) => {
+const fetchTopScorers = async (page = 1) => {
     try {
-        const response = await axios.post(route("records.champions"),search_champions.value);
-        champions.value = response.data.data;
+        const response = await axios.post(route("records.team.topscorer"),search_topscorers.value);
+        top_scorers.value = response.data.data;
 } catch (error) {
         console.error("Error fetching champions:", error);
     }
 };
 const renderChart = async () => {
-    const ctx = document.getElementById('championsChart').getContext('2d');
+    const ctx = document.getElementById('scoringChart').getContext('2d');
 
-    const labels =  champions.value.map(team => team.name);
-    const data =  champions.value.map(team => team.championships);
+    const labels =  top_scorers.value.map(team => team.name);
+    const data =  top_scorers.value.map(team => team.total_score);
     const backgroundColors = data.map(() => getRandomColor());
 
     if (chartInstance) {

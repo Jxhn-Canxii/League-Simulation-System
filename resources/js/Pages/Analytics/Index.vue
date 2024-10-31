@@ -8,6 +8,7 @@
           <TopStatistics />
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <ChampionshipShares />
+            <ScoringShares />
           </div>
           <WinShares />
           <SeasonTimeLine />
@@ -27,6 +28,7 @@ import TopStatistics from "./Module/TopStatistics.vue";
 import WinShares from "./Module/WinShares.vue";
 import SeasonTimeLine from "./Module/SeasonTimeLine.vue";
 import ChampionshipShares from "./Module/ChampionshipShares.vue";
+import ScoringShares from "./Module/ScoringShares.vue";
 
 onMounted(() => {});
 </script>
