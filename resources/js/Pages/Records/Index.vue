@@ -6,7 +6,7 @@
             Dashboard
         </template>
 
-        <div class="inline-block min-w-full bg-white overflow-hidden shadow p-2 rounded">
+        <div class="inline-block min-w-full overflow-hidden p-2 rounded">
             <div class="grid grid-cols-2 gap-6">
                 <Championships />
                 <PlayerScoringRankings />
