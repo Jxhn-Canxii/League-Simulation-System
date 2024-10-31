@@ -52,7 +52,7 @@ const renderChart = async () => {
         data: {
             labels: labels,
             datasets: [{
-                label: 'Championships Won',
+                label: 'Scoring Shares',
                 data: data,
                 backgroundColor: backgroundColors,
             }],
@@ -62,7 +62,7 @@ const renderChart = async () => {
             plugins: {
                 title: {
                     display: true,
-                    text: 'Championships Won by Team',
+                    text: 'Scoring by Team',
                 },
                 legend: {
                     position: 'top',
