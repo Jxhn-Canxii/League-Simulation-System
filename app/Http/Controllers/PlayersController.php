@@ -902,7 +902,7 @@ class PlayersController extends Controller
             'player_stats' => $formattedPlayerStats,
         ]);
     }
-    public function getlayerseasonperformance(Request $request)
+    public function getplayerseasonperformance(Request $request)
     {
         // Validate the request data
         $request->validate([
