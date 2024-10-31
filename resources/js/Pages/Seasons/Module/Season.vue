@@ -161,7 +161,8 @@
                 <div class="block md:col-span-2">
                     <h1 class="text-center">Current Game</h1>
                     <GameResults v-if="activeGameId != 0" :key="activeGameId" :game_id="activeGameId" />
-                    <SeasonTimeLine v-else  :key="activeGameId" />
+                    <p v-else class="text-red-500 font-bold">No games available!</p>
+                    <SeasonTimeLine :key="topPlayersKey" />
                 </div>
             </div>
         </div>
@@ -722,6 +723,7 @@ const simulateRoundGames = async (round, isLast) => {
             await simulateGame(gameId);
             // You can also add more logic here, like fetching game details or updating the state
         }
+
         topPlayersKey.value = round;
         if (isLast) {
             Swal.fire({
@@ -746,7 +748,7 @@ const simulateRoundGames = async (round, isLast) => {
 const simulateGame = async (schedule_id) => {
     try {
         isHide.value = true;
-        activeGameId.value = 0;
+
         const response = await axios.post(route("game.simulate.regular"), {
             schedule_id: schedule_id, // Assuming the parameter name should be schedule_id
         });
