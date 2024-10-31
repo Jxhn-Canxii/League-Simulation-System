@@ -9,149 +9,155 @@
                 {{ season_info?.seasons[0].name ?? "" }} Standings
             </h2>
             <div class="grid grid-cols-3 gap-6">
-                <div class="block">
-                    <table
-                        class="min-w-full divide-y divide-gray-200 text-sm"
-                        v-if="
-                            season_standings &&
-                            season_standings.standings?.length > 0
-                        "
-                    >
-                        <thead class="bg-gray-50 text-xs">
-                            <tr>
-                                <th
-                                    class="px-1 py-1 text-left text-gray-500 uppercase tracking-wider text-nowrap"
-                                >
-                                    Team
-                                </th>
-                                <th
-                                    class="px-1 py-1 text-left text-gray-500 uppercase tracking-wider text-nowrap"
-                                >
-                                    Wins
-                                </th>
-                                <th
-                                    class="px-1 py-1 text-left text-gray-500 uppercase tracking-wider text-nowrap"
-                                >
-                                    Loss
-                                </th>
-                                <th
-                                    class="px-1 py-1 text-left text-gray-500 uppercase tracking-wider text-nowrap"
-                                >
-                                    Rank
-                                </th>
-                                <th
-                                    class="px-1 py-1 text-left text-gray-500 uppercase tracking-wider text-nowrap"
-                                >
-                                    Status
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody
-                            class="bg-rose-200 divide-y divide-gray-200 text-sm"
+                <div class="flex">
+                    <div class="block">
+                        <table
+                            class="min-w-full divide-y divide-gray-200 text-sm"
+                            v-if="
+                                season_standings &&
+                                season_standings.standings?.length > 0
+                            "
                         >
-                            <tr
-                                v-if="season_standings?.standings?.length > 0"
-                                v-for="(
-                                    team, index
-                                ) in season_standings.standings"
-                                :key="index"
-                                :class="
-                                    index <= 7
-                                        ? 'bg-orange-300 text-black text-bold'
-                                        : 'text-bold'
-                                "
+                            <thead class="bg-gray-50 text-xs">
+                                <tr>
+                                    <th
+                                        class="px-1 py-1 text-left text-gray-500 uppercase tracking-wider text-nowrap"
+                                    >
+                                        Team
+                                    </th>
+                                    <th
+                                        class="px-1 py-1 text-left text-gray-500 uppercase tracking-wider text-nowrap"
+                                    >
+                                        Wins
+                                    </th>
+                                    <th
+                                        class="px-1 py-1 text-left text-gray-500 uppercase tracking-wider text-nowrap"
+                                    >
+                                        Loss
+                                    </th>
+                                    <th
+                                        class="px-1 py-1 text-left text-gray-500 uppercase tracking-wider text-nowrap"
+                                    >
+                                        Rank
+                                    </th>
+                                    <th
+                                        class="px-1 py-1 text-left text-gray-500 uppercase tracking-wider text-nowrap"
+                                    >
+                                        Status
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody
+                                class="bg-rose-200 divide-y divide-gray-200 text-sm"
                             >
-                                <td class="px-1 py-1 whitespace-nowrap text-sm">
-                                    <button
-                                        type="button"
-                                        class="uppercase"
-                                        :title="
-                                            ' Playoff Appearance:' +
-                                            team.playoff_appearances
-                                        "
-                                        @click.prevent="
-                                            isTeamModalOpen = team.team_id
-                                        "
-                                    >
-                                        <b
-                                            >{{ team.team_name }}
-                                            <sup class="text-slate-500">{{
-                                                team.streak_status
-                                            }}</sup></b
-                                        >
-                                    </button>
-                                </td>
-                                <td class="px-1 py-1 whitespace-nowrap text-sm">
-                                    {{ team.wins }}
-                                </td>
-                                <td class="px-1 py-1 whitespace-nowrap text-sm">
-                                    {{ team.losses }}
-                                </td>
-                                <td class="px-1 py-1 whitespace-nowrap text-sm">
-                                    {{ team.overall_rank }}
-                                </td>
-                                <td class="px-1 py-1 whitespace-nowrap text-sm">
-                                    <div class="flex space-x-1">
-                                        <!-- <span
-                                        v-if="team.conference_1_rank > 0"
-                                        class="flex items-center justify-center w-5 h-5 bg-red-500 text-black text-xs rounded-full"
-                                        title="#1 Conference Rank"
-                                    >
-                                        {{ team.conference_1_rank }}
-                                    </span>
-                                    <span
-                                        v-if="team.overall_1_rank > 0"
-                                        class="flex items-center justify-center w-5 h-5 bg-purple-500 text-black text-xs rounded-full"
-                                        title="#1 Overall Rank"
-                                    >
-                                        {{ team.overall_1_rank }}
-                                    </span> -->
-                                        <!-- <span
-                                            v-if="
-                                                team.conference_championships >
-                                                0
+                                <tr
+                                    v-if="season_standings?.standings?.length > 0"
+                                    v-for="(
+                                        team, index
+                                    ) in season_standings.standings"
+                                    :key="index"
+                                    :class="
+                                        index <= 7
+                                            ? 'bg-orange-300 text-black text-bold'
+                                            : 'text-bold'
+                                    "
+                                >
+                                    <td class="px-1 py-1 whitespace-nowrap text-sm">
+                                        <button
+                                            type="button"
+                                            class="uppercase"
+                                            :title="
+                                                ' Playoff Appearance:' +
+                                                team.playoff_appearances
                                             "
-                                            class="flex items-center justify-center w-5 h-5 bg-yellow-500 text-black text-xs rounded-full"
-                                            title="Conference Championships"
+                                            @click.prevent="
+                                                isTeamModalOpen = team.team_id
+                                            "
                                         >
-                                            {{ team.conference_championships }}
-                                        </span>
-                                        <span
-                                            v-if="team.finals_appearances > 0"
-                                            class="flex items-center justify-center w-5 h-5 bg-green-500 text-black text-xs rounded-full"
-                                            title="Finals Appearances"
-                                        >
-                                            {{ team.finals_appearances }}
-                                        </span> -->
-                                        <span
-                                            v-if="team.championships > 0"
+                                            <b
+                                                >{{ team.team_name }}
+                                                <sup class="text-slate-500">{{
+                                                    team.streak_status
+                                                }}</sup></b
+                                            >
+                                        </button>
+                                    </td>
+                                    <td class="px-1 py-1 whitespace-nowrap text-sm">
+                                        {{ team.wins }}
+                                    </td>
+                                    <td class="px-1 py-1 whitespace-nowrap text-sm">
+                                        {{ team.losses }}
+                                    </td>
+                                    <td class="px-1 py-1 whitespace-nowrap text-sm">
+                                        {{ team.overall_rank }}
+                                    </td>
+                                    <td class="px-1 py-1 whitespace-nowrap text-sm">
+                                        <div class="flex space-x-1">
+                                            <!-- <span
+                                            v-if="team.conference_1_rank > 0"
                                             class="flex items-center justify-center w-5 h-5 bg-red-500 text-black text-xs rounded-full"
-                                            title="Championships"
+                                            title="#1 Conference Rank"
                                         >
-                                            {{ team.championships }}
+                                            {{ team.conference_1_rank }}
                                         </span>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <div v-else class="text-center font-bold text-red-500">
-                        No Standings available
+                                        <span
+                                            v-if="team.overall_1_rank > 0"
+                                            class="flex items-center justify-center w-5 h-5 bg-purple-500 text-black text-xs rounded-full"
+                                            title="#1 Overall Rank"
+                                        >
+                                            {{ team.overall_1_rank }}
+                                        </span> -->
+                                            <!-- <span
+                                                v-if="
+                                                    team.conference_championships >
+                                                    0
+                                                "
+                                                class="flex items-center justify-center w-5 h-5 bg-yellow-500 text-black text-xs rounded-full"
+                                                title="Conference Championships"
+                                            >
+                                                {{ team.conference_championships }}
+                                            </span>
+                                            <span
+                                                v-if="team.finals_appearances > 0"
+                                                class="flex items-center justify-center w-5 h-5 bg-green-500 text-black text-xs rounded-full"
+                                                title="Finals Appearances"
+                                            >
+                                                {{ team.finals_appearances }}
+                                            </span> -->
+                                            <span
+                                                v-if="team.championships > 0"
+                                                class="flex items-center justify-center w-5 h-5 bg-red-500 text-black text-xs rounded-full"
+                                                title="Championships"
+                                            >
+                                                {{ team.championships }}
+                                            </span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div v-else class="text-center font-bold text-red-500">
+                            No Standings available
+                        </div>
+                        <small class="text-red-500 font-bold" v-if="currentRound"
+                            >Simulating Round #
+                            {{ parseFloat(currentRound) }}</small
+                        >
+                        <div class="flex mt-4">
+                            <!-- <TopPlayers
+                                v-if="season_info?.seasons"
+                                :season_id="season_info.seasons[0].id"
+                                :conference_id="activeConferenceTab"
+                                :key="topPlayersKey"
+                                :round="currentRound ?? 0"
+                            /> -->
+                        </div>
                     </div>
-                    <small class="text-red-500 font-bold" v-if="currentRound"
-                        >Simulating Round #
-                        {{ parseFloat(currentRound) }}</small
-                    >
-                    <div class="flex mt-4">
-                        <!-- <TopPlayers
-                            v-if="season_info?.seasons"
-                            :season_id="season_info.seasons[0].id"
-                            :conference_id="activeConferenceTab"
-                            :key="topPlayersKey"
-                            :round="currentRound ?? 0"
-                        /> -->
+                    <div class="block">
+                        <TopStatistics :key="activeGameId" />
                     </div>
                 </div>
+
                 <div class="block md:col-span-2">
                     <h1 class="text-center">Current Game</h1>
                     <GameResults v-if="activeGameId != 0" :key="activeGameId" :game_id="activeGameId" />
@@ -603,6 +609,7 @@ import TeamRoster from "@/Pages/Teams/Module/TeamRoster.vue";
 import GameResults from "@/Pages/Seasons/Module/GameResults.vue";
 import TopPlayers from "@/Pages/Seasons/Module/TopPlayers.vue";
 import Top10Player from "@/Pages/Teams/Module/Top10Player.vue";
+import TopStatistics from "@/Pages/Analytics/Module/TopStatistics.vue";
 
 const season_info = ref(false);
 const season_conference = ref(false);

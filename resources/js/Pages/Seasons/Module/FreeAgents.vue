@@ -5,7 +5,7 @@
         <!-- Divider -->
         <hr class="my-4 border-t border-gray-200" />
         <div class="mb-4">
-            <TopStatistics />
+            <TopStatistics :key="key" />
         </div>
         <!-- Players Table -->
         <div class="overflow-hidden">
@@ -310,6 +310,7 @@ const search = ref({
     itemsperpage: 10,
 });
 const teams = ref([]);
+const key = ref(0);
 const emits = defineEmits(["newSeason"]);
 const fetchRandomFullName = async () => {
     try {
@@ -346,6 +347,8 @@ const addPlayer = async (info) => {
             address: info.address,
             country: info.country,
         });
+
+        key.value = Math.random();
         // return response.data.message; // Return success message for logging
         Swal.fire({
             icon: "success",

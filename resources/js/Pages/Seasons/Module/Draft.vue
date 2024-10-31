@@ -5,7 +5,7 @@
         <!-- Divider -->
         <hr class="my-4 border-t border-gray-200" />
         <div class="mb-4">
-            <TopStatistics />
+            <TopStatistics :key="key" />
         </div>
         <!-- Available Players Section -->
         <div class="flex justify-end space-x-2">
@@ -191,6 +191,7 @@ const draftOrder = ref([]);
 const draftResults = ref([]);
 const selectedRound = ref(1);
 const isHide = ref(true);
+const key = ref(0);
 const search = ref({
     page_num: 1,
     total_pages: 0,
@@ -344,12 +345,15 @@ const addPlayer = async (info) => {
             address: info.address,
             country: info.country,
         });
+
+        key.value = Math.random();
         // return response.data.message; // Return success message for logging
         Swal.fire({
             icon: "success",
             title: info.name + ' has added to Draft Pool!',
             text: response.data.message, // Assuming the response contains a 'message' field
         });
+
     } catch (error) {
         console.error("Error adding player:", error.response.data.message);
         throw new Error(error.response.data.message); // Throw error to be caught in Promise.all
