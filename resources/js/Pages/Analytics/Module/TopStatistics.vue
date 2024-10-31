@@ -15,7 +15,7 @@
                 <i class="fa fa-star"></i> <!-- Total Rookies -->
             </div>
             <div>
-                <p class="mb-2 text-sm font-medium text-gray-600">Total Rookies</p>
+                <p class="mb-2 text-sm font-medium text-gray-600">Rookies</p>
                 <p class="text-lg font-semibold text-black">{{ data.rookie_players ?? 0 }}</p>
             </div>
         </div>
@@ -25,7 +25,7 @@
                 <i class="fa fa-user-slash"></i> <!-- Total Retired -->
             </div>
             <div>
-                <p class="mb-2 text-sm font-medium text-gray-600">Total Retired</p>
+                <p class="mb-2 text-sm font-medium text-gray-600">Retired</p>
                 <p class="text-lg font-semibold text-black">{{ data.retired_players ?? 0 }}</p>
             </div>
         </div>
@@ -34,7 +34,7 @@
                 <i class="fa fa-check"></i> <!-- Total Retired -->
             </div>
             <div>
-                <p class="mb-2 text-sm font-medium text-gray-600">Total Slots</p>
+                <p class="mb-2 text-sm font-medium text-gray-600">Available Slots</p>
                 <p class="text-lg font-semibold text-black">{{ data.total_available_slots ?? 0 }}</p>
             </div>
         </div>
@@ -43,7 +43,7 @@
                 <i class="fa fa-user-circle"></i> <!-- Total Free Agents -->
             </div>
             <div>
-                <p class="mb-2 text-sm font-medium text-gray-600">Total Free Agents</p>
+                <p class="mb-2 text-sm font-medium text-gray-600">Free Agents</p>
                 <p class="text-lg font-semibold text-black">{{ data.free_agents ?? 0 }}</p>
             </div>
         </div>
