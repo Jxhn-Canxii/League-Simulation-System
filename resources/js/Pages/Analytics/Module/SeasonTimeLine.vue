@@ -12,6 +12,12 @@ import { onMounted, ref } from 'vue';
 import Chart from 'chart.js/auto';
 import axios from 'axios'; // Ensure axios is imported
 
+const props = defineProps({
+    isConference: {
+        type: Number,
+        default: 0,
+    },
+});
 let seasonChartInstance = null; // Reference to the season chart instance
 const standings = ref([]); // Standings data fetched from API
 
@@ -22,7 +28,7 @@ const showChart = async () => {
 
 const fetchAllStandings = async () => {
     try {
-        const response = await axios.get(route("analytics.standings")); // Adjust this route as necessary
+        const response = await axios.post(route("analytics.standings",{ conference_id: props.isConference })); // Adjust this route as necessary
         standings.value = response.data; // Store fetched standings data
     } catch (error) {
         console.error("Error fetching standings:", error);

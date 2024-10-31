@@ -90,7 +90,7 @@ Route::middleware('auth')->group(function () {
     });
     Route::prefix('analytics/')->group(function(){
         Route::get('', [AnalyticsController::class, 'index'])->name('analytics.index');
-        Route::get('get-all-standings', [AnalyticsController::class, 'get_all_standings'])->name('analytics.standings');
+        Route::post('get-all-standings', [AnalyticsController::class, 'get_all_standings'])->name('analytics.standings');
         Route::get('player-stats', [AnalyticsController::class, 'count_players'])->name('analytics.player.count');
     });
     Route::prefix('draft/')->group(function(){

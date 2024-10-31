@@ -162,7 +162,7 @@
                     <h1 class="text-center">Current Game</h1>
                     <GameResults v-if="activeGameId != 0" :key="activeGameId" :game_id="activeGameId" />
                     <p v-else class="text-red-500 font-bold">No games available!</p>
-                    <SeasonTimeLine :key="topPlayersKey" />
+                    <SeasonTimeLine :key="topPlayersKey" :isConference="activeConferenceTab" />
                 </div>
             </div>
         </div>

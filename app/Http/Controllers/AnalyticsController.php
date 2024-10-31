@@ -17,13 +17,23 @@ class AnalyticsController extends Controller
         ]);
     }
 
-    public function get_all_standings()
+    public function get_all_standings(Request $request)
     {
+        $request->validate([
+            'conference_id' => 'required|integer',
+        ]);
         // Fetch all records from standings_view and join with seasons table
         $standings = DB::table('standings_view')
             ->join('seasons', 'standings_view.season_id', '=', 'seasons.id')
-            ->select('standings_view.team_name', 'seasons.name AS season', 'standings_view.wins')
-            ->get();
+            ->select('standings_view.team_name', 'seasons.name AS season', 'standings_view.wins');
+
+        // Check if conference_id is 0, then conditionally add the where clause
+        if ($request->conference_id > 0) {
+            $standings->where('standings_view.conference_id', $request->conference_id);
+        }
+
+        $standings = $standings->get();
+
 
         // Structure data for line chart
         $structuredData = [];
