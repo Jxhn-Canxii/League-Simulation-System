@@ -7,9 +7,9 @@
         <div class="overflow-hidden shadow-sm sm:rounded-lg min-h-screen p-3 space-y-3">
           <TopStatistics />
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <WinShares />
             <ChampionshipShares />
           </div>
+          <WinShares />
           <SeasonTimeLine />
         </div>
     </AuthenticatedLayout>

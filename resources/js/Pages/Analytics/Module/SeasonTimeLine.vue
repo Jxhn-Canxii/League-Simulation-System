@@ -26,7 +26,7 @@ const allTimeData = [
 
 // Sample data for season progression for each team
 const seasonData = {
-    'Team A': [30, 35, 40, 42, 50, 55, 60, 70, 75, 80],
+    'Team A': [30, 35, 40, 42, 0, 55, 60, 70, 75, 80],
     'Team B': [25, 30, 35, 40, 45, 50, 55, 60, 65, 70],
     'Team C': [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
     'Team D': [15, 20, 25, 30, 35, 40, 45, 50, 55, 60],

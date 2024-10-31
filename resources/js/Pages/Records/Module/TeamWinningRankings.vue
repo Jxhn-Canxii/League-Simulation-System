@@ -5,8 +5,8 @@
     <h3 class="text-md font-semibold text-gray-800">Team Rankings All-time</h3>
     <input
         type="text"
-        v-model="search_topscorers.search"
-        @input.prevent="fetchTopScorers()"
+        v-model="search_topteams.search"
+        @input.prevent="fetchTopTeams()"
         id="LeagueName"
         placeholder="Enter team name"
         class="mt-1 mb-2 p-2 border rounded w-full"
@@ -42,7 +42,7 @@
             </tr>
         </thead>
         <tbody>
-            <tr v-for="team in top_scorers.data" v-if="top_scorers.total_pages" :key="team.id" class="text-gray-700">
+            <tr v-for="team in top_teams.data" v-if="top_teams.total_pages" :key="team.id" class="text-gray-700">
                 <td class="border-b border-gray-200 bg-white px-3 py-3 text-xs">
                     <p class="text-gray-900 whitespace-no-wrap uppercase">{{ team.name }}</p>
                 </td>
@@ -80,10 +80,10 @@
 
     <div class="flex w-full overflow-auto">
         <Paginator
-            v-if="top_scorers.total"
-            :page_number="search_topscorers.page_num"
-            :total_rows="top_scorers.total ?? 0"
-            :itemsperpage="search_topscorers.itemsperpage"
+            v-if="top_teams.total"
+            :page_number="search_topteams.page_num"
+            :total_rows="top_teams.total ?? 0"
+            :itemsperpage="search_topteams.itemsperpage"
             @page_num="handleTopScorerPagination"
         />
     </div>
@@ -98,27 +98,27 @@ import { roundNameFormatter,generateRandomKey, moneyFormatter } from "@/Utility/
 import Paginator from "@/Components/Paginator.vue";
 
 
-const top_scorers = ref([]);
-const search_topscorers = ref({
+const top_teams = ref([]);
+const search_topteams = ref({
     page_num: 1,
     total_pages: 0,
     total: 0,
     search: '',
 });
 
-const fetchTopScorers = async (page = 1) => {
+const fetchTopTeams = async (page = 1) => {
     try {
-        const response = await axios.post(route("records.team.winningest"),search_topscorers.value);
-        top_scorers.value = response.data;
+        const response = await axios.post(route("records.team.winningest"),search_topteams.value);
+        top_teams.value = response.data;
 } catch (error) {
         console.error("Error fetching champions:", error);
     }
 };
 const handleTopScorerPagination = (page_num) => {
-    search_topscorers.value.page_num = page_num;
-    fetchTopScorers();
+    search_topteams.value.page_num = page_num;
+    fetchTopTeams();
 };
 onMounted(()=>{
-    fetchTopScorers();
+    fetchTopTeams();
 });
 </script>

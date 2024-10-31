@@ -2,7 +2,7 @@
     <div class="grid gap-6 mb-8 md:grid-cols-1 xl:grid-cols-1 overflow-auto shadow">
         <div class="p-6 bg-white rounded-lg shadow-md">
             <div class="flex justify-between">
-                <h2 class="text-lg font-semibold text-gray-800">All-Time Win-Loss Record (Stacked Bar Chart)</h2>
+                <h2 class="text-lg font-semibold text-gray-800">All-Time Win-Loss Record</h2>
             </div>
             <canvas id="allTimeWinLossChart"></canvas>
         </div>
@@ -15,6 +15,15 @@ import Chart from 'chart.js/auto';
 
 const data = ref([]);
 const teamsList = ref([]);
+const top_teams = ref([]);
+const search_topteams = ref({
+    page_num: 1,
+    total_pages: 0,
+    per_page: 80,
+    total: 0,
+    search: '',
+});
+
 let chartInstance = null; // Reference to the chart instance
 
 const sampleData = () => {
@@ -29,7 +38,21 @@ const sampleData = () => {
         { label: 'Team E', wins: 600, losses: 400 },
     ];
 };
+const showChart = async () => {
+    await fetchTopTeams();
+    await renderChart();
+}
 
+const fetchTopTeams = async (page = 1) => {
+    try {
+        const response = await axios.post(route("records.team.winningest"),search_topteams.value);
+        data.value = response.data.data;
+
+        console.log(data.value.map(team => team.name));
+} catch (error) {
+        console.error("Error fetching champions:", error);
+    }
+};
 const renderChart = async () => {
     // Destroy the existing chart instance if it exists
     if (chartInstance) {
@@ -39,13 +62,13 @@ const renderChart = async () => {
     const datasets = [
         {
             label: 'Wins',
-            data: data.value.map(team => team.wins),
+            data: data.value.map(team => team.total_wins),
             backgroundColor: 'rgba(75, 192, 192, 0.6)', // Example color for wins
             stack: 'combined',
         },
         {
             label: 'Losses',
-            data: data.value.map(team => team.losses),
+            data: data.value.map(team => team.total_losses),
             backgroundColor: 'rgba(255, 99, 132, 0.6)', // Example color for losses
             stack: 'combined',
         },
@@ -55,7 +78,7 @@ const renderChart = async () => {
     chartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: teamsList.value,
+            labels: data.value.map(team => team.name),
             datasets: datasets,
         },
         options: {
@@ -76,7 +99,11 @@ const renderChart = async () => {
                     title: {
                         display: true,
                         text: 'Teams'
-                    }
+                    },
+                    ticks: {
+                        autoSkip: true,
+                        maxTicksLimit: data.value.length, // Limit number of ticks to avoid overflow
+                    },
                 },
                 y: {
                     stacked: true,
@@ -84,7 +111,11 @@ const renderChart = async () => {
                     title: {
                         display: true,
                         text: 'Games Played'
-                    }
+                    },
+                    ticks: {
+                        autoSkip: true,
+                        maxTicksLimit: data.value.length, // Limit number of ticks to avoid overflow
+                    },
                 }
             }
         }
@@ -92,8 +123,7 @@ const renderChart = async () => {
 };
 
 onMounted(() => {
-    sampleData(); // Use sample data for testing
-    renderChart(); // Render the chart with the sample data
+    showChart();
 });
 </script>
 
