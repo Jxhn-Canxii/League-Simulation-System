@@ -1,10 +1,8 @@
 <template>
     <div class="grid gap-6 mb-8 md:grid-cols-1 xl:grid-cols-1 overflow-auto shadow">
         <div class="p-6 bg-white rounded-lg shadow-md">
-            <div class="flex justify-between">
-                <h2 class="text-lg font-semibold text-gray-800">All-Time Win-Loss Record (Stacked Bar Chart)</h2>
-            </div>
-            <canvas id="allTimeWinLossChart"></canvas>
+            <h2 class="text-lg font-semibold text-gray-800">Team Season Progression</h2>
+            <canvas id="seasonProgressionChart"></canvas>
         </div>
     </div>
 </template>
@@ -13,87 +11,97 @@
 import { onMounted, ref } from 'vue';
 import Chart from 'chart.js/auto';
 
-const data = ref([]);
 const teamsList = ref([]);
-let chartInstance = null; // Reference to the chart instance
+const selectedTeam = ref(null);
+let seasonChartInstance = null; // Reference to the season chart instance
 
-const sampleData = () => {
-    // Sample data for all-time wins and losses for 5 teams
-    teamsList.value = ['Team A', 'Team B', 'Team C', 'Team D', 'Team E'];
+// Sample data for all-time wins and losses for 5 teams
+const allTimeData = [
+    { label: 'Team A', wins: 800, losses: 200 },
+    { label: 'Team B', wins: 750, losses: 250 },
+    { label: 'Team C', wins: 700, losses: 300 },
+    { label: 'Team D', wins: 650, losses: 350 },
+    { label: 'Team E', wins: 600, losses: 400 },
+];
 
-    data.value = [
-        { label: 'Team A', wins: 800, losses: 200 },
-        { label: 'Team B', wins: 750, losses: 250 },
-        { label: 'Team C', wins: 700, losses: 300 },
-        { label: 'Team D', wins: 650, losses: 350 },
-        { label: 'Team E', wins: 600, losses: 400 },
-    ];
+// Sample data for season progression for each team
+const seasonData = {
+    'Team A': [30, 35, 40, 42, 50, 55, 60, 70, 75, 80],
+    'Team B': [25, 30, 35, 40, 45, 50, 55, 60, 65, 70],
+    'Team C': [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+    'Team D': [15, 20, 25, 30, 35, 40, 45, 50, 55, 60],
+    'Team E': [10, 15, 20, 25, 30, 35, 40, 45, 50, 55],
 };
 
-const renderChart = async () => {
-    // Destroy the existing chart instance if it exists
-    if (chartInstance) {
-        chartInstance.destroy();
+const sampleData = () => {
+    teamsList.value = allTimeData;
+    selectedTeam.value = teamsList.value[0].label; // Set default selected team
+};
+
+const renderSeasonProgressionChart = () => {
+    const ctx = document.getElementById('seasonProgressionChart').getContext('2d');
+
+    // Prepare data for all teams
+    const datasets = teamsList.value.map(team => ({
+        label: team.label,
+        data: seasonData[team.label],
+        borderColor: getRandomColor(),
+        fill: false,
+        tension: 0.1,
+    }));
+
+    // Resetting any existing chart instance
+    if (seasonChartInstance) {
+        seasonChartInstance.destroy();
     }
 
-    const datasets = [
-        {
-            label: 'Wins',
-            data: data.value.map(team => team.wins),
-            backgroundColor: 'rgba(75, 192, 192, 0.6)', // Example color for wins
-            stack: 'combined',
-        },
-        {
-            label: 'Losses',
-            data: data.value.map(team => team.losses),
-            backgroundColor: 'rgba(255, 99, 132, 0.6)', // Example color for losses
-            stack: 'combined',
-        },
-    ];
-
-    const ctx = document.getElementById('allTimeWinLossChart').getContext('2d');
-    chartInstance = new Chart(ctx, {
-        type: 'bar',
+    seasonChartInstance = new Chart(ctx, {
+        type: 'line',
         data: {
-            labels: teamsList.value,
+            labels: Array.from({ length: 10 }, (_, i) => `Season ${i + 1}`),
             datasets: datasets,
         },
         options: {
             responsive: true,
-            interaction: {
-                mode: 'index',
-                intersect: false,
-            },
             plugins: {
                 title: {
                     display: true,
-                    text: 'All-Time Win-Loss Record'
-                }
+                    text: 'Season Progression of All Teams',
+                },
             },
             scales: {
                 x: {
-                    stacked: true,
                     title: {
                         display: true,
-                        text: 'Teams'
-                    }
+                        text: 'Seasons',
+                    },
                 },
                 y: {
-                    stacked: true,
                     beginAtZero: true,
                     title: {
                         display: true,
-                        text: 'Games Played'
-                    }
-                }
-            }
-        }
+                        text: 'Wins',
+                    },
+                },
+            },
+        },
     });
 };
 
+const getRandomColor = () => {
+    const r = Math.floor(Math.random() * 256);
+    const g = Math.floor(Math.random() * 256);
+    const b = Math.floor(Math.random() * 256);
+    return `rgba(${r}, ${g}, ${b}, 1)`; // Solid color for lines
+};
+
+const updateSeasonChart = () => {
+    renderSeasonProgressionChart(); // This will now display all teams
+};
+
 onMounted(() => {
-    sampleData(); // Use sample data for testing
-    renderChart(); // Render the chart with the sample data
+    sampleData(); // Use sample data for teams
+    renderSeasonProgressionChart(); // Render the season progression chart for all teams
 });
 </script>
 

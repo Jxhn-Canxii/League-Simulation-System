@@ -54,7 +54,7 @@
                 <p
                     class="mb-2 text-sm font-medium text-gray-600"
                 >
-                    Total Seasons
+                    Total Retired
                 </p>
                 <p
                     class="text-lg font-semibold text-black"
@@ -75,7 +75,7 @@
                 <p
                     class="mb-2 text-sm font-medium text-gray-600"
                 >
-                    Total Guest
+                    Total Seasons
                 </p>
                 <p
                     class="text-lg font-semibold text-black"
