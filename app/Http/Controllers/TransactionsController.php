@@ -267,8 +267,6 @@ class TransactionsController extends Controller
                 foreach ($rookies as $rookie) {
                     if (count($starPlayers) < 3 && $rookie->overall_rating >= 90) {
                         $starPlayers[] = $rookie->id;
-                    } elseif (count($starters) < 2) {
-                        $starters[] = $rookie->id;
                     } elseif (count($rolePlayers) < 5) {
                         $rolePlayers[] = $rookie->id;
                     } else {
