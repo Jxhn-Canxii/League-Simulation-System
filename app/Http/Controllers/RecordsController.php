@@ -12,7 +12,9 @@ class RecordsController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Records/Index');
+        return Inertia::render('Records/Index', [
+            'status' => session('status'),
+        ]);
     }
     public function champions(Request $request)
     {

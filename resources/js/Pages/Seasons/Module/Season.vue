@@ -626,7 +626,7 @@ const activeConferenceTab = ref(false);
 const activeGameId = ref(0);
 const props = defineProps({
     season_id: {
-        type: Number,
+        type: [Number,String],
         required: true,
     },
 });

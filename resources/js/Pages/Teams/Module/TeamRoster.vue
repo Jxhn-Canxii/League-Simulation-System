@@ -3,7 +3,6 @@
         <h2 class="text-xl font-semibold text-gray-800" v-if="team_info.teams">
             {{ team_info.teams.team_name ?? "-" }} ({{ team_info.teams.acronym ?? "-" }})
         </h2>
-
         <span
             v-if="team_info.teams"
             class="inline-flex items-center px-2.5 py-0.5 bg-green-300 text-green-600 rounded text-xs font-medium"
@@ -323,19 +322,19 @@ watch(
 onMounted(() => {
     seasonsDropdown();
     fetchTeamRoster(props.team_id);
-    // fetchTeamInfo(props.team_id);
+    fetchTeamInfo(props.team_id);
 });
 
-// const fetchTeamInfo = async (id) => {
-//     try {
-//         const response = await axios.post(route("teams.info"), {
-//             team_id: id,
-//         });
-//         team_info.value = response.data;
-//     } catch (error) {
-//         console.error("Error fetching team info:", error);
-//     }
-// };
+const fetchTeamInfo = async (id) => {
+    try {
+        const response = await axios.post(route("teams.info"), {
+            team_id: id,
+        });
+        team_info.value = response.data;
+    } catch (error) {
+        console.error("Error fetching team info:", error);
+    }
+};
 
 const fetchTeamRoster = async (id) => {
     try {

@@ -9,7 +9,7 @@
         </div>
         <div class="flex justify-center items-center">
             <div class="flex items-center">
-                <i class="fa fa-2x fa-basketball text-rose-500"></i>
+                <i class="fa fa-2x fa-basketball animate-spin duration-75 hover:stroke-purple-400 text-rose-500"></i>
                 <span class="mx-2 text-2xl font-semibold text-red-600">LIGA PILIPINAS</span>
             </div>
         </div>

@@ -179,7 +179,7 @@ import SeasonAwards from "./Module/SeasonAwards.vue";
 
 const props = defineProps({
     season_id: {
-        type: Number,
+        type: [Number,String],
         default: 0,
         required: true,
     },
