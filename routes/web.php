@@ -14,6 +14,7 @@ use App\Http\Controllers\RatingsController;
 use App\Http\Controllers\AwardsController;
 use App\Http\Controllers\DraftController;
 use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\SimulateController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -37,7 +38,6 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 });
-
 
 Route::middleware('auth')->group(function () {
     Route::prefix('records/')->group(function(){
@@ -69,30 +69,33 @@ Route::middleware('auth')->group(function () {
         Route::post('latest_season', [TeamsController::class, 'teamslatestseason'])->name('teams.latest.season');
         Route::post('match_history', [TeamsController::class, 'matchhistory'])->name('match.history');
     });
+    Route::prefix('simulate/')->group(function(){
+        Route::post('game-playoff', [SimulateController::class, 'simulateplayoff'])->name('game.simulate.playoff');
+        Route::post('game-regular', [SimulateController::class, 'simulateregular'])->name('game.simulate.regular');
+        Route::post('get-round-schedule-ids', [SimulateController::class, 'getscheduleids'])->name('game.per.round');
+        Route::post('game_per_round', [SimulateController::class, 'simulateperround'])->name('game.simulate.round');
+    });
+
     Route::prefix('schedule/')->group(function(){
         Route::get('', [ScheduleController::class, 'index'])->name('schedule.index');
         Route::post('list', [ScheduleController::class, 'list'])->name('schedule.list');
-
         //simulation and scheduling
         Route::post('create', [ScheduleController::class, 'createseasonandschedule'])->name('schedule.create');
-        Route::post('game-playoff', [ScheduleController::class, 'simulateplayoff'])->name('game.simulate.playoff');
-        Route::post('game-regular', [ScheduleController::class, 'simulateregular'])->name('game.simulate.regular');
-        Route::post('get-round-schedule-ids', [ScheduleController::class, 'getscheduleids'])->name('game.per.round');
-        Route::post('game_per_round', [ScheduleController::class, 'simulateperround'])->name('game.simulate.round');
-        Route::post('game_per_conference', [ScheduleController::class, 'simulateperconference'])->name('game.simulate.conference');
-        Route::post('all_game', [ScheduleController::class, 'simulateall'])->name('game.simulate.all');
         Route::post('seasonplayoffschedule', [ScheduleController::class, 'playoffschedule'])->name('season.playoff.schedule');
 
     });
+
     Route::prefix('ratings/')->group(function(){
         Route::post('update-player-status', [RatingsController::class, 'updateactiveplayers'])->name('update.player.status');
 
     });
+
     Route::prefix('analytics/')->group(function(){
         Route::get('', [AnalyticsController::class, 'index'])->name('analytics.index');
         Route::post('get-all-standings', [AnalyticsController::class, 'get_all_standings'])->name('analytics.standings');
         Route::get('player-stats', [AnalyticsController::class, 'count_players'])->name('analytics.player.count');
     });
+
     Route::prefix('draft/')->group(function(){
         Route::post('players-list', [DraftController::class, 'rookiedraftees'])->name('draft.list');
         Route::get('draft-order', [DraftController::class, 'draftorder'])->name('draft.orders');
@@ -100,6 +103,7 @@ Route::middleware('auth')->group(function () {
         Route::post('draft-players', [DraftController::class, 'draftplayers'])->name('draft.players');
 
     });
+
     Route::prefix('seasons/')->group(function(){
         Route::get('', [SeasonsController::class, 'index'])->name('seasons.index');
         Route::post('list', [SeasonsController::class, 'list'])->name('seasons.list');
@@ -111,6 +115,7 @@ Route::middleware('auth')->group(function () {
         Route::post('seasonsdropdown', [SeasonsController::class, 'getseasonsdropdown'])->name('seasons.dropdown');
 
     });
+
     Route::prefix('leagues/')->group(function(){
         Route::get('', [LeaguesController::class, 'index'])->name('leagues.index');
         Route::post('list', [LeaguesController::class, 'list'])->name('leagues.list');
@@ -119,6 +124,7 @@ Route::middleware('auth')->group(function () {
         Route::post('delete', [LeaguesController::class, 'delete'])->name('leagues.delete');
         Route::get('dropdown', [LeaguesController::class, 'dropdown'])->name('leagues.dropdown');
     });
+
     Route::prefix('conferences/')->group(function(){
         Route::post('list', [ConferenceController::class, 'list'])->name('conferences.list');
         Route::post('add', [ConferenceController::class, 'add'])->name('conferences.add');
@@ -150,11 +156,13 @@ Route::middleware('auth')->group(function () {
         Route::post('/player-best-alltime', [PlayersController::class, 'gettop20playersalltime'])->name('best.players.alltime');
         Route::post('/player-best-alltime-by-team', [PlayersController::class, 'gettop10playersbyteam'])->name('best.team.players.alltime');
     });
+
     Route::prefix('transactions/')->group(function(){
         Route::post('/assign-team-free-agents', [TransactionsController::class, 'assignplayertorandomteam'])->name('assign.freeagent.teams');
         Route::post('/auto-assign-team-free-agents', [TransactionsController::class, 'assignremainingfreeagents'])->name('auto.assign.freeagent.teams');
 
     });
+
     Route::prefix('awards/')->group(function(){
         Route::get('', [AwardsController::class, 'index'])->name('awards.index');
         Route::post('/store-player-stats', [AwardsController::class, 'storeplayerseasonstats'])->name('store.player.stats');
@@ -163,6 +171,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/player-awards-filter', [AwardsController::class, 'filterawardsperseason'])->name('player.awards.filter');
         Route::post('/player-season-awards', [AwardsController::class, 'getseasonawards'])->name('player.season.awards');
     });
+
     Route::prefix('users/')->group(function(){
         Route::get('', [UserController::class, 'index'])->name('users.index');
     });
