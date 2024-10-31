@@ -190,7 +190,7 @@ class AwardsController extends Controller
         ]);
     }
 
-    public function storeaeasonawards()
+    public function storeseasonawards()
     {
         // Get the latest season ID
         $latestSeasonId = DB::table('seasons')->orderBy('id', 'desc')->value('id');
