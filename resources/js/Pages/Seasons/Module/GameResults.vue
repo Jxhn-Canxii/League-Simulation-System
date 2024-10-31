@@ -148,7 +148,7 @@
     },
     showBoxScore: {
       type: Boolean,
-      required: true,
+      default:true,
     }
   });
   const showPlayerProfileModal = ref(false);
