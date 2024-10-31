@@ -12,6 +12,12 @@
         </div>
 
         <nav class="mt-10" x-data="{ isMultiLevelMenuOpen: false }">
+            <nav-link :href="route('analytics.index')" :active="route().current('analytics.index')">
+                <template #icon>
+                    <i class="fa fa-chart-line"></i>
+                </template>
+                Analytics
+            </nav-link>
             <nav-link :href="route('seasons.index')" :active="route().current('seasons.index')">
                 <template #icon>
                     <i class="fa fa-calendar"></i>
@@ -23,12 +29,6 @@
                     <i class="fa fa-book"></i>
                 </template>
                 Records
-            </nav-link>
-            <nav-link :href="route('analytics.index')" :active="route().current('analytics.index')">
-                <template #icon>
-                    <i class="fa fa-chart-line"></i>
-                </template>
-                Analytics
             </nav-link>
             <nav-link :href="route('awards.index')" :active="route().current('awards.index')">
                 <template #icon>
