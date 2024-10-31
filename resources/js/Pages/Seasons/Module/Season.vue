@@ -756,9 +756,7 @@ const simulateGame = async (schedule_id) => {
         await fetchConferenceStandings(activeConferenceTab.value);
         await fetchConferenceSchedules(activeConferenceTab.value);
 
-        setTimeout(() => {
-            activeGameId.value = response.data.game_id ?? 0;
-        }, 3000);
+        activeGameId.value = response.data.game_id ?? 0;
         // Show success message using Swal2
         // Swal.fire({
         //     icon: "success",
