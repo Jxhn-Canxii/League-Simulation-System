@@ -309,6 +309,7 @@ const addMultiplePlayers = async (count) => {
             const randomFullName = await fetchRandomFullName(); // Fetch random full name
             if(randomFullName != null){
                 promises.push(addPlayer(randomFullName)); // Add the promise to the array
+                key.value = i;
             }
 
         }
@@ -346,7 +347,6 @@ const addPlayer = async (info) => {
             country: info.country,
         });
 
-        key.value = Math.random();
         // return response.data.message; // Return success message for logging
         Swal.fire({
             icon: "success",
