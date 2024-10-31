@@ -106,6 +106,7 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('seasons/')->group(function(){
         Route::get('', [SeasonsController::class, 'index'])->name('seasons.index');
+        Route::get('season-details/{season_id}', [SeasonsController::class, 'details'])->name('seasons.details');
         Route::post('list', [SeasonsController::class, 'list'])->name('seasons.list');
 
         //season info

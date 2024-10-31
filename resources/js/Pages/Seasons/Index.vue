@@ -152,7 +152,7 @@
                                 Worst
                             </th>
                             <th
-                                class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
+                                class="border-b-2 border-gray-200 text-center bg-gray-100 px-1 py-1 text-xs font-semibold uppercase tracking-wider text-gray-600"
                             >
                                 Action
                             </th>
@@ -292,21 +292,12 @@
                                 </p>
                             </td>
                             <td
-                                class="border border-gray-200 px-1 py-1 text-xs text-nowrap"
+                                class="border border-gray-200 px-1 py-4 text-center text-xs text-nowrap"
                             >
-                                <button
-                                    @click.prevent="
-                                        (isViewModalOpen = true),
-                                            (season_id = season.id)
-                                    "
-                                    v-bind:class="{
-                                        'opacity-25': isViewModalOpen,
-                                    }"
-                                    v-bind:disabled="isViewModalOpen"
-                                    class="px-1 py-1 bg-blue-500 mb-2 rounded font-bold text-xs text-white shadow"
-                                >
-                                    <i class="fa fa-list"></i> Season
-                                </button>
+                                <a :href="route('seasons.details', { season_id: season.id })" class="px-2 py-2 bg-blue-500 rounded font-bold text-md text-white shadow">
+                                    <i class="fa fa-list"></i>
+                                    Season
+                                </a>
                             </td>
                         </tr>
                         <tr v-else>
@@ -332,111 +323,6 @@
                     />
                 </div>
             </div>
-            <Modal :show="isViewModalOpen" :maxWidth="'fullscreen'">
-                <button
-                    class="flex float-end bg-gray-100 p-3"
-                    @click.prevent="(isViewModalOpen = false), fetchSeasons()"
-                >
-                    <i class="fa fa-times text-black-600"></i>
-                </button>
-                <div
-                    class="bg-white overflow-hidden shadow-sm sm:rounded-lg min-h-screen p-2"
-                >
-                    <div class="w-full mb-2 flex overflow-x-auto border-b-2">
-                        <ul class="flex flex-wrap">
-                            <li
-                                @click="changeTab('Regular')"
-                                :class="{
-                                    'text-blue-500 border-b-2 border-blue-500':
-                                        currentTab === 'Regular',
-                                }"
-                                class="whitespace-nowrap group flex items-center px-3 py-2 cursor-pointer relative flex-shrink-0 max-w-xs"
-                            >
-                                <i
-                                    class="fa fa-trophy mr-2 text-gray-500 group-hover:text-blue-500"
-                                    title="Regular Season"
-                                ></i>
-                                <span
-                                    hidden
-                                    class="text-truncate hidden sm:inline md:inline"
-                                    >Regular Season</span
-                                >
-                                <!-- Warning Badge Notification Counter -->
-                                <span
-                                    hidden
-                                    class="bg-red-500 text-white rounded-full h-4 w-4 text-center m-1 text-xs"
-                                    >6</span
-                                >
-                            </li>
-                            <li
-                                @click="changeTab('Playoffs')"
-                                :class="{
-                                    'text-blue-500 border-b-2 border-blue-500':
-                                        currentTab === 'Playoffs',
-                                }"
-                                class="whitespace-nowrap group flex items-center px-3 py-2 cursor-pointer relative flex-shrink-0 max-w-xs"
-                            >
-                                <i
-                                    class="fa fa-diagram-project mr-2 text-gray-500 group-hover:text-blue-500"
-                                    title="Playoffs"
-                                ></i>
-                                <span
-                                    class="text-truncate hidden sm:inline md:inline"
-                                    >Playoffs</span
-                                >
-                                <!-- Warning Badge Notification Counter -->
-                                <span
-                                    hidden
-                                    class="bg-red-500 text-white rounded-full h-4 w-4 text-center m-1 text-xs"
-                                    >6</span
-                                >
-                            </li>
-                            <li
-                                @click="changeTab('Awards')"
-                                :class="{
-                                    'text-yellow-500 border-b-2 border-yellow-500':
-                                        currentTab === 'Awards',
-                                }"
-                                class="whitespace-nowrap group flex items-center px-3 py-2 cursor-pointer relative flex-shrink-0 max-w-xs"
-                            >
-                                <i
-                                    class="fa fa-medal mr-2 text-gray-500 group-hover:text-yellow-500"
-                                    title="Playoffs"
-                                ></i>
-                                <span
-                                    class="text-truncate hidden sm:inline md:inline"
-                                    >Awards</span
-                                >
-                                <!-- Warning Badge Notification Counter -->
-                                <span
-                                    hidden
-                                    class="bg-red-500 text-white rounded-full h-4 w-4 text-center m-1 text-xs"
-                                    >6</span
-                                >
-                            </li>
-                        </ul>
-                    </div>
-                    <!-- Modify the existing content based on the currentTab -->
-                    <div
-                        v-if="currentTab === 'Regular' && season_id != 0"
-                        class="min-w-screen overflow-x-auto"
-                    >
-                        <Seasons :season_id="season_id" />
-                    </div>
-                    <div
-                        v-if="currentTab === 'Playoffs' && season_id != 0"
-                        class="min-w-screen overflow-x-auto"
-                    >
-                        <Playoffs :season_id="season_id" />
-                    </div>
-                    <div
-                        v-if="currentTab === 'Awards' && season_id != 0"
-                        class="min-w-screen overflow-x-auto"
-                    >
-                        <SeasonAwards :season_id="season_id" />
-                    </div>
-                </div>
-            </Modal>
             <Modal :show="isAddModalOpen" :maxWidth="'2xl'">
                 <div
                     v-if="isProcessing"
@@ -632,9 +518,9 @@
 
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Head, useForm } from "@inertiajs/vue3";
+import { Head, useForm, Link } from "@inertiajs/vue3";
 import Modal from "@/Components/Modal.vue";
-import { roundNameFormatter, roundGridFormatter } from "@/Utility/Formatter.js";
+import NavLink from '@/Components/NavLink.vue';
 import Paginator from "@/Components/Paginator.vue";
 import { ref, onMounted } from "vue";
 import Swal from "sweetalert2";

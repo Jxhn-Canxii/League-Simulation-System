@@ -4,7 +4,7 @@
         v-if="isHide"
         class="bg-gray-900 bg-opacity-75 flex items-center justify-center z-500"
     >
-        <div class="bg-white p-6 rounded-md shadow-lg w-screen h-screen overflow-scroll">
+        <div class="bg-white p-6 rounded-md shadow-lg w-screen min-h-full overflow-hidden">
             <h2 class="text-lg font-semibold text-gray-800 mb-2 text-left">
                 {{ season_info?.seasons[0].name ?? "" }} Standings
             </h2>
@@ -160,7 +160,7 @@
 
                 <div class="block md:col-span-2">
                     <h1 class="text-center">Current Game</h1>
-                    <GameResults v-if="activeGameId != 0" :key="activeGameId" :game_id="activeGameId" />
+                    <GameResults v-if="activeGameId != 0" :key="activeGameId" :game_id="activeGameId" :showBoxScore="false" />
                     <p v-else class="text-red-500 font-bold">No games available!</p>
                     <SeasonTimeLine :key="topPlayersKey" :isConference="activeConferenceTab" />
                 </div>

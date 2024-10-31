@@ -18,6 +18,13 @@ class SeasonsController extends Controller
             'status' => session('status'),
         ]);
     }
+    public function details($season_id)
+    {
+        return Inertia::render('Seasons/Details', [
+            'status' => session('status'),
+            'season_id' => $season_id,  // Pass the season_id to the Vue page
+        ]);
+    }
 
     public function list(Request $request)
     {

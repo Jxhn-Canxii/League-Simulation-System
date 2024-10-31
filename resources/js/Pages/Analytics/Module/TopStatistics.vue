@@ -1,5 +1,5 @@
 <template>
-    <div class="grid grid-cols-5 gap-6">
+    <div class="grid md:grid-cols-5 grid-cols-1 gap-6">
         <div class="flex items-center border shadow-xs p-4 bg-white rounded-lg shadow-xs">
             <div class="p-3 mr-4 text-orange-500 bg-orange-100 rounded-full dark:text-orange-100 dark:bg-orange-500">
                 <i class="fa fa-users"></i> <!-- Total Players -->

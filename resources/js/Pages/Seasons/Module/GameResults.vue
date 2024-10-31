@@ -20,7 +20,7 @@
       </div>
 
       <!-- Player Statistics Tables -->
-      <div class="mb-4">
+      <div class="mb-4" v-if="props.showBoxScore">
         <h3 class="text-xl font-semibold mb-2">Player Statistics</h3>
 
         <!-- Home Team Player Stats -->
@@ -62,7 +62,7 @@
         </div>
 
         <!-- Away Team Player Stats -->
-        <div>
+        <div >
           <h4 class="text-lg font-semibold mb-1">{{ gameDetails?.away_team.name }} Player Stats</h4>
           <table class="min-w-full bg-gray-800 rounded-lg overflow-hidden text-sm">
             <thead>
@@ -145,6 +145,10 @@
     game_id: {
       type: String,
       required: true
+    },
+    showBoxScore: {
+      type: Boolean,
+      required: true,
     }
   });
   const showPlayerProfileModal = ref(false);
