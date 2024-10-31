@@ -4,6 +4,9 @@
 
         <!-- Divider -->
         <hr class="my-4 border-t border-gray-200" />
+        <div class="mb-4">
+            <TopStatistics />
+        </div>
         <!-- Players Table -->
         <div class="overflow-hidden">
             <div
@@ -295,6 +298,7 @@ import Swal from "sweetalert2";
 import Modal from "@/Components/Modal.vue";
 import Paginator from "@/Components/Paginator.vue";
 import { roleClasses } from "@/Utility/Formatter";
+import TopStatistics from "@/Pages/Analytics/Module/TopStatistics.vue";
 const showAddPlayerModal = ref(false);
 const newPlayerName = ref("");
 const data = ref([]);

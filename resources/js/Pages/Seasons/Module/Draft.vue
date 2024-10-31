@@ -4,6 +4,9 @@
 
         <!-- Divider -->
         <hr class="my-4 border-t border-gray-200" />
+        <div class="mb-4">
+            <TopStatistics />
+        </div>
         <!-- Available Players Section -->
         <div class="flex justify-end space-x-2">
             <button
@@ -179,6 +182,7 @@ import Swal from "sweetalert2";
 import axios from "axios";
 
 import Paginator from "@/Components/Paginator.vue";
+import TopStatistics from "@/Pages/Analytics/Module/TopStatistics.vue";
 
 const emits = defineEmits(["newSeason"]);
 const teams = ref([]);

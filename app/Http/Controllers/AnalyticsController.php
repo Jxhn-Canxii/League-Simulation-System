@@ -17,7 +17,8 @@ class AnalyticsController extends Controller
         ]);
     }
 
-    public function get_all_standings() {
+    public function get_all_standings()
+    {
         // Fetch all records from standings_view and join with seasons table
         $standings = DB::table('standings_view')
             ->join('seasons', 'standings_view.season_id', '=', 'seasons.id')
@@ -54,7 +55,7 @@ class AnalyticsController extends Controller
         foreach ($structuredData as $team => $winsData) {
             $dataset = [
                 'label' => $team,
-                'data' => array_map(function($season) use ($winsData) {
+                'data' => array_map(function ($season) use ($winsData) {
                     return $winsData[$season] ?? 0; // Default to 0 if no wins recorded
                 }, $seasons),
                 'fill' => false,
@@ -67,5 +68,57 @@ class AnalyticsController extends Controller
         return response()->json($finalData); // Return JSON response for chart
     }
 
+    public function count_players()
+    {
+        // Count total players
+        $totalPlayers = DB::table('players')->count();
 
+        // Count active players
+        $activePlayers = DB::table('players')
+            ->where('is_active', 1)
+            ->count();
+
+        // Count retired players
+        $retiredPlayers = DB::table('players')
+            ->where('is_active', 0)
+            ->count();
+
+        // Count rookie players
+        $rookiePlayers = DB::table('players')
+            ->where('is_rookie', 1)
+            ->count();
+
+        // Count free agents
+        $freeAgents = DB::table('players')
+            ->where('is_active', 1)
+            ->where('team_id', 0)
+            ->count();
+
+        // Count unique teams with players (team_id > 0)
+        $totalTeams = DB::table('players')
+            ->where('team_id', '>', 0)
+            ->distinct('team_id')
+            ->count('team_id');
+
+        // Count active players in teams (team_id > 0)
+        $activePlayersInTeams = DB::table('players')
+            ->where('is_active', 1)
+            ->where('team_id', '>', 0)
+            ->count();
+
+        // Define max roster size
+        $maxRosterSize = 15;
+
+        // Calculate total available slots
+        $totalAvailableSlots = ($totalTeams * $maxRosterSize) - $activePlayersInTeams;
+
+        return response()->json([
+            'total_players' => $totalPlayers,
+            'active_players' => $activePlayers,
+            'retired_players' => $retiredPlayers,
+            'rookie_players' => $rookiePlayers,
+            'free_agents' => $freeAgents,
+            'total_available_slots' => $totalAvailableSlots,
+        ]);
+    }
 }
