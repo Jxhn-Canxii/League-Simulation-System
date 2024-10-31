@@ -6,7 +6,7 @@
             </div>
             <div>
                 <p class="mb-2 text-sm font-medium text-gray-600">Total Players</p>
-                <p class="text-lg font-semibold text-black">{{ data.total_players ?? 0 }}</p>
+                <p class="text-lg font-semibold text-black">{{ moneyFormatter(data.total_players ?? 0) }}</p>
             </div>
         </div>
 
@@ -16,7 +16,7 @@
             </div>
             <div>
                 <p class="mb-2 text-sm font-medium text-gray-600">Rookies</p>
-                <p class="text-lg font-semibold text-black">{{ data.rookie_players ?? 0 }}</p>
+                <p class="text-lg font-semibold text-black">{{ moneyFormatter(data.rookie_players ?? 0) }}</p>
             </div>
         </div>
 
@@ -26,7 +26,7 @@
             </div>
             <div>
                 <p class="mb-2 text-sm font-medium text-gray-600">Retired</p>
-                <p class="text-lg font-semibold text-black">{{ data.retired_players ?? 0 }}</p>
+                <p class="text-lg font-semibold text-black">{{ moneyFormatter(data.retired_players ?? 0) }}</p>
             </div>
         </div>
         <div class="flex items-center border shadow-xs p-4 bg-white rounded-lg shadow-xs">
@@ -35,7 +35,7 @@
             </div>
             <div>
                 <p class="mb-2 text-sm font-medium text-gray-600">Available Slots</p>
-                <p class="text-lg font-semibold text-black">{{ data.total_available_slots ?? 0 }}</p>
+                <p class="text-lg font-semibold text-black">{{ moneyFormatter(data.total_available_slots ?? 0) }}</p>
             </div>
         </div>
         <div class="flex items-center border shadow-xs p-4 bg-white rounded-lg shadow-xs">
@@ -44,7 +44,7 @@
             </div>
             <div>
                 <p class="mb-2 text-sm font-medium text-gray-600">Free Agents</p>
-                <p class="text-lg font-semibold text-black">{{ data.free_agents ?? 0 }}</p>
+                <p class="text-lg font-semibold text-black">{{ moneyFormatter(data.free_agents ?? 0) }}</p>
             </div>
         </div>
     </div>
