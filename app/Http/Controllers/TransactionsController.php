@@ -11,7 +11,7 @@ use Inertia\Inertia;
 class TransactionsController extends Controller
 {
 
-    public function assignPlayerToRandomTeam(Request $request)
+    public function assignplayertorandomteam(Request $request)
     {
         $request->validate([
             'player_id' => 'required|exists:players,id',
@@ -75,7 +75,7 @@ class TransactionsController extends Controller
             'team_count' =>  $teamsCount,
         ]);
     }
-    public function assignRemainingFreeAgents()
+    public function assignremainingfreeagents()
     {
 
         $seasonId = $this->getLatestSeasonId();

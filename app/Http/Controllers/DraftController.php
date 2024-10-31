@@ -23,7 +23,7 @@ class DraftController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function draftOrder()
+    public function draftorder()
     {
         // Get the latest season_id from the standings_view
         $latestSeasonId = DB::table('standings_view')->max('season_id');
@@ -82,7 +82,7 @@ class DraftController extends Controller
     //  DB::table('seasons')
     //  ->where('id', $this->getLatestSeasonId())
     //  ->update(['status' => 11]);
-    public function draftPlayers()
+    public function draftplayers()
     {
         DB::beginTransaction(); // Start transaction
 
@@ -321,7 +321,7 @@ class DraftController extends Controller
             ], 500);
         }
     }
-    public function rookieDraftees(Request $request)
+    public function rookiedraftees(Request $request)
     {
         // Get pagination parameters from the request
         $perPage = $request->input('itemsperpage', 10); // Number of items per page
@@ -374,7 +374,7 @@ class DraftController extends Controller
             'rookies' => $freeAgents,
         ]);
     }
-    public function draftResults()
+    public function draftresults()
     {
         // Get the latest season_id from the standings_view
         $latestSeasonId = $this->getLatestSeasonId();

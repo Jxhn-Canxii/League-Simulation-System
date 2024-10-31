@@ -21,7 +21,7 @@ class PlayersController extends Controller
             'status' => session('status'),
         ]);
     }
-    public function listPlayers(Request $request)
+    public function listplayers(Request $request)
     {
         $request->validate([
             'team_id' => 'required|exists:teams,id',
@@ -202,7 +202,7 @@ class PlayersController extends Controller
         ]);
     }
 
-    public function getFreeAgents(Request $request)
+    public function getfreeagents(Request $request)
     {
         // Get pagination parameters from the request
         $perPage = $request->input('itemsperpage', 10); // Number of items per page
@@ -256,7 +256,7 @@ class PlayersController extends Controller
         ]);
     }
 
-    public function getAllPlayers(Request $request)
+    public function getallplayers(Request $request)
     {
         // Get pagination parameters from the request
         $perPage = $request->input('itemsperpage', 10); // Number of items per page
@@ -301,7 +301,7 @@ class PlayersController extends Controller
     }
 
     // Add a player to a team with random attributes
-    public function addPlayer(Request $request)
+    public function addplayer(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
@@ -372,7 +372,7 @@ class PlayersController extends Controller
             'player' => $player,
         ]);
     }
-    public function addFreeAgentPlayer(Request $request)
+    public function addfreeagentplayer(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255|unique:players,name',
@@ -599,7 +599,7 @@ class PlayersController extends Controller
     }
 
     // Waive a player (make them inactive)
-    public function waivePlayer(Request $request)
+    public function waiveplayer(Request $request)
     {
         $request->validate([
             'id' => 'required|exists:players,id',
@@ -615,7 +615,7 @@ class PlayersController extends Controller
     }
 
     // Extend player's contract
-    public function extendContract(Request $request)
+    public function extendcontract(Request $request)
     {
         $request->validate([
             'id' => 'required|exists:players,id',
@@ -638,7 +638,7 @@ class PlayersController extends Controller
             'player' => $player,
         ]);
     }
-    public function getBoxScore(Request $request)
+    public function getboxscore(Request $request)
     {
         // Validate the request
         $request->validate([
@@ -806,7 +806,7 @@ class PlayersController extends Controller
             'box_score' => $boxScore,
         ]);
     }
-    public function getPlayerPlayoffPerformance(Request $request)
+    public function getplayerplayoffperformance(Request $request)
     {
         // Validate the request data
         $request->validate([
@@ -902,7 +902,7 @@ class PlayersController extends Controller
             'player_stats' => $formattedPlayerStats,
         ]);
     }
-    public function getPlayerSeasonPerformance(Request $request)
+    public function getlayerseasonperformance(Request $request)
     {
         // Validate the request data
         $request->validate([
@@ -1000,7 +1000,7 @@ class PlayersController extends Controller
         ]);
     }
 
-    public function getPlayerMainPerformance(Request $request)
+    public function getplayermainperformance(Request $request)
     {
         // Validate the request data
         $request->validate([
@@ -1259,7 +1259,7 @@ class PlayersController extends Controller
             'game_logs' => $playerGameLogs,
         ]);
     }
-    public function getPlayerGameLogs(Request $request)
+    public function getplayergamelogs(Request $request)
     {
         // Validate the request data
         $request->validate([
@@ -1335,7 +1335,7 @@ class PlayersController extends Controller
             'game_logs' => $playerGameLogs,
         ]);
     }
-    public function getPlayersWithFilters(Request $request)
+    public function getplayerswithfilters(Request $request)
     {
         $sortColumn = $request->input('sort_by');
         $sortOrder = $request->input('sort_order', 'desc');
@@ -1402,12 +1402,12 @@ class PlayersController extends Controller
         ]);
     }
 
-    public function getTop20PlayersAllTime()
+    public function gettop20playersalltime()
     {
         $top20Players = DB::table('top_20_players_all_time')->get();
         return response()->json($top20Players);
     }
-    public function getTop10PlayersByTeam(Request $request)
+    public function gettop10playersbyteam(Request $request)
     {
         // Validate the request to ensure 'team_id' is provided
         $validated = $request->validate([

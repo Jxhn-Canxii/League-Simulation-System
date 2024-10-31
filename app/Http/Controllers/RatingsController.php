@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\DB;
 class RatingsController extends Controller
 {
     //
-    public function updateActivePlayers(Request $request)
+    public function updateactiveplayers(Request $request)
     {
         DB::beginTransaction(); // Start transaction
 

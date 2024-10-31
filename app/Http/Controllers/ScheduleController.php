@@ -34,7 +34,7 @@ class ScheduleController extends Controller
 
         return response()->json($seasons);
     }
-    public function createSeasonAndSchedule(Request $request)
+    public function createseasonandschedule(Request $request)
     {
         $request->validate([
             'season_name' => 'required|unique:seasons,name',
@@ -1574,7 +1574,7 @@ class ScheduleController extends Controller
             ], 500);
         }
     }
-    public function getScheduleIds(Request $request)
+    public function getscheduleids(Request $request)
     {
         // Validate the request data
         $request->validate([
