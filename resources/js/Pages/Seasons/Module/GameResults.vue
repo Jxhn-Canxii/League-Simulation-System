@@ -275,8 +275,8 @@
         <div class="flex bg-white">
             <!-- Best Player Section: 1/4 Width -->
             <div class="w-1/2 p-4">
+                <h3 class="text-lg font-semibold mb-3">Player of the Game</h3>
                 <div v-if="bestPlayer" class="bg-white shadow-lg p-4 rounded-lg text-black mb-4">
-                  <h3 class="text-lg font-semibold mb-3">Player of the Game</h3>
                   <div class="flex flex-col items-center mb-4">
                     <p class="text-4xl font-extrabold mb-1">{{ bestPlayer?.name }}</p>
                     <p class="text-gray-600 text-xl">{{ bestPlayer?.team }}</p>
