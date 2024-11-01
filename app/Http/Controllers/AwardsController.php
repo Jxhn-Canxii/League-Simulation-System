@@ -212,10 +212,6 @@ class AwardsController extends Controller
         $bestDefender = $playerStats->sortByDesc(function ($stats) {
             return $stats->avg_steals_per_game + $stats->avg_blocks_per_game;
         })->first();
-        $bestOverall = $playerStats->sortByDesc(function ($stats) {
-            return $stats->avg_points_per_game + $stats->avg_rebounds_per_game + $stats->avg_assists_per_game +
-                $stats->avg_steals_per_game + $stats->avg_blocks_per_game;
-        })->first();
 
         // Top 5 Offensive Players
         $topOffensivePlayers = $playerStats->sortByDesc('avg_points_per_game')->take(5);
@@ -225,7 +221,7 @@ class AwardsController extends Controller
             return $stats->avg_steals_per_game + $stats->avg_blocks_per_game;
         })->take(5);
 
-        // Assuming 'player_season_stats' includes data from the previous season for comparison
+        // Get previous season's stats for comparison
         $previousSeasonId = DB::table('seasons')->where('id', '<', $latestSeasonId)->orderBy('id', 'desc')->value('id');
         $previousSeasonStats = DB::table('player_season_stats')->where('season_id', $previousSeasonId)->pluck('avg_points_per_game', 'player_id');
 
@@ -235,19 +231,28 @@ class AwardsController extends Controller
         $mostImprovedPlayer = $playerStats->filter(function ($stats) use ($nonRookies) {
             return $nonRookies->contains($stats->player_id);
         })
-            ->sortByDesc(function ($stats) use ($previousSeasonStats) {
-                $previousPoints = $previousSeasonStats[$stats->player_id] ?? 0;
-                return ($stats->avg_points_per_game - $previousPoints);
-            })
+        ->sortByDesc(function ($stats) use ($previousSeasonStats) {
+            $previousPoints = $previousSeasonStats[$stats->player_id] ?? 0;
+            return ($stats->avg_points_per_game - $previousPoints);
+        })
+        ->first();
+
+        // MVP of the Season based on mvp_leaders view
+        $bestOverall = DB::table('mvp_leaders')
+            ->orderBy('performance_score', 'desc')
             ->first();
 
-        // Fetch the Rookie of the Season based on a flag or indicator
-        $rookieOfTheSeason = DB::table('players')
-            ->join('player_season_stats', 'players.id', '=', 'player_season_stats.player_id')
-            ->where('player_season_stats.season_id', $latestSeasonId)
-            ->where('players.is_rookie', true) // Assuming you have a `is_rookie` field
-            ->orderBy('player_season_stats.avg_points_per_game', 'desc')
+        // Rookie of the Season based on rookie_leaders view
+        $rookieOfTheSeason = DB::table('rookie_leaders')
+            ->orderBy('performance_score', 'desc')
             ->first();
+
+        // Determine the 6th Man of the Year award
+        $rolePlayers = $playerStats->filter(function ($stats) {
+            return $stats->role !== 'star player' && $stats->role !== 'starter';
+        });
+
+        $sixthManOfTheYear = $rolePlayers->sortByDesc('avg_points_per_game')->first();
 
         // Insert awards into season_awards table if not already present
         $this->insertAward($topScorer, 'Top Scorer', 'Player with the highest average points per game', $latestSeasonId);
@@ -258,6 +263,11 @@ class AwardsController extends Controller
         $this->insertAward($bestDefender, 'Best Defensive Player', 'Player with the highest combined average steals and blocks per game', $latestSeasonId);
         $this->insertAward($bestOverall, 'Best Overall Player', 'Player with the highest combined average metrics (points, rebounds, assists, steals, blocks)', $latestSeasonId);
         $this->insertAward($mostImprovedPlayer, 'Most Improved Player', 'Player with the highest increase in average points per game from the previous season', $latestSeasonId);
+
+        // Insert the 6th Man of the Year award
+        if ($sixthManOfTheYear) {
+            $this->insertAward($sixthManOfTheYear, '6th Man of the Year', 'Best player coming off the bench', $latestSeasonId);
+        }
 
         // Insert Top 5 Offensive Players awards
         $counter = 1;
@@ -279,9 +289,9 @@ class AwardsController extends Controller
         if ($rookieOfTheSeason) {
             $this->insertAward($rookieOfTheSeason, 'Rookie of the Season', 'Best rookie player of the season', $latestSeasonId);
         }
-        DB::table('seasons')
-            ->where('id', $latestSeasonId)
-            ->update(['status' => 9]);
+
+        // Update season status
+        DB::table('seasons')->where('id', $latestSeasonId)->update(['status' => 9]);
 
         // Fetch awards along with player, team names, and team_id for the latest season
         $awards = DB::table('season_awards')
@@ -301,6 +311,8 @@ class AwardsController extends Controller
             'awards' => $awards
         ]);
     }
+
+
 
     private function insertaward($playerStats, $awardName, $awardDescription, $seasonId)
     {
