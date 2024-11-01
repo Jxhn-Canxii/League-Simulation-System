@@ -203,7 +203,7 @@ class AnalyticsController extends Controller
         $topPerformanceLeaders = $formattedPlayerStats->sortByDesc('performance_score')->take(10)->values();
 
         // Fetch top 10 rookies by performance score
-        $rookieLeaders = $formattedPlayerStats->where('is_rookie', 1)->where('draft_id', $seasonId)->sortByDesc('performance_score')->take(10)->values();
+        $rookieLeaders = $formattedPlayerStats->where('draft_id', $seasonId)->sortByDesc('performance_score')->take(10)->values();
 
         // Fetch top leaders for each stat
         $topPoints = $formattedPlayerStats->sortByDesc('points_per_game')->take(10)->values();
