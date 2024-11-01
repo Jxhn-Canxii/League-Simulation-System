@@ -647,10 +647,19 @@ class PlayersController extends Controller
 
         $game_id = $request->game_id;
 
-        // Fetch game details from the schedules table
+       // Fetch game details from the schedule_view table and join with teams table
         $game = \DB::table('schedule_view')
-            ->where('game_id', $game_id)
-            ->first();
+        ->join('teams as away_team', 'schedule_view.away_id', '=', 'away_team.id') // Join for away team
+        ->join('teams as home_team', 'schedule_view.home_id', '=', 'home_team.id') // Join for home team
+        ->where('schedule_view.game_id', $game_id)
+        ->select(
+            'schedule_view.*', // Select all columns from schedule_view
+            'away_team.primary_color as away_primary_color',
+            'away_team.secondary_color as away_secondary_color',
+            'home_team.primary_color as home_primary_color',
+            'home_team.secondary_color as home_secondary_color'
+        )
+        ->first();
 
         if (!$game) {
             return response()->json([
@@ -785,14 +794,18 @@ class PlayersController extends Controller
             'game_id' => $game->game_id,
             'round' => $game->round,
             'home_team' => [
-                'team_id' => $game->home_id,
+                'team_id' => $game->home_id, // Use the correct field from your query
                 'name' => $game->home_team_name,
                 'score' => $game->home_score,
+                'primary_color' => $game->home_primary_color, // Add primary color
+                'secondary_color' => $game->home_secondary_color, // Add secondary color
             ],
             'away_team' => [
-                'team_id' => $game->away_id,
+                'team_id' => $game->away_id, // Use the correct field from your query
                 'name' => $game->away_team_name,
                 'score' => $game->away_score,
+                'primary_color' => $game->away_primary_color, // Add primary color
+                'secondary_color' => $game->away_secondary_color, // Add secondary color
             ],
             'player_stats' => [
                 'home' => $homeTeamPlayersArray,
