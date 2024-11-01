@@ -131,4 +131,113 @@ class AnalyticsController extends Controller
             'total_available_slots' => $totalAvailableSlots,
         ]);
     }
+
+    public function getSeasonLeaders(Request $request)
+    {
+        // Determine the type of leader to return based on the request
+        $leaderType = $request->input('leader_type', 'mvp_leaders'); // Default to 'mvp_leaders'
+        $seasonId = $this->getLatestSeasonId();
+        $excludedRounds = ['quarter_finals', 'round_of_16', 'round_of_32', 'semi_finals', 'interconference_semi_finals', 'finals'];
+
+        // Fetch player stats for the given season and conference
+        $playerStats = \DB::table('player_game_stats')
+            ->join('players', 'player_game_stats.player_id', '=', 'players.id')
+            ->join('teams', 'players.team_id', '=', 'teams.id')
+            ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id')
+            ->where('player_game_stats.season_id', $seasonId)
+            ->whereNotIn('schedules.round', $excludedRounds)
+            ->select(
+                'players.id as player_id',
+                'players.name as player_name',
+                'players.team_id',
+                'teams.name as team_name',
+                'players.is_rookie',
+                \DB::raw('SUM(player_game_stats.points) as total_points'),
+                \DB::raw('SUM(player_game_stats.rebounds) as total_rebounds'),
+                \DB::raw('SUM(player_game_stats.assists) as total_assists'),
+                \DB::raw('SUM(player_game_stats.steals) as total_steals'),
+                \DB::raw('SUM(player_game_stats.blocks) as total_blocks'),
+                \DB::raw('SUM(player_game_stats.turnovers) as total_turnovers'),
+                \DB::raw('SUM(player_game_stats.fouls) as total_fouls'),
+                \DB::raw('SUM(player_game_stats.minutes) as total_minutes'),
+                \DB::raw('COUNT(DISTINCT CASE WHEN player_game_stats.minutes > 0 THEN player_game_stats.game_id END) as games_played')
+            )
+            ->groupBy('players.id', 'players.name', 'players.team_id', 'teams.name', 'players.is_rookie')
+            ->get();
+
+        $formattedPlayerStats = [];
+
+        foreach ($playerStats as $stats) {
+            $gamesPlayed = $stats->games_played;
+
+            $averagePointsPerGame = $gamesPlayed > 0 ? $stats->total_points / $gamesPlayed : 0;
+            $averageReboundsPerGame = $gamesPlayed > 0 ? $stats->total_rebounds / $gamesPlayed : 0;
+            $averageAssistsPerGame = $gamesPlayed > 0 ? $stats->total_assists / $gamesPlayed : 0;
+            $averageBlocksPerGame = $gamesPlayed > 0 ? $stats->total_blocks / $gamesPlayed : 0;
+            $averageStealsPerGame = $gamesPlayed > 0 ? $stats->total_steals / $gamesPlayed : 0;
+            $averageTurnoversPerGame = $gamesPlayed > 0 ? $stats->total_turnovers / $gamesPlayed : 0;
+            $averageFoulsPerGame = $gamesPlayed > 0 ? $stats->total_fouls / $gamesPlayed : 0;
+
+            $formattedPlayerStats[] = [
+                'player_id' => $stats->player_id,
+                'player_name' => $stats->player_name,
+                'team_name' => $stats->team_name,
+                'is_rookie' => $stats->is_rookie === 1 ? 'Rookie' : 'Veteran', // Check if rookie
+                'games_played' => $gamesPlayed,
+                'points_per_game' => number_format($averagePointsPerGame, 2),
+                'rebounds_per_game' => number_format($averageReboundsPerGame, 2),
+                'assists_per_game' => number_format($averageAssistsPerGame, 2),
+                'blocks_per_game' => number_format($averageBlocksPerGame, 2),
+                'steals_per_game' => number_format($averageStealsPerGame, 2),
+                'turnovers_per_game' => number_format($averageTurnoversPerGame, 2),
+                'fouls_per_game' => number_format($averageFoulsPerGame, 2),
+            ];
+        }
+
+        $limit = 10;
+        // Fetch MVP leaders and Rookie leaders from view tables
+        $mvpLeaders = \DB::table('mvp_leaders')->take($limit)->get();
+        $rookieLeaders = \DB::table('rookie_leaders')->take($limit)->get();
+
+        // Fetch top $limit leaders for each stat
+        $topPoints = collect($formattedPlayerStats)->sortByDesc('points_per_game')->take($limit)->values();
+        $topRebounds = collect($formattedPlayerStats)->sortByDesc('rebounds_per_game')->take($limit)->values();
+        $topAssists = collect($formattedPlayerStats)->sortByDesc('assists_per_game')->take($limit)->values();
+        $topBlocks = collect($formattedPlayerStats)->sortByDesc('blocks_per_game')->take($limit)->values();
+        $topSteals = collect($formattedPlayerStats)->sortByDesc('steals_per_game')->take($limit)->values();
+        $topTurnovers = collect($formattedPlayerStats)->sortByDesc('turnovers_per_game')->take($limit)->values();
+        $topFouls = collect($formattedPlayerStats)->sortByDesc('fouls_per_game')->take($limit)->values();
+
+        // Return all leaders under the 'data' key
+        $response = match ($leaderType) {
+            'top_point_leaders' => $topPoints,
+            'top_rebound_leaders' => $topRebounds,
+            'top_assist_leaders' => $topAssists,
+            'top_block_leaders' => $topBlocks,
+            'top_steals_leaders' => $topSteals,
+            'top_turnover_leaders' => $topTurnovers,
+            'top_foul_leaders' => $topFouls,
+            'mvp_leaders' => $mvpLeaders,
+            'rookie_leaders' => $rookieLeaders,
+            default => [],
+        };
+
+        return response()->json(['leaders' => $response ]);
+
+    }
+
+    private function getLatestSeasonId()
+    {
+        // Fetch the latest season ID based on descending order of IDs
+        $latestSeasonId = Seasons::orderBy('id', 'desc')->pluck('id')->first();
+
+        if ($latestSeasonId) {
+            return $latestSeasonId;
+        } else {
+            return 0;
+        }
+
+        // Handle the case where no seasons are found
+        throw new \Exception('No seasons found.');
+    }
 }

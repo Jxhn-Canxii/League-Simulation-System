@@ -12,6 +12,7 @@
           </div>
           <WinShares />
           <SeasonTimeLine />
+          <SeasonLeaders />
         </div>
     </AuthenticatedLayout>
 </template>
@@ -29,6 +30,7 @@ import WinShares from "./Module/WinShares.vue";
 import SeasonTimeLine from "./Module/SeasonTimeLine.vue";
 import ChampionshipShares from "./Module/ChampionshipShares.vue";
 import ScoringShares from "./Module/ScoringShares.vue";
+import SeasonLeaders from "./Module/SeasonLeaders.vue";
 
 onMounted(() => {});
 </script>

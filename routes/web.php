@@ -94,6 +94,7 @@ Route::middleware('auth')->group(function () {
         Route::get('', [AnalyticsController::class, 'index'])->name('analytics.index');
         Route::post('get-all-standings', [AnalyticsController::class, 'get_all_standings'])->name('analytics.standings');
         Route::get('player-stats', [AnalyticsController::class, 'count_players'])->name('analytics.player.count');
+        Route::post('/current-season-leaders', [AnalyticsController::class, 'getseasonleaders'])->name('players.season.leaders');
     });
 
     Route::prefix('draft/')->group(function(){
@@ -146,7 +147,6 @@ Route::middleware('auth')->group(function () {
         Route::post('waive', [PlayersController::class, 'waiveplayer'])->name('players.waive');
         Route::post('extend-contract', [PlayersController::class, 'extendcontract'])->name('players.contract.extend');
         Route::post('/box-score', [PlayersController::class, 'getboxscore'])->name('game.boxscore');
-        Route::post('/top-10-players', [AwardsController::class, 'getbestplayersinconference'])->name('top.players.conference.season');
         Route::post('/free-agents', [PlayersController::class, 'getfreeagents'])->name('players.free.agents');
         Route::post('/all-players', [PlayersController::class, 'getallplayers'])->name('players.list.all');
         Route::post('/player-season-performance', [PlayersController::class, 'getplayerseasonperformance'])->name('players.season.performance');
