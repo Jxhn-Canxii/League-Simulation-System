@@ -105,7 +105,7 @@ class AwardsController extends Controller
         // Fetch awards along with player, team, and season names for the latest season
         $awards = DB::table('season_awards')
             ->leftJoin('players', 'season_awards.player_id', '=', 'players.id')
-            ->leftJoin('teams', 'players.team_id', '=', 'teams.id')
+            ->leftJoin('teams', 'season_awards.team_id', '=', 'teams.id')
             ->leftJoin('seasons', 'season_awards.season_id', '=', 'seasons.id') // Join the seasons table
             ->where('season_awards.season_id', $request->season_id)
             ->select(
