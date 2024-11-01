@@ -319,6 +319,7 @@
                         <p class="text-xl text-gray-900 font-bold">TO</p>
                       </li>
                   </ul>
+                  <small>{{ bestPlayer.drafted_status }} {{ bestPlayer.drafted_team_acro ? `(${bestPlayer.drafted_team_acro})` : '' }}</small>
                 </div>
               </div>
             <!-- Stat Leaders Section: 3/4 Width -->

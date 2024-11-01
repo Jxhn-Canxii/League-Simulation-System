@@ -668,6 +668,7 @@ class PlayersController extends Controller
         $playerStats = \DB::table('player_game_stats')
             ->where('player_game_stats.game_id', $game_id)
             ->leftJoin('players', 'player_game_stats.player_id', '=', 'players.id') // Join with players
+            ->leftJoin('teams as drafted_team', 'drafted_team.id', '=', 'players.drafted_team_id') // Join with players
             ->leftJoin('teams', 'player_game_stats.team_id', '=', 'teams.id') // Join with teams to get team names
             ->leftJoin('player_ratings', function ($join) {
                 $join->on('player_ratings.player_id', '=', 'players.id')
@@ -677,6 +678,9 @@ class PlayersController extends Controller
                 'player_game_stats.player_id',
                 'players.name as player_name',
                 'players.is_rookie as is_rookie',
+                'players.draft_status',
+                'players.draft_id',
+                'drafted_team.acronym as drafted_team_acro',
                 'player_game_stats.team_id',
                 'teams.name as team_name',
                 'player_ratings.role as player_role',
@@ -736,6 +740,8 @@ class PlayersController extends Controller
             'fouls' => $bestWinningTeamPlayer->fouls,
             'role' => $bestWinningTeamPlayer->player_role,
             'minutes' => $bestWinningTeamPlayer->minutes,
+            'draft_status' => $bestWinningTeamPlayer->draft_status,
+            'drafted_team_acro' => $bestWinningTeamPlayer->drafted_team_acro,
         ] : null;
 
         // Split player stats into home and away teams, using the game team IDs
