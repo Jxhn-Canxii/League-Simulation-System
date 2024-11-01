@@ -374,6 +374,98 @@ class DraftController extends Controller
             'rookies' => $freeAgents,
         ]);
     }
+
+    public function draftresultsperseason(Request $request)
+    {
+        // Get the latest season_id from the request
+        $latestSeasonId = $request->season_id;
+
+        // Fetch draft results for the latest season from the drafts table
+        $draftResults = DB::table('drafts')
+            ->select('team_id', 'player_id', 'season_id', 'round', 'pick_number', 'draft_status')
+            ->where('season_id', $latestSeasonId)
+            ->get();
+
+        // If you want to include team names and player names, join the relevant tables
+        $draftResultsWithNames = DB::table('drafts')
+            ->join('teams', 'drafts.team_id', '=', 'teams.id')
+            ->join('players', 'drafts.player_id', '=', 'players.id')
+            ->select(
+                'drafts.team_id',
+                'teams.name as team_name',
+                'drafts.player_id',
+                'players.name as player_name',
+                'drafts.season_id',
+                'drafts.round',
+                'drafts.pick_number',
+                'drafts.draft_status'
+            )
+            ->where('drafts.season_id', $latestSeasonId)
+            ->get();
+
+        // Extract player IDs from the draft results to create the rank group
+        $rankGroupPlayerIds = $draftResultsWithNames->pluck('player_id');
+
+        // Determine if the season_id is the current season
+        $currentSeasonId = DB::table('seasons')->orderBy('id', 'desc')->value('id');
+
+        // Fetch player stats and calculate ranks only for the players drafted in the latest season
+        $playerStats = collect();
+        if ($latestSeasonId == $currentSeasonId) {
+            // Get player stats from the player_game_stats table for the current season, filtered by rank group and draft_id
+            $playerGameStats = DB::table('player_game_stats')
+                ->join('players', 'player_game_stats.player_id', '=', 'players.id')
+                ->where('player_game_stats.season_id', $currentSeasonId)
+                ->whereIn('player_game_stats.player_id', $rankGroupPlayerIds) // Filter by rank group
+                ->where('players.draft_id', $latestSeasonId) // Filter by draft_id
+                ->select(
+                    'player_game_stats.player_id',
+                    DB::raw('AVG(player_game_stats.points) as avg_points'),
+                    DB::raw('AVG(player_game_stats.rebounds) as avg_rebounds'),
+                    DB::raw('AVG(player_game_stats.assists) as avg_assists')
+                )
+                ->groupBy('player_game_stats.player_id')
+                ->orderByDesc('avg_points') // Order by points as a primary performance metric
+                ->get();
+            $playerStats = $playerGameStats;
+        } else {
+            // Get player stats from the player_season_stats table for the previous season, filtered by rank group and draft_id
+            $playerSeasonStats = DB::table('player_season_stats')
+                ->join('players', 'player_season_stats.player_id', '=', 'players.id')
+                ->where('player_season_stats.season_id', $latestSeasonId)
+                ->whereIn('player_season_stats.player_id', $rankGroupPlayerIds) // Filter by rank group
+                ->where('players.draft_id', $latestSeasonId) // Filter by draft_id
+                ->select(
+                    'player_season_stats.player_id',
+                    'player_season_stats.avg_points_per_game as avg_points',
+                    'player_season_stats.avg_rebounds_per_game as avg_rebounds',
+                    'player_season_stats.avg_assists_per_game as avg_assists'
+                )
+                ->orderByDesc('avg_points') // Order by points as a primary performance metric
+                ->get();
+            $playerStats = $playerSeasonStats;
+        }
+
+        // Assign ranks only to players within the rank group
+        $rankedPlayers = $playerStats->map(function ($stats, $index) {
+            $stats->rank = $index + 1; // Add rank starting from 1
+            return $stats;
+        });
+
+        // Merge ranks into the draft results
+        $draftResultsWithNamesAndRanks = $draftResultsWithNames->map(function ($draft) use ($rankedPlayers) {
+            $playerRank = $rankedPlayers->firstWhere('player_id', $draft->player_id);
+            $draft->rank = $playerRank->rank ?? null; // Add rank if found, otherwise null
+            return $draft;
+        });
+
+        // Return the draft results as a JSON response
+        return response()->json([
+            'season_id' => $latestSeasonId,
+            'draft_results' => $draftResultsWithNamesAndRanks,
+        ]);
+    }
+
     public function draftresults()
     {
         // Get the latest season_id from the standings_view

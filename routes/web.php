@@ -100,7 +100,8 @@ Route::middleware('auth')->group(function () {
     Route::prefix('draft/')->group(function(){
         Route::post('players-list', [DraftController::class, 'rookiedraftees'])->name('draft.list');
         Route::get('draft-order', [DraftController::class, 'draftorder'])->name('draft.orders');
-        Route::get('draft-results', [DraftController::class, 'draftresults'])->name('draft.results');
+        Route::get('draft-latest-results', [DraftController::class, 'draftresults'])->name('draft.results');
+        Route::post('draft-season-results', [DraftController::class, 'draftresultsperseason'])->name('draft.season.results');
         Route::post('draft-players', [DraftController::class, 'draftplayers'])->name('draft.players');
 
     });

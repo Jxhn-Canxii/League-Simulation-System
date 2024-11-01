@@ -57,6 +57,11 @@
                         <th
                             class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                         >
+                            Draft
+                        </th>
+                        <th
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
                             Team Name
                         </th>
                         <!-- <th
@@ -82,6 +87,11 @@
                             class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
                         >
                             {{ award.player_name }}
+                        </td>
+                        <td
+                            class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
+                        >
+                            {{ award.draft_status }} {{ award.drafted_team ? `(${award.drafted_team})` : '' }}
                         </td>
                         <td
                             class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"

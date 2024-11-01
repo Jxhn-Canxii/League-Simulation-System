@@ -1,6 +1,6 @@
 <template>
     <div>
-        <Head :title="'Seasons '+ season_id" />
+        <Head :title="'Seasons ' + season_id" />
 
         <AuthenticatedLayout>
             <template #header> Seasons {{ season_id }}</template>
@@ -13,13 +13,16 @@
                     <div class="w-screen mb-2 flex overflow-x-auto border-b-2">
                         <ul class="flex flex-wrap">
                             <li
-                            class="whitespace-nowrap group flex items-center px-3 py-2 cursor-pointer relative flex-shrink-0 max-w-xs"
-                        >
-                        <a :href="route('seasons.index')" class="px-2 py-2 bg-blue-500 rounded font-bold text-md text-white shadow">
-                            <i class="fa fa-list"></i>
-                            Season List
-                        </a>
-                        </li>
+                                class="whitespace-nowrap group flex items-center px-3 py-2 cursor-pointer relative flex-shrink-0 max-w-xs"
+                            >
+                                <a
+                                    :href="route('seasons.index')"
+                                    class="px-2 py-2 bg-blue-500 rounded font-bold text-md text-white shadow"
+                                >
+                                    <i class="fa fa-list"></i>
+                                    Season List
+                                </a>
+                            </li>
                             <li
                                 @click="changeTab('Regular')"
                                 :class="{
@@ -59,6 +62,52 @@
                                 <span
                                     class="text-truncate hidden sm:inline md:inline"
                                     >Playoffs</span
+                                >
+                                <!-- Warning Badge Notification Counter -->
+                                <span
+                                    hidden
+                                    class="bg-red-500 text-white rounded-full h-4 w-4 text-center m-1 text-xs"
+                                    >6</span
+                                >
+                            </li>
+                            <li
+                                @click="changeTab('Draft')"
+                                :class="{
+                                    'text-yellow-500 border-b-2 border-yellow-500':
+                                        currentTab === 'Draft',
+                                }"
+                                class="whitespace-nowrap group flex items-center px-3 py-2 cursor-pointer relative flex-shrink-0 max-w-xs"
+                            >
+                                <i
+                                    class="fa fa-star mr-2 text-gray-500 group-hover:text-yellow-500"
+                                    title="Draft"
+                                ></i>
+                                <span
+                                    class="text-truncate hidden sm:inline md:inline"
+                                    >Draft Results</span
+                                >
+                                <!-- Warning Badge Notification Counter -->
+                                <span
+                                    hidden
+                                    class="bg-red-500 text-white rounded-full h-4 w-4 text-center m-1 text-xs"
+                                    >6</span
+                                >
+                            </li>
+                            <li
+                                @click="changeTab('Leaders')"
+                                :class="{
+                                    'text-yellow-500 border-b-2 border-yellow-500':
+                                        currentTab === 'Leaders',
+                                }"
+                                class="whitespace-nowrap group flex items-center px-3 py-2 cursor-pointer relative flex-shrink-0 max-w-xs"
+                            >
+                                <i
+                                    class="fa fa-chart-line mr-2 text-gray-500 group-hover:text-yellow-500"
+                                    title="Leaders"
+                                ></i>
+                                <span
+                                    class="text-truncate hidden sm:inline md:inline"
+                                    >Statistical Leaders</span
                                 >
                                 <!-- Warning Badge Notification Counter -->
                                 <span
@@ -137,26 +186,36 @@
                         v-if="currentTab === 'Regular' && season_id != 0"
                         class="min-w-full overflow-x-auto"
                     >
-                        <Seasons :season_id="season_id" />
+                        <Seasons :key="season_id" :season_id="season_id" />
                     </div>
                     <div
                         v-if="currentTab === 'Playoffs' && season_id != 0"
                         class="min-w-full overflow-x-auto"
                     >
-                        <Playoffs :season_id="season_id" />
+                        <Playoffs :key="season_id" :season_id="season_id" />
+                    </div>
+                    <div
+                        v-if="currentTab === 'Leaders' && season_id != 0"
+                        class="min-w-full overflow-x-auto"
+                    >
+                        <SeasonLeaders :key="season_id" />
                     </div>
                     <div
                         v-if="currentTab === 'Awards' && season_id != 0"
                         class="min-w-full overflow-x-auto"
                     >
-                        <SeasonAwards :season_id="season_id" />
+                        <SeasonAwards :key="season_id" :season_id="season_id" />
+                    </div>
+                    <div
+                        v-if="currentTab === 'Draft' && season_id != 0"
+                        class="min-w-full overflow-x-auto"
+                    >
+                        <DraftBoard :key="season_id" :season_id="season_id" />
                     </div>
                     <div
                         v-if="currentTab === 'Transactions' && season_id != 0"
                         class="min-w-full overflow-x-auto"
-                    >
-
-                    </div>
+                    ></div>
                 </div>
             </div>
         </AuthenticatedLayout>
@@ -176,10 +235,12 @@ import axios from "axios";
 import Seasons from "@/Pages/Seasons/Module/Season.vue";
 import Playoffs from "@/Pages/Seasons/Module/Playoffs.vue";
 import SeasonAwards from "./Module/SeasonAwards.vue";
+import SeasonLeaders from "../Analytics/Module/SeasonLeaders.vue";
+import DraftBoard from "./Module/DraftBoard.vue";
 
 const props = defineProps({
     season_id: {
-        type: [Number,String],
+        type: [Number, String],
         default: 0,
         required: true,
     },

@@ -146,12 +146,15 @@ class AwardsController extends Controller
             $awards = DB::table('season_awards')
                 ->leftJoin('players', 'season_awards.player_id', '=', 'players.id')
                 ->leftJoin('teams', 'season_awards.team_id', '=', 'teams.id')
+                ->leftJoin('teams as drafted_team', 'players.drafted_team_id', '=', 'drafted_team.id') // Fixed alias usage
                 ->leftJoin('seasons', 'season_awards.season_id', '=', 'seasons.id') // Join the seasons table
                 ->where('season_awards.season_id', $seasonId)
                 ->select(
                     'season_awards.id',
                     'season_awards.player_id',
                     'players.name as player_name',
+                    'players.draft_status as draft_status',
+                    'drafted_team.acronym as drafted_team', // Fetch drafted team acronym
                     'teams.name as team_name',
                     'season_awards.award_name',
                     'season_awards.award_description',
@@ -166,12 +169,15 @@ class AwardsController extends Controller
             $awards = DB::table('season_awards')
                 ->leftJoin('players', 'season_awards.player_id', '=', 'players.id')
                 ->leftJoin('teams', 'season_awards.team_id', '=', 'teams.id')
+                ->leftJoin('teams as drafted_team', 'players.drafted_team_id', '=', 'drafted_team.id') // Fixed alias usage
                 ->leftJoin('seasons', 'season_awards.season_id', '=', 'seasons.id') // Join the seasons table
                 ->where('season_awards.award_name', $awardsName)
                 ->select(
                     'season_awards.id',
                     'season_awards.player_id',
                     'players.name as player_name',
+                    'players.draft_status as draft_status',
+                    'drafted_team.acronym as drafted_team', // Fetch drafted team acronym
                     'teams.name as team_name',
                     'season_awards.award_name',
                     'season_awards.award_description',
@@ -183,6 +189,7 @@ class AwardsController extends Controller
                 ->orderBy('season_awards.id', 'desc')  // Order by id in descending order
                 ->get();
         }
+
 
         return response()->json([
             'message' => 'Team IDs in season awards updated successfully for season ' . $seasonId,
