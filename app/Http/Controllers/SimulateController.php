@@ -187,20 +187,21 @@ class SimulateController extends Controller
 
                 $rebounds = rand(0, $rebounds);
 
+                $blocksPerMinute = 0.3 + ($player->blocks_rating / 200);
+                $blocks = round($blocksPerMinute * $minutes * $performanceFactor);
+
+                $blocks = rand(0, $blocks);
+
+
+                $stealsPerMinute = 0.3 + ($player->steals_rating / 200);
+                $steals = round($stealsPerMinute * $minutes * $performanceFactor);
+
+                $steals = rand(0, $steals);
+
                 // Apply defensive adjustments based on away team's defensive stats
                 $defensiveImpact = ($awayTeamDefensiveStats['blocks'] + $awayTeamDefensiveStats['steals']) / 20; // Scale factor
                 $points -= round($defensiveImpact * $minutes * 0.1); // Adjust points based on opponent's defense
                 $points = max($points, 0); // Ensure no negative points
-
-                // Apply similar adjustments for assists and rebounds if needed
-                // Uncomment if you want to adjust these stats
-                // $assists -= round($defensiveImpact * $minutes * 0.1);
-                // $assists = max($assists, 0); // Ensure no negative assists
-                // $rebounds -= round($defensiveImpact * $minutes * 0.1);
-                // $rebounds = max($rebounds, 0); // Ensure no negative rebounds
-
-                $steals = round($minutes * (0.05 - $defensiveImpact / 50)); // Adjust steals based on opponent's defense
-                $blocks = round($minutes * (0.03 - $defensiveImpact / 50)); // Adjust blocks based on opponent's defense
 
                 // Turnovers and fouls
                 $turnovers = round(rand(0, 2));
@@ -282,20 +283,21 @@ class SimulateController extends Controller
 
                 $rebounds = rand(0, $rebounds);
 
+                $blocksPerMinute = 0.3 + ($player->blocks_rating / 200);
+                $blocks = round($blocksPerMinute * $minutes * $performanceFactor);
+
+                $blocks = rand(0, $blocks);
+
+
+                $stealsPerMinute = 0.3 + ($player->steals_rating / 200);
+                $steals = round($stealsPerMinute * $minutes * $performanceFactor);
+
+                $steals = rand(0, $steals);
+
                 // Apply defensive adjustments based on home team's defensive stats
                 $defensiveImpact = ($homeTeamDefensiveStats['blocks'] + $homeTeamDefensiveStats['steals']) / 20; // Scale factor
                 $points -= round($defensiveImpact * $minutes * 0.1); // Adjust points based on opponent's defense
                 $points = max($points, 0); // Ensure no negative points
-
-                // Apply similar adjustments for assists and rebounds if needed
-                // Uncomment if you want to adjust these stats
-                // $assists -= round($defensiveImpact * $minutes * 0.1);
-                // $assists = max($assists, 0); // Ensure no negative assists
-                // $rebounds -= round($defensiveImpact * $minutes * 0.1);
-                // $rebounds = max($rebounds, 0); // Ensure no negative rebounds
-
-                $steals = round($minutes * (0.05 - $defensiveImpact / 50)); // Adjust steals based on opponent's defense
-                $blocks = round($minutes * (0.03 - $defensiveImpact / 50)); // Adjust blocks based on opponent's defense
 
                 // Turnovers and fouls
                 $turnovers = round(rand(0, 2));
@@ -540,20 +542,21 @@ class SimulateController extends Controller
 
                     $rebounds = rand(0, $rebounds);
 
+                    $blocksPerMinute = 0.3 + ($player->blocks_rating / 200);
+                    $blocks = round($blocksPerMinute * $minutes * $performanceFactor);
+
+                    $blocks = rand(0, $blocks);
+
+
+                    $stealsPerMinute = 0.3 + ($player->steals_rating / 200);
+                    $steals = round($stealsPerMinute * $minutes * $performanceFactor);
+
+                    $steals = rand(0, $steals);
+
                     // Apply defensive adjustments based on away team's defensive stats
                     $defensiveImpact = ($awayTeamDefensiveStats['blocks'] + $awayTeamDefensiveStats['steals']) / 20; // Scale factor
                     $points -= round($defensiveImpact * $minutes * 0.1); // Adjust points based on opponent's defense
                     $points = max($points, 0); // Ensure no negative points
-
-                    // Apply similar adjustments for assists and rebounds if needed
-                    // Uncomment if you want to adjust these stats
-                    // $assists -= round($defensiveImpact * $minutes * 0.1);
-                    // $assists = max($assists, 0); // Ensure no negative assists
-                    // $rebounds -= round($defensiveImpact * $minutes * 0.1);
-                    // $rebounds = max($rebounds, 0); // Ensure no negative rebounds
-
-                    $steals = round($minutes * (0.05 - $defensiveImpact / 50)); // Adjust steals based on opponent's defense
-                    $blocks = round($minutes * (0.03 - $defensiveImpact / 50)); // Adjust blocks based on opponent's defense
 
                     // Turnovers and fouls
                     $turnovers = round(rand(0, 2));
@@ -635,20 +638,21 @@ class SimulateController extends Controller
 
                     $rebounds = rand(0, $rebounds);
 
+                    $blocksPerMinute = 0.3 + ($player->blocks_rating / 200);
+                    $blocks = round($blocksPerMinute * $minutes * $performanceFactor);
+
+                    $blocks = rand(0, $blocks);
+
+
+                    $stealsPerMinute = 0.3 + ($player->steals_rating / 200);
+                    $steals = round($stealsPerMinute * $minutes * $performanceFactor);
+
+                    $steals = rand(0, $steals);
+
                     // Apply defensive adjustments based on home team's defensive stats
                     $defensiveImpact = ($homeTeamDefensiveStats['blocks'] + $homeTeamDefensiveStats['steals']) / 20; // Scale factor
                     $points -= round($defensiveImpact * $minutes * 0.1); // Adjust points based on opponent's defense
                     $points = max($points, 0); // Ensure no negative points
-
-                    // Apply similar adjustments for assists and rebounds if needed
-                    // Uncomment if you want to adjust these stats
-                    // $assists -= round($defensiveImpact * $minutes * 0.1);
-                    // $assists = max($assists, 0); // Ensure no negative assists
-                    // $rebounds -= round($defensiveImpact * $minutes * 0.1);
-                    // $rebounds = max($rebounds, 0); // Ensure no negative rebounds
-
-                    $steals = round($minutes * (0.05 - $defensiveImpact / 50)); // Adjust steals based on opponent's defense
-                    $blocks = round($minutes * (0.03 - $defensiveImpact / 50)); // Adjust blocks based on opponent's defense
 
                     // Turnovers and fouls
                     $turnovers = round(rand(0, 2));

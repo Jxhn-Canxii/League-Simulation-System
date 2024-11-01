@@ -579,7 +579,6 @@
                 v-if="currentTab === 'roster'"
                 :team_id="isTeamModalOpen"
             />
-            <Top10Player v-if="currentTab === 'legend'" :team_id="isTeamModalOpen" />
         </div>
     </Modal>
     <Modal :show="isGameResultModalOpen" :maxWidth="'4xl'">
@@ -607,9 +606,6 @@ import TeamHistory from "@/Pages/Teams/Module/TeamHistory.vue";
 import TeamInfo from "@/Pages/Teams/Module/TeamInfo.vue";
 import TeamRoster from "@/Pages/Teams/Module/TeamRoster.vue";
 import GameResults from "@/Pages/Seasons/Module/GameResults.vue";
-import TopPlayers from "@/Pages/Records/Module/TopPlayers.vue";
-import Top10Player from "@/Pages/Teams/Module/Top10Player.vue";
-import TopStatistics from "@/Pages/Analytics/Module/TopStatistics.vue";
 import SeasonTimeLine from "@/Pages/Analytics/Module/SeasonTimeLine.vue";
 
 const season_info = ref(false);
