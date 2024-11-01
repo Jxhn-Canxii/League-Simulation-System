@@ -321,9 +321,6 @@
                   </ul>
                 </div>
               </div>
-
-
-
             <!-- Stat Leaders Section: 3/4 Width -->
             <div class="w-1/2 p-4 bg-white">
               <h3 class="text-lg font-semibold mb-2">Stat Leaders</h3>
@@ -413,7 +410,7 @@
                 </ul>
               </div>
             </div>
-          </div>
+        </div>
         <Modal :show="isTeamRosterModalOpen" :maxWidth="'fullscreen'">
             <button
                 class="flex float-end bg-gray-100 p-3"
