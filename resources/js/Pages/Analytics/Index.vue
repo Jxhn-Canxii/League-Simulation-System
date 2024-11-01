@@ -10,9 +10,9 @@
             <ChampionshipShares />
             <ScoringShares />
           </div>
+          <SeasonLeaders />
           <WinShares />
           <SeasonTimeLine />
-          <SeasonLeaders />
         </div>
     </AuthenticatedLayout>
 </template>

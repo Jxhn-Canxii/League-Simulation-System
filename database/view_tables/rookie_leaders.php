@@ -2,6 +2,7 @@ CREATE OR REPLACE VIEW rookie_leaders AS
 SELECT
     players.id AS player_id,
     players.name AS player_name,
+    players.is_rookie AS is_rookie,
     teams.name AS team_name,
     -- Calculating per-game averages
     COUNT(CASE WHEN player_game_stats.minutes > 0 THEN player_game_stats.game_id END) AS games_played,
@@ -36,6 +37,6 @@ JOIN
 WHERE
     players.is_rookie = 1
 GROUP BY
-    players.id, players.name, teams.name
+    players.id, players.name, teams.name, players.is_rookie
 ORDER BY
     performance_score DESC;

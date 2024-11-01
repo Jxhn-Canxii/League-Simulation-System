@@ -37,7 +37,7 @@ JOIN
 WHERE
     player_game_stats.season_id = (SELECT MAX(season_id) FROM player_game_stats) -- Filtering for the current season
 GROUP BY
-    players.id, players.name, teams.name
+    players.id, players.name, teams.name, players.is_rookie
 ORDER BY
     performance_score DESC
 LIMIT 10; -- Fetching the top 10 MVP leaders

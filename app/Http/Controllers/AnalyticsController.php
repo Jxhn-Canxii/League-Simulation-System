@@ -182,7 +182,7 @@ class AnalyticsController extends Controller
                 'player_id' => $stats->player_id,
                 'player_name' => $stats->player_name,
                 'team_name' => $stats->team_name,
-                'is_rookie' => $stats->is_rookie === 1 ? 'Rookie' : 'Veteran', // Check if rookie
+                'is_rookie' => $stats->is_rookie, // Check if rookie
                 'games_played' => $gamesPlayed,
                 'points_per_game' => number_format($averagePointsPerGame, 2),
                 'rebounds_per_game' => number_format($averageReboundsPerGame, 2),

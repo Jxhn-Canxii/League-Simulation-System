@@ -22,56 +22,71 @@
                 <option value="top_block_leaders">Top Block Leaders</option>
                 <option value="top_steals_leaders">Top Steals Leaders</option>
                 <option value="top_turnovers_leaders">Top Turnover Leaders</option>
-                <option value="top_turnovers_leaders">Top Turnover Leaders</option>
                 <option value="top_fouls_leaders">Top Fouls Leaders</option>
             </select>
         </div>
 
-        <!-- Players Table -->
-        <div class="overflow-x-auto mb-8">
-            <table class="min-w-full divide-y divide-gray-200 text-xs">
-                <thead class="bg-gray-50 text-nowrap">
-                    <tr>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Exp</th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Team</th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">GP</th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Points Per Game">PPG</th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Rebounds Per Game">RPG</th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Assist Per Game">APG</th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Steals Per Game">SPG</th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Blocks Per Game">BPG</th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Turnover Per Game">TOPG</th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Fouls Per Game">FPG</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    <tr v-for="player in data.leaders" :key="player.player_id" class="hover:bg-gray-100">
-                        <td class="px-2 py-1 whitespace-nowrap border">{{ player.player_name }}</td>
-                        <td class="px-2 py-1 whitespace-nowrap border">{{ player.is_rookie }}</td>
-                        <td class="px-2 py-1 whitespace-nowrap border">{{ player.team_name }}</td>
-                        <td class="px-2 py-1 whitespace-nowrap border">{{ player.games_played }}</td>
-                        <td class="px-2 py-1 whitespace-nowrap border">{{ player.points_per_game }}</td>
-                        <td class="px-2 py-1 whitespace-nowrap border">{{ player.rebounds_per_game }}</td>
-                        <td class="px-2 py-1 whitespace-nowrap border">{{ player.assists_per_game }}</td>
-                        <td class="px-2 py-1 whitespace-nowrap border">{{ player.steals_per_game }}</td>
-                        <td class="px-2 py-1 whitespace-nowrap border">{{ player.blocks_per_game }}</td>
-                        <td class="px-2 py-1 whitespace-nowrap border">{{ player.turnovers_per_game }}</td>
-                        <td class="px-2 py-1 whitespace-nowrap border">{{ player.fouls_per_game }}</td>
-                    </tr>
-                </tbody>
-            </table>
+        <!-- Loading Screen -->
+        <div v-if="loading" class="flex justify-center items-center h-64">
+            <i class="fas fa-spinner fa-spin text-blue-600 text-3xl"></i>
+        </div>
+
+        <!-- Players Cards -->
+        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-8">
+            <div v-for="player in data.leaders" :key="player.player_id" class="bg-white rounded-lg shadow p-4 flex">
+                <!-- Profile Icon -->
+                <i class="fas fa-user-circle text-blue-600 text-4xl mr-4"></i>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold text-gray-800">{{ player.player_name }}</h3>
+                    <p class="text-sm text-gray-500">{{ player.is_rookie == 1 ? 'Rookie' : 'Veteran' }} - {{ player.team_name }}</p>
+                    <div class="mt-2">
+                        <!-- Highlighted Stat -->
+                        <div class="text-2xl font-bold text-blue-600" v-if="selectedLeaderType === 'top_point_leaders'">
+                            {{ player.points_per_game }} <span class="text-sm">PPG</span>
+                        </div>
+                        <div class="text-2xl font-bold text-blue-600" v-if="selectedLeaderType === 'top_rebound_leaders'">
+                            {{ player.rebounds_per_game }} <span class="text-sm">RPG</span>
+                        </div>
+                        <div class="text-2xl font-bold text-blue-600" v-if="selectedLeaderType === 'top_assist_leaders'">
+                            {{ player.assists_per_game }} <span class="text-sm">APG</span>
+                        </div>
+                        <div class="text-2xl font-bold text-blue-600" v-if="selectedLeaderType === 'top_steals_leaders'">
+                            {{ player.steals_per_game }} <span class="text-sm">SPG</span>
+                        </div>
+                        <div class="text-2xl font-bold text-blue-600" v-if="selectedLeaderType === 'top_block_leaders'">
+                            {{ player.blocks_per_game }} <span class="text-sm">BPG</span>
+                        </div>
+                        <div class="text-2xl font-bold text-blue-600" v-if="selectedLeaderType === 'top_turnovers_leaders'">
+                            {{ player.turnovers_per_game }} <span class="text-sm">TOPG</span>
+                        </div>
+                        <div class="text-2xl font-bold text-blue-600" v-if="selectedLeaderType === 'top_fouls_leaders'">
+                            {{ player.fouls_per_game }} <span class="text-sm">FPG</span>
+                        </div>
+
+                        <!-- Other Stats -->
+                        <div class="text-lg text-gray-600" v-if="selectedLeaderType !== 'top_point_leaders' && selectedLeaderType !== 'top_rebound_leaders' && selectedLeaderType !== 'top_assist_leaders' && selectedLeaderType !== 'top_steals_leaders' && selectedLeaderType !== 'top_block_leaders' && selectedLeaderType !== 'top_turnovers_leaders' && selectedLeaderType !== 'top_fouls_leaders'">
+                            GP: {{ player.games_played }}<br>
+                            RPG: {{ player.rebounds_per_game }}<br>
+                            APG: {{ player.assists_per_game }}<br>
+                            SPG: {{ player.steals_per_game }}<br>
+                            BPG: {{ player.blocks_per_game }}<br>
+                            TOPG: {{ player.turnovers_per_game }}<br>
+                            FPG: {{ player.fouls_per_game }}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted } from "vue";
 import axios from "axios";
 
-const data = ref({});
+const data = ref({ leaders: [] });
 const selectedLeaderType = ref("mvp_leaders");
-const displayedPlayers = ref([]);
+const loading = ref(false); // Loading state
 
 onMounted(() => {
     fetchTopPlayers();
@@ -79,15 +94,16 @@ onMounted(() => {
 
 // Function to fetch top players data
 const fetchTopPlayers = async () => {
+    loading.value = true; // Set loading to true
     try {
-        const response = await axios.post(route("players.season.leaders"),{leader_type: selectedLeaderType.value});
+        const response = await axios.post(route("players.season.leaders"), { leader_type: selectedLeaderType.value });
         data.value = response.data;
-        updateDisplayedPlayers(); // Initialize with default value
     } catch (error) {
         console.error("Error fetching top players:", error);
+    } finally {
+        loading.value = false; // Set loading to false after data fetching
     }
 };
-
 </script>
 
 <style scoped>
@@ -98,5 +114,10 @@ const fetchTopPlayers = async () => {
 .table th,
 .table td {
     padding: 0.5rem;
+}
+
+/* Additional styles for card layout */
+.flex {
+    display: flex;
 }
 </style>
