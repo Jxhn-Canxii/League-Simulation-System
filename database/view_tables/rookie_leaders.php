@@ -4,6 +4,7 @@ SELECT
     players.name AS player_name,
     players.is_rookie AS is_rookie,
     players.draft_status AS draft_status,
+    players.team_id AS team_id,
     teams.name AS team_name,
     -- Calculating per-game averages
     COUNT(CASE WHEN player_game_stats.minutes > 0 THEN player_game_stats.game_id END) AS games_played,
@@ -38,6 +39,6 @@ JOIN
 WHERE
     players.is_rookie = 1
 GROUP BY
-    players.id, players.name, teams.name, players.is_rookie, players.draft_status
+    players.id, players.name, teams.name, players.is_rookie, players.draft_status,  players.team_id
 ORDER BY
     performance_score DESC;
