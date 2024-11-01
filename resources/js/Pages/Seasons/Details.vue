@@ -198,7 +198,7 @@
                         v-if="currentTab === 'Leaders' && season_id != 0"
                         class="min-w-full overflow-x-auto"
                     >
-                        <SeasonLeaders :key="season_id" />
+                        <SeasonLeaders :key="season_id" :season_id="season_id" />
                     </div>
                     <div
                         v-if="currentTab === 'Awards' && season_id != 0"

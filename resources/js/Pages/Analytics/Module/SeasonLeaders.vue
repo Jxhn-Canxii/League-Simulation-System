@@ -90,7 +90,12 @@ import axios from "axios";
 const data = ref({ leaders: [] });
 const selectedLeaderType = ref("mvp_leaders");
 const loading = ref(false); // Loading state
-
+const props = defineProps({
+    season_id: {
+        type: [Number,String],
+        required: true,
+    },
+});
 onMounted(() => {
     fetchTopPlayers();
 });
@@ -99,7 +104,7 @@ onMounted(() => {
 const fetchTopPlayers = async () => {
     loading.value = true; // Set loading to true
     try {
-        const response = await axios.post(route("players.season.leaders"), { leader_type: selectedLeaderType.value });
+        const response = await axios.post(route("players.season.leaders"), { leader_type: selectedLeaderType.value, season_id: props.season_id });
         data.value = response.data;
     } catch (error) {
         console.error("Error fetching top players:", error);

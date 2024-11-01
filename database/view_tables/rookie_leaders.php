@@ -36,9 +36,12 @@ JOIN
     player_game_stats ON players.id = player_game_stats.player_id
 JOIN
     teams ON players.team_id = teams.id
+JOIN
+    schedules ON player_game_stats.game_id = schedules.game_id
 WHERE
     players.is_rookie = 1
+    AND schedules.round NOT IN ('quarter_finals', 'round_of_16', 'round_of_32', 'semi_finals', 'interconference_semi_finals', 'finals') -- Excluding specified rounds
 GROUP BY
-    players.id, players.name, teams.name, players.is_rookie, players.draft_status,  players.team_id
+    players.id, players.name, teams.name, players.is_rookie, players.draft_status, players.team_id
 ORDER BY
     performance_score DESC;

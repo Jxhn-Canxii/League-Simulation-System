@@ -22,7 +22,7 @@ SELECT
     SUM(player_game_stats.blocks) AS total_blocks,
     SUM(player_game_stats.turnovers) AS total_turnovers,
     SUM(player_game_stats.fouls) AS total_fouls,
-    -- Calculating a performance score (you can adjust the weights as needed)
+    -- Calculating a performance score (adjust the weights as needed)
     (SUM(player_game_stats.points) +
     (SUM(player_game_stats.rebounds) * 1.2) +
     (SUM(player_game_stats.assists) * 1.5) +
@@ -36,10 +36,13 @@ JOIN
     player_game_stats ON players.id = player_game_stats.player_id
 JOIN
     teams ON players.team_id = teams.id
+JOIN
+    schedules ON player_game_stats.game_id = schedules.game_id
 WHERE
     player_game_stats.season_id = (SELECT MAX(season_id) FROM player_game_stats) -- Filtering for the current season
+    AND schedules.round NOT IN ('quarter_finals', 'round_of_16', 'round_of_32', 'semi_finals', 'interconference_semi_finals', 'finals') -- Excluding specified rounds
 GROUP BY
-    players.id, players.name, teams.name, players.is_rookie, players.draft_status,  players.team_id
+    players.id, players.name, teams.name, players.is_rookie, players.draft_status, players.team_id
 ORDER BY
     performance_score DESC
 LIMIT 10; -- Fetching the top 10 MVP leaders
