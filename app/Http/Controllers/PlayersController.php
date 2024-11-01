@@ -645,9 +645,7 @@ class PlayersController extends Controller
             'game_id' => 'required|string',
         ]);
 
-        $game_id = $request->game_id;
-
-       // Fetch game details from the schedule_view table and join with teams table
+        $game_id = $request->game_id;// Fetch game details from the schedule_view table and join with teams table
         $game = \DB::table('schedule_view')
         ->join('teams as away_team', 'schedule_view.away_id', '=', 'away_team.id') // Join for away team
         ->join('teams as home_team', 'schedule_view.home_id', '=', 'home_team.id') // Join for home team
@@ -701,12 +699,14 @@ class PlayersController extends Controller
             ->get()
             ->keyBy('id');
 
-        // Determine the best player based on overall stats
-        $bestPlayer = $playerStats->sort(function ($a, $b) {
-            $aStats = $a->points + $a->assists + $a->rebounds + $a->steals + $a->blocks;
-            $bStats = $b->points + $b->assists + $b->rebounds + $b->steals + $b->blocks;
-            return $bStats <=> $aStats;
-        })->first();
+       // Calculate stat leaders
+        $statLeaders = [
+            'points' => $playerStats->sortByDesc('points')->first(),
+            'assists' => $playerStats->sortByDesc('assists')->first(),
+            'rebounds' => $playerStats->sortByDesc('rebounds')->first(),
+            'steals' => $playerStats->sortByDesc('steals')->first(),
+            'blocks' => $playerStats->sortByDesc('blocks')->first(),
+        ];
 
         // Determine the winning team
         $winningTeamId = $game->home_score > $game->away_score ? $game->home_id : $game->away_id;
@@ -789,16 +789,17 @@ class PlayersController extends Controller
             ];
         })->values()->toArray();
 
+
         // Format data for box score
         $boxScore = [
             'game_id' => $game->game_id,
             'round' => $game->round,
             'home_team' => [
-                'team_id' => $game->home_id, // Use the correct field from your query
-                'name' => $game->home_team_name,
-                'score' => $game->home_score,
-                'primary_color' => $game->home_primary_color, // Add primary color
-                'secondary_color' => $game->home_secondary_color, // Add secondary color
+                 'team_id' => $game->home_id, // Use the correct field from your query
+                 'name' => $game->home_team_name,
+                 'score' => $game->home_score,
+                 'primary_color' => $game->home_primary_color, // Add primary color
+                 'secondary_color' => $game->home_secondary_color, // Add secondary color
             ],
             'away_team' => [
                 'team_id' => $game->away_id, // Use the correct field from your query
@@ -811,6 +812,7 @@ class PlayersController extends Controller
                 'home' => $homeTeamPlayersArray,
                 'away' => $awayTeamPlayersArray,
             ],
+            'stat_leaders' => $statLeaders,
             'best_player' => $bestWinningTeamPlayerDetails,
             'total_players_played' => $playerStats->count(),
         ];
@@ -1420,35 +1422,8 @@ class PlayersController extends Controller
         $top20Players = DB::table('top_20_players_all_time')->get();
         return response()->json($top20Players);
     }
-    public function gettop10playersbyteam(Request $request)
-    {
-        // Validate the request to ensure 'team_id' is provided
-        $validated = $request->validate([
-            'team_id' => 'required|integer|exists:teams,id',
-        ]);
-
-        // Retrieve the team_id from the request
-
-        // Query the view 'top_10_players_by_team' filtered by team_id
-        $topPlayersByTeam = DB::table('top_10_players_by_team_all_time')
-            ->select(
-                'player_id',
-                'player_name',
-                'team_id',
-                'team_name',
-                'total_points',
-                'total_assists',
-                'total_rebounds',
-                'total_steals',
-                'total_blocks',
-                'total_turnovers',
-                'championships_won',
-                'finals_mvp_count'
-            )
-            ->where('team_id', $validated['team_id'])
-            ->get();
-
-        // Return the data as JSON response
-        return response()->json($topPlayersByTeam);
+    public function gettop10playersbyteam(Request $request){
+        $top10PlayersByTeam = DB::table('top_10_players_by_team_all_time')->where('team_id',$request->team_id)->get();
+        return response()->json($top10PlayersByTeam);
     }
 }

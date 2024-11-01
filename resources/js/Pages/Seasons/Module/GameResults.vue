@@ -33,7 +33,7 @@
                 </p>
             </div>
 
-            <div class="flex-1 text-center mb-2 lg:mb-0">
+            <div class="flex-1 text-center mb-2 lg:mb-0 text-white">
                 <div class="bg-gray-800 p-2 rounded-lg">
                     <p class="text-xs font-semibold text-yellow-500">
                         Liga Dos
@@ -272,17 +272,148 @@
         </div>
 
         <!-- Best Player of the Game -->
-        <div v-if="bestPlayer" class="bg-yellow-100 p-2 rounded-lg text-black">
-            <h3 class="text-lg font-semibold mb-1">Best Player of the Game</h3>
-            <p><strong>Name:</strong> {{ bestPlayer.name }}</p>
-            <p><strong>Team:</strong> {{ bestPlayer.team }}</p>
-            <p><strong>Points:</strong> {{ bestPlayer.points }}</p>
-            <p><strong>Rebounds:</strong> {{ bestPlayer.rebounds }}</p>
-            <p><strong>Assists:</strong> {{ bestPlayer.assists }}</p>
-            <p><strong>Steals:</strong> {{ bestPlayer.steals }}</p>
-            <p><strong>Blocks:</strong> {{ bestPlayer.blocks }}</p>
-        </div>
+        <div class="flex bg-white">
+            <!-- Best Player Section: 1/4 Width -->
+            <div class="w-1/2 p-4">
+                <div v-if="bestPlayer" class="bg-white shadow-lg p-4 rounded-lg text-black mb-4">
+                  <h3 class="text-lg font-semibold mb-3">Player of the Game</h3>
+                  <div class="flex flex-col items-center mb-4">
+                    <p class="text-4xl font-extrabold mb-1">{{ bestPlayer?.name }}</p>
+                    <p class="text-gray-600 text-xl">{{ bestPlayer?.team }}</p>
+                  </div>
+                  <ul class="grid grid-cols-3 gap-4">
+                    <li class="flex flex-col items-center">
+                      <span class="flex-shrink-0 w-25 h-25 p-2 bg-blue-600 rounded-full flex items-center justify-center">
+                        <span class="text-6xl font-bold text-white">{{ bestPlayer?.points }}</span>
+                      </span>
+                      <p class="text-xl text-gray-900 font-bold">PTS</p>
+                    </li>
+                    <li class="flex flex-col items-center">
+                        <span class="flex-shrink-0 w-25 h-25 p-2 bg-blue-600 rounded-full flex items-center justify-center">
+                          <span class="text-6xl font-bold text-white">{{ bestPlayer?.rebounds }}</span>
+                        </span>
+                        <p class="text-xl text-gray-900 font-bold">REB</p>
+                      </li>
+                      <li class="flex flex-col items-center">
+                        <span class="flex-shrink-0 w-25 h-25 p-2 bg-blue-600 rounded-full flex items-center justify-center">
+                          <span class="text-6xl font-bold text-white">{{ bestPlayer?.assists }}</span>
+                        </span>
+                        <p class="text-xl text-gray-900 font-bold">AST</p>
+                      </li>
+                      <li class="flex flex-col items-center">
+                        <span class="flex-shrink-0 w-25 h-25 p-2 bg-blue-600 rounded-full flex items-center justify-center">
+                          <span class="text-6xl font-bold text-white">{{ bestPlayer?.steals }}</span>
+                        </span>
+                        <p class="text-xl text-gray-900 font-bold">STL</p>
+                      </li>
+                      <li class="flex flex-col items-center">
+                        <span class="flex-shrink-0 w-25 h-25 p-2 bg-blue-600 rounded-full flex items-center justify-center">
+                          <span class="text-6xl font-bold text-white">{{ bestPlayer?.blocks }}</span>
+                        </span>
+                        <p class="text-xl text-gray-900 font-bold">BLK</p>
+                      </li>
+                      <li class="flex flex-col items-center">
+                        <span class="flex-shrink-0 w-25 h-25 p-2 bg-red-600 rounded-full flex items-center justify-center">
+                          <span class="text-6xl font-bold text-white">{{ bestPlayer?.turnovers }}</span>
+                        </span>
+                        <p class="text-xl text-gray-900 font-bold">TO</p>
+                      </li>
+                  </ul>
+                </div>
+              </div>
 
+
+
+            <!-- Stat Leaders Section: 3/4 Width -->
+            <div class="w-1/2 p-4 bg-white">
+              <h3 class="text-lg font-semibold mb-2">Stat Leaders</h3>
+              <div class="min-w-full shadow-lg border-gray-300 p-4">
+                <ul class="space-y-4">
+                    <li v-if="statLeaders.points" class="flex items-center border-b border-gray-300 pb-2">
+                        <span class="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                          <i class="fas fa-basketball-ball text-gray-600"></i>
+                        </span>
+                        <div class="ml-3 flex-grow">
+                          <div class="flex justify-between items-start">
+                            <div>
+                              <span class="font-bold">{{ statLeaders.points.player_name }}</span>
+                              <small class="text-gray-400 block">{{ statLeaders.points.team_name }}</small>
+                            </div>
+                            <div class="text-right">
+                              <p class="font-bold text-2xl">{{ statLeaders.points.points }} pts</p>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+
+                      <li v-if="statLeaders.assists" class="flex items-center border-b border-gray-300 pb-2">
+                        <span class="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                          <i class="fas fa-basketball-ball text-gray-600"></i>
+                        </span>
+                        <div class="ml-3 flex-grow">
+                          <div class="flex justify-between items-start">
+                            <div>
+                              <span class="font-semibold">{{ statLeaders.assists.player_name }}</span>
+                              <small class="text-gray-400 block">{{ statLeaders.assists.team_name }}</small>
+                            </div>
+                            <div class="text-right">
+                              <p class="font-bold text-2xl">{{ statLeaders.assists.assists }} ast</p>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li v-if="statLeaders.rebounds" class="flex items-center border-b border-gray-300 pb-2">
+                        <span class="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                          <i class="fas fa-basketball-ball text-gray-600"></i>
+                        </span>
+                        <div class="ml-3 flex-grow">
+                          <div class="flex justify-between items-start">
+                            <div>
+                              <span class="font-semibold">{{ statLeaders.rebounds.player_name }}</span>
+                              <small class="text-gray-400 block">{{ statLeaders.rebounds.team_name }}</small>
+                            </div>
+                            <div class="text-right">
+                              <p class="font-bold text-2xl">{{ statLeaders.rebounds.rebounds }} reb</p>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li v-if="statLeaders.steals" class="flex items-center border-b border-gray-300 pb-2">
+                        <span class="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                          <i class="fas fa-basketball-ball text-gray-600"></i>
+                        </span>
+                        <div class="ml-3 flex-grow">
+                          <div class="flex justify-between items-start">
+                            <div>
+                              <span class="font-semibold">{{ statLeaders.steals.player_name }}</span>
+                              <small class="text-gray-400 block">{{ statLeaders.steals.team_name }}</small>
+                            </div>
+                            <div class="text-right">
+                              <p class="font-bold text-2xl">{{ statLeaders.steals.steals }} stl</p>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li v-if="statLeaders.blocks" class="flex items-center border-b border-gray-300 pb-2">
+                        <span class="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                          <i class="fas fa-basketball-ball text-gray-600"></i>
+                        </span>
+                        <div class="ml-3 flex-grow">
+                          <div class="flex justify-between items-start">
+                            <div>
+                              <span class="font-semibold">{{ statLeaders.blocks.player_name }}</span>
+                              <small class="text-gray-400 block">{{ statLeaders.blocks.team_name }}</small>
+                            </div>
+                            <div class="text-right">
+                              <p class="font-bold text-2xl">{{ statLeaders.blocks.blocks }} blk</p>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                </ul>
+              </div>
+            </div>
+          </div>
         <Modal :show="isTeamRosterModalOpen" :maxWidth="'fullscreen'">
             <button
                 class="flex float-end bg-gray-100 p-3"
@@ -339,6 +470,7 @@ const isTeamRosterModalOpen = ref(false);
 const gameDetails = ref(null);
 const playerStats = ref({ home: [], away: [] });
 const bestPlayer = ref(null);
+const statLeaders = ref([]);
 
 // Fetch the box score data
 const fetchBoxScore = async () => {
@@ -352,6 +484,7 @@ const fetchBoxScore = async () => {
         playerStats.value.home = data.player_stats.home;
         playerStats.value.away = data.player_stats.away;
         bestPlayer.value = data.best_player;
+        statLeaders.value = data.stat_leaders;
     } catch (error) {
         console.error("Error fetching box score:", error);
     }
