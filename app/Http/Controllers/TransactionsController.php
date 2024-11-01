@@ -265,7 +265,7 @@ class TransactionsController extends Controller
 
                 // Add top rookies (overall_rating >= 90) to star players
                 foreach ($rookies as $rookie) {
-                    if (count($starPlayers) < 3 && $rookie->overall_rating >= 90) {
+                    if (count($starPlayers) < 3 && $rookie->overall_rating >= 85) {
                         $starPlayers[] = $rookie->id;
                     } elseif (count($rolePlayers) < 5) {
                         $rolePlayers[] = $rookie->id;
