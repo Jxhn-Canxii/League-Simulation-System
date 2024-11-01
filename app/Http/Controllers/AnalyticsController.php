@@ -149,6 +149,7 @@ class AnalyticsController extends Controller
             ->select(
                 'players.id as player_id',
                 'players.name as player_name',
+                'players.draft_status as draft_status',
                 'players.team_id',
                 'teams.name as team_name',
                 'players.is_rookie',
@@ -162,7 +163,7 @@ class AnalyticsController extends Controller
                 \DB::raw('SUM(player_game_stats.minutes) as total_minutes'),
                 \DB::raw('COUNT(DISTINCT CASE WHEN player_game_stats.minutes > 0 THEN player_game_stats.game_id END) as games_played')
             )
-            ->groupBy('players.id', 'players.name', 'players.team_id', 'teams.name', 'players.is_rookie')
+            ->groupBy('players.id', 'players.name', 'players.team_id', 'teams.name', 'players.is_rookie','players.draft_status')
             ->get();
 
         $formattedPlayerStats = [];
@@ -183,6 +184,7 @@ class AnalyticsController extends Controller
                 'player_name' => $stats->player_name,
                 'team_name' => $stats->team_name,
                 'is_rookie' => $stats->is_rookie, // Check if rookie
+                'draft_status' => $stats->draft_status, // Check if rookie
                 'games_played' => $gamesPlayed,
                 'points_per_game' => number_format($averagePointsPerGame, 2),
                 'rebounds_per_game' => number_format($averageReboundsPerGame, 2),

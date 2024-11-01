@@ -33,12 +33,13 @@
 
         <!-- Players Cards -->
         <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-8">
-            <div v-for="player in data.leaders" :key="player.player_id" class="bg-white rounded-lg shadow p-4 flex">
+            <div v-for="player in data.leaders" :key="player.player_id" class="bg-white rounded-lg shadow-lg p-4 flex">
                 <!-- Profile Icon -->
                 <i class="fas fa-user-circle text-blue-600 text-4xl mr-4"></i>
                 <div class="flex-1">
-                    <h3 class="text-lg font-semibold text-gray-800">{{ player.player_name }}</h3>
+                    <h3 class="text-md text-nowrap font-semibold text-gray-800">{{ player.player_name }}</h3>
                     <p class="text-sm text-gray-500">{{ player.is_rookie == 1 ? 'Rookie' : 'Veteran' }} - {{ player.team_name }}</p>
+                    <p class="text-xs text-gray-400">{{ player.draft_status }}</p>
                     <div class="mt-2">
                         <!-- Highlighted Stat -->
                         <div class="text-2xl font-bold text-blue-600" v-if="selectedLeaderType === 'top_point_leaders'">
@@ -66,6 +67,7 @@
                         <!-- Other Stats -->
                         <div class="text-lg text-gray-600" v-if="selectedLeaderType !== 'top_point_leaders' && selectedLeaderType !== 'top_rebound_leaders' && selectedLeaderType !== 'top_assist_leaders' && selectedLeaderType !== 'top_steals_leaders' && selectedLeaderType !== 'top_block_leaders' && selectedLeaderType !== 'top_turnovers_leaders' && selectedLeaderType !== 'top_fouls_leaders'">
                             GP: {{ player.games_played }}<br>
+                            PPG: {{ player.points_per_game }}<br>
                             RPG: {{ player.rebounds_per_game }}<br>
                             APG: {{ player.assists_per_game }}<br>
                             SPG: {{ player.steals_per_game }}<br>
@@ -73,6 +75,7 @@
                             TOPG: {{ player.turnovers_per_game }}<br>
                             FPG: {{ player.fouls_per_game }}
                         </div>
+                        <small class="text-gray-400" title="Performance Score">{{ player.performance_score }}</small>
                     </div>
                 </div>
             </div>
