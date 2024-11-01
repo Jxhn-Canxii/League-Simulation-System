@@ -1,6 +1,6 @@
 <template>
     <div
-        class="p-4 bg-gray-900 text-white shadow-md rounded-lg max-w-7xl mx-auto"
+        class="p-4 bg-gray-900  shadow-md rounded-lg max-w-7xl mx-auto"
     >
         <!-- Game Summary -->
         <div
@@ -16,10 +16,19 @@
                 }"
             >
                 <!-- Home team primary color -->
-                <h2 class="text-5xl font-bold">
+                <h2 class="text-5xl font-bold"
+                    :style="{
+                        color: '#' + gameDetails?.home_team.secondary_color,
+                    }"
+                >
                     {{ gameDetails?.home_team.score }}
                 </h2>
-                <p class="text-md font-semibold">
+                <p class="text-md font-semibold"
+                    :style="{
+                        backgroundColor: '#' + gameDetails?.home_team.secondary_color,
+                        color: '#' + gameDetails?.home_team.primary_color,
+                    }"
+                >
                     {{ gameDetails?.home_team.name }}
                 </p>
             </div>
@@ -60,13 +69,18 @@
                 }"
             >
                 <!-- Away team primary color -->
-                <h2 class="text-5xl font-bold">
+                <h2 class="text-5xl font-bold"
+                    :style="{
+                        color: '#' + gameDetails?.away_team.secondary_color,
+                    }"
+                >
                     {{ gameDetails?.away_team.score }}
                 </h2>
                 <p
                     class="text-md font-semibold"
                     :style="{
-                        text: '#' + gameDetails?.away_team.secondary_color,
+                        backgroundColor: '#' + gameDetails?.away_team.secondary_color,
+                        color: '#' + gameDetails?.away_team.primary_color,
                     }"
                 >
                     {{ gameDetails?.away_team.name }}
@@ -75,7 +89,7 @@
         </div>
 
         <!-- Player Statistics Tables -->
-        <div class="mb-4" v-if="props.showBoxScore">
+        <div class="mb-4 text-white" v-if="props.showBoxScore">
             <h3 class="text-xl font-semibold mb-2">Player Statistics</h3>
 
             <!-- Home Team Player Stats -->
