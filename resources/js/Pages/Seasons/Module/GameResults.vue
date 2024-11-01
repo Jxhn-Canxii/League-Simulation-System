@@ -281,7 +281,7 @@
                     <p class="text-4xl font-extrabold mb-1">{{ bestPlayer?.name }}</p>
                     <p class="text-gray-600 text-xl">{{ bestPlayer?.team }}</p>
                   </div>
-                  <ul class="grid grid-cols-3 gap-4">
+                  <ul class="grid grid-cols-3 gap-4 p-4">
                     <li class="flex flex-col items-center">
                       <span class="flex-shrink-0 w-25 h-25 p-2 bg-blue-600 rounded-full flex items-center justify-center">
                         <span class="text-6xl font-bold text-white">{{ bestPlayer?.points }}</span>
@@ -319,7 +319,7 @@
                         <p class="text-xl text-gray-900 font-bold">TO</p>
                       </li>
                   </ul>
-                  <small>{{ bestPlayer.draft_status }} {{ bestPlayer.drafted_team_acro ? `(${bestPlayer.drafted_team_acro})` : '' }}</small>
+                  <small class="float-right font-bold text-red-500">{{ bestPlayer.draft_status }} {{ bestPlayer.drafted_team_acro ? `(${bestPlayer.drafted_team_acro})` : '' }}</small>
                 </div>
               </div>
             <!-- Stat Leaders Section: 3/4 Width -->
