@@ -130,6 +130,7 @@ class ConferenceController extends Controller
         $schedules = DB::table('schedule_view')
             ->where('season_id', $seasonId)
             ->where('conference_id', $conferenceId)
+            ->where('status', 1)
             ->whereNotIn('round', ['round_of_16', 'quarter_finals', 'semi_finals', 'finals'])
             ->get();
 
