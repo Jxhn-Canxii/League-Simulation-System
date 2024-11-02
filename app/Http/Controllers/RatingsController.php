@@ -270,9 +270,15 @@ class RatingsController extends Controller
                 \Log::info('Processing last update.');
 
                 ///lastly update all active players to non rookie
-                DB::table('players')->where('is_active', 1)->update([
+                \DB::table('players')
+                ->where('is_active', 1)
+                ->update([
                     'is_rookie' => 0,
+                    'age' => \DB::raw('age + 1'), // Increment age by 1
+                    'is_active' => \DB::raw("CASE WHEN age + 1 >= retirement_age THEN 0 ELSE is_active END"), // Set is_active to 0 if age reaches retirement_age
                 ]);
+
+
                 // Update season status
                 $season = Seasons::find($seasonId);
                 if ($season) {
