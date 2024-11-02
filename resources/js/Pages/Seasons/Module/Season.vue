@@ -209,7 +209,7 @@
             </ul>
         </div>
         <div
-            class="flex justify-end mb-2"
+            class="flex justify-end mb-2 space-x-2"
             v-if="season_schedules && !season_schedules.is_simulated"
         >
             <button
@@ -219,6 +219,14 @@
                 class="text-indigo-600 bg-orange-300 shadow rounded-full p-2 font-bold text-md text-nowrap hover:text-indigo-900"
             >
                 Simulate Conference
+            </button>
+            <button
+                @click="simulateAll()"
+                :disabled="isHide"
+                :class="isHide ? 'opacity-50' : ''"
+                class="text-indigo-600 bg-orange-400 shadow rounded-full p-2 font-bold text-md text-nowrap hover:text-indigo-900"
+            >
+                Simulate All Season
             </button>
         </div>
         <div
@@ -699,7 +707,60 @@ const simulatePerRound = async () => {
     }
 
 };
+const simulateAll = async () => {
+    const rounds = season_schedules.value.rounds;
+    const lastRoundIndex = rounds.length - 1; // Get the index of the last round
 
+    for (let mode = 1; mode <= 4; mode++) {
+        for (const [index, round] of rounds.entries()) {
+            // Check if it's the last round
+            const isLastRound = index === lastRoundIndex;
+
+            // Pass an additional parameter if it's the last round
+            await simulateAllRoundGames(round, isLastRound,mode);
+        }
+    }
+};
+const simulateAllRoundGames = async (round, isLast,conference_id) => {
+    try {
+        isHide.value = true;
+        currentRound.value = round;
+        const response = await axios.post(route("game.per.round"), {
+            season_id: props.season_id, // Assuming the parameter name should be schedule_id
+            round: round,
+            conference_id: conference_id,
+        });
+        // await localStorage.setItem('season-key',generateRandomKey());
+        const gameIds = response.data.schedule_ids; // Assuming the response contains 'game_ids'
+        // Loop through each game ID
+        for (const gameId of gameIds) {
+            // Perform an action with each game ID
+            console.log(`Processing Game ID: ${gameId}`);
+            await simulateGame(gameId);
+            // You can also add more logic here, like fetching game details or updating the state
+        }
+
+        topPlayersKey.value = round;
+        if (isLast) {
+            Swal.fire({
+                icon: "success",
+                title: "Success!",
+                text: response.data.message, // Assuming the response contains a 'message' field
+            });
+
+            isHide.value = false;
+            currentRound.value = false;
+        }
+    } catch (error) {
+        console.error("Error simulating the game:", error);
+        // Show error message using Swal2 if needed
+        Swal.fire({
+            icon: "warning",
+            title: "Warning!",
+            text: error.response.data.error,
+        });
+    }
+};
 const simulateRoundGames = async (round, isLast) => {
     try {
         isHide.value = true;
@@ -766,7 +827,7 @@ const simulateGame = async (schedule_id) => {
         Swal.fire({
             icon: "error",
             title: "Error!",
-            text: "Failed to simulate the game. Please try again later.",
+            text: error.response.data.message,
         });
     }
 };
