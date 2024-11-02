@@ -270,7 +270,7 @@
                 <h3 class="text-lg font-semibold mb-3">Player of the Game</h3>
                 <div v-if="bestPlayer" class="bg-white shadow-lg p-4 rounded-lg text-black mb-4">
                   <div class="flex flex-col items-center mb-4">
-                    <p class="text-4xl font-extrabold mb-1">{{ bestPlayer?.name }}</p>
+                    <p class="text-4xl font-extrabold mb-1">{{ playerFormatter(bestPlayer?.name) }}</p>
                     <p class="text-gray-600 text-xl">{{ bestPlayer?.team }}</p>
                   </div>
                   <ul class="grid grid-cols-3 gap-4 p-4">
@@ -480,6 +480,18 @@ const fetchBoxScore = async () => {
     }
 };
 
+const playerFormatter = (name) => {
+    const nameParts = name.split(' '); // Split the name into parts
+
+    // Check if the name has more than two parts
+    if (nameParts.length > 2) {
+        // Get the first letter of the first part and combine with the rest
+        const formattedName = `${nameParts[0][0]}. ${nameParts.slice(1).join(' ')}`;
+        return formattedName; // Return the formatted name
+    } else {
+        return name; // Return the name as is if it has two or fewer parts
+    }
+};
 // Sort players by points and get top 5 players
 const sortedHomePlayers = computed(() => {
     return playerStats.value.home.slice().sort((a, b) => b.points - a.points);

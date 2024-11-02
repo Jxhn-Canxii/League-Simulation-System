@@ -10,7 +10,7 @@
         <!-- Available Players Section -->
         <div class="flex justify-end space-x-2">
             <button
-                @click.prevent="addMultiplePlayers(170)"
+                @click.prevent="addMultiplePlayers(200)"
                 class="px-2 py-2 bg-green-500 rounded font-bold text-md float-end text-white shadow"
             >
                 <i class="fa fa-user"></i> Add Rookie Player From Api
@@ -180,6 +180,7 @@
 import { ref, onMounted } from "vue";
 import Swal from "sweetalert2";
 import axios from "axios";
+import { faker } from '@faker-js/faker';
 
 import Paginator from "@/Components/Paginator.vue";
 import TopStatistics from "@/Pages/Analytics/Module/TopStatistics.vue";
@@ -273,7 +274,7 @@ const draftPlayer = async () => {
         });
     }
 };
-const fetchRandomFullName = async () => {
+const fetchRandomFullName1 = async () => {
     try {
         // https://randomuser.me/api/?inc=name,gender,location,nat&gender=male
         const response = await axios.get(' https://randomuser.me/api/?inc=name,gender,location,nat&gender=male'); // API URL for random male user
@@ -301,18 +302,47 @@ const fetchRandomFullName = async () => {
         return null; // Return null on error
     }
 };
+const fetchRandomFullName2 = () => {
+    // Generate a random name and surname
+    const name = faker.name.firstName('male'); // Generate a random first name
+    const surname = faker.name.lastName(); // Generate a random last name
+    const fullName = `${name} ${surname}`;
+
+    // Generate a random country and address
+    const country = faker.address.country(); // Generate a random country
+    const address = faker.address.streetAddress(); // Generate a random street address
+
+    const data = {
+        name: fullName,
+        country: country,
+        address: address,
+    };
+
+    // Function to check if a name contains only English alphabet letters
+    const isEnglishReadable = (name) => /^[A-Za-z]+$/.test(name);
+
+    if (isEnglishReadable(name) && isEnglishReadable(surname)) {
+        return data; // Return full name if valid
+    } else {
+        return null; // Return null if the name is not valid
+    }
+};
+
 const addMultiplePlayers = async (count) => {
     try {
         const promises = [];
 
         for (let i = 0; i < count; i++) {
+            // Randomly choose between fetchRandomFullName1 or fetchRandomFullName2
+            const fetchRandomFullName = Math.random() < 0.5 ? fetchRandomFullName2 : fetchRandomFullName2; // 50% chance for each
+
             const randomFullName = await fetchRandomFullName(); // Fetch random full name
-            if(randomFullName != null){
+            if (randomFullName != null) {
                 promises.push(addPlayer(randomFullName)); // Add the promise to the array
                 key.value = i;
             }
-
         }
+
 
         // Wait for all promises to resolve
         const results = await Promise.all(promises);
