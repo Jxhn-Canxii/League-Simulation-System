@@ -751,8 +751,8 @@ class PlayersController extends Controller
             'drafted_team_acro' => $bestWinningTeamPlayer->drafted_team_acro,
         ] : null;
 
-        $homeTeamStreak = $this->getTeamStreak($game->home_id);
-        $awayTeamStreak = $this->getTeamStreak($game->away_id);
+        $homeTeamStreak = $this->getTeamStreak($game->home_id,$game->id);
+        $awayTeamStreak = $this->getTeamStreak($game->away_id, $game->id);
 
         // Query to get head-to-head record
         $headToHeadRecord = $this->getHeadToHeadRecord($game->home_id, $game->away_id);
@@ -845,17 +845,17 @@ class PlayersController extends Controller
     }
     /**
      * Function to get team streak
-     */
-    private function getTeamStreak($teamId)
+     */ private function getTeamStreak($teamId,$game_id)
     {
         // Query to calculate team's winning or losing streak
         $streak = \DB::table('schedule_view')
             ->where(function ($query) use ($teamId) {
                 $query->where('home_id', $teamId)
-                      ->orWhere('away_id', $teamId);
+                    ->orWhere('away_id', $teamId);
             })
+            ->where('status',2)
+            ->where('id', '<=', $game_id) // Get records with id less than or equal to game_id
             ->orderBy('id', 'desc') // Assuming game_id is the chronological identifier
-            ->limit(10) // Check the last 10 games
             ->get();
 
         // Logic to determine streak type (winning or losing)
@@ -885,9 +885,14 @@ class PlayersController extends Controller
             }
         }
 
-        // Return the streak type and count, defaulting to 'L' if no games were played
-        return ($currentStreak > 0 ? ($isWinningStreak ? 'W' : 'L') . $currentStreak : 'N0');
+        // Determine the output based on the current streak
+        if ($currentStreak > 0) {
+            return ($isWinningStreak ? 'W' . $currentStreak : 'L' . $currentStreak);
+        } else {
+            return 'N0'; // No games played
+        }
     }
+
 
 
     /**
