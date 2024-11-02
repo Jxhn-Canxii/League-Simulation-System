@@ -278,6 +278,13 @@ class RatingsController extends Controller
                     'is_active' => \DB::raw("CASE WHEN age + 1 >= retirement_age THEN 0 ELSE is_active END"), // Set is_active to 0 if age reaches retirement_age
                 ]);
 
+                ///lastly update the age of non active players
+                \DB::table('players')
+                ->where('is_active', 0)
+                ->update([
+                    'age' => \DB::raw('age + 1'), // Increment age by 1
+                ]);
+
 
                 // Update season status
                 $season = Seasons::find($seasonId);
