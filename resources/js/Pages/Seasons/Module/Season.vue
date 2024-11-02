@@ -748,6 +748,7 @@ const simulateAllRoundGames = async (round, isLast,conference_id) => {
                 text: response.data.message, // Assuming the response contains a 'message' field
             });
 
+            await fetchConferenceSchedules(activeConferenceTab.value);
             isHide.value = false;
             currentRound.value = false;
         }
@@ -788,6 +789,7 @@ const simulateRoundGames = async (round, isLast) => {
                 text: response.data.message, // Assuming the response contains a 'message' field
             });
 
+            await fetchConferenceSchedules(activeConferenceTab.value);
             isHide.value = false;
             currentRound.value = false;
         }
@@ -812,8 +814,6 @@ const simulateGame = async (schedule_id) => {
         // isHide.value = false;
         topPlayersKey.value++; // Trigger update of TopPlayers component
         await fetchConferenceStandings(activeConferenceTab.value);
-        await fetchConferenceSchedules(activeConferenceTab.value);
-
         activeGameId.value = response.data.game_id ?? 0;
         // Show success message using Swal2
         // Swal.fire({
