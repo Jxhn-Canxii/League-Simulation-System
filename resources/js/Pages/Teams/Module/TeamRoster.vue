@@ -135,7 +135,7 @@
                         <td class="px-2 py-1 whitespace-nowrap border">
                             {{ player.name }}<sup>{{ player.is_rookie ? 'R':'V'}}</sup>
                         </td>
-                        <td class="px-2 py-1 whitespace-nowrap border">
+                        <td class="px-2 py-1 whitespace-nowrap border" :title="player.retirement_age">
                             {{ player.age }}
                         </td>
                         <td class="px-2 py-1 whitespace-nowrap border">
