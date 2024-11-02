@@ -485,14 +485,14 @@ const playerFormatter = (name) => {
 
     // Assume the last part is the surname
     const firstName = nameParts[0];
-    const surname = nameParts[nameParts.length - 1];
+    const surName = nameParts[nameParts.length - 1];
 
     // Define a maximum length for the surname
-    const maxSurnameLength = 10; // You can adjust this value as needed
+    const maxnameLength = 15; // You can adjust this value as needed
 
-    // Check if the surname is too long
-    if (surname.length > maxSurnameLength) {
-        return `${firstName[0]}. ${surname}`; // Format as "F. Surname"
+    // Check if the name is too long
+    if (name.length > maxnameLength) {
+        return `${firstName[0]}. ${surName}`; // Format as "F. Surname"
     } else {
         return name; // Return the name as is if the surname is not too long
     }
