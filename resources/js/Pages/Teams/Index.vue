@@ -84,7 +84,7 @@
                                 class="border-b border-gray-200 bg-white px-5 py-5 text-sm"
                             >
                                 <button
-                                    @click.prevent="isTeamModalOpen = team.id"
+                                    @click.prevent="teamBehavior(team)"
                                     v-bind:class="{
                                         'opacity-25': isTeamModalOpen,
                                     }"
@@ -386,17 +386,24 @@
                         Team Roster
                     </button>
                     <button
-                        :class="['px-4 py-2', currentTab === 'legend' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700']"
-                        @click="currentTab = 'legend'"
+                        :class="['px-4 py-2', currentTab === 'timeline' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700']"
+                        @click="currentTab = 'timeline'"
                     >
-                        Top 10 Players
+                        Season Timeline
                     </button>
+                    <button
+                    :class="['px-4 py-2', currentTab === 'legend' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700']"
+                    @click="currentTab = 'legend'"
+                >
+                    Top 10 Players
+                </button>
                 </div>
                 <div class="mt-4">
-                    <TeamInfo :key="currentTab" v-if="currentTab === 'info'" :team_id="isTeamModalOpen" />
-                    <TeamHistory :key="currentTab"  v-if="currentTab === 'history'" :team_id="isTeamModalOpen" />
-                    <TeamRoster :key="currentTab" v-if="currentTab === 'roster'" :team_id="isTeamModalOpen" />
-                    <Top10Player :key="currentTab" v-if="currentTab === 'legend'" :team_id="isTeamModalOpen" />
+                    <TeamInfo :key="currentTab" v-if="currentTab === 'info'" :team_id="teamForm.team_id" />
+                    <TeamHistory :key="currentTab"  v-if="currentTab === 'history'" :team_id="teamForm.team_id" />
+                    <TeamRoster :key="currentTab" v-if="currentTab === 'roster'" :team_id="teamForm.team_id" />
+                    <Top10Player :key="currentTab" v-if="currentTab === 'legend'" :team_id="teamForm.team_id" />
+                    <SeasonTimeLine :key="currentTab" v-if="currentTab === 'timeline'" :teamId="teamForm.team_id" />
                 </div>
             </Modal>
         </AuthenticatedLayout>
@@ -418,6 +425,7 @@ import TeamHistory from "./Module/TeamHistory.vue";
 import TeamInfo from "./Module/TeamInfo.vue";
 import TeamRoster from "./Module/TeamRoster.vue";
 import Top10Player from "./Module/Top10Player.vue";
+import SeasonTimeLine from "../Analytics/Module/SeasonTimeLine.vue";
 
 const isAddModalOpen = ref(false);
 const isEditModalOpen = ref(false);
@@ -443,10 +451,20 @@ const form = useForm({
     league_id: 0,
     conference_id: 0,
 });
+
+const teamForm = useForm({
+    team_id: 0,
+    team_name: '',
+});
 onMounted(() => {
     fetchTeams();
     leagueDropdown();
 });
+const teamBehavior = (data) => {
+    teamForm.team_name = data.name;
+    teamForm.team_id = data.id;
+    isTeamModalOpen.value = true;
+}
 const fetchTeams = async () => {
     try {
         const response = await axios.post(route("teams.list"), search_teams.value);

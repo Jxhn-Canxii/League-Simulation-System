@@ -24,7 +24,7 @@
             </div>
             <div class="grid grid-cols-1 gap-6 mt-4">
                 <PlayerPlayoffAppearance />
-                <Top20Players />
+                <!-- <Top20Players /> -->
             </div>
         </div>
     </AuthenticatedLayout>

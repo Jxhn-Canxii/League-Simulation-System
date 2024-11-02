@@ -30,6 +30,8 @@ class RecordsController extends Controller
                 'teams.id',
                 'teams.name',
                 'teams.acronym',
+                'teams.primary_color',
+                'teams.secondary_color',
                 'conferences.name as conference_name', // Add conference name to select
                 DB::raw('COUNT(DISTINCT CASE WHEN seasons.finals_winner_id = teams.id THEN seasons.id END) AS championships'),
                 DB::raw('COUNT(DISTINCT CASE WHEN seasons.finals_loser_id = teams.id THEN seasons.id END) AS runnerups'),
@@ -40,7 +42,7 @@ class RecordsController extends Controller
                     ->orWhere('teams.id', '=', 'seasons.finals_loser_id');
             })
             ->leftJoin('conferences', 'teams.conference_id', '=', 'conferences.id') // Join conferences table
-            ->groupBy('teams.id', 'teams.name', 'teams.acronym', 'conferences.name') // Group by team columns and conference name
+            ->groupBy('teams.id', 'teams.name', 'teams.acronym','teams.primary_color','teams.secondary_color', 'conferences.name') // Group by team columns and conference name
             ->havingRaw('COALESCE(championships, 0) > 0 OR COALESCE(runnerups, 0) > 0'); // Filter teams with at least one championship or runner-up
 
 
@@ -137,13 +139,13 @@ class RecordsController extends Controller
 
         // Query to fetch all entries from schedule_view and sum up scores for each team
         $scoreAlltime = DB::table('schedule_view')
-            ->select('teams.name', 'conferences.name as conference', DB::raw('SUM(home_score + away_score) as total_score'))
+            ->select('teams.name','teams.primary_color','teams.secondary_color', 'conferences.name as conference', DB::raw('SUM(home_score + away_score) as total_score'))
             ->leftJoin('teams', function ($join) {
                 $join->on('schedule_view.home_id', '=', 'teams.id')
                     ->orOn('schedule_view.away_id', '=', 'teams.id');
             })
             ->leftJoin('conferences', 'teams.conference_id', '=', 'conferences.id')
-            ->groupBy('teams.name', 'conferences.name')
+            ->groupBy('teams.name', 'teams.primary_color', 'teams.secondary_color', 'conferences.name')
             ->orderBy('total_score', 'desc') // Sort by total score in descending order
             ->skip($offset)
             ->take($perPage)
@@ -244,13 +246,13 @@ class RecordsController extends Controller
 
         // Query to fetch team statistics
         $teamsStats = DB::table('standings_view')
-            ->select('teams.id as team_id', 'teams.name', 'conferences.name as conference',
+            ->select('teams.id as team_id', 'teams.name','teams.primary_color','teams.secondary_color', 'conferences.name as conference',
                      DB::raw('SUM(wins) as total_wins'),
                      DB::raw('SUM(losses) as total_losses'),
                      DB::raw('IFNULL((SUM(wins) / NULLIF(SUM(wins) + SUM(losses), 0)) * 100, 0) as win_rate'))
             ->leftJoin('teams', 'standings_view.team_id', '=', 'teams.id')
             ->leftJoin('conferences', 'teams.conference_id', '=', 'conferences.id')
-            ->groupBy('teams.id', 'teams.name', 'conferences.name')
+            ->groupBy('teams.id', 'teams.name', 'conferences.name','teams.primary_color','teams.secondary_color')
             ->orderBy('total_wins', 'desc') // Sort by total wins in descending order
             ->skip($offset)
             ->take($perPage)

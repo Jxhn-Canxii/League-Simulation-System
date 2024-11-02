@@ -44,7 +44,7 @@ const renderChart = async () => {
 
     const labels =  champions.value.map(team => team.name);
     const data =  champions.value.map(team => team.championships);
-    const backgroundColors = data.map(() => getRandomColor());
+    const backgroundColors = champions.value.map(team => `#${team.primary_color}`);
 
     if (chartInstance) {
         chartInstance.destroy();

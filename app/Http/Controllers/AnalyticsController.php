@@ -21,6 +21,7 @@ class AnalyticsController extends Controller
     {
         $request->validate([
             'conference_id' => 'required|integer',
+            'team_id' => 'required|integer',
         ]);
 
         // Fetch all records from standings_view and join with seasons and teams tables
@@ -38,6 +39,9 @@ class AnalyticsController extends Controller
         // Check if conference_id is 0, then conditionally add the where clause
         if ($request->conference_id > 0) {
             $standings->where('standings_view.conference_id', $request->conference_id);
+        }
+        if ($request->team_id > 0) {
+            $standings->where('standings_view.team_id', $request->team_id);
         }
 
         $standings = $standings->get();
