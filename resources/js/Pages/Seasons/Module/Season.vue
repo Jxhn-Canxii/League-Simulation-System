@@ -828,7 +828,10 @@ const simulateGame = async (schedule_id) => {
             icon: "error",
             title: "Error!",
             text: error.response.data.message,
+            timer: 3000, // Auto-hide after 3 seconds (3000 ms)
+            showConfirmButton: false, // Hide the "OK" button
         });
+
     }
 };
 //team modal
