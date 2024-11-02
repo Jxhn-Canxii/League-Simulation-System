@@ -72,7 +72,7 @@
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                    <tr v-for="award in awards" :key="award.id">
+                    <tr v-for="award in awards" :key="award.id" @click.prevent="showPlayerProfileModal = award.player_id">
                         <td
                             class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
                         >
@@ -111,14 +111,28 @@
             <p class="font-bold text-red-500">Please Choose Season.</p>
         </div>
     </div>
+    <Modal :show="showPlayerProfileModal" :maxWidth="'6xl'">
+        <button
+            class="flex float-end bg-gray-100 p-3"
+            @click.prevent="showPlayerProfileModal = false"
+        >
+            <i class="fa fa-times text-black-600"></i>
+        </button>
+        <div class="p-6 block">
+            <PlayerPerformance :key="showPlayerProfileModal" :player_id="showPlayerProfileModal" />
+        </div>
+    </Modal>
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue";
-import Paginator from "@/Components/Paginator.vue";
+import Modal from "@/Components/Modal.vue";
 import axios from "axios";
 import { useForm } from "@inertiajs/vue3";
 
+import PlayerPerformance from "@/Pages/Teams/Module/PlayerPerformance.vue";
+
+const showPlayerProfileModal = ref(false);
 const awards = ref([]);
 const awardsName = ref([]);
 const seasons = ref([]);
