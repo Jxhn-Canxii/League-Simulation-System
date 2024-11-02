@@ -483,13 +483,18 @@ const fetchBoxScore = async () => {
 const playerFormatter = (name) => {
     const nameParts = name.split(' '); // Split the name into parts
 
-    // Check if the name has more than two parts
-    if (nameParts.length > 2) {
-        // Get the first letter of the first part and combine with the rest
-        const formattedName = `${nameParts[0][0]}. ${nameParts.slice(1).join(' ')}`;
-        return formattedName; // Return the formatted name
+    // Assume the last part is the surname
+    const firstName = nameParts[0];
+    const surname = nameParts[nameParts.length - 1];
+
+    // Define a maximum length for the surname
+    const maxSurnameLength = 10; // You can adjust this value as needed
+
+    // Check if the surname is too long
+    if (surname.length > maxSurnameLength) {
+        return `${firstName[0]}. ${surname}`; // Format as "F. Surname"
     } else {
-        return name; // Return the name as is if it has two or fewer parts
+        return name; // Return the name as is if the surname is not too long
     }
 };
 // Sort players by points and get top 5 players
