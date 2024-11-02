@@ -854,7 +854,7 @@ class PlayersController extends Controller
                 $query->where('home_id', $teamId)
                     ->orWhere('away_id', $teamId);
             })
-            ->orderBy('id', 'desc')
+            ->orderBy('game_id', 'desc')
             ->limit(10) // Check the last 10 games
             ->get();
 
