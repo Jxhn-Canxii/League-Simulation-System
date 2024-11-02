@@ -268,7 +268,7 @@ class PlayersController extends Controller
 
         // Build the query with optional search filter and join with teams
         $query = DB::table('players')
-            ->select('players.id as player_id','players.country', 'players.name', 'players.age', 'players.role', 'players.is_active', 'players.retirement_age', 'players.contract_years', DB::raw("IF(players.team_id = 0, 'none', teams.name) as team_name"))
+            ->select('players.id as player_id', 'players.country', 'players.name', 'players.age', 'players.role', 'players.is_active', 'players.retirement_age', 'players.contract_years', DB::raw("IF(players.team_id = 0, 'none', teams.name) as team_name"))
             ->leftJoin('teams', 'players.team_id', '=', 'teams.id');
 
         // Apply search filter if provided
@@ -645,19 +645,19 @@ class PlayersController extends Controller
             'game_id' => 'required|string',
         ]);
 
-        $game_id = $request->game_id;// Fetch game details from the schedule_view table and join with teams table
+        $game_id = $request->game_id; // Fetch game details from the schedule_view table and join with teams table
         $game = \DB::table('schedule_view')
-        ->join('teams as away_team', 'schedule_view.away_id', '=', 'away_team.id') // Join for away team
-        ->join('teams as home_team', 'schedule_view.home_id', '=', 'home_team.id') // Join for home team
-        ->where('schedule_view.game_id', $game_id)
-        ->select(
-            'schedule_view.*', // Select all columns from schedule_view
-            'away_team.primary_color as away_primary_color',
-            'away_team.secondary_color as away_secondary_color',
-            'home_team.primary_color as home_primary_color',
-            'home_team.secondary_color as home_secondary_color'
-        )
-        ->first();
+            ->join('teams as away_team', 'schedule_view.away_id', '=', 'away_team.id') // Join for away team
+            ->join('teams as home_team', 'schedule_view.home_id', '=', 'home_team.id') // Join for home team
+            ->where('schedule_view.game_id', $game_id)
+            ->select(
+                'schedule_view.*', // Select all columns from schedule_view
+                'away_team.primary_color as away_primary_color',
+                'away_team.secondary_color as away_secondary_color',
+                'home_team.primary_color as home_primary_color',
+                'home_team.secondary_color as home_secondary_color'
+            )
+            ->first();
 
         if (!$game) {
             return response()->json([
@@ -703,7 +703,7 @@ class PlayersController extends Controller
             ->get()
             ->keyBy('id');
 
-       // Calculate stat leaders
+        // Calculate stat leaders
         $statLeaders = [
             'points' => $playerStats->sortByDesc('points')->first(),
             'assists' => $playerStats->sortByDesc('assists')->first(),
@@ -750,6 +750,12 @@ class PlayersController extends Controller
             'draft_status' => $bestWinningTeamPlayer->draft_status,
             'drafted_team_acro' => $bestWinningTeamPlayer->drafted_team_acro,
         ] : null;
+
+        $homeTeamStreak = $this->getTeamStreak($game->home_id);
+        $awayTeamStreak = $this->getTeamStreak($game->away_id);
+
+        // Query to get head-to-head record
+        $headToHeadRecord = $this->getHeadToHeadRecord($game->home_id, $game->away_id);
 
         // Split player stats into home and away teams, using the game team IDs
         $homeTeamPlayers = $players->filter(function ($player) use ($game, $playerStats) {
@@ -808,11 +814,12 @@ class PlayersController extends Controller
             'game_id' => $game->game_id,
             'round' => $game->round,
             'home_team' => [
-                 'team_id' => $game->home_id, // Use the correct field from your query
-                 'name' => $game->home_team_name,
-                 'score' => $game->home_score,
-                 'primary_color' => $game->home_primary_color, // Add primary color
-                 'secondary_color' => $game->home_secondary_color, // Add secondary color
+                'team_id' => $game->home_id, // Use the correct field from your query
+                'name' => $game->home_team_name,
+                'score' => $game->home_score,
+                'primary_color' => $game->home_primary_color, // Add primary color
+                'secondary_color' => $game->home_secondary_color, // Add secondary color
+                'streak' => $homeTeamStreak,
             ],
             'away_team' => [
                 'team_id' => $game->away_id, // Use the correct field from your query
@@ -820,11 +827,13 @@ class PlayersController extends Controller
                 'score' => $game->away_score,
                 'primary_color' => $game->away_primary_color, // Add primary color
                 'secondary_color' => $game->away_secondary_color, // Add secondary color
+                'streak' => $awayTeamStreak,
             ],
             'player_stats' => [
                 'home' => $homeTeamPlayersArray,
                 'away' => $awayTeamPlayersArray,
             ],
+            'head_to_head_record' => $headToHeadRecord,
             'stat_leaders' => $statLeaders,
             'best_player' => $bestWinningTeamPlayerDetails,
             'total_players_played' => $playerStats->count(),
@@ -834,6 +843,78 @@ class PlayersController extends Controller
             'box_score' => $boxScore,
         ]);
     }
+    /**
+     * Function to get team streak
+     */
+    private function getTeamStreak($teamId)
+    {
+        // Query to calculate team's winning or losing streak
+        $streak = \DB::table('schedule_view')
+            ->where(function ($query) use ($teamId) {
+                $query->where('home_id', $teamId)
+                    ->orWhere('away_id', $teamId);
+            })
+            ->orderBy('id', 'desc')
+            ->limit(10) // Check the last 10 games
+            ->get();
+
+        // Logic to determine streak type (winning or losing)
+        $currentStreak = 0;
+        $isWinningStreak = null;
+
+        foreach ($streak as $game) {
+            $teamScore = $game->home_id == $teamId ? $game->home_score : $game->away_score;
+            $opponentScore = $game->home_id == $teamId ? $game->away_score : $game->home_score;
+
+            if ($teamScore > $opponentScore) {
+                if ($isWinningStreak === false) break;
+                $isWinningStreak = true;
+                $currentStreak++;
+            } else {
+                if ($isWinningStreak === true) break;
+                $isWinningStreak = false;
+                $currentStreak++;
+            }
+        }
+
+        return ($isWinningStreak ? 'W' : 'L') . $currentStreak;
+    }
+
+    /**
+     * Function to get head-to-head record
+     */
+    private function getHeadToHeadRecord($homeTeamId, $awayTeamId)
+    {
+        $headToHead = \DB::table('schedule_view')
+            ->where(function ($query) use ($homeTeamId, $awayTeamId) {
+                $query->where('home_id', $homeTeamId)
+                    ->where('away_id', $awayTeamId);
+            })
+            ->orWhere(function ($query) use ($homeTeamId, $awayTeamId) {
+                $query->where('home_id', $awayTeamId)
+                    ->where('away_id', $homeTeamId);
+            })
+            ->get();
+
+        $homeWins = 0;
+        $awayWins = 0;
+
+        foreach ($headToHead as $game) {
+            if ($game->home_id == $homeTeamId && $game->home_score > $game->away_score) {
+                $homeWins++;
+            } elseif ($game->away_id == $homeTeamId && $game->away_score > $game->home_score) {
+                $homeWins++;
+            } else {
+                $awayWins++;
+            }
+        }
+
+        return [
+            'home_team_wins' => $homeWins,
+            'away_team_wins' => $awayWins,
+        ];
+    }
+
     public function getplayerplayoffperformance(Request $request)
     {
         // Validate the request data
@@ -1043,7 +1124,7 @@ class PlayersController extends Controller
             ->join('teams as drafted_teams', 'players.drafted_team_id', '=', 'drafted_teams.id', 'left') // Join teams table to get team details
             ->join('seasons', 'players.draft_id', '=', 'seasons.id', 'left')
             ->where('players.id', $playerId)
-            ->select('players.id as player_id', 'players.name as player_name','players.country as country','players.address as address', 'players.age as age', 'teams.name as team_name', 'players.role', 'players.contract_years', 'players.is_rookie', 'players.overall_rating', 'players.type', 'players.draft_status as draft_status', 'seasons.name as draft_class', 'drafted_teams.acronym as drafted_team')
+            ->select('players.id as player_id', 'players.name as player_name', 'players.country as country', 'players.address as address', 'players.age as age', 'teams.name as team_name', 'players.role', 'players.contract_years', 'players.is_rookie', 'players.overall_rating', 'players.type', 'players.draft_status as draft_status', 'seasons.name as draft_class', 'drafted_teams.acronym as drafted_team')
             ->first();
 
         if (!$playerDetails) {
@@ -1435,8 +1516,9 @@ class PlayersController extends Controller
         $top20Players = DB::table('top_20_players_all_time')->get();
         return response()->json($top20Players);
     }
-    public function gettop10playersbyteam(Request $request){
-        $top10PlayersByTeam = DB::table('top_10_players_by_team_all_time')->where('team_id',$request->team_id)->get();
+    public function gettop10playersbyteam(Request $request)
+    {
+        $top10PlayersByTeam = DB::table('top_10_players_by_team_all_time')->where('team_id', $request->team_id)->get();
         return response()->json($top10PlayersByTeam);
     }
 }

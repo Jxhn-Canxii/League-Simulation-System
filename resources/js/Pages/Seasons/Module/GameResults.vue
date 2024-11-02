@@ -16,20 +16,15 @@
                 }"
             >
                 <!-- Home team primary color -->
-                <h2 class="text-5xl font-bold"
-                    :style="{
-                        color: '#' + gameDetails?.home_team.secondary_color,
-                    }"
-                >
+                <h2 class="text-5xl font-bold text-white">
                     {{ gameDetails?.home_team.score }}
                 </h2>
-                <p class="text-md font-semibold"
+                <p class="text-md font-semibold text-white"
                     :style="{
                         backgroundColor: '#' + gameDetails?.home_team.secondary_color,
-                        color: '#' + gameDetails?.home_team.primary_color,
                     }"
                 >
-                    {{ gameDetails?.home_team.name }}
+                    {{ gameDetails?.home_team.name }} ({{ gameDetails?.home_team.streak }})
                 </p>
             </div>
 
@@ -56,6 +51,7 @@
                     <p class="text-xs font-semibold">
                         Game ID: {{ gameDetails?.game_id }}
                     </p>
+                    <p class="text-xs font-semibold">Matchup Record: {{ gameDetails?.head_to_head_record.home_team_wins ?? 0 }} - {{ gameDetails?.head_to_head_record.away_team_wins ?? 0 }}</p>
                 </div>
             </div>
 
@@ -69,21 +65,17 @@
                 }"
             >
                 <!-- Away team primary color -->
-                <h2 class="text-5xl font-bold"
-                    :style="{
-                        color: '#' + gameDetails?.away_team.secondary_color,
-                    }"
+                <h2 class="text-5xl font-bold text-white"
                 >
                     {{ gameDetails?.away_team.score }}
                 </h2>
                 <p
-                    class="text-md font-semibold"
+                    class="text-md font-semibold text-white"
                     :style="{
                         backgroundColor: '#' + gameDetails?.away_team.secondary_color,
-                        color: '#' + gameDetails?.away_team.primary_color,
                     }"
                 >
-                    {{ gameDetails?.away_team.name }}
+                    {{ gameDetails?.away_team.name }} ({{ gameDetails?.away_team.streak }})
                 </p>
             </div>
         </div>
