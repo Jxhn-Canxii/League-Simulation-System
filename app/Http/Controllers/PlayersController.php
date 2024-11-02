@@ -721,11 +721,18 @@ class PlayersController extends Controller
         });
 
         // Determine the best player of the winning team
+        // $bestWinningTeamPlayer = $winningTeamPlayersStats->sort(function ($a, $b) {
+        //     $aStats = $a->points + $a->assists + $a->rebounds + $a->steals + $a->blocks;
+        //     $bStats = $b->points + $b->assists + $b->rebounds + $b->steals + $b->blocks;
+        //     return $bStats <=> $aStats;
+        // })->first();
+
         $bestWinningTeamPlayer = $winningTeamPlayersStats->sort(function ($a, $b) {
-            $aStats = $a->points + $a->assists + $a->rebounds + $a->steals + $a->blocks;
-            $bStats = $b->points + $b->assists + $b->rebounds + $b->steals + $b->blocks;
+            $aStats = $a->points * 1.0 + $a->rebounds * 1.2 + $a->assists * 1.5 + $a->steals * 2.0 + $a->blocks * 2.0 - $a->turnovers * 1.5;
+            $bStats = $b->points * 1.0 + $b->rebounds * 1.2 + $b->assists * 1.5 + $b->steals * 2.0 + $b->blocks * 2.0 - $b->turnovers * 1.5;
             return $bStats <=> $aStats;
         })->first();
+
 
         // Fetch player details for the best player of the winning team if exists
         $bestWinningTeamPlayerDetails = $bestWinningTeamPlayer ? [
