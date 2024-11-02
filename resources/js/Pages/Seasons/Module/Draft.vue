@@ -180,7 +180,6 @@
 import { ref, onMounted } from "vue";
 import Swal from "sweetalert2";
 import axios from "axios";
-import { faker } from '@faker-js/faker';
 
 import Paginator from "@/Components/Paginator.vue";
 import TopStatistics from "@/Pages/Analytics/Module/TopStatistics.vue";
@@ -302,41 +301,47 @@ const fetchRandomFullName1 = async () => {
         return null; // Return null on error
     }
 };
-const fetchRandomFullName2 = () => {
-    // Generate a random name and surname
-    const name = faker.name.firstName('male'); // Generate a random first name
-    const surname = faker.name.lastName(); // Generate a random last name
-    const fullName = `${name} ${surname}`;
+const fetchRandomFullName2 = async () => {
+    try {
+        // Fetch a random user from the Random Data API and specify the gender as male
+        const response = await axios.get('https://random-data-api.com/api/v2/users?size=1&gender=male');
 
-    // Generate a random country and address
-    const country = faker.address.country(); // Generate a random country
-    const address = faker.address.streetAddress(); // Generate a random street address
+        // Extract the first name, last name, and country information
+        const { first_name, last_name, address } = response.data[0];
+        const country = address.country;
 
-    const data = {
-        name: fullName,
-        country: country,
-        address: address,
-    };
+        // Format the full name and country information
+        const fullName = `${first_name} ${last_name}`;
+        const countryFormatted = `${country}`;
 
-    // Function to check if a name contains only English alphabet letters
-    const isEnglishReadable = (name) => /^[A-Za-z]+$/.test(name);
+        const data = {
+            name: fullName,
+            country: countryFormatted,
+            address: country,
+        };
 
-    if (isEnglishReadable(name) && isEnglishReadable(surname)) {
-        return data; // Return full name if valid
-    } else {
-        return null; // Return null if the name is not valid
+        // Function to check if both first and last names contain only English alphabet letters
+        const isEnglishReadable = (name) => /^[A-Za-z]+$/.test(name);
+
+        if (isEnglishReadable(first_name) && isEnglishReadable(last_name)) {
+            return data; // Return full name if valid
+        } else {
+            return null; // Return null if the name is not valid
+        }
+    } catch (error) {
+        console.error("Error fetching random player name:", error);
+        return null; // Return null on error
     }
 };
-
 const addMultiplePlayers = async (count) => {
     try {
         const promises = [];
 
         for (let i = 0; i < count; i++) {
             // Randomly choose between fetchRandomFullName1 or fetchRandomFullName2
-            const fetchRandomFullName = Math.random() < 0.5 ? fetchRandomFullName2 : fetchRandomFullName2; // 50% chance for each
+            const fetchRandomFullName = Math.random() < 0.5 ? fetchRandomFullName1 : fetchRandomFullName2; // 50% chance for each
 
-            const randomFullName = await fetchRandomFullName(); // Fetch random full name
+            const randomFullName = await fetchRandomFullName1(); // Fetch random full name
             if (randomFullName != null) {
                 promises.push(addPlayer(randomFullName)); // Add the promise to the array
                 key.value = i;
