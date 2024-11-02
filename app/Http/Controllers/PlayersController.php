@@ -852,9 +852,9 @@ class PlayersController extends Controller
         $streak = \DB::table('schedule_view')
             ->where(function ($query) use ($teamId) {
                 $query->where('home_id', $teamId)
-                    ->orWhere('away_id', $teamId);
+                      ->orWhere('away_id', $teamId);
             })
-            ->orderBy('game_id', 'desc')
+            ->orderBy('id', 'desc') // Assuming game_id is the chronological identifier
             ->limit(10) // Check the last 10 games
             ->get();
 
@@ -863,22 +863,32 @@ class PlayersController extends Controller
         $isWinningStreak = null;
 
         foreach ($streak as $game) {
+            // Get the scores for the team and the opponent
             $teamScore = $game->home_id == $teamId ? $game->home_score : $game->away_score;
             $opponentScore = $game->home_id == $teamId ? $game->away_score : $game->home_score;
 
+            // Determine win or loss
             if ($teamScore > $opponentScore) {
-                if ($isWinningStreak === false) break;
-                $isWinningStreak = true;
-                $currentStreak++;
+                // If it's a win
+                if ($isWinningStreak === false) {
+                    break; // Break if streak direction changes
+                }
+                $isWinningStreak = true; // Set streak type to winning
+                $currentStreak++; // Increment the winning streak
             } else {
-                if ($isWinningStreak === true) break;
-                $isWinningStreak = false;
-                $currentStreak++;
+                // If it's a loss
+                if ($isWinningStreak === true) {
+                    break; // Break if streak direction changes
+                }
+                $isWinningStreak = false; // Set streak type to losing
+                $currentStreak++; // Increment the losing streak
             }
         }
 
-        return ($isWinningStreak ? 'W' : 'L') . $currentStreak;
+        // Return the streak type and count, defaulting to 'L' if no games were played
+        return ($currentStreak > 0 ? ($isWinningStreak ? 'W' : 'L') . $currentStreak : 'N0');
     }
+
 
     /**
      * Function to get head-to-head record
