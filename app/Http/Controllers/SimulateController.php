@@ -1363,7 +1363,6 @@ class SimulateController extends Controller
                 'finals_mvp_id' => $finalsMVPId,
             ]);
     }
-
     private function updateAllTeamStreaks()
     {
         // Fetch all games from the earliest to the latest
@@ -1378,10 +1377,10 @@ class SimulateController extends Controller
         // Iterate over each game to calculate streaks
         foreach ($games as $game) {
             // Home team processing
-            $this->processGameStreak($teamStreaks, $game->home_id, $game->home_score, $game->away_score, $game->id);
+            $this->processGameStreak($teamStreaks, $game->home_id, $game->home_score, $game->away_score, $game->game_id);
 
             // Away team processing
-            $this->processGameStreak($teamStreaks, $game->away_id, $game->away_score, $game->home_score, $game->id);
+            $this->processGameStreak($teamStreaks, $game->away_id, $game->away_score, $game->home_score, $game->game_id);
         }
 
         // Update the streak table for each team
@@ -1394,15 +1393,15 @@ class SimulateController extends Controller
                 if ($streak['best_winning_streak'] > $streakRecord->best_winning_streak) {
                     \DB::table('streak')->where('team_id', $teamId)->update([
                         'best_winning_streak' => $streak['best_winning_streak'],
-                        'winning_streak_start_id' => $streak['winning_streak_start_id'],
-                        'winning_streak_end_id' => $streak['winning_streak_end_id']
+                        'best_winning_streak_start_id' => $streak['best_winning_streak_start_id'], // Store start game_id
+                        'best_winning_streak_end_id' => $streak['best_winning_streak_end_id'],     // Store end game_id
                     ]);
                 }
                 if ($streak['best_losing_streak'] > $streakRecord->best_losing_streak) {
                     \DB::table('streak')->where('team_id', $teamId)->update([
                         'best_losing_streak' => $streak['best_losing_streak'],
-                        'losing_streak_start_id' => $streak['losing_streak_start_id'],
-                        'losing_streak_end_id' => $streak['losing_streak_end_id']
+                        'best_losing_streak_start_id' => $streak['best_losing_streak_start_id'], // Store start game_id
+                        'best_losing_streak_end_id' => $streak['best_losing_streak_end_id'],     // Store end game_id
                     ]);
                 }
             } else {
@@ -1410,11 +1409,11 @@ class SimulateController extends Controller
                 \DB::table('streak')->insert([
                     'team_id' => $teamId,
                     'best_winning_streak' => $streak['best_winning_streak'],
-                    'winning_streak_start_id' => $streak['winning_streak_start_id'],
-                    'winning_streak_end_id' => $streak['winning_streak_end_id'],
+                    'best_winning_streak_start_id' => $streak['best_winning_streak_start_id'], // Store start game_id
+                    'best_winning_streak_end_id' => $streak['best_winning_streak_end_id'],     // Store end game_id
                     'best_losing_streak' => $streak['best_losing_streak'],
-                    'losing_streak_start_id' => $streak['losing_streak_start_id'],
-                    'losing_streak_end_id' => $streak['losing_streak_end_id'],
+                    'best_losing_streak_start_id' => $streak['best_losing_streak_start_id'], // Store start game_id
+                    'best_losing_streak_end_id' => $streak['best_losing_streak_end_id'],     // Store end game_id
                 ]);
             }
         }
@@ -1429,11 +1428,11 @@ class SimulateController extends Controller
                 'current_streak' => 0,
                 'is_winning_streak' => null,
                 'best_winning_streak' => 0,
-                'winning_streak_start_id' => null,
-                'winning_streak_end_id' => null,
+                'best_winning_streak_start_id' => null,
+                'best_winning_streak_end_id' => null,
                 'best_losing_streak' => 0,
-                'losing_streak_start_id' => null,
-                'losing_streak_end_id' => null,
+                'best_losing_streak_start_id' => null,
+                'best_losing_streak_end_id' => null,
             ];
         }
 
@@ -1446,26 +1445,28 @@ class SimulateController extends Controller
             if ($streak['is_winning_streak'] === false) {
                 // Streak direction changed from losing to winning
                 $streak['current_streak'] = 1;
-                $streak['winning_streak_start_id'] = $gameId; // Set start ID for winning streak
+                $streak['best_winning_streak_start_id'] = $gameId; // Start of new winning streak
+                $streak['best_losing_streak'] = 0; // Reset losing streak
             } else {
                 // Continue winning streak
                 $streak['current_streak']++;
             }
             $streak['is_winning_streak'] = true;
-            $streak['winning_streak_end_id'] = $gameId; // Update end ID for winning streak
             $streak['best_winning_streak'] = max($streak['best_winning_streak'], $streak['current_streak']);
+            $streak['best_winning_streak_end_id'] = $gameId; // Update end of winning streak
         } else {
             if ($streak['is_winning_streak'] === true) {
                 // Streak direction changed from winning to losing
                 $streak['current_streak'] = 1;
-                $streak['losing_streak_start_id'] = $gameId; // Set start ID for losing streak
+                $streak['best_losing_streak_start_id'] = $gameId; // Start of new losing streak
+                $streak['best_winning_streak'] = 0; // Reset winning streak
             } else {
                 // Continue losing streak
                 $streak['current_streak']++;
             }
             $streak['is_winning_streak'] = false;
-            $streak['losing_streak_end_id'] = $gameId; // Update end ID for losing streak
             $streak['best_losing_streak'] = max($streak['best_losing_streak'], $streak['current_streak']);
+            $streak['best_losing_streak_end_id'] = $gameId; // Update end of losing streak
         }
     }
 }
