@@ -226,7 +226,7 @@ class GameController extends Controller
     private function getTeamStreak($teamId, $game_id)
     {
         // Query to calculate the team's current winning or losing streak
-        $streak = \DB::table('schedule_view')
+        $streak = \DB::table('streak_view')
             ->where(function ($query) use ($teamId) {
                 $query->where('home_id', $teamId)
                     ->orWhere('away_id', $teamId);

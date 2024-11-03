@@ -119,10 +119,6 @@
                 Playoff Round Appearance
             </h3>
             <p>
-                Round of 32:
-                {{ team_info.roundStats.round_of_32_appearances ?? 0 }}
-            </p>
-            <p>
                 Round of 16:
                 {{ team_info.roundStats.round_of_16_appearances ?? 0 }}
             </p>
@@ -143,20 +139,9 @@
     <hr class="my-4 border-t border-gray-200" />
 
     <div
-        class="mt-4 grid grid-cols-5 gap-4"
-        v-if="team_last_season"lastRoundOf32Season
+        class="mt-4 grid grid-cols-4 gap-4"
+        v-if="team_last_season"
     >
-        <div>
-            <h3 class="text-md font-semibold text-gray-800">
-                Last Round of 32 Season
-            </h3>
-            <p>
-                {{
-                    team_last_season.lastRoundOf32Season ??
-                    "n/a"
-                }}
-            </p>
-        </div>
         <div>
             <h3 class="text-md font-semibold text-gray-800">
                 Last Round of 16 Season
