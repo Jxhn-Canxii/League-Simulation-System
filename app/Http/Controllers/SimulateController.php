@@ -803,10 +803,10 @@ class SimulateController extends Controller
                 ->where('status', 1)
                 ->doesntExist();
 
+            $this->updateAllTeamStreaks();
+
             if ($allRoundsSimulatedForSeason) {
                 // Update the season's status to 2
-                $this->updateAllTeamStreaks();
-
                 $season = Seasons::find($currentSeasonId);
                 if ($season) {
                     $season->status = 2;
