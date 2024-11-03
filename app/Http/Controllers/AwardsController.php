@@ -238,28 +238,52 @@ class AwardsController extends Controller
         $mostImprovedPlayer = $playerStats->filter(function ($stats) use ($nonRookies) {
             return $nonRookies->contains($stats->player_id);
         })
-        ->sortByDesc(function ($stats) use ($previousSeasonStats) {
-            $previousPoints = $previousSeasonStats[$stats->player_id] ?? 0;
-            return ($stats->avg_points_per_game - $previousPoints);
-        })
-        ->first();
-
-        // MVP of the Season based on mvp_leaders view
-        $bestOverall = DB::table('mvp_leaders')
-            ->orderBy('performance_score', 'desc')
+            ->sortByDesc(function ($stats) use ($previousSeasonStats) {
+                $previousPoints = $previousSeasonStats[$stats->player_id] ?? 0;
+                return ($stats->avg_points_per_game - $previousPoints);
+            })
             ->first();
 
-        // Rookie of the Season based on rookie_leaders view
-        $rookieOfTheSeason = DB::table('rookie_leaders')
-            ->orderBy('performance_score', 'desc')
-            ->first();
+        // Calculate MVP based on the custom formula
+        $mvp = $playerStats->sort(function ($a, $b) {
+            $aStats = $a->avg_points_per_game * 1.0 + $a->avg_rebounds_per_game * 1.2 +
+                $a->avg_assists_per_game * 1.5 + $a->avg_steals_per_game * 2.0 +
+                $a->avg_blocks_per_game * 2.0 - $a->avg_turnovers_per_game * 1.5;
+            $bStats = $b->avg_points_per_game * 1.0 + $b->avg_rebounds_per_game * 1.2 +
+                $b->avg_assists_per_game * 1.5 + $b->avg_steals_per_game * 2.0 +
+                $b->avg_blocks_per_game * 2.0 - $b->avg_turnovers_per_game * 1.5;
+            return $bStats <=> $aStats;
+        })->first();
+
+        // Filter out rookies and determine the Rookie of the Year award
+        $rookies = $playerStats->filter(function ($stats) {
+            return DB::table('players')->where('id', $stats->player_id)->value('is_rookie') == 1;
+        });
+
+        $rookieOfTheYear = $rookies->sort(function ($a, $b) {
+            $aStats = $a->avg_points_per_game * 1.0 + $a->avg_rebounds_per_game * 1.2 +
+                $a->avg_assists_per_game * 1.5 + $a->avg_steals_per_game * 2.0 +
+                $a->avg_blocks_per_game * 2.0 - $a->avg_turnovers_per_game * 1.5;
+            $bStats = $b->avg_points_per_game * 1.0 + $b->avg_rebounds_per_game * 1.2 +
+                $b->avg_assists_per_game * 1.5 + $b->avg_steals_per_game * 2.0 +
+                $b->avg_blocks_per_game * 2.0 - $b->avg_turnovers_per_game * 1.5;
+            return $bStats <=> $aStats;
+        })->first();
 
         // Determine the 6th Man of the Year award
         $rolePlayers = $playerStats->filter(function ($stats) {
             return $stats->role !== 'star player' && $stats->role !== 'starter';
         });
 
-        $sixthManOfTheYear = $rolePlayers->sortByDesc('avg_points_per_game')->first();
+        $sixthManOfTheYear = $rolePlayers->sort(function ($a, $b) {
+            $aStats = $a->avg_points_per_game * 1.0 + $a->avg_rebounds_per_game * 1.2 +
+                $a->avg_assists_per_game * 1.5 + $a->avg_steals_per_game * 2.0 +
+                $a->avg_blocks_per_game * 2.0 - $a->avg_turnovers_per_game * 1.5;
+            $bStats = $b->avg_points_per_game * 1.0 + $b->avg_rebounds_per_game * 1.2 +
+                $b->avg_assists_per_game * 1.5 + $b->avg_steals_per_game * 2.0 +
+                $b->avg_blocks_per_game * 2.0 - $b->avg_turnovers_per_game * 1.5;
+            return $bStats <=> $aStats;
+        })->first();
 
         // Insert awards into season_awards table if not already present
         $this->insertAward($topScorer, 'Top Scorer', 'Player with the highest average points per game', $latestSeasonId);
@@ -268,8 +292,13 @@ class AwardsController extends Controller
         $this->insertAward($topStealer, 'Top Stealer', 'Player with the highest average steals per game', $latestSeasonId);
         $this->insertAward($topBlocker, 'Top Blocker', 'Player with the highest average blocks per game', $latestSeasonId);
         $this->insertAward($bestDefender, 'Best Defensive Player', 'Player with the highest combined average steals and blocks per game', $latestSeasonId);
-        $this->insertAward($bestOverall, 'Best Overall Player', 'Player with the highest combined average metrics (points, rebounds, assists, steals, blocks)', $latestSeasonId);
+        $this->insertAward($mvp, 'Best Overall Player', 'Player with the best overall performance score', $latestSeasonId);
         $this->insertAward($mostImprovedPlayer, 'Most Improved Player', 'Player with the highest increase in average points per game from the previous season', $latestSeasonId);
+
+        // Insert the Rookie of the Season award
+        if ($rookieOfTheYear) {
+            $this->insertAward($rookieOfTheYear, 'Rookie of the Season', 'Best rookie player of the season', $latestSeasonId);
+        }
 
         // Insert the 6th Man of the Year award
         if ($sixthManOfTheYear) {
@@ -290,11 +319,6 @@ class AwardsController extends Controller
             if ($counter > 5) break;
             $this->insertAward($player, 'Top ' . $counter . ' Defensive Player', 'Player ranked ' . $counter . ' in combined average steals and blocks per game', $latestSeasonId);
             $counter++;
-        }
-
-        // Insert Rookie of the Season award
-        if ($rookieOfTheSeason) {
-            $this->insertAward($rookieOfTheSeason, 'Rookie of the Season', 'Best rookie player of the season', $latestSeasonId);
         }
 
         // Update season status
@@ -319,8 +343,6 @@ class AwardsController extends Controller
         ]);
     }
 
-
-
     private function insertaward($playerStats, $awardName, $awardDescription, $seasonId)
     {
         if ($playerStats) {
@@ -339,5 +361,4 @@ class AwardsController extends Controller
             );
         }
     }
-
 }

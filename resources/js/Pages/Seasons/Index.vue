@@ -604,7 +604,7 @@ const createNewSeason = async () => {
     } else {
         try {
             isProcessing.value = true;
-            const response = await axios.post(route("schedule.create"), form);
+            const response = await axios.post(route("create.schedule.regular"), form);
             isAddModalOpen.value = false;
             Swal.fire({
                 icon: "success",

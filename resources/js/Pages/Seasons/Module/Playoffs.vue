@@ -343,7 +343,7 @@ const createPlayOffSchedule = async (round) => {
     try {
         let start_playoffs = season_info.value.seasons[0].start_playoffs;
         round = roundStatusFormatter(round,start_playoffs);
-        const response = await axios.post(route("season.playoff.schedule"), {
+        const response = await axios.post(route("create.schedule.playoff"), {
             season_id: form.seasons_id, // Assuming the parameter name should be schedule_id
             round: round,
             start: start_playoffs,

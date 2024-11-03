@@ -264,6 +264,7 @@ class SeasonsController extends Controller
             'standings' => $standings,
         ]);
     }
+
     public function seasonsplayoffs(Request $request)
     {
         // Retrieve the season_id from the request

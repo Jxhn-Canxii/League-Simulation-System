@@ -11,6 +11,48 @@ use Inertia\Inertia;
 class TransactionsController extends Controller
 {
 
+    // Waive a player (make them inactive)
+    public function waiveplayer(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:players,id',
+        ]);
+
+        $player = Player::findOrFail($request->id);
+        $player->update(['is_active' => false, 'team_id' => null]);
+
+        return response()->json([
+            'message' => 'Player waived successfully',
+            'player' => $player,
+        ]);
+    }
+
+    // Extend player's contract
+    public function extendcontract(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:players,id',
+            'additional_years' => 'required|integer|min:1|max:5',
+        ]);
+
+        $player = Player::findOrFail($request->id);
+
+        $newContractEnd = $player->contract_expires_at
+            ? $player->contract_expires_at->addYears($request->additional_years)
+            : now()->addYears($request->additional_years);
+
+        $player->update([
+            'contract_years' => min($player->contract_years + $request->additional_years, 5),
+            'contract_expires_at' => $newContractEnd,
+        ]);
+
+        return response()->json([
+            'message' => 'Contract extended successfully',
+            'player' => $player,
+        ]);
+    }
+
+
     public function assignplayertorandomteam(Request $request)
     {
         $request->validate([
@@ -125,7 +167,7 @@ class TransactionsController extends Controller
                     'message' => 'All teams have signed 15 players, and roles have been updated based on last season\'s stats.',
                     'team_count' => $teamsCount,
                 ], 401);
-            }else{
+            } else {
                 return response()->json([
                     'message' => 'Role assigning error!',
                 ], 400);
@@ -298,7 +340,7 @@ class TransactionsController extends Controller
                 DB::rollBack();
 
                 // Log the error message and stack trace for debugging
-                \Log::error('Error assigning role for '.$teamId.' '. $e->getMessage());
+                \Log::error('Error assigning role for ' . $teamId . ' ' . $e->getMessage());
 
                 return false; // Return false if an error occurs during the update
             }
@@ -307,65 +349,6 @@ class TransactionsController extends Controller
         return true; // Return true if all updates succeed
     }
 
-
-    private function updateTeamRolesBasedOnStatsV2()
-    {
-        // Fetch player stats for the last season
-        $seasonId = $this->getLatestSeasonId();
-        $teams = DB::table('teams')->pluck('id');
-
-        foreach ($teams as $teamId) {
-            // Fetch all players for each team (including rookies and non-rookies), ranked by overall_rating
-            $players = DB::table('players')
-                ->where('players.team_id', $teamId)
-                ->where('players.is_active', 1)
-                ->orderByDesc('players.overall_rating') // Sort by overall_rating
-                ->get();
-
-            // Assign roles to players based on overall_rating
-            foreach ($players as $index => $player) {
-                $role = '';
-
-                // Assign roles based on the index in the sorted list
-                if ($index < 3) {
-                    $role = 'star player'; // Top 3 players
-                } elseif ($index < 5) {
-                    $role = 'starter'; // Next 2 players
-                } elseif ($index < 10) {
-                    $role = 'role player'; // Next 5 players
-                } else {
-                    $role = 'bench'; // Remaining players
-                }
-
-                // Update the player's role in the database
-                DB::table('players')
-                    ->where('id', $player->id)
-                    ->update(['role' => $role]);
-            }
-        }
-
-        // Update injury_prone_percentage for 10% to 30% of players around the league
-        $totalPlayers = DB::table('players')->where('is_active', 1)->count();
-        $playersToUpdate = rand(ceil($totalPlayers * 0.1), ceil($totalPlayers * 0.3));
-
-        // Select random players to update their injury_prone_percentage
-        $randomPlayers = DB::table('players')
-            ->where('is_active', 1)
-            ->inRandomOrder()
-            ->limit($playersToUpdate)
-            ->get();
-
-        foreach ($randomPlayers as $player) {
-            $injuryPronePercentage = rand(0, 100); // Random value between 0% and 100%
-
-            // Update injury_prone_percentage for the player
-            DB::table('players')
-                ->where('id', $player->id)
-                ->update(['injury_prone_percentage' => $injuryPronePercentage]);
-        }
-
-        return true;
-    }
     private function determineContractYears($role)
     {
         switch ($role) {

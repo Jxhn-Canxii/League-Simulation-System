@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+ini_set('max_execution_time', 600); // 300 seconds = 5 minutes
+
 use Illuminate\Http\Request;
 use App\Models\Seasons;
 use App\Models\Player;
