@@ -338,14 +338,13 @@ class TeamsController extends Controller
             ->get();
     }
 
-    private function getTeamStreaks($teamId){
-        // Query to calculate the team's current winning or losing streak
-        $streak = \DB::table('streak_view')
-        ->where('team_id', $teamId) // Get records with id less than or equal to game_id
-        ->get();
+    private function getTeamStreaks($teamId)
+    {
+        return DB::table('streak')
+            ->where('team_id', $teamId)
+            ->get();
+    }
 
-        return $streak;
-   }
 
     private function getAllTimeStats($teamId)
     {
