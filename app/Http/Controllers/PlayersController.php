@@ -74,7 +74,7 @@ class PlayersController extends Controller
                         'player_id' => $player->id,
                         'name' => $player->name,
                         'age' => $player->age,
-                        'role' => $player->role,
+                        'role' => $stats->role,
                         'is_active' => $player->is_active,
                         'is_rookie' => $player->is_rookie,
                         'retirement_age' => $player->retirement_age,

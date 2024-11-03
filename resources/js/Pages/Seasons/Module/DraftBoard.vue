@@ -36,7 +36,7 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        <tr v-for="player in draftResults.filter(player => player.round === 1)" :key="player.id" class="hover:bg-gray-100">
+                        <tr v-for="player in draftResults.filter(player => player.round === 1)" :key="player.player_id" class="hover:bg-gray-100" @click.prevent="showPlayerProfileModal = player.player_id">
                             <td class="px-2 py-1 whitespace-nowrap border">{{ player.round }}</td>
                             <td class="px-2 py-1 whitespace-nowrap border">{{ player.pick_number }}</td>
                             <td class="px-2 py-1 whitespace-nowrap border"   :class="{'bg-green-100': player.pick_number >= player.rank, 'bg-red-100': player.pick_number < player.rank}">{{ player.pick_number }}</td>
@@ -62,7 +62,7 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        <tr v-for="player in draftResults.filter(player => player.round === 2)" :key="player.id" class="hover:bg-gray-100">
+                        <tr v-for="player in draftResults.filter(player => player.round === 2)" :key="player.player_id" class="hover:bg-gray-100" @click.prevent="showPlayerProfileModal = player.player_id">
                             <td class="px-2 py-1 whitespace-nowrap border">{{ player.round }}</td>
                             <td class="px-2 py-1 whitespace-nowrap border">{{ player.pick_number }}</td>
                             <td class="px-2 py-1 whitespace-nowrap border"   :class="{'bg-green-100': player.pick_number + 80 >= player.rank, 'bg-red-100': player.pick_number + 80 < player.rank}">{{ player.pick_number + 80 }}</td>
@@ -75,18 +75,31 @@
             </div>
         </div>
     </div>
+    <Modal :show="showPlayerProfileModal" :maxWidth="'6xl'">
+        <button
+            class="flex float-end bg-gray-100 p-3"
+            @click.prevent="showPlayerProfileModal = false"
+        >
+            <i class="fa fa-times text-black-600"></i>
+        </button>
+        <div class="p-6 block">
+            <PlayerPerformance :key="showPlayerProfileModal" :player_id="showPlayerProfileModal" />
+        </div>
+    </Modal>
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue";
 import Swal from "sweetalert2";
+import Modal from "@/Components/Modal.vue";
 import axios from "axios";
 
 import Paginator from "@/Components/Paginator.vue";
 import TopStatistics from "@/Pages/Analytics/Module/TopStatistics.vue";
+import PlayerPerformance from "@/Pages/Teams/Module/PlayerPerformance.vue";
 
 const emits = defineEmits(["newSeason"]);
-const teams = ref([]);
+const showPlayerProfileModal = ref(false);
 const draftResults = ref([]);
 const selectedRound = ref(1);
 const isHide = ref(true);
