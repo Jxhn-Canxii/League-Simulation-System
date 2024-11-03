@@ -1383,17 +1383,13 @@ class SimulateController extends Controller
         // Initialize an array to store streak information for each team
         $teamStreaks = [];
 
-        // Get season start and end dates
-        $seasonStart = $games->first()->id; // Assuming game_date is available
-        $seasonEnd = $games->last()->id; // Assuming game_date is available
-
         // Iterate over each game to calculate streaks
         foreach ($games as $game) {
             // Home team processing
-            $this->processGameStreak($teamStreaks, $game->home_id, $game->home_score, $game->away_score);
+            $this->processGameStreak($teamStreaks, $game->home_id, $game->home_score, $game->away_score, $game->id);
 
             // Away team processing
-            $this->processGameStreak($teamStreaks, $game->away_id, $game->away_score, $game->home_score);
+            $this->processGameStreak($teamStreaks, $game->away_id, $game->away_score, $game->home_score, $game->id);
         }
 
         // Update the streak table for each team
@@ -1406,15 +1402,15 @@ class SimulateController extends Controller
                 if ($streak['best_winning_streak'] > $streakRecord->best_winning_streak) {
                     \DB::table('streak')->where('team_id', $teamId)->update([
                         'best_winning_streak' => $streak['best_winning_streak'],
-                        'best_winning_streak_start_id' => $seasonStart,
-                        'best_winning_streak_end_id' => $seasonEnd,
+                        'best_winning_streak_start_id' => $streak['best_winning_streak_start_id'],
+                        'best_winning_streak_end_id' => $streak['best_winning_streak_end_id'],
                     ]);
                 }
                 if ($streak['best_losing_streak'] > $streakRecord->best_losing_streak) {
                     \DB::table('streak')->where('team_id', $teamId)->update([
                         'best_losing_streak' => $streak['best_losing_streak'],
-                        'best_losing_streak_start_id' => $seasonStart,
-                        'best_losing_streak_end_id' => $seasonEnd,
+                        'best_losing_streak_start_id' => $streak['best_losing_streak_start_id'],
+                        'best_losing_streak_end_id' => $streak['best_losing_streak_end_id'],
                     ]);
                 }
             } else {
@@ -1423,17 +1419,17 @@ class SimulateController extends Controller
                     'team_id' => $teamId,
                     'best_winning_streak' => $streak['best_winning_streak'],
                     'best_losing_streak' => $streak['best_losing_streak'],
-                    'best_winning_streak_start_id' => 0,
-                    'best_winning_streak_end_id' => 0,
-                    'best_losing_streak_start_id' => 0,
-                    'best_losing_streak_end_id' => 0,
+                    'best_winning_streak_start_id' => $streak['best_winning_streak_start_id'],
+                    'best_winning_streak_end_id' => $streak['best_winning_streak_end_id'],
+                    'best_losing_streak_start_id' => $streak['best_losing_streak_start_id'],
+                    'best_losing_streak_end_id' => $streak['best_losing_streak_end_id'],
                 ]);
             }
         }
     }
 
-    // Helper function to process game results and update streaks
-    private function processGameStreak(&$teamStreaks, $teamId, $teamScore, $opponentScore)
+    // Modify processGameStreak to track start and end game IDs
+    private function processGameStreak(&$teamStreaks, $teamId, $teamScore, $opponentScore, $gameId)
     {
         // Initialize streaks for the team if not already set
         if (!isset($teamStreaks[$teamId])) {
@@ -1442,6 +1438,10 @@ class SimulateController extends Controller
                 'is_winning_streak' => null,
                 'best_winning_streak' => 0,
                 'best_losing_streak' => 0,
+                'best_winning_streak_start_id' => 0,
+                'best_winning_streak_end_id' => 0,
+                'best_losing_streak_start_id' => 0,
+                'best_losing_streak_end_id' => 0,
             ];
         }
 
@@ -1454,23 +1454,31 @@ class SimulateController extends Controller
             if ($streak['is_winning_streak'] === false) {
                 // Streak direction changed from losing to winning
                 $streak['current_streak'] = 1;
+                $streak['best_winning_streak_start_id'] = $gameId; // Start of new winning streak
+                $streak['best_losing_streak_start_id'] = 0; // Reset losing streak
+                $streak['best_losing_streak_end_id'] = 0; // Reset losing streak
             } else {
                 // Continue winning streak
                 $streak['current_streak']++;
             }
             $streak['is_winning_streak'] = true;
             $streak['best_winning_streak'] = max($streak['best_winning_streak'], $streak['current_streak']);
+            $streak['best_winning_streak_end_id'] = $gameId; // Update end of winning streak
         } else {
             if ($streak['is_winning_streak'] === true) {
                 // Streak direction changed from winning to losing
                 $streak['current_streak'] = 1;
+                $streak['best_losing_streak_start_id'] = $gameId; // Start of new losing streak
+                $streak['best_winning_streak_end_id'] = 0; // Reset winning streak
             } else {
                 // Continue losing streak
                 $streak['current_streak']++;
             }
             $streak['is_winning_streak'] = false;
             $streak['best_losing_streak'] = max($streak['best_losing_streak'], $streak['current_streak']);
+            $streak['best_losing_streak_end_id'] = $gameId; // Update end of losing streak
         }
     }
+
 
 }
