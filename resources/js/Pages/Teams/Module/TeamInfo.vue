@@ -10,7 +10,7 @@
     <!-- Divider -->
     <hr class="my-4 border-t border-gray-200" />
 
-    <div class="mt-4 grid grid-cols-4 gap-4" v-if="team_info">
+    <div class="mt-4 grid md:grid-cols-5 grid-cols-1 gap-4" v-if="team_info">
         <div>
             <h3 class="text-md font-semibold text-gray-800">
                 All-Time Stats
@@ -99,6 +99,19 @@
             <p>
                 Appearances:
                 {{ team_info.playoffStats.playoff_appearances }}
+            </p>
+        </div>
+        <div >
+            <h3 class="text-md font-semibold text-gray-800">
+               Game Streaks
+            </h3>
+            <p>
+                Win Streak:
+                {{ team_info.streaks[0].best_winning_streak ?? 0 }}
+            </p>
+            <p>
+                Losing Streak:
+                {{ team_info.streaks[0].best_losing_streak ?? 0 }}
             </p>
         </div>
         <div>

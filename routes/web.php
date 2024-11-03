@@ -143,6 +143,8 @@ Route::middleware('auth')->group(function () {
     });
     Route::prefix('games/')->group(function(){
         Route::post('box-score', [GameController::class, 'getboxscore'])->name('game.boxscore');
+        Route::get('update-streak', [GameController::class, 'updateAllTeamStreaks'])->name('update.all.streaks');
+
     });
     Route::prefix('players/')->group(function(){
         Route::get('', [PlayersController::class, 'index'])->name('players.index');

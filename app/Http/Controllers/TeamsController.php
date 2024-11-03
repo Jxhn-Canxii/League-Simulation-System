@@ -150,6 +150,7 @@ class TeamsController extends Controller
         $finalsStats = self::getFinalsStats($teamId);
         $roundStats = self::getRoundStats($teamId);
         $playoffStats = self::getPlayoffStats($teamId);
+        $gameStreaks = self::getTeamStreaks($teamId);
 
         return response()->json([
             'teams' => $teamInfo[0],
@@ -157,6 +158,7 @@ class TeamsController extends Controller
             'finalsStats' => $finalsStats,
             'roundStats' => $roundStats,
             'playoffStats' => $playoffStats,
+            'streaks' => $gameStreaks,
         ]);
     }
     public function teamseasonfinals(Request $request)
@@ -336,6 +338,12 @@ class TeamsController extends Controller
             ->get();
     }
 
+    private function getTeamStreaks($teamId)
+    {
+        return DB::table('streak')
+            ->where('team_id', $teamId)
+            ->get();
+    }
 
     private function getAllTimeStats($teamId)
     {
