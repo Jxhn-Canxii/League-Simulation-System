@@ -741,7 +741,7 @@ const simulateAllRoundGames = async (round, isLast,conference_id) => {
         }
 
         topPlayersKey.value = round;
-        if (isLast) {
+        if (isLast && conference_id == 4) {
             Swal.fire({
                 icon: "success",
                 title: "Success!",
