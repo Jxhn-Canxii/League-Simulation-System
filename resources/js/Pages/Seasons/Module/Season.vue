@@ -736,7 +736,7 @@ const simulateAllRoundGames = async (round, isLast,conference_id) => {
         for (const gameId of gameIds) {
             // Perform an action with each game ID
             console.log(`Processing Game ID: ${gameId}`);
-            await simulateGame(gameId);
+            await simulateGame(gameId,conference_id);
             // You can also add more logic here, like fetching game details or updating the state
         }
 
@@ -748,7 +748,7 @@ const simulateAllRoundGames = async (round, isLast,conference_id) => {
                 text: response.data.message, // Assuming the response contains a 'message' field
             });
 
-            await fetchConferenceSchedules(activeConferenceTab.value);
+            await fetchConferenceSchedules(conference_id);
             isHide.value = false;
             currentRound.value = false;
         }
@@ -777,7 +777,7 @@ const simulateRoundGames = async (round, isLast) => {
         for (const gameId of gameIds) {
             // Perform an action with each game ID
             console.log(`Processing Game ID: ${gameId}`);
-            await simulateGame(gameId);
+            await simulateGame(gameId,activeConferenceTab.value);
             // You can also add more logic here, like fetching game details or updating the state
         }
 
@@ -789,7 +789,7 @@ const simulateRoundGames = async (round, isLast) => {
                 text: response.data.message, // Assuming the response contains a 'message' field
             });
 
-            await fetchConferenceSchedules(activeConferenceTab.value);
+            await fetchConferenceSchedules(conference_id);
             isHide.value = false;
             currentRound.value = false;
         }
@@ -803,7 +803,7 @@ const simulateRoundGames = async (round, isLast) => {
         });
     }
 };
-const simulateGame = async (schedule_id) => {
+const simulateGame = async (schedule_id,conference_id) => {
     try {
         isHide.value = true;
 
@@ -813,7 +813,7 @@ const simulateGame = async (schedule_id) => {
         // await localStorage.setItem('season-key',generateRandomKey());
         // isHide.value = false;
         topPlayersKey.value++; // Trigger update of TopPlayers component
-        await fetchConferenceStandings(activeConferenceTab.value);
+        await fetchConferenceStandings(conference_id);
         activeGameId.value = response.data.game_id ?? 0;
         // Show success message using Swal2
         // Swal.fire({
