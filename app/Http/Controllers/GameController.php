@@ -266,25 +266,6 @@ class GameController extends Controller
         // Determine the current streak output
         $streakResult = $currentStreak > 0 ? ($isWinningStreak ? 'W' . $currentStreak : 'L' . $currentStreak) : 'N0';
 
-        // Update the best streak in the streak table
-        $streakRecord = \DB::table('streak')->where('team_id', $teamId)->first();
-
-        if ($streakRecord) {
-            // Update the best streak if the current one is greater
-            if ($isWinningStreak && $currentStreak > $streakRecord->best_winning_streak) {
-                \DB::table('streak')->where('team_id', $teamId)->update(['best_winning_streak' => $currentStreak]);
-            } elseif (!$isWinningStreak && $currentStreak > $streakRecord->best_losing_streak) {
-                \DB::table('streak')->where('team_id', $teamId)->update(['best_losing_streak' => $currentStreak]);
-            }
-        } else {
-            // Insert a new record if none exists for the team
-            \DB::table('streak')->insert([
-                'team_id' => $teamId,
-                'best_winning_streak' => $isWinningStreak ? $currentStreak : 0,
-                'best_losing_streak' => !$isWinningStreak ? $currentStreak : 0,
-            ]);
-        }
-
         return $streakResult;
     }
 
@@ -323,88 +304,4 @@ class GameController extends Controller
         ];
     }
 
-    public function updateAllTeamStreaks()
-    {
-        // Fetch all games from the earliest to the latest
-        $games = \DB::table('schedule_view')
-            ->where('status', 2)
-            ->orderBy('id', 'asc') // Order by id to process games chronologically
-            ->get();
-
-        // Initialize an array to store streak information for each team
-        $teamStreaks = [];
-
-        // Iterate over each game to calculate streaks
-        foreach ($games as $game) {
-            // Home team processing
-            $this->processGameStreak($teamStreaks, $game->home_id, $game->home_score, $game->away_score);
-
-            // Away team processing
-            $this->processGameStreak($teamStreaks, $game->away_id, $game->away_score, $game->home_score);
-        }
-
-        // Update the streak table for each team
-        foreach ($teamStreaks as $teamId => $streak) {
-            // Fetch the existing streak record for the team
-            $streakRecord = \DB::table('streak')->where('team_id', $teamId)->first();
-
-            if ($streakRecord) {
-                // Update the best streak if the current one is greater
-                if ($streak['best_winning_streak'] > $streakRecord->best_winning_streak) {
-                    \DB::table('streak')->where('team_id', $teamId)->update(['best_winning_streak' => $streak['best_winning_streak']]);
-                }
-                if ($streak['best_losing_streak'] > $streakRecord->best_losing_streak) {
-                    \DB::table('streak')->where('team_id', $teamId)->update(['best_losing_streak' => $streak['best_losing_streak']]);
-                }
-            } else {
-                // Insert a new record if none exists for the team
-                \DB::table('streak')->insert([
-                    'team_id' => $teamId,
-                    'best_winning_streak' => $streak['best_winning_streak'],
-                    'best_losing_streak' => $streak['best_losing_streak'],
-                ]);
-            }
-        }
-    }
-
-    // Helper function to process game results and update streaks
-    private function processGameStreak(&$teamStreaks, $teamId, $teamScore, $opponentScore)
-    {
-        // Initialize streaks for the team if not already set
-        if (!isset($teamStreaks[$teamId])) {
-            $teamStreaks[$teamId] = [
-                'current_streak' => 0,
-                'is_winning_streak' => null,
-                'best_winning_streak' => 0,
-                'best_losing_streak' => 0,
-            ];
-        }
-
-        $streak = &$teamStreaks[$teamId]; // Reference to the team's streak data
-
-        // Determine if the game is a win or loss
-        $isWin = $teamScore > $opponentScore;
-
-        if ($isWin) {
-            if ($streak['is_winning_streak'] === false) {
-                // Streak direction changed from losing to winning
-                $streak['current_streak'] = 1;
-            } else {
-                // Continue winning streak
-                $streak['current_streak']++;
-            }
-            $streak['is_winning_streak'] = true;
-            $streak['best_winning_streak'] = max($streak['best_winning_streak'], $streak['current_streak']);
-        } else {
-            if ($streak['is_winning_streak'] === true) {
-                // Streak direction changed from winning to losing
-                $streak['current_streak'] = 1;
-            } else {
-                // Continue losing streak
-                $streak['current_streak']++;
-            }
-            $streak['is_winning_streak'] = false;
-            $streak['best_losing_streak'] = max($streak['best_losing_streak'], $streak['current_streak']);
-        }
-    }
 }
