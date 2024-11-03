@@ -128,7 +128,7 @@ class GameController extends Controller
             'drafted_team_acro' => $bestWinningTeamPlayer->drafted_team_acro,
         ] : null;
 
-        $homeTeamStreak = $this->getTeamStreak($game->home_id,$game->id);
+        $homeTeamStreak = $this->getTeamStreak($game->home_id, $game->id);
         $awayTeamStreak = $this->getTeamStreak($game->away_id, $game->id);
 
         // Query to get head-to-head record
@@ -222,7 +222,73 @@ class GameController extends Controller
     }
     /**
      * Function to get team streak
-     */ private function getTeamStreak($teamId,$game_id)
+     */
+    private function getTeamStreak($teamId, $game_id)
+    {
+        // Query to calculate the team's current winning or losing streak
+        $streak = \DB::table('schedule_view')
+            ->where(function ($query) use ($teamId) {
+                $query->where('home_id', $teamId)
+                    ->orWhere('away_id', $teamId);
+            })
+            ->where('status', 2)
+            ->where('id', '<=', $game_id) // Get records with id less than or equal to game_id
+            ->orderBy('id', 'desc') // Assuming game_id is the chronological identifier
+            ->get();
+
+        // Logic to determine streak type (winning or losing)
+        $currentStreak = 0;
+        $isWinningStreak = null;
+
+        foreach ($streak as $game) {
+            // Get the scores for the team and the opponent
+            $teamScore = $game->home_id == $teamId ? $game->home_score : $game->away_score;
+            $opponentScore = $game->home_id == $teamId ? $game->away_score : $game->home_score;
+
+            // Determine win or loss
+            if ($teamScore > $opponentScore) {
+                // If it's a win
+                if ($isWinningStreak === false) {
+                    break; // Break if streak direction changes
+                }
+                $isWinningStreak = true; // Set streak type to winning
+                $currentStreak++; // Increment the winning streak
+            } else {
+                // If it's a loss
+                if ($isWinningStreak === true) {
+                    break; // Break if streak direction changes
+                }
+                $isWinningStreak = false; // Set streak type to losing
+                $currentStreak++; // Increment the losing streak
+            }
+        }
+
+        // Determine the current streak output
+        $streakResult = $currentStreak > 0 ? ($isWinningStreak ? 'W' . $currentStreak : 'L' . $currentStreak) : 'N0';
+
+        // Update the best streak in the streak table
+        $streakRecord = \DB::table('streak')->where('team_id', $teamId)->first();
+
+        if ($streakRecord) {
+            // Update the best streak if the current one is greater
+            if ($isWinningStreak && $currentStreak > $streakRecord->best_winning_streak) {
+                \DB::table('streak')->where('team_id', $teamId)->update(['best_winning_streak' => $currentStreak]);
+            } elseif (!$isWinningStreak && $currentStreak > $streakRecord->best_losing_streak) {
+                \DB::table('streak')->where('team_id', $teamId)->update(['best_losing_streak' => $currentStreak]);
+            }
+        } else {
+            // Insert a new record if none exists for the team
+            \DB::table('streak')->insert([
+                'team_id' => $teamId,
+                'best_winning_streak' => $isWinningStreak ? $currentStreak : 0,
+                'best_losing_streak' => !$isWinningStreak ? $currentStreak : 0,
+            ]);
+        }
+
+        return $streakResult;
+    }
+
+    private function getTeamStreak1($teamId, $game_id)
     {
         // Query to calculate team's winning or losing streak
         $streak = \DB::table('schedule_view')
@@ -230,7 +296,7 @@ class GameController extends Controller
                 $query->where('home_id', $teamId)
                     ->orWhere('away_id', $teamId);
             })
-            ->where('status',2)
+            ->where('status', 2)
             ->where('id', '<=', $game_id) // Get records with id less than or equal to game_id
             ->orderBy('id', 'desc') // Assuming game_id is the chronological identifier
             ->get();
