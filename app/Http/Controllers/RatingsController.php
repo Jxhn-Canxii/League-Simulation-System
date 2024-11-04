@@ -271,6 +271,7 @@ class RatingsController extends Controller
 
                 ///lastly update all active players to non rookie
                 \DB::table('players')
+                ->where('team_id', 0)
                 ->where('is_active', 1)
                 ->update([
                     'is_rookie' => 0,
@@ -282,6 +283,7 @@ class RatingsController extends Controller
 
                 ///lastly update the age of non active players
                 \DB::table('players')
+                ->where('team_id', 0)
                 ->where('is_active', 0)
                 ->update([
                     'team_id' => 0,

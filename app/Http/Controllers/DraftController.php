@@ -412,15 +412,16 @@ class DraftController extends Controller
                 ->join('players', 'player_game_stats.player_id', '=', 'players.id')
                 ->where('players.draft_id', $currentSeasonId)
                 ->whereIn('player_game_stats.player_id', $rankGroupPlayerIds) // Filter by rank group
-                ->where('players.draft_id', $latestSeasonId) // Filter by draft_id
                 ->select(
                     'player_game_stats.player_id',
-                    DB::raw('AVG(player_game_stats.points) as avg_points'),
-                    DB::raw('AVG(player_game_stats.rebounds) as avg_rebounds'),
-                    DB::raw('AVG(player_game_stats.assists) as avg_assists')
+                    DB::raw('AVG(player_game_stats.points) as avg_points_per_game'),
+                    DB::raw('AVG(player_game_stats.rebounds) as avg_rebounds_per_game'),
+                    DB::raw('AVG(player_game_stats.assists) as avg_assists_per_game'),
+                    DB::raw('AVG(player_game_stats.steals) as avg_steals_per_game'),
+                    DB::raw('AVG(player_game_stats.blocks) as avg_blocks_per_game'),
+                    DB::raw('AVG(player_game_stats.turnovers) as avg_turnovers_per_game')
                 )
                 ->groupBy('player_game_stats.player_id')
-                ->orderByDesc('avg_points') // Order by points as a primary performance metric
                 ->get();
             $playerStats = $playerGameStats;
         } else {
@@ -429,23 +430,36 @@ class DraftController extends Controller
                 ->join('players', 'player_season_stats.player_id', '=', 'players.id')
                 ->where('players.draft_id', $latestSeasonId)
                 ->whereIn('player_season_stats.player_id', $rankGroupPlayerIds) // Filter by rank group
-                ->where('players.draft_id', $latestSeasonId) // Filter by draft_id
                 ->select(
                     'player_season_stats.player_id',
-                    'player_season_stats.avg_points_per_game as avg_points',
-                    'player_season_stats.avg_rebounds_per_game as avg_rebounds',
-                    'player_season_stats.avg_assists_per_game as avg_assists'
+                    'player_season_stats.avg_points_per_game',
+                    'player_season_stats.avg_rebounds_per_game',
+                    'player_season_stats.avg_assists_per_game',
+                    'player_season_stats.avg_steals_per_game',
+                    'player_season_stats.avg_blocks_per_game',
+                    'player_season_stats.avg_turnovers_per_game'
                 )
-                ->orderByDesc('avg_points') // Order by points as a primary performance metric
                 ->get();
             $playerStats = $playerSeasonStats;
         }
 
-        // Assign ranks only to players within the rank group
-        $rankedPlayers = $playerStats->map(function ($stats, $index) {
+        // Assign ranks based on the custom formula
+        $rankedPlayers = $playerStats->sort(function ($a, $b) {
+            $aStats = $a->avg_points_per_game * 1.0 + $a->avg_rebounds_per_game * 1.2 +
+                      $a->avg_assists_per_game * 1.5 + $a->avg_steals_per_game * 2.0 +
+                      $a->avg_blocks_per_game * 2.0 - $a->avg_turnovers_per_game * 1.5;
+            $bStats = $b->avg_points_per_game * 1.0 + $b->avg_rebounds_per_game * 1.2 +
+                      $b->avg_assists_per_game * 1.5 + $b->avg_steals_per_game * 2.0 +
+                      $b->avg_blocks_per_game * 2.0 - $b->avg_turnovers_per_game * 1.5;
+            return $bStats <=> $aStats;
+        })->values(); // Re-index the collection after sorting
+
+        // Add ranks to each player
+        $rankedPlayers = $rankedPlayers->map(function ($stats, $index) {
             $stats->rank = $index + 1; // Add rank starting from 1
             return $stats;
         });
+
 
         // Merge ranks into the draft results
         $draftResultsWithNamesAndRanks = $draftResultsWithNames->map(function ($draft) use ($rankedPlayers) {
