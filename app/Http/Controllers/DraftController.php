@@ -380,11 +380,6 @@ class DraftController extends Controller
         // Get the latest season_id from the request
         $latestSeasonId = $request->season_id;
 
-        // Fetch draft results for the latest season from the drafts table
-        $draftResults = DB::table('drafts')
-            ->select('team_id', 'player_id', 'season_id', 'round', 'pick_number', 'draft_status')
-            ->where('season_id', $latestSeasonId)
-            ->get();
 
         // If you want to include team names and player names, join the relevant tables
         $draftResultsWithNames = DB::table('drafts')
@@ -400,7 +395,7 @@ class DraftController extends Controller
                 'drafts.pick_number',
                 'drafts.draft_status'
             )
-            ->where('drafts.season_id', $latestSeasonId)
+            ->where('players.draft_id', $latestSeasonId)
             ->get();
 
         // Extract player IDs from the draft results to create the rank group
@@ -415,7 +410,7 @@ class DraftController extends Controller
             // Get player stats from the player_game_stats table for the current season, filtered by rank group and draft_id
             $playerGameStats = DB::table('player_game_stats')
                 ->join('players', 'player_game_stats.player_id', '=', 'players.id')
-                ->where('player_game_stats.season_id', $currentSeasonId)
+                ->where('players.draft_id', $currentSeasonId)
                 ->whereIn('player_game_stats.player_id', $rankGroupPlayerIds) // Filter by rank group
                 ->where('players.draft_id', $latestSeasonId) // Filter by draft_id
                 ->select(
@@ -432,7 +427,7 @@ class DraftController extends Controller
             // Get player stats from the player_season_stats table for the previous season, filtered by rank group and draft_id
             $playerSeasonStats = DB::table('player_season_stats')
                 ->join('players', 'player_season_stats.player_id', '=', 'players.id')
-                ->where('player_season_stats.season_id', $latestSeasonId)
+                ->where('players.draft_id', $latestSeasonId)
                 ->whereIn('player_season_stats.player_id', $rankGroupPlayerIds) // Filter by rank group
                 ->where('players.draft_id', $latestSeasonId) // Filter by draft_id
                 ->select(
