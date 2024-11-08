@@ -32,6 +32,12 @@
                 </template>
                 Records
             </nav-link>
+            <nav-link :href="route('leaders.index')" :active="route().current('records.index')">
+                <template #icon>
+                    <i class="fa fa-sports-podium"></i>
+                </template>
+                Leaders
+            </nav-link>
             <nav-link :href="route('awards.index')" :active="route().current('awards.index')">
                 <template #icon>
                     <i class="fa fa-medal"></i>

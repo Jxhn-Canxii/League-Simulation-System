@@ -16,6 +16,7 @@ use App\Http\Controllers\DraftController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\SimulateController;
 use App\Http\Controllers\GameController;
+use App\Http\Controllers\LeadersController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -86,6 +87,13 @@ Route::middleware('auth')->group(function () {
         Route::post('create-schedule-regular', [ScheduleController::class, 'createseasonandschedule'])->name('create.schedule.regular');
         Route::post('create-schedule-playoff', [ScheduleController::class, 'playoffschedule'])->name('create.schedule.playoff');
 
+    });
+
+    Route::prefix('leaders/')->group(function(){
+        Route::get('', [LeadersController::class, 'index'])->name('leaders.index');
+        Route::get('single-stats-leaders', [LeadersController::class, 'getSingleStatsLeaders'])->name('single.stats.leaders');
+        Route::get('total-stats-leaders', [LeadersController::class, 'getTotalStatsLeaders'])->name('total.stats.leaders');
+        Route::get('average-stats-leaders', [LeadersController::class, 'getAverageStatsLeaders'])->name('average.stats.leaders');
     });
 
     Route::prefix('ratings/')->group(function(){

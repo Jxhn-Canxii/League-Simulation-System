@@ -491,25 +491,23 @@ class SimulateController extends Controller
 
                 // Calculate the total number of games played by the away team
                 $totalGames = Schedules::where('season_id', $currentSeasonId)
-                    ->where('status', 2) // Assuming 2 represents completed games
-                    ->where(function ($query) use ($player) {
-                        $query->where('away_id', $player->team_id)
-                            ->orWhere('home_id', $player->team_id);
+                    ->where('status', 2)
+                    ->where(function ($query) use ($gameData) {
+                        $query->where('away_id', $gameData->home_team_id)
+                            ->orWhere('home_id', $gameData->home_team_id);
                     })
                     ->count();
 
                 // Calculate average defensive stats per game for the away team
-                $awayTeamDefensiveStats = [
-                    'blocks' => $gameData->away_team_id ? PlayerGameStats::where('team_id', $gameData->away_team_id)
-                        ->where('season_id', $currentSeasonId)
-                        ->selectRaw('SUM(blocks) / ?', [$totalGames])
-                        ->value('SUM(blocks)') : 0,
-                    'steals' => $gameData->away_team_id ? PlayerGameStats::where('team_id', $gameData->away_team_id)
-                        ->where('season_id', $currentSeasonId)
-                        ->selectRaw('SUM(steals) / ?', [$totalGames])
-                        ->value('SUM(steals)') : 0,
-                ];
 
+                $awayTeamDefensiveStats = [
+                    'blocks' => $totalGames > 0 ? PlayerGameStats::where('team_id', $gameData->away_team_id)
+                        ->where('season_id', $currentSeasonId)
+                        ->sum('blocks') / $totalGames : 0,
+                    'steals' => $totalGames > 0 ? PlayerGameStats::where('team_id', $gameData->away_team_id)
+                        ->where('season_id', $currentSeasonId)
+                        ->sum('steals') / $totalGames : 0,
+                ];
                 // If minutes is 0, player did not play
                 if ($minutes === 0) {
                     $playerGameStats[] = [
@@ -587,23 +585,21 @@ class SimulateController extends Controller
 
                 // Calculate the total number of games played by the home team
                 $totalGames = Schedules::where('season_id', $currentSeasonId)
-                    ->where('status', 2) // Assuming 2 represents completed games
-                    ->where(function ($query) use ($player) {
-                        $query->where('away_id', $player->team_id)
-                            ->orWhere('home_id', $player->team_id);
+                    ->where('status', 2)
+                    ->where(function ($query) use ($gameData) {
+                        $query->where('away_id', $gameData->home_team_id)
+                            ->orWhere('home_id', $gameData->home_team_id);
                     })
                     ->count();
 
                 // Calculate average defensive stats per game for the home team
                 $homeTeamDefensiveStats = [
-                    'blocks' => $gameData->home_team_id ? PlayerGameStats::where('team_id', $gameData->home_team_id)
+                    'blocks' => $totalGames > 0 ? PlayerGameStats::where('team_id', $gameData->home_team_id)
                         ->where('season_id', $currentSeasonId)
-                        ->selectRaw('SUM(blocks) / ?', [$totalGames])
-                        ->value('SUM(blocks)') : 0,
-                    'steals' => $gameData->home_team_id ? PlayerGameStats::where('team_id', $gameData->home_team_id)
+                        ->sum('blocks') / $totalGames : 0,
+                    'steals' => $totalGames > 0 ? PlayerGameStats::where('team_id', $gameData->home_team_id)
                         ->where('season_id', $currentSeasonId)
-                        ->selectRaw('SUM(steals) / ?', [$totalGames])
-                        ->value('SUM(steals)') : 0,
+                        ->sum('steals') / $totalGames : 0,
                 ];
 
                 // If minutes is 0, player did not play
