@@ -202,7 +202,7 @@ class LeadersController extends Controller
                 'player_game_stats.game_id',
                 'teams.name as team_name',
                 'opponent_teams.name as opponent_name',
-                'seasons.year as season_year',
+                'seasons.id as season_id',
                 DB::raw('MAX(player_game_stats.points) as highest_points')
             )
             ->join('players', 'players.id', '=', 'player_game_stats.player_id')
@@ -230,7 +230,7 @@ class LeadersController extends Controller
                 'player_game_stats.game_id',
                 'teams.name as team_name',
                 'opponent_teams.name as opponent_name',
-                'seasons.year as season_year',
+                'seasons.id as season_id',
                 DB::raw('MAX(player_game_stats.rebounds) as highest_rebounds')
             )
             ->join('players', 'players.id', '=', 'player_game_stats.player_id')
@@ -258,7 +258,7 @@ class LeadersController extends Controller
                 'player_game_stats.game_id',
                 'teams.name as team_name',
                 'opponent_teams.name as opponent_name',
-                'seasons.year as season_year',
+                'seasons.id as season_id',
                 DB::raw('MAX(player_game_stats.assists) as highest_assists')
             )
             ->join('players', 'players.id', '=', 'player_game_stats.player_id')

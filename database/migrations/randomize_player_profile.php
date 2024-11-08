@@ -12,9 +12,9 @@ SET
     `contract_years` = 0,
     `is_drafted` = 0,
     `drafted_team_id` = 0,
-    `draft_id` = 0,
+    `draft_id` = 1,
     `draft_order` = 0,
-    `draft_status` = '',
+    `draft_status` = 'Undrafted',
     `age` = FLOOR(RAND() * (25 - 18 + 1)) + 18,  -- Random age between 18 and 25
     `retirement_age` = FLOOR(RAND() * (40 - `age` + 1)) + `age`,  -- Random retirement age from age to 40
     `injury_prone_percentage` = FLOOR(RAND() * 100) + 1,  -- Random injury prone percentage between 1 and 100

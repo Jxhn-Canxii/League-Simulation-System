@@ -137,37 +137,37 @@ class ScheduleController extends Controller
                     $roundCounter++; // Increment round number after each round
                 }
                 // Generate matches for each round 2nd leg
-                for ($round = 0; $round < ($numTeams - 1); $round++) {
-                    for ($i = 0; $i < $numTeams / 2; $i++) {
-                        $homeIndex = ($round + $i) % ($numTeams - 1);
-                        $awayIndex = ($numTeams - 1 - $i + $round) % ($numTeams - 1);
+                // for ($round = 0; $round < ($numTeams - 1); $round++) {
+                //     for ($i = 0; $i < $numTeams / 2; $i++) {
+                //         $homeIndex = ($round + $i) % ($numTeams - 1);
+                //         $awayIndex = ($numTeams - 1 - $i + $round) % ($numTeams - 1);
 
-                        if ($i == 0) {
-                            $awayIndex = $numTeams - 1;
-                        }
+                //         if ($i == 0) {
+                //             $awayIndex = $numTeams - 1;
+                //         }
 
-                        $homeTeam = $conferenceTeams[$homeIndex];
-                        $awayTeam = $conferenceTeams[$awayIndex];
+                //         $homeTeam = $conferenceTeams[$homeIndex];
+                //         $awayTeam = $conferenceTeams[$awayIndex];
 
-                        // Ensure both teams are not null (bye team)
-                        if ($homeTeam->id != $awayTeam->id) {
-                            // First leg match
-                            $gameId = $seasonId . '-' . ($roundCounter + 1) . '-' . $conferenceId . '-' . $gameIdCounter;
-                            $matches[] = [
-                                'season_id' => $seasonId,
-                                'game_id' => $gameId,
-                                'round' => $roundCounter + 1, // Continue round number
-                                'conference_id' => $conferenceId,
-                                'home_id' => $awayTeam->id ,
-                                'away_id' => $homeTeam->id,
-                                'home_score' => 0, // Initialize with default score
-                                'away_score' => 0, // Initialize with default score
-                            ];
-                            $gameIdCounter++;
-                        }
-                    }
-                    $roundCounter++; // Increment round number after each round
-                }
+                //         // Ensure both teams are not null (bye team)
+                //         if ($homeTeam->id != $awayTeam->id) {
+                //             // First leg match
+                //             $gameId = $seasonId . '-' . ($roundCounter + 1) . '-' . $conferenceId . '-' . $gameIdCounter;
+                //             $matches[] = [
+                //                 'season_id' => $seasonId,
+                //                 'game_id' => $gameId,
+                //                 'round' => $roundCounter + 1, // Continue round number
+                //                 'conference_id' => $conferenceId,
+                //                 'home_id' => $awayTeam->id ,
+                //                 'away_id' => $homeTeam->id,
+                //                 'home_score' => 0, // Initialize with default score
+                //                 'away_score' => 0, // Initialize with default score
+                //             ];
+                //             $gameIdCounter++;
+                //         }
+                //     }
+                //     $roundCounter++; // Increment round number after each round
+                // }
                  // Generate matches for each round 3rd leg
                 // for ($round = 0; $round < ($numTeams - 1); $round++) {
                 //     for ($i = 0; $i < $numTeams / 2; $i++) {
