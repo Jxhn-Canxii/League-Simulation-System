@@ -108,85 +108,77 @@ class LeadersController extends Controller
     }
     public function getTotalStatsLeaders()
     {
-
-        // Fetch total stats for each player across all games
+        // Fetch total stats for each player from player_season_stats
 
         // Get top 10 players by total points
-        $topTotalPoints = DB::table('player_game_stats')
-            ->join('players', 'player_game_stats.player_id', '=', 'players.id')
-            ->join('teams', 'player_game_stats.team_id', '=', 'teams.id')
+        $topTotalPoints = DB::table('player_season_stats')
+            ->join('players', 'player_season_stats.player_id', '=', 'players.id')
+            ->join('teams', 'player_season_stats.team_id', '=', 'teams.id')
             ->select(
                 'players.name as player_name',
                 'teams.name as team_name',
-                DB::raw('SUM(player_game_stats.points) as total_points'),
+                'player_season_stats.total_points', // total points from player_season_stats
                 'players.id as player_id'
             )
-            ->groupBy('players.id', 'teams.name', 'players.name')
-            ->orderByDesc('total_points')
+            ->orderByDesc('player_season_stats.total_points')
             ->limit(10)
             ->get();
 
         // Get top 10 players by total rebounds
-        $topTotalRebounds = DB::table('player_game_stats')
-            ->join('players', 'player_game_stats.player_id', '=', 'players.id')
-            ->join('teams', 'player_game_stats.team_id', '=', 'teams.id')
+        $topTotalRebounds = DB::table('player_season_stats')
+            ->join('players', 'player_season_stats.player_id', '=', 'players.id')
+            ->join('teams', 'player_season_stats.team_id', '=', 'teams.id')
             ->select(
                 'players.name as player_name',
                 'teams.name as team_name',
-                DB::raw('SUM(player_game_stats.rebounds) as total_rebounds'),
+                'player_season_stats.total_rebounds', // total rebounds from player_season_stats
                 'players.id as player_id'
             )
-            ->groupBy('players.id', 'teams.name', 'players.name')
-            ->orderByDesc('total_rebounds')
+            ->orderByDesc('player_season_stats.total_rebounds')
             ->limit(10)
             ->get();
 
         // Get top 10 players by total assists
-        $topTotalAssists = DB::table('player_game_stats')
-            ->join('players', 'player_game_stats.player_id', '=', 'players.id')
-            ->join('teams', 'player_game_stats.team_id', '=', 'teams.id')
+        $topTotalAssists = DB::table('player_season_stats')
+            ->join('players', 'player_season_stats.player_id', '=', 'players.id')
+            ->join('teams', 'player_season_stats.team_id', '=', 'teams.id')
             ->select(
                 'players.name as player_name',
                 'teams.name as team_name',
-                DB::raw('SUM(player_game_stats.assists) as total_assists'),
+                'player_season_stats.total_assists', // total assists from player_season_stats
                 'players.id as player_id'
             )
-            ->groupBy('players.id', 'teams.name', 'players.name')
-            ->orderByDesc('total_assists')
+            ->orderByDesc('player_season_stats.total_assists')
             ->limit(10)
             ->get();
 
         // Get top 10 players by total steals
-        $topTotalSteals = DB::table('player_game_stats')
-            ->join('players', 'player_game_stats.player_id', '=', 'players.id')
-            ->join('teams', 'player_game_stats.team_id', '=', 'teams.id')
+        $topTotalSteals = DB::table('player_season_stats')
+            ->join('players', 'player_season_stats.player_id', '=', 'players.id')
+            ->join('teams', 'player_season_stats.team_id', '=', 'teams.id')
             ->select(
                 'players.name as player_name',
                 'teams.name as team_name',
-                DB::raw('SUM(player_game_stats.steals) as total_steals'),
+                'player_season_stats.total_steals', // total steals from player_season_stats
                 'players.id as player_id'
             )
-            ->groupBy('players.id', 'teams.name', 'players.name')
-            ->orderByDesc('total_steals')
+            ->orderByDesc('player_season_stats.total_steals')
             ->limit(10)
             ->get();
 
         // Get top 10 players by total blocks
-        $topTotalBlocks = DB::table('player_game_stats')
-            ->join('players', 'player_game_stats.player_id', '=', 'players.id')
-            ->join('teams', 'player_game_stats.team_id', '=', 'teams.id')
+        $topTotalBlocks = DB::table('player_season_stats')
+            ->join('players', 'player_season_stats.player_id', '=', 'players.id')
+            ->join('teams', 'player_season_stats.team_id', '=', 'teams.id')
             ->select(
                 'players.name as player_name',
                 'teams.name as team_name',
-                DB::raw('SUM(player_game_stats.blocks) as total_blocks'),
+                'player_season_stats.total_blocks', // total blocks from player_season_stats
                 'players.id as player_id'
             )
-            ->groupBy('players.id', 'teams.name', 'players.name')
-            ->orderByDesc('total_blocks')
+            ->orderByDesc('player_season_stats.total_blocks')
             ->limit(10)
             ->get();
-
-        // Fetch best season averages for each player
 
         // Return data as a JSON response
         return response()->json([
@@ -197,6 +189,7 @@ class LeadersController extends Controller
             'topTotalBlocks' => $topTotalBlocks,
         ]);
     }
+
     public function getSingleStatsLeaders()
     {
 
@@ -215,7 +208,7 @@ class LeadersController extends Controller
             ->join('players', 'players.id', '=', 'player_game_stats.player_id')
             ->join('teams', 'teams.id', '=', 'player_game_stats.team_id')
             ->join('seasons', 'seasons.id', '=', 'player_game_stats.season_id')
-            ->join('schedules_view', 'schedules_view.game_id', '=', 'player_game_stats.game_id')
+            ->join('schedule_view', 'schedule_view.game_id', '=', 'player_game_stats.game_id')
             ->join('teams as opponent_teams', function ($join) {
                 $join->on('opponent_teams.id', '=', 'schedules_view.home_id')
                     ->orOn('opponent_teams.id', '=', 'schedules_view.away_id');
@@ -243,7 +236,7 @@ class LeadersController extends Controller
             ->join('players', 'players.id', '=', 'player_game_stats.player_id')
             ->join('teams', 'teams.id', '=', 'player_game_stats.team_id')
             ->join('seasons', 'seasons.id', '=', 'player_game_stats.season_id')
-            ->join('schedules_view', 'schedules_view.game_id', '=', 'player_game_stats.game_id')
+            ->join('schedule_view', 'schedule_view.game_id', '=', 'player_game_stats.game_id')
             ->join('teams as opponent_teams', function ($join) {
                 $join->on('opponent_teams.id', '=', 'schedules_view.home_id')
                     ->orOn('opponent_teams.id', '=', 'schedules_view.away_id');
@@ -271,7 +264,7 @@ class LeadersController extends Controller
             ->join('players', 'players.id', '=', 'player_game_stats.player_id')
             ->join('teams', 'teams.id', '=', 'player_game_stats.team_id')
             ->join('seasons', 'seasons.id', '=', 'player_game_stats.season_id')
-            ->join('schedules_view', 'schedules_view.game_id', '=', 'player_game_stats.game_id')
+            ->join('schedule_view', 'schedule_view.game_id', '=', 'player_game_stats.game_id')
             ->join('teams as opponent_teams', function ($join) {
                 $join->on('opponent_teams.id', '=', 'schedules_view.home_id')
                     ->orOn('opponent_teams.id', '=', 'schedules_view.away_id');
@@ -299,7 +292,7 @@ class LeadersController extends Controller
             ->join('players', 'players.id', '=', 'player_game_stats.player_id')
             ->join('teams', 'teams.id', '=', 'player_game_stats.team_id')
             ->join('seasons', 'seasons.id', '=', 'player_game_stats.season_id')
-            ->join('schedules_view', 'schedules_view.game_id', '=', 'player_game_stats.game_id')
+            ->join('schedule_view', 'schedule_view.game_id', '=', 'player_game_stats.game_id')
             ->join('teams as opponent_teams', function ($join) {
                 $join->on('opponent_teams.id', '=', 'schedules_view.home_id')
                     ->orOn('opponent_teams.id', '=', 'schedules_view.away_id');
@@ -327,7 +320,7 @@ class LeadersController extends Controller
             ->join('players', 'players.id', '=', 'player_game_stats.player_id')
             ->join('teams', 'teams.id', '=', 'player_game_stats.team_id')
             ->join('seasons', 'seasons.id', '=', 'player_game_stats.season_id')
-            ->join('schedules_view', 'schedules_view.game_id', '=', 'player_game_stats.game_id')
+            ->join('schedule_view', 'schedule_view.game_id', '=', 'player_game_stats.game_id')
             ->join('teams as opponent_teams', function ($join) {
                 $join->on('opponent_teams.id', '=', 'schedules_view.home_id')
                     ->orOn('opponent_teams.id', '=', 'schedules_view.away_id');

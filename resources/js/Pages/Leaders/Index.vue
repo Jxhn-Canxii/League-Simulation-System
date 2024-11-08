@@ -421,33 +421,38 @@ const average = ref([]);
 const total = ref([]);
 const single = ref([]);
 
-const fetchAverageStatLeaders = async () => {
-    try {
-        const response = await axios.get(route("average.stats.leaders"));
-        average.value = response.data;
-    } catch (error) {
-        console.error("Error fetching free agents:", error);
+// Cache key definitions
+const CACHE_KEY_AVERAGE = 'average_stat_leaders';
+const CACHE_KEY_TOTAL = 'total_stat_leaders';
+const CACHE_KEY_SINGLE = 'single_stat_leaders';
+
+// Function to fetch and cache data
+const fetchStatLeaders = async (endpoint, cacheKey, refVariable) => {
+    // Check if cached data exists in localStorage
+    const cachedData = localStorage.getItem(cacheKey);
+    if (cachedData) {
+        // Parse and use cached data
+        refVariable.value = JSON.parse(cachedData);
+        console.log('Loaded from cache:', cacheKey);
+    } else {
+        // Fetch from API if no cached data
+        try {
+            const response = await axios.get(route(endpoint));
+            refVariable.value = response.data;
+            // Cache the data for future use
+            localStorage.setItem(cacheKey, JSON.stringify(response.data));
+            console.log('Fetched from API and cached:', cacheKey);
+        } catch (error) {
+            console.error(`Error fetching ${cacheKey}:`, error);
+        }
     }
 };
-const fetchTotalStatLeaders = async () => {
-    try {
-        const response = await axios.get(route("total.stats.leaders"));
-        total.value = response.data;
-    } catch (error) {
-        console.error("Error fetching free agents:", error);
-    }
-};
-const fetchSingleStatLeaders = async () => {
-    try {
-        const response = await axios.get(route("single.stats.leaders"));
-        single.value = response.data;
-    } catch (error) {
-        console.error("Error fetching free agents:", error);
-    }
-};
+
+// Fetch all stats on mounted
 onMounted(() => {
-    fetchAverageStatLeaders();
-    fetchTotalStatLeaders();
-    fetchSingleStatLeaders();
+    fetchStatLeaders("average.stats.leaders", CACHE_KEY_AVERAGE, average);
+    fetchStatLeaders("total.stats.leaders", CACHE_KEY_TOTAL, total);
+    fetchStatLeaders("single.stats.leaders", CACHE_KEY_SINGLE, single);
 });
 </script>
+

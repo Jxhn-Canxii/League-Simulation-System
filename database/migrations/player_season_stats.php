@@ -3,7 +3,6 @@ CREATE TABLE player_season_stats (
     player_id BIGINT UNSIGNED NOT NULL,
     team_id BIGINT UNSIGNED NOT NULL,
     season_id BIGINT UNSIGNED NOT NULL,
-    team_id BIGINT UNSIGNED NOT NULL,
     role VARCHAR(255),
     avg_points_per_game DECIMAL(5, 2) DEFAULT 0,
     avg_rebounds_per_game DECIMAL(5, 2) DEFAULT 0,
@@ -12,6 +11,13 @@ CREATE TABLE player_season_stats (
     avg_blocks_per_game DECIMAL(5, 2) DEFAULT 0,
     avg_turnovers_per_game DECIMAL(5, 2) DEFAULT 0,
     avg_fouls_per_game DECIMAL(5, 2) DEFAULT 0,
+    total_points INT DEFAULT 0,
+    total_rebounds INT DEFAULT 0,
+    total_assists INT DEFAULT 0,
+    total_steals INT DEFAULT 0,
+    total_blocks INT DEFAULT 0,
+    total_turnovers INT DEFAULT 0,
+    total_fouls INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
