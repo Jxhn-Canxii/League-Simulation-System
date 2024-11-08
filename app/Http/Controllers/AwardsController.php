@@ -22,79 +22,116 @@ class AwardsController extends Controller
      * @return \Illuminate\Http\JsonResponse
      */
 
-    public function storeplayerseasonstats(Request $request)
-    {
-        // Validate the incoming request
-        $request->validate([
-            'team_id' => 'required|exists:teams,id',
-        ]);
+     public function storeplayerseasonstats(Request $request)
+     {
+         // Validate the incoming request
+         $request->validate([
+             'team_id' => 'required|exists:teams,id',
+         ]);
 
-        // Get the team_id and is_last from the request
-        $teamId = $request->input('team_id');
+         // Get the team_id from the request
+         $teamId = $request->input('team_id');
 
-        // Get the latest season ID
-        $latestSeasonId = DB::table('seasons')->orderBy('id', 'desc')->value('id');
+         // Get the latest season ID
+         $latestSeasonId = DB::table('seasons')->orderBy('id', 'desc')->value('id');
 
-        // Get all players from the team
-        $players = DB::table('players')
-            ->where('team_id', $teamId)
-            ->get();
+         // Get all players from the team
+         $players = DB::table('players')
+             ->where('team_id', $teamId)
+             ->get();
 
-        foreach ($players as $player) {
+         foreach ($players as $player) {
 
-            // Get the aggregated stats for the player in the specified season
-            $playerStats = DB::table('player_game_stats')
-                ->where('player_id', $player->id)
-                ->where('season_id', $latestSeasonId)
-                ->select(
-                    'player_id',
-                    DB::raw('COUNT(CASE WHEN minutes > 0 THEN 1 END) as total_games_played'),
-                    DB::raw('SUM(CASE WHEN minutes > 0 THEN points ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_points_per_game'),
-                    DB::raw('SUM(CASE WHEN minutes > 0 THEN rebounds ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_rebounds_per_game'),
-                    DB::raw('SUM(CASE WHEN minutes > 0 THEN assists ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_assists_per_game'),
-                    DB::raw('SUM(CASE WHEN minutes > 0 THEN steals ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_steals_per_game'),
-                    DB::raw('SUM(CASE WHEN minutes > 0 THEN blocks ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_blocks_per_game'),
-                    DB::raw('SUM(CASE WHEN minutes > 0 THEN turnovers ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_turnovers_per_game'),
-                    DB::raw('SUM(CASE WHEN minutes > 0 THEN fouls ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_fouls_per_game'),
-                    DB::raw('SUM(CASE WHEN minutes > 0 THEN minutes ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_minutes_per_game')
-                )
-                ->groupBy('player_id')
-                ->first();
+             // Get the aggregated stats for the player in the specified season
+             $playerStats = DB::table('player_game_stats')
+                 ->where('player_id', $player->id)
+                 ->where('season_id', $latestSeasonId)
+                 ->select(
+                     'player_id',
+                     DB::raw('COUNT(CASE WHEN minutes > 0 THEN 1 END) as total_games_played'),
+                     DB::raw('SUM(CASE WHEN minutes > 0 THEN points ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_points_per_game'),
+                     DB::raw('SUM(CASE WHEN minutes > 0 THEN rebounds ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_rebounds_per_game'),
+                     DB::raw('SUM(CASE WHEN minutes > 0 THEN assists ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_assists_per_game'),
+                     DB::raw('SUM(CASE WHEN minutes > 0 THEN steals ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_steals_per_game'),
+                     DB::raw('SUM(CASE WHEN minutes > 0 THEN blocks ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_blocks_per_game'),
+                     DB::raw('SUM(CASE WHEN minutes > 0 THEN turnovers ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_turnovers_per_game'),
+                     DB::raw('SUM(CASE WHEN minutes > 0 THEN fouls ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_fouls_per_game'),
+                     DB::raw('SUM(CASE WHEN minutes > 0 THEN minutes ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_minutes_per_game'),
+
+                     // New calculations
+                     DB::raw('SUM(CASE WHEN minutes > 0 THEN `3PM` ELSE 0 END) as total_3PM'),
+                     DB::raw('SUM(CASE WHEN minutes > 0 THEN `3PA` ELSE 0 END) as total_3PA'),
+                     DB::raw('SUM(CASE WHEN minutes > 0 THEN `2PM` ELSE 0 END) as total_2PM'),
+                     DB::raw('SUM(CASE WHEN minutes > 0 THEN `2PA` ELSE 0 END) as total_2PA'),
+                     DB::raw('SUM(CASE WHEN minutes > 0 THEN `FTM` ELSE 0 END) as total_FTM'),
+                     DB::raw('SUM(CASE WHEN minutes > 0 THEN `FTA` ELSE 0 END) as total_FTA'),
+
+                     // Average calculations
+                     DB::raw('SUM(CASE WHEN minutes > 0 THEN `3PM` ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_3PM'),
+                     DB::raw('SUM(CASE WHEN minutes > 0 THEN `3PA` ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_3PA'),
+                     DB::raw('SUM(CASE WHEN minutes > 0 THEN `2PM` ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_2PM'),
+                     DB::raw('SUM(CASE WHEN minutes > 0 THEN `2PA` ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_2PA'),
+                     DB::raw('SUM(CASE WHEN minutes > 0 THEN `FTM` ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_FTM'),
+                     DB::raw('SUM(CASE WHEN minutes > 0 THEN `FTA` ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_FTA'),
+
+                     // Percentage calculations
+                     DB::raw('SUM(CASE WHEN minutes > 0 THEN `3PM` ELSE 0 END) / NULLIF(SUM(CASE WHEN minutes > 0 THEN `3PA` ELSE 0 END), 0) * 100 as TRHEEP_percentage'),
+                     DB::raw('SUM(CASE WHEN minutes > 0 THEN `2PM` ELSE 0 END) / NULLIF(SUM(CASE WHEN minutes > 0 THEN `2PA` ELSE 0 END), 0) * 100 as TWOP_percentage'),
+                     DB::raw('SUM(CASE WHEN minutes > 0 THEN `FTM` ELSE 0 END) / NULLIF(SUM(CASE WHEN minutes > 0 THEN `FTA` ELSE 0 END), 0) * 100 as FT_percentage')
+                 )
+                 ->groupBy('player_id')
+                 ->first();
 
 
-            if ($playerStats) {
-                // Get the player's role for the specified season
-                $playerRating = DB::table('player_ratings')
-                    ->where('player_id', $player->id)
-                    ->where('season_id', $latestSeasonId)
-                    ->first();
+             if ($playerStats) {
+                 // Get the player's role for the specified season
+                 $playerRating = DB::table('player_ratings')
+                     ->where('player_id', $player->id)
+                     ->where('season_id', $latestSeasonId)
+                     ->first();
 
-                // Insert or update the player's season stats into the player_season_stats table
-                DB::table('player_season_stats')->updateOrInsert(
-                    [
-                        'player_id' => $player->id,
-                        'season_id' => $latestSeasonId,
-                    ],
-                    [
-                        'team_id' => $teamId,
-                        'role' => $playerRating->role ?? $player->role,  // Role from player_ratings, default to 'unknown'
-                        'avg_minutes_per_game' => $playerStats->avg_minutes_per_game,
-                        'avg_points_per_game' => $playerStats->avg_points_per_game,
-                        'avg_rebounds_per_game' => $playerStats->avg_rebounds_per_game,
-                        'avg_assists_per_game' => $playerStats->avg_assists_per_game,
-                        'avg_steals_per_game' => $playerStats->avg_steals_per_game,
-                        'avg_blocks_per_game' => $playerStats->avg_blocks_per_game,
-                        'avg_turnovers_per_game' => $playerStats->avg_turnovers_per_game,
-                        'avg_fouls_per_game' => $playerStats->avg_fouls_per_game,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]
-                );
-            }
-        }
+                 // Insert or update the player's season stats into the player_season_stats table
+                 DB::table('player_season_stats')->updateOrInsert(
+                     [
+                         'player_id' => $player->id,
+                         'season_id' => $latestSeasonId,
+                     ],
+                     [
+                         'team_id' => $teamId,
+                         'role' => $playerRating->role ?? $player->role,  // Role from player_ratings, default to 'unknown'
+                         'avg_minutes_per_game' => $playerStats->avg_minutes_per_game,
+                         'avg_points_per_game' => $playerStats->avg_points_per_game,
+                         'avg_rebounds_per_game' => $playerStats->avg_rebounds_per_game,
+                         'avg_assists_per_game' => $playerStats->avg_assists_per_game,
+                         'avg_steals_per_game' => $playerStats->avg_steals_per_game,
+                         'avg_blocks_per_game' => $playerStats->avg_blocks_per_game,
+                         'avg_turnovers_per_game' => $playerStats->avg_turnovers_per_game,
+                         'avg_fouls_per_game' => $playerStats->avg_fouls_per_game,
+                         'total_3PM' => $playerStats->total_3PM,
+                         'total_3PA' => $playerStats->total_3PA,
+                         'total_2PM' => $playerStats->total_2PM,
+                         'total_2PA' => $playerStats->total_2PA,
+                         'total_FTM' => $playerStats->total_FTM,
+                         'total_FTA' => $playerStats->total_FTA,
+                         'avg_3PM' => $playerStats->avg_3PM,
+                         'avg_3PA' => $playerStats->avg_3PA,
+                         'avg_2PM' => $playerStats->avg_2PM,
+                         'avg_2PA' => $playerStats->avg_2PA,
+                         'avg_FTM' => $playerStats->avg_FTM,
+                         'avg_FTA' => $playerStats->avg_FTA,
+                         '3P_percentage' => $playerStats->TRHEEP_percentage,
+                         '2P_percentage' => $playerStats->TWOP_percentage,
+                         'FT_percentage' => $playerStats->FT_percentage,
+                         'created_at' => now(),
+                         'updated_at' => now(),
+                     ]
+                 );
+             }
+         }
 
-        return response()->json(['message' => 'Player season stats stored successfully.']);
-    }
+         return response()->json(['message' => 'Player season stats stored successfully.']);
+     }
+
     public function getseasonawards(Request $request)
     {
 

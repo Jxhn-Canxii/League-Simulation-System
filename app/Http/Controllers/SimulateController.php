@@ -53,7 +53,6 @@ class SimulateController extends Controller
             ]
         ];
     }
-
     public function simulateplayoff(Request $request)
     {
         // Validate the request data
@@ -148,10 +147,17 @@ class SimulateController extends Controller
                     ->where('season_id', $currentSeasonId)
                     ->selectRaw('SUM(blocks) / ?', [$totalGames])
                     ->value('SUM(blocks)') : 0,
+
                 'steals' => $gameData->away_team_id ? PlayerGameStats::where('team_id', $gameData->away_team_id)
                     ->where('season_id', $currentSeasonId)
                     ->selectRaw('SUM(steals) / ?', [$totalGames])
                     ->value('SUM(steals)') : 0,
+
+                'defense_rating' => $gameData->away_team_id ? PlayerGameStats::join('players', 'player_game_stats.player_id', '=', 'players.id')
+                    ->where('player_game_stats.team_id', $gameData->away_team_id)
+                    ->where('player_game_stats.season_id', $currentSeasonId)
+                    ->selectRaw('AVG(players.defense_rating)')  // Replace 'defense_rating' with the actual column name if different
+                    ->value('AVG(players.defense_rating)') : 0,
             ];
 
             // If minutes is 0, player did not play
@@ -171,11 +177,39 @@ class SimulateController extends Controller
                     'minutes' => 0,
                 ];
             } else {
-                $performanceFactor = rand(80, 120) / 100; // Randomize within 80% to 120%
-                $pointsPerMinute = 0.5 + ($player->shooting_rating / 200);
-                $points = round($pointsPerMinute * $minutes * $performanceFactor);
+                $performanceFactor = rand(80, 120) / 100;
 
-                $points = rand(0, $points);
+                // Calculate shooting success rates based on shooting rating and defensive rating
+                $shootingSuccessRate3PM = ($player->shooting_rating - $awayTeamDefensiveStats['defense_rating']) / 100;
+                $shootingSuccessRate2PM = ($player->shooting_rating - $awayTeamDefensiveStats['defense_rating']) / 100;
+                $freeThrowSuccessRate = ($player->shooting_rating - $awayTeamDefensiveStats['defense_rating']) / 100;
+
+                // Ensure success rates are between 0 and 1
+                $shootingSuccessRate3PM = max(min($shootingSuccessRate3PM, 1), 0);
+                $shootingSuccessRate2PM = max(min($shootingSuccessRate2PM, 1), 0);
+                $freeThrowSuccessRate = max(min($freeThrowSuccessRate, 1), 0);
+
+                // Calculate shot attempts based on minutes played
+                $threePointAttempts = round(($minutes * 0.3) * $performanceFactor); // 30% of shots are 3PM
+                $twoPointAttempts = round(($minutes * 0.5) * $performanceFactor); // 50% of shots are 2PM
+                $freeThrowAttempts = round(($minutes * 0.2) * $performanceFactor); // 20% of shots are FTM
+
+                // Calculate made shots
+                $made3PM = round($threePointAttempts * $shootingSuccessRate3PM);
+                $made2PM = round($twoPointAttempts * $shootingSuccessRate2PM);
+                $madeFT = round($freeThrowAttempts * $freeThrowSuccessRate);
+
+                // Calculate points from made shots
+                $points = ($made3PM * 3) + ($made2PM * 2) + $madeFT;
+
+                // Apply defensive adjustments
+                $defensiveImpact = ($awayTeamDefensiveStats['blocks'] + $awayTeamDefensiveStats['steals']) / 20; // Scale factor
+
+
+                // Turnovers and fouls
+                $turnovers = round(rand(0, 2));
+                $fouls = round(rand(0, 5));
+
 
                 $assistPerMinute = 0.2 + ($player->passing_rating / 200);
                 $assists = round($assistPerMinute * $minutes * $performanceFactor);
@@ -200,8 +234,6 @@ class SimulateController extends Controller
 
                 // Apply defensive adjustments based on away team's defensive stats
                 $defensiveImpact = ($awayTeamDefensiveStats['blocks'] + $awayTeamDefensiveStats['steals']) / 20; // Scale factor
-                $points -= round($defensiveImpact * $minutes * 0.1); // Adjust points based on opponent's defense
-                $points = max($points, 0); // Ensure no negative points
 
                 // Turnovers and fouls
                 $turnovers = round(rand(0, 2));
@@ -219,7 +251,13 @@ class SimulateController extends Controller
                     'steals' => max($steals, 0),      // Ensure no negative values
                     'blocks' => max($blocks, 0),      // Ensure no negative values
                     'turnovers' => max($turnovers, 0), // Ensure no negative values
-                    'fouls' => max($fouls, 0),        // Ensure no negative values
+                    'fouls' => max($fouls, 0),
+                    '3PM' =>  max($made3PM,0),
+                    '2PM' =>  max($made2PM, 0),
+                    'FTM' =>  max($madeFT, 0),
+                    '3PM_attempts' =>  max($threePointAttempts, 0),
+                    '2PM_attempts' =>  max($twoPointAttempts, 0),
+                    'FT_attempts' =>  max($freeThrowAttempts,0),      // Ensure no negative values
                     'minutes' => max($minutes, 0),
                 ];
             }
@@ -244,11 +282,19 @@ class SimulateController extends Controller
                     ->where('season_id', $currentSeasonId)
                     ->selectRaw('SUM(blocks) / ?', [$totalGames])
                     ->value('SUM(blocks)') : 0,
+
                 'steals' => $gameData->home_team_id ? PlayerGameStats::where('team_id', $gameData->home_team_id)
                     ->where('season_id', $currentSeasonId)
                     ->selectRaw('SUM(steals) / ?', [$totalGames])
                     ->value('SUM(steals)') : 0,
+
+                'defense_rating' => $gameData->home_team_id ? PlayerGameStats::join('players', 'player_game_stats.player_id', '=', 'players.id')
+                    ->where('player_game_stats.team_id', $gameData->home_team_id)
+                    ->where('player_game_stats.season_id', $currentSeasonId)
+                    ->selectRaw('AVG(players.defense_rating)')  // Replace 'defense_rating' with the actual column name if different
+                    ->value('AVG(players.defense_rating)') : 0,
             ];
+
 
             // If minutes is 0, player did not play
             if ($minutes === 0) {
@@ -267,57 +313,89 @@ class SimulateController extends Controller
                     'minutes' => 0,
                 ];
             } else {
-                $performanceFactor = rand(80, 120) / 100; // Randomize within 80% to 120%
-                $pointsPerMinute = 0.5 + ($player->shooting_rating / 200);
-                $points = round($pointsPerMinute * $minutes * $performanceFactor);
+                $performanceFactor = rand(80, 120) / 100;
 
-                $points = rand(0, $points);
+                    // Calculate shooting success rates based on shooting rating and defensive rating
+                    $shootingSuccessRate3PM = ($player->shooting_rating - $homeTeamDefensiveStats['defense_rating']) / 100;
+                    $shootingSuccessRate2PM = ($player->shooting_rating - $homeTeamDefensiveStats['defense_rating']) / 100;
+                    $freeThrowSuccessRate = ($player->shooting_rating - $homeTeamDefensiveStats['defense_rating']) / 100;
 
-                $assistPerMinute = 0.2 + ($player->passing_rating / 200);
-                $assists = round($assistPerMinute * $minutes * $performanceFactor);
+                    // Ensure success rates are between 0 and 1
+                    $shootingSuccessRate3PM = max(min($shootingSuccessRate3PM, 1), 0);
+                    $shootingSuccessRate2PM = max(min($shootingSuccessRate2PM, 1), 0);
+                    $freeThrowSuccessRate = max(min($freeThrowSuccessRate, 1), 0);
 
-                $assists = rand(0, $assists);
+                    // Calculate shot attempts based on minutes played
+                    $threePointAttempts = round(($minutes * 0.3) * $performanceFactor); // 30% of shots are 3PM
+                    $twoPointAttempts = round(($minutes * 0.5) * $performanceFactor); // 50% of shots are 2PM
+                    $freeThrowAttempts = round(($minutes * 0.2) * $performanceFactor); // 20% of shots are FTM
 
-                $reboundPerMinute = 0.3 + ($player->rebounding_rating / 200);
-                $rebounds = round($reboundPerMinute * $minutes * $performanceFactor);
+                    // Calculate made shots
+                    $made3PM = round($threePointAttempts * $shootingSuccessRate3PM);
+                    $made2PM = round($twoPointAttempts * $shootingSuccessRate2PM);
+                    $madeFT = round($freeThrowAttempts * $freeThrowSuccessRate);
 
-                $rebounds = rand(0, $rebounds);
+                    // Calculate points from made shots
+                    $points = ($made3PM * 3) + ($made2PM * 2) + $madeFT;
 
-                $blocksPerMinute = 0.3 + ($player->blocks_rating / 200);
-                $blocks = round($blocksPerMinute * $minutes * $performanceFactor);
-
-                $blocks = rand(0, $blocks);
+                    // Apply defensive adjustments
+                    $defensiveImpact = ($homeTeamDefensiveStats['blocks'] + $homeTeamDefensiveStats['steals']) / 20; // Scale factor
 
 
-                $stealsPerMinute = 0.3 + ($player->steals_rating / 200);
-                $steals = round($stealsPerMinute * $minutes * $performanceFactor);
+                    // Turnovers and fouls
+                    $turnovers = round(rand(0, 2));
+                    $fouls = round(rand(0, 5));
 
-                $steals = rand(0, $steals);
 
-                // Apply defensive adjustments based on home team's defensive stats
-                $defensiveImpact = ($homeTeamDefensiveStats['blocks'] + $homeTeamDefensiveStats['steals']) / 20; // Scale factor
-                $points -= round($defensiveImpact * $minutes * 0.1); // Adjust points based on opponent's defense
-                $points = max($points, 0); // Ensure no negative points
+                    $assistPerMinute = 0.2 + ($player->passing_rating / 200);
+                    $assists = round($assistPerMinute * $minutes * $performanceFactor);
 
-                // Turnovers and fouls
-                $turnovers = round(rand(0, 2));
-                $fouls = round(rand(0, 4));
+                    $assists = rand(0, $assists);
 
-                // Update player game stats
-                $playerGameStats[] = [
-                    'player_id' => $player->id,
-                    'game_id' => $gameData->game_id,
-                    'season_id' => $currentSeasonId,
-                    'team_id' => $player->team_id,
-                    'points' => max($points, 0),      // Ensure no negative values
-                    'rebounds' => max($rebounds, 0),  // Ensure no negative values
-                    'assists' => max($assists, 0),    // Ensure no negative values
-                    'steals' => max($steals, 0),      // Ensure no negative values
-                    'blocks' => max($blocks, 0),      // Ensure no negative values
-                    'turnovers' => max($turnovers, 0), // Ensure no negative values
-                    'fouls' => max($fouls, 0),        // Ensure no negative values
-                    'minutes' => max($minutes, 0),
-                ];
+                    $reboundPerMinute = 0.3 + ($player->rebounding_rating / 200);
+                    $rebounds = round($reboundPerMinute * $minutes * $performanceFactor);
+
+                    $rebounds = rand(0, $rebounds);
+
+                    $blocksPerMinute = 0.3 + ($player->blocks_rating / 200);
+                    $blocks = round($blocksPerMinute * $minutes * $performanceFactor);
+
+                    $blocks = rand(0, $blocks);
+
+
+                    $stealsPerMinute = 0.3 + ($player->steals_rating / 200);
+                    $steals = round($stealsPerMinute * $minutes * $performanceFactor);
+
+                    $steals = rand(0, $steals);
+
+                    // Apply defensive adjustments based on away team's defensive stats
+                    $defensiveImpact = ($homeTeamDefensiveStats['blocks'] + $homeTeamDefensiveStats['steals']) / 20; // Scale factor
+
+                    // Turnovers and fouls
+                    $turnovers = round(rand(0, 2));
+                    $fouls = round(rand(0, 4));
+
+                    // Update player game stats
+                    $playerGameStats[] = [
+                        'player_id' => $player->id,
+                        'game_id' => $gameData->game_id,
+                        'season_id' => $currentSeasonId,
+                        'team_id' => $player->team_id,
+                        'points' => max($points, 0),      // Ensure no negative values
+                        'rebounds' => max($rebounds, 0),  // Ensure no negative values
+                        'assists' => max($assists, 0),    // Ensure no negative values
+                        'steals' => max($steals, 0),      // Ensure no negative values
+                        'blocks' => max($blocks, 0),      // Ensure no negative values
+                        'turnovers' => max($turnovers, 0), // Ensure no negative values
+                        'fouls' => max($fouls, 0),
+                        '3PM' =>  max($made3PM,0),
+                        '2PM' =>  max($made2PM, 0),
+                        'FTM' =>  max($madeFT, 0),
+                        '3PM_attempts' =>  max($threePointAttempts, 0),
+                        '2PM_attempts' =>  max($twoPointAttempts, 0),
+                        'FT_attempts' =>  max($freeThrowAttempts,0),      // Ensure no negative values
+                        'minutes' => max($minutes, 0),
+                    ];
             }
         }
 
@@ -504,11 +582,19 @@ class SimulateController extends Controller
                         ->where('season_id', $currentSeasonId)
                         ->selectRaw('SUM(blocks) / ?', [$totalGames])
                         ->value('SUM(blocks)') : 0,
+
                     'steals' => $gameData->away_team_id ? PlayerGameStats::where('team_id', $gameData->away_team_id)
                         ->where('season_id', $currentSeasonId)
                         ->selectRaw('SUM(steals) / ?', [$totalGames])
                         ->value('SUM(steals)') : 0,
+
+                    'defense_rating' => $gameData->away_team_id ? PlayerGameStats::join('players', 'player_game_stats.player_id', '=', 'players.id')
+                        ->where('player_game_stats.team_id', $gameData->away_team_id)
+                        ->where('player_game_stats.season_id', $currentSeasonId)
+                        ->selectRaw('AVG(players.defense_rating)')  // Replace 'defense_rating' with the actual column name if different
+                        ->value('AVG(players.defense_rating)') : 0,
                 ];
+
 
                 // If minutes is 0, player did not play
                 if ($minutes === 0) {
@@ -527,11 +613,40 @@ class SimulateController extends Controller
                         'minutes' => 0,
                     ];
                 } else {
-                    $performanceFactor = rand(80, 120) / 100; // Randomize within 80% to 120%
-                    $pointsPerMinute = 0.5 + ($player->shooting_rating / 200);
-                    $points = round($pointsPerMinute * $minutes * $performanceFactor);
+                  // Calculate performance factor
+                    $performanceFactor = rand(80, 120) / 100;
 
-                    $points = rand(0, $points);
+                    // Calculate shooting success rates based on shooting rating and defensive rating
+                    $shootingSuccessRate3PM = ($player->shooting_rating - $awayTeamDefensiveStats['defense_rating']) / 100;
+                    $shootingSuccessRate2PM = ($player->shooting_rating - $awayTeamDefensiveStats['defense_rating']) / 100;
+                    $freeThrowSuccessRate = ($player->shooting_rating - $awayTeamDefensiveStats['defense_rating']) / 100;
+
+                    // Ensure success rates are between 0 and 1
+                    $shootingSuccessRate3PM = max(min($shootingSuccessRate3PM, 1), 0);
+                    $shootingSuccessRate2PM = max(min($shootingSuccessRate2PM, 1), 0);
+                    $freeThrowSuccessRate = max(min($freeThrowSuccessRate, 1), 0);
+
+                    // Calculate shot attempts based on minutes played
+                    $threePointAttempts = round(($minutes * 0.3) * $performanceFactor); // 30% of shots are 3PM
+                    $twoPointAttempts = round(($minutes * 0.5) * $performanceFactor); // 50% of shots are 2PM
+                    $freeThrowAttempts = round(($minutes * 0.2) * $performanceFactor); // 20% of shots are FTM
+
+                    // Calculate made shots
+                    $made3PM = round($threePointAttempts * $shootingSuccessRate3PM);
+                    $made2PM = round($twoPointAttempts * $shootingSuccessRate2PM);
+                    $madeFT = round($freeThrowAttempts * $freeThrowSuccessRate);
+
+                    // Calculate points from made shots
+                    $points = ($made3PM * 3) + ($made2PM * 2) + $madeFT;
+
+                    // Apply defensive adjustments
+                    $defensiveImpact = ($awayTeamDefensiveStats['blocks'] + $awayTeamDefensiveStats['steals']) / 20; // Scale factor
+
+
+                    // Turnovers and fouls
+                    $turnovers = round(rand(0, 2));
+                    $fouls = round(rand(0, 5));
+
 
                     $assistPerMinute = 0.2 + ($player->passing_rating / 200);
                     $assists = round($assistPerMinute * $minutes * $performanceFactor);
@@ -575,7 +690,13 @@ class SimulateController extends Controller
                         'steals' => max($steals, 0),      // Ensure no negative values
                         'blocks' => max($blocks, 0),      // Ensure no negative values
                         'turnovers' => max($turnovers, 0), // Ensure no negative values
-                        'fouls' => max($fouls, 0),        // Ensure no negative values
+                        'fouls' => max($fouls, 0),
+                        '3PM' =>  max($made3PM,0),
+                        '2PM' =>  max($made2PM, 0),
+                        'FTM' =>  max($madeFT, 0),
+                        '3PM_attempts' =>  max($threePointAttempts, 0),
+                        '2PM_attempts' =>  max($twoPointAttempts, 0),
+                        'FT_attempts' =>  max($freeThrowAttempts,0),      // Ensure no negative values
                         'minutes' => max($minutes, 0),
                     ];
                 }
@@ -595,16 +716,25 @@ class SimulateController extends Controller
                     ->count();
 
                 // Calculate average defensive stats per game for the home team
-                $homeTeamDefensiveStats = [
+                $homeTeamDefensiveStats =[
                     'blocks' => $gameData->home_team_id ? PlayerGameStats::where('team_id', $gameData->home_team_id)
                         ->where('season_id', $currentSeasonId)
                         ->selectRaw('SUM(blocks) / ?', [$totalGames])
                         ->value('SUM(blocks)') : 0,
+
                     'steals' => $gameData->home_team_id ? PlayerGameStats::where('team_id', $gameData->home_team_id)
                         ->where('season_id', $currentSeasonId)
                         ->selectRaw('SUM(steals) / ?', [$totalGames])
                         ->value('SUM(steals)') : 0,
+
+                    'defense_rating' => $gameData->home_team_id ? PlayerGameStats::join('players', 'player_game_stats.player_id', '=', 'players.id')
+                        ->where('player_game_stats.team_id', $gameData->home_team_id)
+                        ->where('player_game_stats.season_id', $currentSeasonId)
+                        ->selectRaw('AVG(players.defense_rating)')  // Replace 'defense_rating' with the actual column name if different
+                        ->value('AVG(players.defense_rating)') : 0,
                 ];
+
+
 
                 // If minutes is 0, player did not play
                 if ($minutes === 0) {
@@ -623,11 +753,39 @@ class SimulateController extends Controller
                         'minutes' => 0,
                     ];
                 } else {
-                    $performanceFactor = rand(80, 120) / 100; // Randomize within 80% to 120%
-                    $pointsPerMinute = 0.5 + ($player->shooting_rating / 200);
-                    $points = round($pointsPerMinute * $minutes * $performanceFactor);
+                    $performanceFactor = rand(80, 120) / 100;
 
-                    $points = rand(0, $points);
+                    // Calculate shooting success rates based on shooting rating and defensive rating
+                    $shootingSuccessRate3PM = ($player->shooting_rating - $homeTeamDefensiveStats['defense_rating']) / 100;
+                    $shootingSuccessRate2PM = ($player->shooting_rating - $homeTeamDefensiveStats['defense_rating']) / 100;
+                    $freeThrowSuccessRate = ($player->shooting_rating - $homeTeamDefensiveStats['defense_rating']) / 100;
+
+                    // Ensure success rates are between 0 and 1
+                    $shootingSuccessRate3PM = max(min($shootingSuccessRate3PM, 1), 0);
+                    $shootingSuccessRate2PM = max(min($shootingSuccessRate2PM, 1), 0);
+                    $freeThrowSuccessRate = max(min($freeThrowSuccessRate, 1), 0);
+
+                    // Calculate shot attempts based on minutes played
+                    $threePointAttempts = round(($minutes * 0.3) * $performanceFactor); // 30% of shots are 3PM
+                    $twoPointAttempts = round(($minutes * 0.5) * $performanceFactor); // 50% of shots are 2PM
+                    $freeThrowAttempts = round(($minutes * 0.2) * $performanceFactor); // 20% of shots are FTM
+
+                    // Calculate made shots
+                    $made3PM = round($threePointAttempts * $shootingSuccessRate3PM);
+                    $made2PM = round($twoPointAttempts * $shootingSuccessRate2PM);
+                    $madeFT = round($freeThrowAttempts * $freeThrowSuccessRate);
+
+                    // Calculate points from made shots
+                    $points = ($made3PM * 3) + ($made2PM * 2) + $madeFT;
+
+                    // Apply defensive adjustments
+                    $defensiveImpact = ($homeTeamDefensiveStats['blocks'] + $homeTeamDefensiveStats['steals']) / 20; // Scale factor
+
+
+                    // Turnovers and fouls
+                    $turnovers = round(rand(0, 2));
+                    $fouls = round(rand(0, 5));
+
 
                     $assistPerMinute = 0.2 + ($player->passing_rating / 200);
                     $assists = round($assistPerMinute * $minutes * $performanceFactor);
@@ -650,10 +808,8 @@ class SimulateController extends Controller
 
                     $steals = rand(0, $steals);
 
-                    // Apply defensive adjustments based on home team's defensive stats
+                    // Apply defensive adjustments based on away team's defensive stats
                     $defensiveImpact = ($homeTeamDefensiveStats['blocks'] + $homeTeamDefensiveStats['steals']) / 20; // Scale factor
-                    $points -= round($defensiveImpact * $minutes * 0.1); // Adjust points based on opponent's defense
-                    $points = max($points, 0); // Ensure no negative points
 
                     // Turnovers and fouls
                     $turnovers = round(rand(0, 2));
@@ -671,7 +827,13 @@ class SimulateController extends Controller
                         'steals' => max($steals, 0),      // Ensure no negative values
                         'blocks' => max($blocks, 0),      // Ensure no negative values
                         'turnovers' => max($turnovers, 0), // Ensure no negative values
-                        'fouls' => max($fouls, 0),        // Ensure no negative values
+                        'fouls' => max($fouls, 0),
+                        '3PM' =>  max($made3PM,0),
+                        '2PM' =>  max($made2PM, 0),
+                        'FTM' =>  max($madeFT, 0),
+                        '3PM_attempts' =>  max($threePointAttempts, 0),
+                        '2PM_attempts' =>  max($twoPointAttempts, 0),
+                        'FT_attempts' =>  max($freeThrowAttempts,0),      // Ensure no negative values
                         'minutes' => max($minutes, 0),
                     ];
                 }
