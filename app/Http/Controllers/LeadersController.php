@@ -210,14 +210,14 @@ class LeadersController extends Controller
             ->join('seasons', 'seasons.id', '=', 'player_game_stats.season_id')
             ->join('schedule_view', 'schedule_view.game_id', '=', 'player_game_stats.game_id')
             ->join('teams as opponent_teams', function ($join) {
-                $join->on('opponent_teams.id', '=', 'schedules_view.home_id')
-                    ->orOn('opponent_teams.id', '=', 'schedules_view.away_id');
+                $join->on('opponent_teams.id', '=', 'schedule_view.home_id')
+                    ->orOn('opponent_teams.id', '=', 'schedule_view.away_id');
             })
             ->where(function ($query) {
-                $query->where('player_game_stats.team_id', '=', 'schedules_view.home_id')
-                    ->orWhere('player_game_stats.team_id', '=', 'schedules_view.away_id');
+                $query->where('player_game_stats.team_id', '=', 'schedule_view.home_id')
+                    ->orWhere('player_game_stats.team_id', '=', 'schedule_view.away_id');
             })
-            ->groupBy('player_game_stats.player_id', 'player_game_stats.game_id', 'player_game_stats.team_id', 'players.name', 'teams.name', 'opponent_teams.name', 'seasons.year')
+            ->groupBy('player_game_stats.player_id', 'player_game_stats.game_id', 'player_game_stats.team_id', 'players.name', 'teams.name', 'opponent_teams.name', 'seasons.id')
             ->orderByDesc('highest_points')
             ->limit(10)
             ->get();
@@ -238,14 +238,14 @@ class LeadersController extends Controller
             ->join('seasons', 'seasons.id', '=', 'player_game_stats.season_id')
             ->join('schedule_view', 'schedule_view.game_id', '=', 'player_game_stats.game_id')
             ->join('teams as opponent_teams', function ($join) {
-                $join->on('opponent_teams.id', '=', 'schedules_view.home_id')
-                    ->orOn('opponent_teams.id', '=', 'schedules_view.away_id');
+                $join->on('opponent_teams.id', '=', 'schedule_view.home_id')
+                    ->orOn('opponent_teams.id', '=', 'schedule_view.away_id');
             })
             ->where(function ($query) {
-                $query->where('player_game_stats.team_id', '=', 'schedules_view.home_id')
-                    ->orWhere('player_game_stats.team_id', '=', 'schedules_view.away_id');
+                $query->where('player_game_stats.team_id', '=', 'schedule_view.home_id')
+                    ->orWhere('player_game_stats.team_id', '=', 'schedule_view.away_id');
             })
-            ->groupBy('player_game_stats.player_id', 'player_game_stats.game_id', 'player_game_stats.team_id', 'players.name', 'teams.name', 'opponent_teams.name', 'seasons.year')
+            ->groupBy('player_game_stats.player_id', 'player_game_stats.game_id', 'player_game_stats.team_id', 'players.name', 'teams.name', 'opponent_teams.name', 'seasons.id')
             ->orderByDesc('highest_rebounds')
             ->limit(10)
             ->get();
@@ -266,14 +266,14 @@ class LeadersController extends Controller
             ->join('seasons', 'seasons.id', '=', 'player_game_stats.season_id')
             ->join('schedule_view', 'schedule_view.game_id', '=', 'player_game_stats.game_id')
             ->join('teams as opponent_teams', function ($join) {
-                $join->on('opponent_teams.id', '=', 'schedules_view.home_id')
-                    ->orOn('opponent_teams.id', '=', 'schedules_view.away_id');
+                $join->on('opponent_teams.id', '=', 'schedule_view.home_id')
+                    ->orOn('opponent_teams.id', '=', 'schedule_view.away_id');
             })
             ->where(function ($query) {
-                $query->where('player_game_stats.team_id', '=', 'schedules_view.home_id')
-                    ->orWhere('player_game_stats.team_id', '=', 'schedules_view.away_id');
+                $query->where('player_game_stats.team_id', '=', 'schedule_view.home_id')
+                    ->orWhere('player_game_stats.team_id', '=', 'schedule_view.away_id');
             })
-            ->groupBy('player_game_stats.player_id', 'player_game_stats.game_id', 'player_game_stats.team_id', 'players.name', 'teams.name', 'opponent_teams.name', 'seasons.year')
+            ->groupBy('player_game_stats.player_id', 'player_game_stats.game_id', 'player_game_stats.team_id', 'players.name', 'teams.name', 'opponent_teams.name', 'seasons.id')
             ->orderByDesc('highest_assists')
             ->limit(10)
             ->get();
@@ -286,7 +286,7 @@ class LeadersController extends Controller
                 'player_game_stats.game_id',
                 'teams.name as team_name',
                 'opponent_teams.name as opponent_name',
-                'seasons.year as season_year',
+                'seasons.id as season_year',
                 DB::raw('MAX(player_game_stats.blocks) as highest_blocks')
             )
             ->join('players', 'players.id', '=', 'player_game_stats.player_id')
@@ -294,14 +294,14 @@ class LeadersController extends Controller
             ->join('seasons', 'seasons.id', '=', 'player_game_stats.season_id')
             ->join('schedule_view', 'schedule_view.game_id', '=', 'player_game_stats.game_id')
             ->join('teams as opponent_teams', function ($join) {
-                $join->on('opponent_teams.id', '=', 'schedules_view.home_id')
-                    ->orOn('opponent_teams.id', '=', 'schedules_view.away_id');
+                $join->on('opponent_teams.id', '=', 'schedule_view.home_id')
+                    ->orOn('opponent_teams.id', '=', 'schedule_view.away_id');
             })
             ->where(function ($query) {
-                $query->where('player_game_stats.team_id', '=', 'schedules_view.home_id')
-                    ->orWhere('player_game_stats.team_id', '=', 'schedules_view.away_id');
+                $query->where('player_game_stats.team_id', '=', 'schedule_view.home_id')
+                    ->orWhere('player_game_stats.team_id', '=', 'schedule_view.away_id');
             })
-            ->groupBy('player_game_stats.player_id', 'player_game_stats.game_id', 'player_game_stats.team_id', 'players.name', 'teams.name', 'opponent_teams.name', 'seasons.year')
+            ->groupBy('player_game_stats.player_id', 'player_game_stats.game_id', 'player_game_stats.team_id', 'players.name', 'teams.name', 'opponent_teams.name', 'seasons.id')
             ->orderByDesc('highest_blocks')
             ->limit(10)
             ->get();
@@ -314,7 +314,7 @@ class LeadersController extends Controller
                 'player_game_stats.game_id',
                 'teams.name as team_name',
                 'opponent_teams.name as opponent_name',
-                'seasons.year as season_year',
+                'seasons.id as season_year',
                 DB::raw('MAX(player_game_stats.steals) as highest_steals')
             )
             ->join('players', 'players.id', '=', 'player_game_stats.player_id')
@@ -322,14 +322,14 @@ class LeadersController extends Controller
             ->join('seasons', 'seasons.id', '=', 'player_game_stats.season_id')
             ->join('schedule_view', 'schedule_view.game_id', '=', 'player_game_stats.game_id')
             ->join('teams as opponent_teams', function ($join) {
-                $join->on('opponent_teams.id', '=', 'schedules_view.home_id')
-                    ->orOn('opponent_teams.id', '=', 'schedules_view.away_id');
+                $join->on('opponent_teams.id', '=', 'schedule_view.home_id')
+                    ->orOn('opponent_teams.id', '=', 'schedule_view.away_id');
             })
             ->where(function ($query) {
-                $query->where('player_game_stats.team_id', '=', 'schedules_view.home_id')
-                    ->orWhere('player_game_stats.team_id', '=', 'schedules_view.away_id');
+                $query->where('player_game_stats.team_id', '=', 'schedule_view.home_id')
+                    ->orWhere('player_game_stats.team_id', '=', 'schedule_view.away_id');
             })
-            ->groupBy('player_game_stats.player_id', 'player_game_stats.game_id', 'player_game_stats.team_id', 'players.name', 'teams.name', 'opponent_teams.name', 'seasons.year')
+            ->groupBy('player_game_stats.player_id', 'player_game_stats.game_id', 'player_game_stats.team_id', 'players.name', 'teams.name', 'opponent_teams.name', 'seasons.id')
             ->orderByDesc('highest_steals')
             ->limit(10)
             ->get();

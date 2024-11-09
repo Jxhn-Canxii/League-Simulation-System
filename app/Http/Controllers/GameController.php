@@ -47,9 +47,9 @@ class GameController extends Controller
             ->leftJoin('players', 'player_game_stats.player_id', '=', 'players.id') // Join with players
             ->leftJoin('teams as drafted_team', 'drafted_team.id', '=', 'players.drafted_team_id') // Join with players
             ->leftJoin('teams', 'player_game_stats.team_id', '=', 'teams.id') // Join with teams to get team names
-            ->leftJoin('player_ratings', function ($join) {
-                $join->on('player_ratings.player_id', '=', 'players.id')
-                    ->on('player_ratings.season_id', '=', 'player_game_stats.season_id'); // Assuming season_id should match
+            ->leftJoin('player_season_stats', function ($join) {
+                $join->on('player_season_stats.player_id', '=', 'players.id')
+                    ->on('player_season_stats.season_id', '=', 'player_game_stats.season_id'); // Assuming season_id should match
             })
             ->select(
                 'player_game_stats.player_id',
@@ -59,8 +59,11 @@ class GameController extends Controller
                 'players.draft_id',
                 'drafted_team.acronym as drafted_team_acro',
                 'player_game_stats.team_id',
+                'player_game_stats.game_id',
+                'player_game_stats.season_id as game_season_id',
+                'player_season_stats.season_id as stats_season_id',
                 'teams.name as team_name',
-                'player_ratings.role as player_role',
+                'player_season_stats.role as player_role',
                 'player_game_stats.points',
                 'player_game_stats.assists',
                 'player_game_stats.rebounds',
@@ -113,6 +116,7 @@ class GameController extends Controller
 
         // Fetch player details for the best player of the winning team if exists
         $bestWinningTeamPlayerDetails = $bestWinningTeamPlayer ? [
+            'game_id' => $bestWinningTeamPlayer->game_id,
             'name' => $bestWinningTeamPlayer->player_name,
             'team' => $bestWinningTeamPlayer->team_name,
             'points' => $bestWinningTeamPlayer->points,
@@ -151,6 +155,7 @@ class GameController extends Controller
 
             return [
                 'player_id' => $player->id,
+                'team_id' => $player->team_id,
                 'name' => $player->name,
                 'role' => $player->role,
                 'is_rookie' => $player->is_rookie,
@@ -171,6 +176,7 @@ class GameController extends Controller
 
             return [
                 'player_id' => $player->id,
+                'team_id' => $player->team_id,
                 'name' => $player->name,
                 'role' => $player->role,
                 'is_rookie' => $player->is_rookie,

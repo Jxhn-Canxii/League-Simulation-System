@@ -320,6 +320,125 @@ class SimulateController extends Controller
                 ];
             }
         }
+        // Convert to arrays
+        $homeTeamPlayers = $homeTeamPlayers->toArray();
+        $awayTeamPlayers = $awayTeamPlayers->toArray();
+
+        // Calculate total points for each team
+        $totalHomePoints = array_sum(array_map(function ($stat) use ($gameData) {
+            return $stat['team_id'] === $gameData->home_team_id ? $stat['points'] : 0;
+        }, $playerGameStats));
+
+        $totalAwayPoints = array_sum(array_map(function ($stat) use ($gameData) {
+            return $stat['team_id'] === $gameData->away_team_id ? $stat['points'] : 0;
+        }, $playerGameStats));
+
+
+        // Assuming $homeTeamPlayers and $awayTeamPlayers are arrays of player stats with player ids
+        // Retrieve passing ratings for home and away team players from the player table
+        $homePassingTotal = 0;
+        $homePassingAverage = 0;
+        $awayPassingTotal = 0;
+        $awayPassingAverage = 0;
+
+        // Sum up passing ratings for home team players
+        foreach ($homeTeamPlayers as $player) {
+            $passingRating = $player['passing_rating'] ?? 0;  // Default to 0 if passing_rating is missing
+            $homePassingTotal += $passingRating;
+        }
+
+        // Sum up passing ratings for away team players
+        foreach ($awayTeamPlayers as $player) {
+            $passingRating = $player['passing_rating'] ?? 0;  // Default to 0 if passing_rating is missing
+            $awayPassingTotal += $passingRating;
+        }
+
+        // Calculate passing averages
+        $homePassingAverage = count($homeTeamPlayers) > 0 ? $homePassingTotal / count($homeTeamPlayers) : 0;
+        $awayPassingAverage = count($awayTeamPlayers) > 0 ? $awayPassingTotal / count($awayTeamPlayers) : 0;
+
+        // Define maximum assists based on total points and completion rate
+        $maxHomeAssists = round(($totalHomePoints / 2) * ($homePassingAverage / 100));
+        $maxAwayAssists = round(($totalAwayPoints / 2) * ($awayPassingAverage / 100));
+
+        // Track assists assigned to each team
+        $homeAssistsAssigned = 0;
+        $awayAssistsAssigned = 0;
+
+        // Check if passing_rating exists in player stats before sorting
+        foreach ($playerGameStats as &$stats) {
+            // Ensure passing_rating exists, default to 0 if not
+            if (!isset($stats['passing_rating'])) {
+                $stats['passing_rating'] = 0;  // Default passing rating to 0 if it's missing
+            }
+        }
+
+        // Sort players by passing rating in descending order
+        usort($playerGameStats, function ($a, $b) {
+            return $b['passing_rating'] <=> $a['passing_rating'];
+        });
+
+        // Function to distribute assists
+        function distributeAssistsPlayoffs(&$playerGameStats, $teamId, $maxAssists, &$assistsAssigned)
+        {
+            $playmakerIndex = 0; // Track number of players assigned assists in this iteration
+
+            // Calculate the assist range (half to 3/4 of max assists)
+            $assistRange = rand(floor($maxAssists / 2), floor($maxAssists * 3 / 4));
+
+            // Distribute assists among the top 5 to 7 playmakers
+            $remainingAssists = $assistRange; // Remaining assists to distribute among top 5 to 7 playmakers
+            $playmakers = [];
+
+            foreach ($playerGameStats as &$stats) {
+                if ($stats['team_id'] === $teamId) {
+                    // Collect the top playmakers (5-7 based on passing rating)
+                    if ($playmakerIndex < 7) {
+                        $playmakers[] = &$stats; // Add the player to the playmaker list
+                    }
+                    $playmakerIndex++;
+                }
+            }
+
+            // Randomly distribute the assistRange among the top 5-7 players
+            $assistCount = count($playmakers);
+            if ($assistCount > 0) {
+                foreach ($playmakers as &$playmaker) {
+                    // Randomly assign assists to each playmaker in the range of 0 to remaining assists
+                    $maxForThisPlayer = min($remainingAssists, rand(0, floor($remainingAssists / 2)));
+                    $playmaker['assists'] = $maxForThisPlayer;  // Assign assists
+
+                    // Deduct from remaining assists
+                    $remainingAssists -= $maxForThisPlayer;
+
+                    // If there are no more assists to distribute, break early
+                    if ($remainingAssists <= 0) {
+                        break;
+                    }
+                }
+            }
+
+            // Any remaining assists to be distributed among the rest of the players
+            $remainingAssistsToDistribute = $maxAssists - $assistRange - $remainingAssists;
+            foreach ($playerGameStats as &$stats) {
+                if ($stats['team_id'] === $teamId && !in_array($stats, $playmakers)) {
+                    // Assign remaining assists to players who are not in the top playmaker group
+                    $stats['assists'] = rand(0, floor($remainingAssistsToDistribute / 2));
+                }
+            }
+
+            // Update the assists assigned counter
+            $assistsAssigned = $maxAssists - $remainingAssists;
+        }
+
+        // Distribute assists for the home team
+        distributeAssistsPlayoffs($playerGameStats, $gameData->home_team_id, $maxHomeAssists, $homeAssistsAssigned);
+
+        // Distribute assists for the away team
+        distributeAssistsPlayoffs($playerGameStats, $gameData->away_team_id, $maxAwayAssists, $awayAssistsAssigned);
+
+        // Clear reference
+        unset($stats);
 
         // Update or insert player game stats
         foreach ($playerGameStats as $stats) {
@@ -531,11 +650,6 @@ class SimulateController extends Controller
 
                     $points = rand(0, $points);
 
-                    $assistPerMinute = 0.2 + ($player->passing_rating / 200);
-                    $assists = round($assistPerMinute * $minutes * $performanceFactor);
-
-                    $assists = rand(0, $assists);
-
                     $reboundPerMinute = 0.3 + ($player->rebounding_rating / 200);
                     $rebounds = round($reboundPerMinute * $minutes * $performanceFactor);
 
@@ -568,8 +682,8 @@ class SimulateController extends Controller
                         'season_id' => $currentSeasonId,
                         'team_id' => $player->team_id,
                         'points' => max($points, 0),      // Ensure no negative values
+                        'assists' => 0,  // Ensure no negative values
                         'rebounds' => max($rebounds, 0),  // Ensure no negative values
-                        'assists' => max($assists, 0),    // Ensure no negative values
                         'steals' => max($steals, 0),      // Ensure no negative values
                         'blocks' => max($blocks, 0),      // Ensure no negative values
                         'turnovers' => max($turnovers, 0), // Ensure no negative values
@@ -625,11 +739,6 @@ class SimulateController extends Controller
 
                     $points = rand(0, $points);
 
-                    $assistPerMinute = 0.2 + ($player->passing_rating / 200);
-                    $assists = round($assistPerMinute * $minutes * $performanceFactor);
-
-                    $assists = rand(0, $assists);
-
                     $reboundPerMinute = 0.3 + ($player->rebounding_rating / 200);
                     $rebounds = round($reboundPerMinute * $minutes * $performanceFactor);
 
@@ -662,8 +771,8 @@ class SimulateController extends Controller
                         'season_id' => $currentSeasonId,
                         'team_id' => $player->team_id,
                         'points' => max($points, 0),      // Ensure no negative values
+                        'assists' => 0,  // Ensure no negative values
                         'rebounds' => max($rebounds, 0),  // Ensure no negative values
-                        'assists' => max($assists, 0),    // Ensure no negative values
                         'steals' => max($steals, 0),      // Ensure no negative values
                         'blocks' => max($blocks, 0),      // Ensure no negative values
                         'turnovers' => max($turnovers, 0), // Ensure no negative values
@@ -672,6 +781,126 @@ class SimulateController extends Controller
                     ];
                 }
             }
+
+            // Convert to arrays
+            $homeTeamPlayers = $homeTeamPlayers->toArray();
+            $awayTeamPlayers = $awayTeamPlayers->toArray();
+
+            // Calculate total points for each team
+            $totalHomePoints = array_sum(array_map(function ($stat) use ($gameData) {
+                return $stat['team_id'] === $gameData->home_team_id ? $stat['points'] : 0;
+            }, $playerGameStats));
+
+            $totalAwayPoints = array_sum(array_map(function ($stat) use ($gameData) {
+                return $stat['team_id'] === $gameData->away_team_id ? $stat['points'] : 0;
+            }, $playerGameStats));
+
+
+            // Assuming $homeTeamPlayers and $awayTeamPlayers are arrays of player stats with player ids
+            // Retrieve passing ratings for home and away team players from the player table
+            $homePassingTotal = 0;
+            $homePassingAverage = 0;
+            $awayPassingTotal = 0;
+            $awayPassingAverage = 0;
+
+            // Sum up passing ratings for home team players
+            foreach ($homeTeamPlayers as $player) {
+                $passingRating = $player['passing_rating'] ?? 0;  // Default to 0 if passing_rating is missing
+                $homePassingTotal += $passingRating;
+            }
+
+            // Sum up passing ratings for away team players
+            foreach ($awayTeamPlayers as $player) {
+                $passingRating = $player['passing_rating'] ?? 0;  // Default to 0 if passing_rating is missing
+                $awayPassingTotal += $passingRating;
+            }
+
+            // Calculate passing averages
+            $homePassingAverage = count($homeTeamPlayers) > 0 ? $homePassingTotal / count($homeTeamPlayers) : 0;
+            $awayPassingAverage = count($awayTeamPlayers) > 0 ? $awayPassingTotal / count($awayTeamPlayers) : 0;
+
+            // Define maximum assists based on total points and completion rate
+            $maxHomeAssists = round(($totalHomePoints / 2) * ($homePassingAverage / 100));
+            $maxAwayAssists = round(($totalAwayPoints / 2) * ($awayPassingAverage / 100));
+
+            // Track assists assigned to each team
+            $homeAssistsAssigned = 0;
+            $awayAssistsAssigned = 0;
+
+            // Check if passing_rating exists in player stats before sorting
+            foreach ($playerGameStats as &$stats) {
+                // Ensure passing_rating exists, default to 0 if not
+                if (!isset($stats['passing_rating'])) {
+                    $stats['passing_rating'] = 0;  // Default passing rating to 0 if it's missing
+                }
+            }
+
+            // Sort players by passing rating in descending order
+            usort($playerGameStats, function ($a, $b) {
+                return $b['passing_rating'] <=> $a['passing_rating'];
+            });
+
+            // Function to distribute assists
+            function distributeAssists(&$playerGameStats, $teamId, $maxAssists, &$assistsAssigned)
+            {
+                $playmakerIndex = 0; // Track number of players assigned assists in this iteration
+
+                // Calculate the assist range (half to 3/4 of max assists)
+                $assistRange = rand(floor($maxAssists / 2), floor($maxAssists * 3 / 4));
+
+                // Distribute assists among the top 5 to 7 playmakers
+                $remainingAssists = $assistRange; // Remaining assists to distribute among top 5 to 7 playmakers
+                $playmakers = [];
+
+                foreach ($playerGameStats as &$stats) {
+                    if ($stats['team_id'] === $teamId) {
+                        // Collect the top playmakers (5-7 based on passing rating)
+                        if ($playmakerIndex < 7) {
+                            $playmakers[] = &$stats; // Add the player to the playmaker list
+                        }
+                        $playmakerIndex++;
+                    }
+                }
+
+                // Randomly distribute the assistRange among the top 5-7 players
+                $assistCount = count($playmakers);
+                if ($assistCount > 0) {
+                    foreach ($playmakers as &$playmaker) {
+                        // Randomly assign assists to each playmaker in the range of 0 to remaining assists
+                        $maxForThisPlayer = min($remainingAssists, rand(0, floor($remainingAssists / 2)));
+                        $playmaker['assists'] = $maxForThisPlayer;  // Assign assists
+
+                        // Deduct from remaining assists
+                        $remainingAssists -= $maxForThisPlayer;
+
+                        // If there are no more assists to distribute, break early
+                        if ($remainingAssists <= 0) {
+                            break;
+                        }
+                    }
+                }
+
+                // Any remaining assists to be distributed among the rest of the players
+                $remainingAssistsToDistribute = $maxAssists - $assistRange - $remainingAssists;
+                foreach ($playerGameStats as &$stats) {
+                    if ($stats['team_id'] === $teamId && !in_array($stats, $playmakers)) {
+                        // Assign remaining assists to players who are not in the top playmaker group
+                        $stats['assists'] = rand(0, floor($remainingAssistsToDistribute / 2));
+                    }
+                }
+
+                // Update the assists assigned counter
+                $assistsAssigned = $maxAssists - $remainingAssists;
+            }
+
+            // Distribute assists for the home team
+            distributeAssists($playerGameStats, $gameData->home_team_id, $maxHomeAssists, $homeAssistsAssigned);
+
+            // Distribute assists for the away team
+            distributeAssists($playerGameStats, $gameData->away_team_id, $maxAwayAssists, $awayAssistsAssigned);
+
+            // Clear reference
+            unset($stats);
 
             // Update or insert player game stats
             foreach ($playerGameStats as $stats) {
@@ -696,7 +925,6 @@ class SimulateController extends Controller
                         'error' => $e->getMessage(),
                     ]);
                 }
-
             }
 
             // Calculate scores based on player stats
@@ -1475,6 +1703,4 @@ class SimulateController extends Controller
             $streak['best_losing_streak_end_id'] = $gameId; // Update end of losing streak
         }
     }
-
-
 }
