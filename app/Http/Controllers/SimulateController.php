@@ -379,8 +379,7 @@ class SimulateController extends Controller
         });
 
         // Function to distribute assists
-        function distributeAssistsPlayoffs(&$playerGameStats, $teamId, $maxAssists, &$assistsAssigned)
-        {
+        function distributeAssistsPlayoffs(&$playerGameStats, $teamId, $maxAssists, &$assistsAssigned) {
             $playmakerIndex = 0; // Track number of players assigned assists in this iteration
 
             // Calculate the assist range (half to 3/4 of max assists)
@@ -391,7 +390,7 @@ class SimulateController extends Controller
             $playmakers = [];
 
             foreach ($playerGameStats as &$stats) {
-                if ($stats['team_id'] === $teamId) {
+                if ($stats['team_id'] === $teamId && $stats['minutes'] > 0) { // Check if player has more than 0 minutes
                     // Collect the top playmakers (5-7 based on passing rating)
                     if ($playmakerIndex < 7) {
                         $playmakers[] = &$stats; // Add the player to the playmaker list
@@ -400,7 +399,12 @@ class SimulateController extends Controller
                 }
             }
 
-            // Randomly distribute the assistRange among the top 5-7 players
+            // Sort the players by passing rating in descending order
+            usort($playmakers, function ($a, $b) {
+                return $b['passing_rating'] <=> $a['passing_rating'];
+            });
+
+            // Randomly distribute the assistRange among the top 5 to 7 players
             $assistCount = count($playmakers);
             if ($assistCount > 0) {
                 foreach ($playmakers as &$playmaker) {
@@ -421,8 +425,8 @@ class SimulateController extends Controller
             // Any remaining assists to be distributed among the rest of the players
             $remainingAssistsToDistribute = $maxAssists - $assistRange - $remainingAssists;
             foreach ($playerGameStats as &$stats) {
-                if ($stats['team_id'] === $teamId && !in_array($stats, $playmakers)) {
-                    // Assign remaining assists to players who are not in the top playmaker group
+                if ($stats['team_id'] === $teamId && !in_array($stats, $playmakers) && $stats['minutes'] > 0) { // Ensure player has minutes > 0
+                    // Assign remaining assists to players who are not in the top playmaker group and have played minutes
                     $stats['assists'] = rand(0, floor($remainingAssistsToDistribute / 2));
                 }
             }
@@ -841,8 +845,7 @@ class SimulateController extends Controller
             });
 
             // Function to distribute assists
-            function distributeAssists(&$playerGameStats, $teamId, $maxAssists, &$assistsAssigned)
-            {
+            function distributeAssists(&$playerGameStats, $teamId, $maxAssists, &$assistsAssigned) {
                 $playmakerIndex = 0; // Track number of players assigned assists in this iteration
 
                 // Calculate the assist range (half to 3/4 of max assists)
@@ -853,7 +856,7 @@ class SimulateController extends Controller
                 $playmakers = [];
 
                 foreach ($playerGameStats as &$stats) {
-                    if ($stats['team_id'] === $teamId) {
+                    if ($stats['team_id'] === $teamId && $stats['minutes'] > 0) { // Check if player has more than 0 minutes
                         // Collect the top playmakers (5-7 based on passing rating)
                         if ($playmakerIndex < 7) {
                             $playmakers[] = &$stats; // Add the player to the playmaker list
@@ -862,7 +865,12 @@ class SimulateController extends Controller
                     }
                 }
 
-                // Randomly distribute the assistRange among the top 5-7 players
+                // Sort the players by passing rating in descending order
+                usort($playmakers, function ($a, $b) {
+                    return $b['passing_rating'] <=> $a['passing_rating'];
+                });
+
+                // Randomly distribute the assistRange among the top 5 to 7 players
                 $assistCount = count($playmakers);
                 if ($assistCount > 0) {
                     foreach ($playmakers as &$playmaker) {
@@ -883,8 +891,8 @@ class SimulateController extends Controller
                 // Any remaining assists to be distributed among the rest of the players
                 $remainingAssistsToDistribute = $maxAssists - $assistRange - $remainingAssists;
                 foreach ($playerGameStats as &$stats) {
-                    if ($stats['team_id'] === $teamId && !in_array($stats, $playmakers)) {
-                        // Assign remaining assists to players who are not in the top playmaker group
+                    if ($stats['team_id'] === $teamId && !in_array($stats, $playmakers) && $stats['minutes'] > 0) { // Ensure player has minutes > 0
+                        // Assign remaining assists to players who are not in the top playmaker group and have played minutes
                         $stats['assists'] = rand(0, floor($remainingAssistsToDistribute / 2));
                     }
                 }

@@ -130,7 +130,7 @@ class AwardsController extends Controller
 
         foreach ($players as $player) {
             // If there is a valid season ID, calculate stats
-            if ($latestSeasonId > 1) {
+            if ($latestSeasonId > 0) {
                 $playerStats = DB::table('player_game_stats')
                     ->where('player_id', $player->id)
                     ->where('season_id', $latestSeasonId)
