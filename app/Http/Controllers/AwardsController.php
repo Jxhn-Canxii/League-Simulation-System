@@ -120,8 +120,8 @@ class AwardsController extends Controller
         // Get the team_id from the request
         $teamId = $request->input('team_id');
 
-        // Get the latest season ID or set it to 1 if it doesn’t exist
-        $latestSeasonId = DB::table('seasons')->orderBy('id', 'desc')->value('id') ?? 1;
+        // Get the latest season ID or set it to 12 if it doesn’t exist
+        $latestSeasonId = DB::table('seasons')->orderBy('id', 'desc')->value('id');
 
         // Get all players from the team
         $players = DB::table('players')
