@@ -7,6 +7,14 @@
         </template>
 
         <div class="overflow-hidden shadow-sm sm:rounded-lg min-h-screen p-3">
+            <div class="flex">
+                <button
+                    @click="reloadData()"
+                    class="px-4 py-2 bg-rose-500 text-white rounded mb-4 text-sm"
+                >
+                    <i class="fa fa-reload"></i> Reload Data
+                </button>
+            </div>
             <div class="grid grid-cols-5 gap-6">
                 <!-- Points Table -->
                 <div class="bg-white inline-block min-w-full overflow-hidden rounded shadow p-2 mt-4">
@@ -158,7 +166,7 @@
                                     </div>
                                     <!-- Right side: Points in a circle -->
                                     <div class="flex items-center justify-center w-10 h-10 rounded-full bg-yellow-600 text-white font-bold text-md p-2">
-                                        {{ player.avg_points_per_game }}
+                                        {{ player.total_points}}
                                     </div>
                                 </div>
                             </li>
@@ -184,7 +192,7 @@
                                     </div>
                                     <!-- Right side: Points in a circle -->
                                     <div class="flex items-center justify-center w-10 h-10 rounded-full bg-yellow-600 text-white font-bold text-md p-2">
-                                        {{ player.avg_assists_per_game }}
+                                        {{ player.total_assists }}
                                     </div>
                                 </div>
                             </li>
@@ -210,7 +218,7 @@
                                     </div>
                                     <!-- Right side: Points in a circle -->
                                     <div class="flex items-center justify-center w-10 h-10 rounded-full bg-yellow-600 text-white font-bold text-md p-2">
-                                        {{ player.avg_rebounds_per_game }}
+                                        {{ player.total_rebounds }}
                                     </div>
                                 </div>
                             </li>
@@ -236,7 +244,7 @@
                                     </div>
                                     <!-- Right side: Points in a circle -->
                                     <div class="flex items-center justify-center w-10 h-10 rounded-full bg-yellow-600 text-white font-bold text-md p-2">
-                                        {{ player.avg_steals_per_game }}
+                                        {{ player.total_steals }}
                                     </div>
                                 </div>
                             </li>
@@ -262,7 +270,7 @@
                                     </div>
                                     <!-- Right side: Points in a circle -->
                                     <div class="flex items-center justify-center w-10 h-10 rounded-full bg-yellow-600 text-white font-bold text-md p-2">
-                                        {{ player.avg_blocks_per_game }}
+                                        {{ player.total_blocks }}
                                     </div>
                                 </div>
                             </li>
@@ -426,6 +434,19 @@ const CACHE_KEY_AVERAGE = 'average_stat_leaders';
 const CACHE_KEY_TOTAL = 'total_stat_leaders';
 const CACHE_KEY_SINGLE = 'single_stat_leaders';
 
+const reloadData = async () => {
+    // Clears all data from localStorage
+    localStorage.clear();
+    await fetchStatLeaders("average.stats.leaders", CACHE_KEY_AVERAGE, average);
+    await fetchStatLeaders("total.stats.leaders", CACHE_KEY_TOTAL, total);
+    await fetchStatLeaders("single.stats.leaders", CACHE_KEY_SINGLE, single);
+
+    Swal.fire({
+        icon: "success",
+        title: "Success!",
+        text: "All Data has been Cleared",
+    });
+}
 // Function to fetch and cache data
 const fetchStatLeaders = async (endpoint, cacheKey, refVariable) => {
     // Check if cached data exists in localStorage
