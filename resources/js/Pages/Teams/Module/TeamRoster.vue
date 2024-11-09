@@ -351,8 +351,8 @@ const fetchTeamRoster = async (id) => {
 const seasonsDropdown = async () => {
     try {
         seasons.value = JSON.parse(localStorage.getItem('seasons'));
-        console.log(seasons.value[0].season_id ?? 0);
-        season_id.value = seasons.value[0].season_id ?? 0;
+        console.log(seasons?.value[0].season_id ?? 0);
+        season_id.value = seasons?.value[0].season_id ?? 0;
     } catch (error) {
         console.error("Error fetching seasons dropdown:", error);
     }

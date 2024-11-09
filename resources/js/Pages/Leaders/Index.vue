@@ -161,7 +161,7 @@
                                             <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">{{ player.player_name }}</span>
                                         </div>
                                         <div class="text-xs text-gray-600">
-                                            <span>{{ player.team_name }} (Season {{ player.season_id }})</span>
+                                            <span>{{ player.team_name ?? 'Free Agent' }}</span>
                                         </div>
                                     </div>
                                     <!-- Right side: Points in a circle -->
@@ -187,7 +187,7 @@
                                             <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">{{ player.player_name }}</span>
                                         </div>
                                         <div class="text-xs text-gray-600">
-                                            <span>{{ player.team_name }} (Season {{ player.season_id }})</span>
+                                            <span>{{ player.team_name ?? 'Free Agent' }}</span>
                                         </div>
                                     </div>
                                     <!-- Right side: Points in a circle -->
@@ -213,7 +213,7 @@
                                             <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">{{ player.player_name }}</span>
                                         </div>
                                         <div class="text-xs text-gray-600">
-                                            <span>{{ player.team_name }} (Season {{ player.season_id }})</span>
+                                            <span>{{ player.team_name ?? 'Free Agent' }}</span>
                                         </div>
                                     </div>
                                     <!-- Right side: Points in a circle -->
@@ -239,7 +239,7 @@
                                             <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">{{ player.player_name }}</span>
                                         </div>
                                         <div class="text-xs text-gray-600">
-                                            <span>{{ player.team_name }} (Season {{ player.season_id }})</span>
+                                            <span>{{ player.team_name ?? 'Free Agent' }}</span>
                                         </div>
                                     </div>
                                     <!-- Right side: Points in a circle -->
@@ -265,7 +265,7 @@
                                             <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">{{ player.player_name }}</span>
                                         </div>
                                         <div class="text-xs text-gray-600">
-                                            <span>{{ player.team_name }} (Season {{ player.season_id }})</span>
+                                            <span>{{ player.team_name ?? 'Free Agent' }}</span>
                                         </div>
                                     </div>
                                     <!-- Right side: Points in a circle -->
@@ -292,7 +292,7 @@
                                             <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">{{ player.player_name }}</span>
                                         </div>
                                         <div class="text-xs text-gray-600">
-                                            <span>{{ player.team_name }} (Season {{ player.season_id }})</span>
+                                            <span>{{ player.team_name }}</span>
                                         </div>
                                     </div>
                                     <!-- Right side: Points in a circle -->
