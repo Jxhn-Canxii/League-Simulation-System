@@ -13,38 +13,72 @@
             <span class="text-sm font-semibold text-red-600">LIGA PILIPINAS</span>
         </div>
 
-        <!-- Navigation Links ddd-->
-        <nav class="hidden lg:flex text-sm text-nowrap px-0 mx-0"> <!-- Reduced space and font size for compactness -->
-            <nav-link :href="route('analytics.index')" :active="route().current('analytics.index')">
-                <template #icon><i class="fa fa-chart-line"></i></template> Analytics
-            </nav-link>
-            <nav-link :href="route('seasons.index')" :active="route().current('seasons.index')">
-                <template #icon><i class="fa fa-calendar"></i></template> Seasons
-            </nav-link>
-            <nav-link :href="route('records.index')" :active="route().current('records.index')">
-                <template #icon><i class="fa fa-book"></i></template> Records
-            </nav-link>
-            <nav-link :href="route('leaders.index')" :active="route().current('leaders.index')">
-                <template #icon><i class="fa fa-ranking-star"></i></template> Leaders
-            </nav-link>
-            <nav-link :href="route('awards.index')" :active="route().current('awards.index')">
-                <template #icon><i class="fa fa-medal"></i></template> Awards
-            </nav-link>
-            <nav-link :href="route('players.index')" :active="route().current('players.index')">
-                <template #icon><i class="fa fa-users"></i></template> Players
-            </nav-link>
-            <nav-link :href="route('freeagents.index')" :active="route().current('freeagents.index')">
-                <template #icon><i class="fa fa-users-slash"></i></template> Free Agents
-            </nav-link>
-            <nav-link :href="route('teams.index')" :active="route().current('teams.index')">
-                <template #icon><i class="fa fa-basketball"></i></template> Teams
-            </nav-link>
-            <nav-link :href="route('leagues.index')" :active="route().current('leagues.index')">
-                <template #icon><i class="fa fa-list"></i></template> Leagues
-            </nav-link>
-            <nav-link :href="route('users.index')" :active="route().current('users.index')">
-                <template #icon><i class="fa fa-users"></i></template> Users
-            </nav-link>
+        <!-- Navigation Links with Dropdown Grouping -->
+        <nav class="hidden lg:flex text-sm text-nowrap px-0 mx-0">
+            <!-- History Dropdown -->
+            <div class="relative" @mouseenter="showHistoryDropdown = true" @mouseleave="showHistoryDropdown = false">
+                <button class="text-xs text-gray-300 flex items-center space-x-1 px-2 py-1 rounded-md hover:bg-rose-600 hover:text-white">
+                    <span>History</span>
+                    <i class="fa fa-caret-down text-sm"></i>
+                </button>
+                <div v-show="showHistoryDropdown" class="absolute hidden bg-stone-900 border-2 border-rose-600 text-gray-300 rounded-md mt-1 p-2 space-y-1">
+                    <nav-link :href="route('records.index')" :active="route().current('records.index')" class="text-xs px-2 py-1 hover:bg-rose-600 hover:text-white">Records</nav-link>
+                    <nav-link :href="route('leaders.index')" :active="route().current('leaders.index')" class="text-xs px-2 py-1 hover:bg-rose-600 hover:text-white">Leaders</nav-link>
+                    <nav-link :href="route('awards.index')" :active="route().current('awards.index')" class="text-xs px-2 py-1 hover:bg-rose-600 hover:text-white">Awards</nav-link>
+                </div>
+            </div>
+
+            <!-- Players & Free Agents Dropdown -->
+            <div class="relative" @mouseenter="showPlayersDropdown = true" @mouseleave="showPlayersDropdown = false">
+                <button class="text-xs text-gray-300 flex items-center space-x-1 px-2 py-1 rounded-md hover:bg-rose-600 hover:text-white">
+                    <span>Players & Free Agents</span>
+                    <i class="fa fa-caret-down text-sm"></i>
+                </button>
+                <div v-show="showPlayersDropdown" class="absolute hidden bg-stone-900 border-2 border-rose-600 text-gray-300 rounded-md mt-1 p-2 space-y-1">
+                    <nav-link :href="route('players.index')" :active="route().current('players.index')" class="text-xs px-2 py-1 hover:bg-rose-600 hover:text-white">Players</nav-link>
+                    <nav-link :href="route('freeagents.index')" :active="route().current('freeagents.index')" class="text-xs px-2 py-1 hover:bg-rose-600 hover:text-white">Free Agents</nav-link>
+                </div>
+            </div>
+
+            <!-- Teams & Leagues Dropdown -->
+            <div class="relative" @mouseenter="showTeamsDropdown = true" @mouseleave="showTeamsDropdown = false">
+                <button class="text-xs text-gray-300 flex items-center space-x-1 px-2 py-1 rounded-md hover:bg-rose-600 hover:text-white">
+                    <span>Teams & Leagues</span>
+                    <i class="fa fa-caret-down text-sm"></i>
+                </button>
+                <div v-show="showTeamsDropdown" class="absolute hidden bg-stone-900 border-2 border-rose-600 text-gray-300 rounded-md mt-1 p-2 space-y-1">
+                    <nav-link :href="route('teams.index')" :active="route().current('teams.index')" class="text-xs px-2 py-1 hover:bg-rose-600 hover:text-white">Teams</nav-link>
+                    <nav-link :href="route('leagues.index')" :active="route().current('leagues.index')" class="text-xs px-2 py-1 hover:bg-rose-600 hover:text-white">Leagues</nav-link>
+                </div>
+            </div>
+
+            <!-- Analytics, Seasons, Users Links (Group them similarly to dropdowns) -->
+            <div class="relative" @mouseenter="showAnalyticsDropdown = true" @mouseleave="showAnalyticsDropdown = false">
+                <button class="text-xs text-gray-300 flex items-center space-x-1 px-2 py-1 rounded-md hover:bg-rose-600 hover:text-white">
+                    <span>Analytics</span>
+                </button>
+                <div v-show="showAnalyticsDropdown" class="absolute hidden bg-stone-900 border-2 border-rose-600 text-gray-300 rounded-md mt-1 p-2 space-y-1">
+                    <nav-link :href="route('analytics.index')" :active="route().current('analytics.index')" class="text-xs px-2 py-1 hover:bg-rose-600 hover:text-white">Analytics</nav-link>
+                </div>
+            </div>
+
+            <div class="relative" @mouseenter="showSeasonsDropdown = true" @mouseleave="showSeasonsDropdown = false">
+                <button class="text-xs text-gray-300 flex items-center space-x-1 px-2 py-1 rounded-md hover:bg-rose-600 hover:text-white">
+                    <span>Seasons</span>
+                </button>
+                <div v-show="showSeasonsDropdown" class="absolute hidden bg-stone-900 border-2 border-rose-600 text-gray-300 rounded-md mt-1 p-2 space-y-1">
+                    <nav-link :href="route('seasons.index')" :active="route().current('seasons.index')" class="text-xs px-2 py-1 hover:bg-rose-600 hover:text-white">Seasons</nav-link>
+                </div>
+            </div>
+
+            <div class="relative" @mouseenter="showUsersDropdown = true" @mouseleave="showUsersDropdown = false">
+                <button class="text-xs text-gray-300 flex items-center space-x-1 px-2 py-1 rounded-md hover:bg-rose-600 hover:text-white">
+                    <span>Users</span>
+                </button>
+                <div v-show="showUsersDropdown" class="absolute hidden bg-stone-900 border-2 border-rose-600 text-gray-300 rounded-md mt-1 p-2 space-y-1">
+                    <nav-link :href="route('users.index')" :active="route().current('users.index')" class="text-xs px-2 py-1 hover:bg-rose-600 hover:text-white">Users</nav-link>
+                </div>
+            </div>
         </nav>
 
         <!-- Logout button -->
@@ -57,5 +91,27 @@
 <script setup>
 import DropdownLink from '@/Components/DropdownLink.vue';
 import NavLink from '@/Components/NavLink.vue';
-import { Link } from '@inertiajs/vue3';
+import { ref } from 'vue';
+
+const showHistoryDropdown = ref(false);
+const showPlayersDropdown = ref(false);
+const showTeamsDropdown = ref(false);
+const showAnalyticsDropdown = ref(false);
+const showSeasonsDropdown = ref(false);
+const showUsersDropdown = ref(false);
 </script>
+
+<style scoped>
+/* Custom styles for dropdowns */
+.relative:hover .absolute {
+    display: block; /* Show dropdown when hovered */
+}
+
+/* Ensure dropdown menu does not push other elements down */
+.absolute {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 10;
+}
+</style>
