@@ -1,9 +1,9 @@
 <template>
     <div class="team-roster">
-        <h2 class="text-xl font-semibold text-gray-800">Player Signings</h2>
+        <h2 class="text-xl font-semibold text-gray-800" v-if="props.showControls">Player Signings</h2>
 
         <!-- Divider -->
-        <hr class="my-4 border-t border-gray-200" />
+        <hr class="my-4 border-t border-gray-200" v-if="props.showControls" />
         <div class="mb-4">
             <TopStatistics :key="key" />
         </div>
