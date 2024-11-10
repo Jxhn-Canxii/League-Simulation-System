@@ -13,7 +13,7 @@
             <span class="text-sm font-semibold text-red-600">LIGA PILIPINAS</span>
         </div>
 
-        <!-- Navigation Links -->
+        <!-- Navigation Links ddd-->
         <nav class="hidden lg:flex text-sm text-nowrap px-0 mx-0"> <!-- Reduced space and font size for compactness -->
             <nav-link :href="route('analytics.index')" :active="route().current('analytics.index')">
                 <template #icon><i class="fa fa-chart-line"></i></template> Analytics
