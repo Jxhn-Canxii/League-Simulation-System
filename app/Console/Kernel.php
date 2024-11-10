@@ -22,7 +22,7 @@ class Kernel extends ConsoleKernel
                 ->first();
 
             // If the latest season's status is 12, run the update
-            if ($latestSeason && $latestSeason->status == 12) {
+            if ($latestSeason) {
                 // Call the updateAllTimeTopStats method from LeadersController
                 app(AwardsController::class)->storeallplayerseasonstats();
                 app(LeadersController::class)->updateAllTimeTopStats();
