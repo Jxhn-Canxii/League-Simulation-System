@@ -73,6 +73,11 @@
                                 <th
                                     class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
                                 >
+                                    Awards
+                                </th>
+                                <th
+                                    class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                                >
                                     Experience
                                 </th>
                                 <th
@@ -148,7 +153,15 @@
                                     {{ player.draft_status }} {{ player.drafted_team ? '('+player.drafted_team+ ')' : ''}}
                                 </td>
                                 <td class="px-2 py-1 whitespace-nowrap border">
-                                    {{ player.name }}
+                                    <span>
+                                        {{ player.name }}
+                                        <sup v-if="player.is_finals_mvp">
+                                            <i class="fa fa-star fa-sm text-yellow-500"></i>
+                                        </sup>
+                                    </span>
+                                </td>
+                                <td class="px-2 py-1 whitespace-nowrap border text-wrap">
+                                    {{ player.awards }}
                                 </td>
                                 <td class="px-2 py-1 whitespace-nowrap border">
                                     {{ player.is_rookie == 1 ? 'Rookie' : 'Veteran' }}

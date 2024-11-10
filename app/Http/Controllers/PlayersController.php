@@ -209,16 +209,14 @@ class PlayersController extends Controller
         $currentPage = $request->input('page_num', 1); // Current page number
         $search = $request->input('search', ''); // Search term
 
-        // Define role priorities
-        $rolePriorities = [
-            'star player' => 1,
-            'starter' => 2,
-            'role player' => 3,
-            'bench' => 4,
-        ];
-
         // Build the query with optional search filter
-        $query = Player::select('players.*', 'teams.acronym as drafted_team')
+        $query = Player::select(
+                'players.*',
+                'teams.acronym as drafted_team',
+                DB::raw("(SELECT GROUP_CONCAT(award_name SEPARATOR ', ') FROM season_awards WHERE season_awards.player_id = players.id) as awards"),
+                DB::raw("CASE WHEN players.id = (SELECT finals_mvp_id FROM seasons WHERE seasons.finals_mvp_id = players.id) THEN 1 ELSE 0 END as is_finals_mvp"),
+                DB::raw("(SELECT GROUP_CONCAT(seasons.name SEPARATOR ', ') FROM seasons WHERE seasons.finals_mvp_id = players.id) as finals_mvp_seasons")
+            )
             ->where('players.contract_years', 0)
             ->where('players.is_active', 1)
             ->leftJoin('teams', 'players.drafted_team_id', '=', 'teams.id'); // Join teams on players.drafted_team_id
@@ -228,10 +226,12 @@ class PlayersController extends Controller
             $query->where('players.name', 'like', "%{$search}%");
         }
 
-        // Add role priority sorting
-        $query->orderByRaw(
-            "FIELD(role, 'star player', 'starter', 'role player', 'bench')"
-        );
+        // Add ordering for awards, finals MVP status, and role priority
+        $query->orderByRaw("
+            LENGTH(awards) DESC,           -- Sort by length of awards (more awards higher)
+            is_finals_mvp DESC,            -- Finals MVPs appear first
+            FIELD(role, 'star player', 'starter', 'role player', 'bench') -- Sort by role priority
+        ");
 
         // Get total number of records
         $total = $query->count();
