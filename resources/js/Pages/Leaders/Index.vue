@@ -279,7 +279,7 @@
                 </div>
 
                   <!-- Points Table -->
-                  <div class="bg-white inline-block min-w-full overflow-hidden rounded shadow p-2 mt-4">
+                <div class="bg-white inline-block min-w-full overflow-hidden rounded shadow p-2 mt-4">
                     <h3 class="text-md font-semibold text-gray-800">Single Points Leaders</h3>
                     <div class="mt-4 text-xs">
                         <ul>
@@ -439,7 +439,7 @@ const reloadData = async () => {
     localStorage.clear();
     await fetchStatLeaders("average.stats.leaders", CACHE_KEY_AVERAGE, average);
     await fetchStatLeaders("total.stats.leaders", CACHE_KEY_TOTAL, total);
-    await fetchStatLeaders("single.stats.leaders", CACHE_KEY_SINGLE, single);
+    // await fetchStatLeaders("single.stats.leaders", CACHE_KEY_SINGLE, single);
 
     Swal.fire({
         icon: "success",
@@ -473,7 +473,7 @@ const fetchStatLeaders = async (endpoint, cacheKey, refVariable) => {
 onMounted(() => {
     fetchStatLeaders("average.stats.leaders", CACHE_KEY_AVERAGE, average);
     fetchStatLeaders("total.stats.leaders", CACHE_KEY_TOTAL, total);
-    fetchStatLeaders("single.stats.leaders", CACHE_KEY_SINGLE, single);
+    // fetchStatLeaders("single.stats.leaders", CACHE_KEY_SINGLE, single);
 });
 </script>
 

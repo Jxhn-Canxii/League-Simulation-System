@@ -118,7 +118,7 @@ class LeadersController extends Controller
                 DB::raw('SUM(player_season_stats.total_points) as total_points'), // Sum total points across all seasons
                 'players.id as player_id'
             )
-            ->groupBy('player_season_stats.player_id','players.name','teams.name','players.id')
+            ->groupBy('player_season_stats.player_id', 'players.name', 'teams.name', 'players.id')
             ->orderByDesc('total_points')
             ->limit(10)
             ->get();
@@ -133,7 +133,7 @@ class LeadersController extends Controller
                 DB::raw('SUM(player_season_stats.total_rebounds) as total_rebounds'), // Sum total rebounds across all seasons
                 'players.id as player_id'
             )
-            ->groupBy('player_season_stats.player_id','players.name','teams.name','players.id')
+            ->groupBy('player_season_stats.player_id', 'players.name', 'teams.name', 'players.id')
             ->orderByDesc('total_rebounds')
             ->limit(10)
             ->get();
@@ -148,7 +148,7 @@ class LeadersController extends Controller
                 DB::raw('SUM(player_season_stats.total_assists) as total_assists'), // Sum total assists across all seasons
                 'players.id as player_id'
             )
-            ->groupBy('player_season_stats.player_id','players.name','teams.name','players.id')
+            ->groupBy('player_season_stats.player_id', 'players.name', 'teams.name', 'players.id')
             ->orderByDesc('total_assists')
             ->limit(10)
             ->get();
@@ -163,7 +163,7 @@ class LeadersController extends Controller
                 DB::raw('SUM(player_season_stats.total_steals) as total_steals'), // Sum total steals across all seasons
                 'players.id as player_id'
             )
-            ->groupBy('player_season_stats.player_id','players.name','teams.name','players.id')
+            ->groupBy('player_season_stats.player_id', 'players.name', 'teams.name', 'players.id')
             ->orderByDesc('total_steals')
             ->limit(10)
             ->get();
@@ -178,7 +178,7 @@ class LeadersController extends Controller
                 DB::raw('SUM(player_season_stats.total_blocks) as total_blocks'), // Sum total blocks across all seasons
                 'players.id as player_id'
             )
-            ->groupBy('player_season_stats.player_id','players.name','teams.name','players.id')
+            ->groupBy('player_season_stats.player_id', 'players.name', 'teams.name', 'players.id')
             ->orderByDesc('total_blocks')
             ->limit(10)
             ->get();
@@ -195,8 +195,8 @@ class LeadersController extends Controller
 
     public function getSingleStatsLeaders()
     {
+        // Fetch top players for each stat category in a single game
 
-        // Fetch total stats for each player across all games
         // Highest Points in a Single Game
         $topSinglePoints = DB::table('player_game_stats')
             ->select(
@@ -204,51 +204,35 @@ class LeadersController extends Controller
                 'players.name as player_name',
                 'player_game_stats.game_id',
                 'teams.name as team_name',
-                'opponent_teams.name as opponent_name',
-                'seasons.id as season_id',
-                DB::raw('MAX(player_game_stats.points) as highest_points')
+                DB::raw('MAX(player_game_stats.points) as highest_points'),
+                'seasons.id as season_id'
             )
             ->join('players', 'players.id', '=', 'player_game_stats.player_id')
             ->join('teams', 'teams.id', '=', 'player_game_stats.team_id')
             ->join('seasons', 'seasons.id', '=', 'player_game_stats.season_id')
             ->join('schedule_view', 'schedule_view.game_id', '=', 'player_game_stats.game_id')
-            ->join('teams as opponent_teams', function ($join) {
-                $join->on('opponent_teams.id', '=', 'schedule_view.home_id')
-                    ->orOn('opponent_teams.id', '=', 'schedule_view.away_id');
-            })
-            ->where(function ($query) {
-                $query->where('player_game_stats.team_id', '=', 'schedule_view.home_id')
-                    ->orWhere('player_game_stats.team_id', '=', 'schedule_view.away_id');
-            })
-            ->groupBy('player_game_stats.player_id', 'player_game_stats.game_id', 'player_game_stats.team_id', 'players.name', 'teams.name', 'opponent_teams.name', 'seasons.id')
+            ->whereRaw('(player_game_stats.team_id = schedule_view.home_id OR player_game_stats.team_id = schedule_view.away_id)')
+            ->groupBy('player_game_stats.player_id', 'players.name', 'player_game_stats.game_id', 'teams.name', 'seasons.id')
             ->orderByDesc('highest_points')
             ->limit(10)
             ->get();
 
-        // Highest Rebounds in a Single Game
+        // Repeating the same pattern for other stats
         $topSingleRebounds = DB::table('player_game_stats')
             ->select(
                 'player_game_stats.player_id',
                 'players.name as player_name',
                 'player_game_stats.game_id',
                 'teams.name as team_name',
-                'opponent_teams.name as opponent_name',
-                'seasons.id as season_id',
-                DB::raw('MAX(player_game_stats.rebounds) as highest_rebounds')
+                DB::raw('MAX(player_game_stats.rebounds) as highest_rebounds'),
+                'seasons.id as season_id'
             )
             ->join('players', 'players.id', '=', 'player_game_stats.player_id')
             ->join('teams', 'teams.id', '=', 'player_game_stats.team_id')
             ->join('seasons', 'seasons.id', '=', 'player_game_stats.season_id')
             ->join('schedule_view', 'schedule_view.game_id', '=', 'player_game_stats.game_id')
-            ->join('teams as opponent_teams', function ($join) {
-                $join->on('opponent_teams.id', '=', 'schedule_view.home_id')
-                    ->orOn('opponent_teams.id', '=', 'schedule_view.away_id');
-            })
-            ->where(function ($query) {
-                $query->where('player_game_stats.team_id', '=', 'schedule_view.home_id')
-                    ->orWhere('player_game_stats.team_id', '=', 'schedule_view.away_id');
-            })
-            ->groupBy('player_game_stats.player_id', 'player_game_stats.game_id', 'player_game_stats.team_id', 'players.name', 'teams.name', 'opponent_teams.name', 'seasons.id')
+            ->whereRaw('(player_game_stats.team_id = schedule_view.home_id OR player_game_stats.team_id = schedule_view.away_id)')
+            ->groupBy('player_game_stats.player_id', 'players.name', 'player_game_stats.game_id', 'teams.name', 'seasons.id')
             ->orderByDesc('highest_rebounds')
             ->limit(10)
             ->get();
@@ -260,23 +244,15 @@ class LeadersController extends Controller
                 'players.name as player_name',
                 'player_game_stats.game_id',
                 'teams.name as team_name',
-                'opponent_teams.name as opponent_name',
-                'seasons.id as season_id',
-                DB::raw('MAX(player_game_stats.assists) as highest_assists')
+                DB::raw('MAX(player_game_stats.assists) as highest_assists'),
+                'seasons.id as season_id'
             )
             ->join('players', 'players.id', '=', 'player_game_stats.player_id')
             ->join('teams', 'teams.id', '=', 'player_game_stats.team_id')
             ->join('seasons', 'seasons.id', '=', 'player_game_stats.season_id')
             ->join('schedule_view', 'schedule_view.game_id', '=', 'player_game_stats.game_id')
-            ->join('teams as opponent_teams', function ($join) {
-                $join->on('opponent_teams.id', '=', 'schedule_view.home_id')
-                    ->orOn('opponent_teams.id', '=', 'schedule_view.away_id');
-            })
-            ->where(function ($query) {
-                $query->where('player_game_stats.team_id', '=', 'schedule_view.home_id')
-                    ->orWhere('player_game_stats.team_id', '=', 'schedule_view.away_id');
-            })
-            ->groupBy('player_game_stats.player_id', 'player_game_stats.game_id', 'player_game_stats.team_id', 'players.name', 'teams.name', 'opponent_teams.name', 'seasons.id')
+            ->whereRaw('(player_game_stats.team_id = schedule_view.home_id OR player_game_stats.team_id = schedule_view.away_id)')
+            ->groupBy('player_game_stats.player_id', 'players.name', 'player_game_stats.game_id', 'teams.name', 'seasons.id')
             ->orderByDesc('highest_assists')
             ->limit(10)
             ->get();
@@ -288,23 +264,15 @@ class LeadersController extends Controller
                 'players.name as player_name',
                 'player_game_stats.game_id',
                 'teams.name as team_name',
-                'opponent_teams.name as opponent_name',
-                'seasons.id as season_year',
-                DB::raw('MAX(player_game_stats.blocks) as highest_blocks')
+                DB::raw('MAX(player_game_stats.blocks) as highest_blocks'),
+                'seasons.id as season_id'
             )
             ->join('players', 'players.id', '=', 'player_game_stats.player_id')
             ->join('teams', 'teams.id', '=', 'player_game_stats.team_id')
             ->join('seasons', 'seasons.id', '=', 'player_game_stats.season_id')
             ->join('schedule_view', 'schedule_view.game_id', '=', 'player_game_stats.game_id')
-            ->join('teams as opponent_teams', function ($join) {
-                $join->on('opponent_teams.id', '=', 'schedule_view.home_id')
-                    ->orOn('opponent_teams.id', '=', 'schedule_view.away_id');
-            })
-            ->where(function ($query) {
-                $query->where('player_game_stats.team_id', '=', 'schedule_view.home_id')
-                    ->orWhere('player_game_stats.team_id', '=', 'schedule_view.away_id');
-            })
-            ->groupBy('player_game_stats.player_id', 'player_game_stats.game_id', 'player_game_stats.team_id', 'players.name', 'teams.name', 'opponent_teams.name', 'seasons.id')
+            ->whereRaw('(player_game_stats.team_id = schedule_view.home_id OR player_game_stats.team_id = schedule_view.away_id)')
+            ->groupBy('player_game_stats.player_id', 'players.name', 'player_game_stats.game_id', 'teams.name', 'seasons.id')
             ->orderByDesc('highest_blocks')
             ->limit(10)
             ->get();
@@ -316,23 +284,15 @@ class LeadersController extends Controller
                 'players.name as player_name',
                 'player_game_stats.game_id',
                 'teams.name as team_name',
-                'opponent_teams.name as opponent_name',
-                'seasons.id as season_year',
-                DB::raw('MAX(player_game_stats.steals) as highest_steals')
+                DB::raw('MAX(player_game_stats.steals) as highest_steals'),
+                'seasons.id as season_id'
             )
             ->join('players', 'players.id', '=', 'player_game_stats.player_id')
             ->join('teams', 'teams.id', '=', 'player_game_stats.team_id')
             ->join('seasons', 'seasons.id', '=', 'player_game_stats.season_id')
             ->join('schedule_view', 'schedule_view.game_id', '=', 'player_game_stats.game_id')
-            ->join('teams as opponent_teams', function ($join) {
-                $join->on('opponent_teams.id', '=', 'schedule_view.home_id')
-                    ->orOn('opponent_teams.id', '=', 'schedule_view.away_id');
-            })
-            ->where(function ($query) {
-                $query->where('player_game_stats.team_id', '=', 'schedule_view.home_id')
-                    ->orWhere('player_game_stats.team_id', '=', 'schedule_view.away_id');
-            })
-            ->groupBy('player_game_stats.player_id', 'player_game_stats.game_id', 'player_game_stats.team_id', 'players.name', 'teams.name', 'opponent_teams.name', 'seasons.id')
+            ->whereRaw('(player_game_stats.team_id = schedule_view.home_id OR player_game_stats.team_id = schedule_view.away_id)')
+            ->groupBy('player_game_stats.player_id', 'players.name', 'player_game_stats.game_id', 'teams.name', 'seasons.id')
             ->orderByDesc('highest_steals')
             ->limit(10)
             ->get();
