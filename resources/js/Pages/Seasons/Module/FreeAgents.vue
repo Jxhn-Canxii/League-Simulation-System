@@ -24,7 +24,7 @@
                     placeholder="Enter Player name"
                     class="mt-1 mb-2 p-2 border rounded w-full"
                 />
-                <div class="flex justify-between">
+                <div class="flex justify-between" v-if="props.showControls">
                     <div>
                         <button
                             @click="assignTeamsAuto()"
@@ -313,7 +313,12 @@ import Paginator from "@/Components/Paginator.vue";
 import { roleClasses } from "@/Utility/Formatter";
 import TopStatistics from "@/Pages/Analytics/Module/TopStatistics.vue";
 const showAddPlayerModal = ref(false);
-const newPlayerName = ref("");
+const props = defineProps({
+    showControls:{
+        type: Boolean,
+        default: true,
+    }
+});
 const data = ref([]);
 const search = ref({
     page_num: 1,

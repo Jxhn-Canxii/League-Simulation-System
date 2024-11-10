@@ -14,7 +14,7 @@
         </div>
 
         <!-- Navigation Links -->
-        <nav class="hidden lg:flex text-sm"> <!-- Reduced space and font size for compactness -->
+        <nav class="hidden lg:flex text-sm text-nowrap"> <!-- Reduced space and font size for compactness -->
             <nav-link :href="route('analytics.index')" :active="route().current('analytics.index')">
                 <template #icon><i class="fa fa-chart-line"></i></template> Analytics
             </nav-link>
@@ -25,13 +25,16 @@
                 <template #icon><i class="fa fa-book"></i></template> Records
             </nav-link>
             <nav-link :href="route('leaders.index')" :active="route().current('leaders.index')">
-                <template #icon><i class="fa fa-sports-podium"></i></template> Leaders
+                <template #icon><i class="fa fa-throphy"></i></template> Leaders
             </nav-link>
             <nav-link :href="route('awards.index')" :active="route().current('awards.index')">
                 <template #icon><i class="fa fa-medal"></i></template> Awards
             </nav-link>
             <nav-link :href="route('players.index')" :active="route().current('players.index')">
                 <template #icon><i class="fa fa-users"></i></template> Players
+            </nav-link>
+            <nav-link :href="route('freeagents.index')" :active="route().current('freeagents.index')">
+                <template #icon><i class="fa fa-users-slash"></i></template> Free Agents
             </nav-link>
             <nav-link :href="route('teams.index')" :active="route().current('teams.index')">
                 <template #icon><i class="fa fa-basketball"></i></template> Teams

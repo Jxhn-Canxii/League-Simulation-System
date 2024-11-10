@@ -154,6 +154,7 @@ Route::middleware('auth')->group(function () {
     });
     Route::prefix('players/')->group(function(){
         Route::get('', [PlayersController::class, 'index'])->name('players.index');
+        Route::get('freeagents', [PlayersController::class, 'freeagents'])->name('freeagents.index');
         Route::post('list-players', [PlayersController::class, 'listplayers'])->name('players.list');
         Route::post('add-player', [PlayersController::class, 'addplayer'])->name('players.add');
         Route::post('add-free-agent', [PlayersController::class, 'addfreeagentplayer'])->name('players.add.free.agent');

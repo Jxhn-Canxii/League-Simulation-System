@@ -21,6 +21,12 @@ class PlayersController extends Controller
             'status' => session('status'),
         ]);
     }
+    public function freeagents()
+    {
+        return Inertia::render('FreeAgents/Index', [
+            'status' => session('status'),
+        ]);
+    }
     public function listplayers(Request $request)
     {
         $request->validate([
