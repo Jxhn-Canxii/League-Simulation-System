@@ -3,10 +3,11 @@
 namespace App\Console;
 
 use App\Http\Controllers\AwardsController;
+use App\Http\Controllers\LeadersController;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
-use App\Http\Controllers\LeadersController;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class Kernel extends ConsoleKernel
 {
@@ -16,21 +17,24 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         $schedule->call(function () {
-            // Check if the latest season status is 12
-            $latestSeason = DB::table('seasons')
-                ->orderByDesc('id') // Assuming 'id' is the season identifier
-                ->first();
+            try {
+                // Check if the latest season status is 12
+                $latestSeason = DB::table('seasons')
+                    ->orderByDesc('id') // Assuming 'id' is the season identifier
+                    ->first();
 
-            // If the latest season's status is 12, run the update
-            if ($latestSeason) {
-                // Call the updateAllTimeTopStats method from LeadersController
-                app(AwardsController::class)->storeallplayerseasonstats();
-                app(LeadersController::class)->updateAllTimeTopStats();
-            }else{
-                app(AwardsController::class)->storeallplayerseasonstats();
+                if ($latestSeason && $latestSeason->status == 12) {
+                    // Call the updateAllTimeTopStats method from LeadersController
+                    app(AwardsController::class)->storeallplayerseasonstats();
+                    app(LeadersController::class)->updateAllTimeTopStats();
+                } else {
+                    app(AwardsController::class)->storeallplayerseasonstats();
+                }
+
+                Log::info('Scheduler ran successfully!');
+            } catch (\Exception $e) {
+                Log::error('Error running scheduler: ' . $e->getMessage());
             }
-
-            \Log::info('Scheduler is running every minute!');
         })->everyMinute(); // You can adjust the frequency to check (every minute in this example)
     }
 
@@ -44,3 +48,4 @@ class Kernel extends ConsoleKernel
         require base_path('routes/console.php');
     }
 }
+

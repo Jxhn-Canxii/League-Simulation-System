@@ -254,6 +254,7 @@ class AwardsController extends Controller
                     ->where('season_id', $latestSeasonId)
                     ->select(
                         'player_id',
+                        'team_id',
                         DB::raw('COUNT(CASE WHEN minutes > 0 THEN 1 END) as total_games_played'),
                         DB::raw('SUM(CASE WHEN minutes > 0 THEN points ELSE 0 END) as total_points'),
                         DB::raw('SUM(CASE WHEN minutes > 0 THEN rebounds ELSE 0 END) as total_rebounds'),
@@ -309,7 +310,7 @@ class AwardsController extends Controller
                     'season_id' => $latestSeasonId,
                 ],
                 [
-                    'team_id' => $teamId,
+                    'team_id' =>  $player->team_id,
                     'role' => $playerRating->role ?? $player->role,  // Role from player_ratings or default
                     'avg_minutes_per_game' => $playerStats->avg_minutes_per_game,
                     'avg_points_per_game' => $playerStats->avg_points_per_game,
