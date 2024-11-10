@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Http\Controllers\AwardsController;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use App\Http\Controllers\LeadersController;
@@ -24,6 +25,9 @@ class Kernel extends ConsoleKernel
             if ($latestSeason && $latestSeason->status == 12) {
                 // Call the updateAllTimeTopStats method from LeadersController
                 app(LeadersController::class)->updateAllTimeTopStats();
+                app(AwardsController::class)->storeallplayerseasonstats();
+            }else{
+                app(AwardsController::class)->storeallplayerseasonstats();
             }
 
             \Log::info('Scheduler is running every minute!');

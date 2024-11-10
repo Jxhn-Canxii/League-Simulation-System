@@ -14,7 +14,7 @@
         </div>
 
         <!-- Navigation Links -->
-        <nav class="hidden lg:flex text-sm text-nowrap"> <!-- Reduced space and font size for compactness -->
+        <nav class="hidden lg:flex text-sm text-nowrap px-0 mx-0"> <!-- Reduced space and font size for compactness -->
             <nav-link :href="route('analytics.index')" :active="route().current('analytics.index')">
                 <template #icon><i class="fa fa-chart-line"></i></template> Analytics
             </nav-link>
@@ -25,7 +25,7 @@
                 <template #icon><i class="fa fa-book"></i></template> Records
             </nav-link>
             <nav-link :href="route('leaders.index')" :active="route().current('leaders.index')">
-                <template #icon><i class="fa fa-throphy"></i></template> Leaders
+                <template #icon><i class="fa fa-ranking-star"></i></template> Leaders
             </nav-link>
             <nav-link :href="route('awards.index')" :active="route().current('awards.index')">
                 <template #icon><i class="fa fa-medal"></i></template> Awards

@@ -613,7 +613,6 @@ const createNewSeason = async () => {
             });
             form.reset("name", "type", "league_id");
             isProcessing.value = false;
-            prepareCurrentSeasonStats();
             fetchSeasons();
             seasonsDropdown();
         } catch (error) {
@@ -705,9 +704,6 @@ const updatePlayerStatus = async () => {
 
             // Update player status for each team and get the response
             await updatePlayerStatusPerTeam(i, team_id, is_last);
-            if(is_last){
-                await prepareCurrentSeasonStats();
-            }
         }
         await fetchSeasons(); // Refresh seasons after each team update
     } catch (error) {
