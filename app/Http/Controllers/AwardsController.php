@@ -121,7 +121,7 @@ class AwardsController extends Controller
         $teamId = $request->input('team_id');
 
         // Get the latest season ID or set it to 12 if it doesn’t exist
-        $latestSeasonId = DB::table('seasons')->orderBy('id', 'desc')->value('id');
+        $latestSeasonId = DB::table('seasons')->orderBy('id', 'desc')->value('id') ?? 1;
 
         // Get all players from the team
         $players = DB::table('players')
@@ -129,8 +129,14 @@ class AwardsController extends Controller
             ->get();
 
         foreach ($players as $player) {
-            // If there is a valid season ID, calculate stats
-            if ($latestSeasonId > 0) {
+            // Check if the player has stats in player_game_stats for the latest season
+            $hasStats = DB::table('player_game_stats')
+                ->where('player_id', $player->id)
+                ->where('season_id', $latestSeasonId)
+                ->exists();
+
+            if ($hasStats) {
+                // Calculate stats if stats are found for the player
                 $playerStats = DB::table('player_game_stats')
                     ->where('player_id', $player->id)
                     ->where('season_id', $latestSeasonId)
@@ -156,7 +162,7 @@ class AwardsController extends Controller
                     ->groupBy('player_id')
                     ->first();
             } else {
-                // Set all stats to 0 if no season exists
+                // Set all stats to 0 if no stats are found
                 $playerStats = (object) [
                     'player_id' => $player->id,
                     'total_games_played' => 0,
@@ -219,6 +225,7 @@ class AwardsController extends Controller
 
         return response()->json(['message' => 'Player season stats stored successfully.']);
     }
+
 
     public function getseasonawards(Request $request)
     {
