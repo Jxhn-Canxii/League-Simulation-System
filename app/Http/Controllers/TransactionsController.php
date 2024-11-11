@@ -275,7 +275,7 @@ class TransactionsController extends Controller
         }
     }
 
-    private function updateTeamRolesBasedOnStats()
+    private function updateTeamRolesBasedOnStatsV1()
     {
         $seasonId = $this->getLatestSeasonId();
         $teams = DB::table('teams')->pluck('id');
@@ -341,6 +341,59 @@ class TransactionsController extends Controller
 
                 // Log the error message and stack trace for debugging
                 \Log::error('Error assigning role for ' . $teamId . ' ' . $e->getMessage());
+
+                return false; // Return false if an error occurs during the update
+            }
+        }
+
+        return true; // Return true if all updates succeed
+    }
+    private function updateTeamRolesBasedOnStats()
+    {
+        $seasonId = $this->getLatestSeasonId();
+        $teams = DB::table('teams')->pluck('id');
+
+        foreach ($teams as $teamId) {
+            DB::beginTransaction();
+
+            try {
+                // Fetch all players on the team, ordered by overall rating (veterans and rookies combined)
+                $players = DB::table('players')
+                    ->where('team_id', $teamId)
+                    ->orderByDesc('overall_rating')
+                    ->get();
+
+                // Initialize arrays for assigning roles
+                $starPlayers = [];
+                $starters = [];
+                $rolePlayers = [];
+                $benchPlayers = [];
+
+                // Assign roles based on overall rating
+                foreach ($players as $index => $player) {
+                    if (count($starPlayers) < 3) {
+                        $starPlayers[] = $player->id;
+                    } elseif (count($starters) < 2) {
+                        $starters[] = $player->id;
+                    } elseif (count($rolePlayers) < 5) {
+                        $rolePlayers[] = $player->id;
+                    } else {
+                        $benchPlayers[] = $player->id;
+                    }
+                }
+
+                // Update each player's role in the database
+                DB::table('players')->whereIn('id', $starPlayers)->update(['role' => 'star player']);
+                DB::table('players')->whereIn('id', $starters)->update(['role' => 'starter']);
+                DB::table('players')->whereIn('id', $rolePlayers)->update(['role' => 'role player']);
+                DB::table('players')->whereIn('id', $benchPlayers)->update(['role' => 'bench']);
+
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                // Log the error message and stack trace for debugging
+                \Log::error('Error assigning role for team ' . $teamId . ': ' . $e->getMessage());
 
                 return false; // Return false if an error occurs during the update
             }
