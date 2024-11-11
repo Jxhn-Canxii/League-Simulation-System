@@ -56,6 +56,7 @@
             <div class="relative" @mouseenter="showAnalyticsDropdown = true" @mouseleave="showAnalyticsDropdown = false">
                 <button class="text-xs text-gray-300 flex items-center space-x-1 px-2 py-1 rounded-md hover:bg-rose-600 hover:text-white">
                     <span>Analytics</span>
+                    <i class="fa fa-caret-down text-sm"></i>
                 </button>
                 <div v-show="showAnalyticsDropdown" class="absolute hidden bg-stone-900 border-2 border-rose-600 text-gray-300 rounded-md mt-1 p-2 space-y-1">
                     <nav-link :href="route('analytics.index')" :active="route().current('analytics.index')" class="text-xs px-2 py-1 hover:bg-rose-600 hover:text-white">Analytics</nav-link>
@@ -65,6 +66,7 @@
             <div class="relative" @mouseenter="showSeasonsDropdown = true" @mouseleave="showSeasonsDropdown = false">
                 <button class="text-xs text-gray-300 flex items-center space-x-1 px-2 py-1 rounded-md hover:bg-rose-600 hover:text-white">
                     <span>Seasons</span>
+                    <i class="fa fa-caret-down text-sm"></i>
                 </button>
                 <div v-show="showSeasonsDropdown" class="absolute hidden bg-stone-900 border-2 border-rose-600 text-gray-300 rounded-md mt-1 p-2 space-y-1">
                     <nav-link :href="route('seasons.index')" :active="route().current('seasons.index')" class="text-xs px-2 py-1 hover:bg-rose-600 hover:text-white">Seasons</nav-link>
@@ -74,6 +76,7 @@
             <div class="relative" @mouseenter="showUsersDropdown = true" @mouseleave="showUsersDropdown = false">
                 <button class="text-xs text-gray-300 flex items-center space-x-1 px-2 py-1 rounded-md hover:bg-rose-600 hover:text-white">
                     <span>Users</span>
+                    <i class="fa fa-caret-down text-sm"></i>
                 </button>
                 <div v-show="showUsersDropdown" class="absolute hidden bg-stone-900 border-2 border-rose-600 text-gray-300 rounded-md mt-1 p-2 space-y-1">
                     <nav-link :href="route('users.index')" :active="route().current('users.index')" class="text-xs px-2 py-1 hover:bg-rose-600 hover:text-white">Users</nav-link>
