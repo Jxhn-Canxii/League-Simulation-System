@@ -19,6 +19,22 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue';
 import Header from '@/Layouts/Header.vue';
 import Navigation from '@/Layouts/Navigation.vue';
+
+const seasonsDropdown = async () => {
+    try {
+        const response = await axios.post(route("seasons.dropdown"), {
+            season_id: 0,
+        });
+        localStorage.setItem('seasons', JSON.stringify(response.data)); // Store the seasons data in localStorage
+    } catch (error) {
+        console.error("Error fetching seasons data:", error);
+    }
+};
+
+onMounted(() => {
+    seasonsDropdown();
+});
 </script>

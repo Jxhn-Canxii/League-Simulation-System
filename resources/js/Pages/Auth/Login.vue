@@ -83,21 +83,11 @@ const login = () => {
             form.reset('password');  // Reset the password field
 
             // Call seasonsDropdown after login is successful
-            await seasonsDropdown();
         },
     });
 };
 
-const seasonsDropdown = async () => {
-    try {
-        const response = await axios.post(route("seasons.dropdown"), {
-            season_id: 0,
-        });
-        localStorage.setItem('seasons', JSON.stringify(response.data)); // Store the seasons data in localStorage
-    } catch (error) {
-        console.error("Error fetching seasons data:", error);
-    }
-};
+
 
 const togglePasswordVisibility = () => {
     form.show = !form.show;
