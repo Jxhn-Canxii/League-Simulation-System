@@ -50,18 +50,19 @@ const props = defineProps({
 
 const updatePlayerStatus = async () => {
     try {
-        const team_ids = props.team_ids;
+        // const team_ids = props.team_ids;
 
-        for (let i = 0; i < team_ids.length; i++) {
-            const team_id = team_ids[i];
-            const is_last = i === team_ids.length - 1;
+        // for (let i = 0; i < team_ids.length; i++) {
+        //     const team_id = team_ids[i];
+        //     const is_last = i === team_ids.length - 1;
 
-            // Update player status for each team and get the response
-            await updatePlayerStatusPerTeam(i, team_id,team_ids.length);
-            if (is_last) {
-                await showSeasonAwards();
-            }
-        }
+        //     // Update player status for each team and get the response
+        //     await updatePlayerStatusPerTeam(i, team_id,team_ids.length);
+        //     if (is_last) {
+        //         await showSeasonAwards();
+        //     }
+        // }
+        await showSeasonAwards();
     } catch (error) {
         console.error(error);
         Swal.fire({
