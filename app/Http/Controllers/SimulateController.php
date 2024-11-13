@@ -648,13 +648,13 @@ class SimulateController extends Controller
                         'minutes' => 0,
                     ];
                 } else {
-                    $performanceFactor = rand(80, 120) / 100; // Randomize within 80% to 120%
+                    $performanceFactor = rand(100, 120) / 100; // Randomize within 80% to 120%
                     $pointsPerMinute = 0.5 + ($player->shooting_rating / 200);
                     $points = round($pointsPerMinute * $minutes * $performanceFactor);
 
                     $points = rand(0, $points);
 
-                    $reboundPerMinute = 0.3 + ($player->rebounding_rating / 200);
+                    $reboundPerMinute = 0.3 + ($player->rebounding_rating / 300);
                     $rebounds = round($reboundPerMinute * $minutes * $performanceFactor);
 
                     $rebounds = rand(0, $rebounds);
@@ -737,13 +737,13 @@ class SimulateController extends Controller
                         'minutes' => 0,
                     ];
                 } else {
-                    $performanceFactor = rand(80, 120) / 100; // Randomize within 80% to 120%
+                    $performanceFactor = rand(100, 120) / 100; // Randomize within 80% to 120%
                     $pointsPerMinute = 0.5 + ($player->shooting_rating / 200);
                     $points = round($pointsPerMinute * $minutes * $performanceFactor);
 
                     $points = rand(0, $points);
 
-                    $reboundPerMinute = 0.3 + ($player->rebounding_rating / 200);
+                    $reboundPerMinute = 0.3 + ($player->rebounding_rating / 300);
                     $rebounds = round($reboundPerMinute * $minutes * $performanceFactor);
 
                     $rebounds = rand(0, $rebounds);

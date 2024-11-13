@@ -134,7 +134,7 @@ class TransactionsController extends Controller
         $freeAgents = Player::where('team_id', 0)
             ->where('contract_years', 0)
             ->where('is_active', 1)
-            ->orderByRaw("FIELD(role, 'star player', 'starter', 'role player', 'bench')")
+            ->orderBy("overall_rating","desc")
             ->get();
 
         $remainingFreeAgents = $freeAgents->count();
