@@ -1164,10 +1164,11 @@ class SimulateController extends Controller
                             'updated_at' => now(),
                         ]);
                     } elseif ($playerGameStats) {
+                        $minPoints = $this->getMinimumPointsByRole($player['role']);
                         $performanceFactor = rand(80, 120) / 100;
                         $pointsPerMinute = 0.5 + ($player['shooting_rating'] / 200);
                         $points = round($pointsPerMinute * $minutes * $performanceFactor);
-                        $points = rand(0, $points);
+                        $points = rand( $minPoints, $points);
 
                         $assistPerMinute = 0.1 + ($player['passing_rating'] / 200);
                         $assists = round($assistPerMinute * $minutes * $performanceFactor);
@@ -1236,10 +1237,12 @@ class SimulateController extends Controller
                         ]);
                     } elseif ($playerGameStats) {
                         // Similar logic for performance stats
+                        $minPoints = $this->getMinimumPointsByRole($player['role']);
+
                         $performanceFactor = rand(80, 120) / 100;
                         $pointsPerMinute = 0.5 + ($player['shooting_rating'] / 200);
                         $points = round($pointsPerMinute * $minutes * $performanceFactor);
-                        $points = rand(0, $points);
+                        $points = rand($minPoints, $points);
 
                         $assistPerMinute = 0.1 + ($player['passing_rating'] / 200);
                         $assists = round($assistPerMinute * $minutes * $performanceFactor);
@@ -1400,6 +1403,21 @@ class SimulateController extends Controller
             ], 500);
         }
     }
+    public function getMinimumPointsByRole($role) {
+        switch ($role) {
+            case 'star player':
+                return rand(0,20); // Minimum points for star players
+            case 'starter':
+                return rand(0,10); // Minimum points for starters
+            case 'role player':
+                return rand(0,2); // Minimum points for role players
+            case 'bench':
+                return 0; // Minimum points for bench players
+            default:
+                return 0; // Default case
+        }
+    }
+
     public function getscheduleids(Request $request)
     {
         // Validate the request data
