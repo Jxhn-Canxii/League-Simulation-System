@@ -1456,7 +1456,7 @@ class SimulateController extends Controller
 
         // Allocate minutes based on priority roles
         foreach ($sortedPlayers as $player) {
-            if (rand(1, 100) <= $player['injury_prone_percentage']) {
+            if (rand(1, 100) >= $player['injury_prone_percentage']) {
                 // Player is injured
                 $minutes[$player['id']] = 0;
             } else {
