@@ -133,25 +133,14 @@ class SimulateController extends Controller
         foreach ($homeTeamPlayers as $player) {
             $minutes = $homeMinutes[$player->id] ?? 0;
 
-            // Calculate the total number of games played by the away team
-            $totalGames = Schedules::where('season_id', $currentSeasonId)
-                ->where('status', 2) // Assuming 2 represents completed games
-                ->where(function ($query) use ($player) {
-                    $query->where('away_id', $player->team_id)
-                        ->orWhere('home_id', $player->team_id);
-                })
-                ->count();
-
             // Calculate average defensive stats per game for the away team
             $awayTeamDefensiveStats = [
-                'blocks' => $gameData->away_team_id ? PlayerGameStats::where('team_id', $gameData->away_team_id)
-                    ->where('season_id', $currentSeasonId)
-                    ->selectRaw('SUM(blocks) / ?', [$totalGames])
-                    ->value('SUM(blocks)') : 0,
-                'steals' => $gameData->away_team_id ? PlayerGameStats::where('team_id', $gameData->away_team_id)
-                    ->where('season_id', $currentSeasonId)
-                    ->selectRaw('SUM(steals) / ?', [$totalGames])
-                    ->value('SUM(steals)') : 0,
+                'defensive_rating' => Player::where('team_id', $gameData->away_team_id)
+                    ->where('is_active', 1) // Optional: If you have an active player flag
+                    ->avg('defensive_rating') ?? 0,
+                'rebounding_rating' => Player::where('team_id', $gameData->away_team_id)
+                    ->where('is_active', 1) // Optional: If you have an active player flag
+                    ->avg('rebounding_rating') ?? 0,
             ];
 
             // If minutes is 0, player did not play
@@ -199,7 +188,7 @@ class SimulateController extends Controller
                 $steals = rand(0, $steals);
 
                 // Apply defensive adjustments based on away team's defensive stats
-                $defensiveImpact = ($awayTeamDefensiveStats['blocks'] + $awayTeamDefensiveStats['steals']) / 20; // Scale factor
+                $defensiveImpact = ($awayTeamDefensiveStats['defensive_rating'] + $awayTeamDefensiveStats['rebounding_rating']) / 20; // Scale factor
                 $points -= round($defensiveImpact * $minutes * 0.1); // Adjust points based on opponent's defense
                 $points = max($points, 0); // Ensure no negative points
 
@@ -229,25 +218,14 @@ class SimulateController extends Controller
         foreach ($awayTeamPlayers as $player) {
             $minutes = $awayMinutes[$player->id] ?? 0;
 
-            // Calculate the total number of games played by the home team
-            $totalGames = Schedules::where('season_id', $currentSeasonId)
-                ->where('status', 2) // Assuming 2 represents completed games
-                ->where(function ($query) use ($player) {
-                    $query->where('away_id', $player->team_id)
-                        ->orWhere('home_id', $player->team_id);
-                })
-                ->count();
-
             // Calculate average defensive stats per game for the home team
             $homeTeamDefensiveStats = [
-                'blocks' => $gameData->home_team_id ? PlayerGameStats::where('team_id', $gameData->home_team_id)
-                    ->where('season_id', $currentSeasonId)
-                    ->selectRaw('SUM(blocks) / ?', [$totalGames])
-                    ->value('SUM(blocks)') : 0,
-                'steals' => $gameData->home_team_id ? PlayerGameStats::where('team_id', $gameData->home_team_id)
-                    ->where('season_id', $currentSeasonId)
-                    ->selectRaw('SUM(steals) / ?', [$totalGames])
-                    ->value('SUM(steals)') : 0,
+                'defensive_rating' => Player::where('team_id', $gameData->home_team_id)
+                    ->where('is_active', 1) // Optional: If you have an active player flag
+                    ->avg('defensive_rating') ?? 0,
+                'rebounding_rating' => Player::where('team_id', $gameData->home_team_id)
+                    ->where('is_active', 1) // Optional: If you have an active player flag
+                    ->avg('rebounding_rating') ?? 0,
             ];
 
             // If minutes is 0, player did not play
@@ -295,7 +273,7 @@ class SimulateController extends Controller
                 $steals = rand(0, $steals);
 
                 // Apply defensive adjustments based on home team's defensive stats
-                $defensiveImpact = ($homeTeamDefensiveStats['blocks'] + $homeTeamDefensiveStats['steals']) / 20; // Scale factor
+                $defensiveImpact = ($homeTeamDefensiveStats['defensive_rating'] + $homeTeamDefensiveStats['rebounding_rating']) / 20; // Scale factor
                 $points -= round($defensiveImpact * $minutes * 0.1); // Adjust points based on opponent's defense
                 $points = max($points, 0); // Ensure no negative points
 
@@ -612,24 +590,15 @@ class SimulateController extends Controller
             foreach ($homeTeamPlayers as $player) {
                 $minutes = $homeMinutes[$player->id] ?? 0;
 
-                // Calculate the total number of games played by the away team
-                $totalGames = Schedules::where('season_id', $currentSeasonId)
-                    ->where('status', 2)
-                    ->where(function ($query) use ($gameData) {
-                        $query->where('away_id', $gameData->home_team_id)
-                            ->orWhere('home_id', $gameData->home_team_id);
-                    })
-                    ->count();
 
                 // Calculate average defensive stats per game for the away team
-
                 $awayTeamDefensiveStats = [
-                    'blocks' => $totalGames > 0 ? PlayerGameStats::where('team_id', $gameData->away_team_id)
-                        ->where('season_id', $currentSeasonId)
-                        ->sum('blocks') / $totalGames : 0,
-                    'steals' => $totalGames > 0 ? PlayerGameStats::where('team_id', $gameData->away_team_id)
-                        ->where('season_id', $currentSeasonId)
-                        ->sum('steals') / $totalGames : 0,
+                    'defensive_rating' => Player::where('team_id', $gameData->away_team_id)
+                        ->where('is_active', 1) // Optional: If you have an active player flag
+                        ->avg('defensive_rating') ?? 0,
+                    'rebounding_rating' => Player::where('team_id', $gameData->away_team_id)
+                        ->where('is_active', 1) // Optional: If you have an active player flag
+                        ->avg('rebounding_rating') ?? 0,
                 ];
                 // If minutes is 0, player did not play
                 if ($minutes === 0) {
@@ -671,7 +640,7 @@ class SimulateController extends Controller
                     $steals = rand(0, $steals);
 
                     // Apply defensive adjustments based on away team's defensive stats
-                    $defensiveImpact = ($awayTeamDefensiveStats['blocks'] + $awayTeamDefensiveStats['steals']) / 20; // Scale factor
+                    $defensiveImpact = ($awayTeamDefensiveStats['defensive_rating'] + $awayTeamDefensiveStats['rebounding_rating']) / 20; // Scale factor
                     $points -= round($defensiveImpact * $minutes * 0.1); // Adjust points based on opponent's defense
                     $points = max($points, 0); // Ensure no negative points
 
@@ -700,26 +669,17 @@ class SimulateController extends Controller
             // Simulate player game stats for away team
             foreach ($awayTeamPlayers as $player) {
                 $minutes = $awayMinutes[$player->id] ?? 0;
-
-                // Calculate the total number of games played by the home team
-                $totalGames = Schedules::where('season_id', $currentSeasonId)
-                    ->where('status', 2)
-                    ->where(function ($query) use ($gameData) {
-                        $query->where('away_id', $gameData->home_team_id)
-                            ->orWhere('home_id', $gameData->home_team_id);
-                    })
-                    ->count();
+;
 
                 // Calculate average defensive stats per game for the home team
                 $homeTeamDefensiveStats = [
-                    'blocks' => $totalGames > 0 ? PlayerGameStats::where('team_id', $gameData->home_team_id)
-                        ->where('season_id', $currentSeasonId)
-                        ->sum('blocks') / $totalGames : 0,
-                    'steals' => $totalGames > 0 ? PlayerGameStats::where('team_id', $gameData->home_team_id)
-                        ->where('season_id', $currentSeasonId)
-                        ->sum('steals') / $totalGames : 0,
+                    'defensive_rating' => Player::where('team_id', $gameData->home_team_id)
+                        ->where('is_active', 1) // Optional: If you have an active player flag
+                        ->avg('defensive_rating') ?? 0,
+                    'rebounding_rating' => Player::where('team_id', $gameData->home_team_id)
+                        ->where('is_active', 1) // Optional: If you have an active player flag
+                        ->avg('rebounding_rating') ?? 0,
                 ];
-
                 // If minutes is 0, player did not play
                 if ($minutes === 0) {
                     $playerGameStats[] = [
@@ -760,7 +720,7 @@ class SimulateController extends Controller
                     $steals = rand(0, $steals);
 
                     // Apply defensive adjustments based on home team's defensive stats
-                    $defensiveImpact = ($homeTeamDefensiveStats['blocks'] + $homeTeamDefensiveStats['steals']) / 20; // Scale factor
+                    $defensiveImpact = ($homeTeamDefensiveStats['defensive_rating'] + $homeTeamDefensiveStats['rebounding_rating']) / 20; // Scale factor
                     $points -= round($defensiveImpact * $minutes * 0.1); // Adjust points based on opponent's defense
                     $points = max($points, 0); // Ensure no negative points
 
@@ -1164,11 +1124,10 @@ class SimulateController extends Controller
                             'updated_at' => now(),
                         ]);
                     } elseif ($playerGameStats) {
-                        $minPoints = $this->getMinimumPointsByRole($player['role']);
                         $performanceFactor = rand(80, 120) / 100;
                         $pointsPerMinute = 0.5 + ($player['shooting_rating'] / 200);
                         $points = round($pointsPerMinute * $minutes * $performanceFactor);
-                        $points = rand( $minPoints, $points);
+                        $points = rand(0, $points);
 
                         $assistPerMinute = 0.1 + ($player['passing_rating'] / 200);
                         $assists = round($assistPerMinute * $minutes * $performanceFactor);
@@ -1187,7 +1146,7 @@ class SimulateController extends Controller
                                 ->avg('rebounding_rating') ?? 0,
                         ];
 
-                        $defensiveImpact = ($awayTeamDefensiveStats['defensive_rating'] + $awayTeamDefensiveStats['rebounding_rating']) / 200; // Adjust scaling factor as needed
+                        $defensiveImpact = ($awayTeamDefensiveStats['defensive_rating'] + $awayTeamDefensiveStats['rebounding_rating']) / 20; // Adjust scaling factor as needed
                         $points -= round($defensiveImpact * $minutes * 0.1);
                         $points = max($points, 0);
 
@@ -1237,12 +1196,10 @@ class SimulateController extends Controller
                         ]);
                     } elseif ($playerGameStats) {
                         // Similar logic for performance stats
-                        $minPoints = $this->getMinimumPointsByRole($player['role']);
-
                         $performanceFactor = rand(80, 120) / 100;
                         $pointsPerMinute = 0.5 + ($player['shooting_rating'] / 200);
                         $points = round($pointsPerMinute * $minutes * $performanceFactor);
-                        $points = rand($minPoints, $points);
+                        $points = rand(0, $points);
 
                         $assistPerMinute = 0.1 + ($player['passing_rating'] / 200);
                         $assists = round($assistPerMinute * $minutes * $performanceFactor);
@@ -1266,7 +1223,7 @@ class SimulateController extends Controller
                                 ->avg('rebounding_rating') ?? 0,
                         ];
 
-                        $defensiveImpact = ($homeTeamDefensiveStats['defensive_rating'] + $homeTeamDefensiveStats['rebounding_rating']) / 200; // Adjust scaling factor as needed
+                        $defensiveImpact = ($homeTeamDefensiveStats['defensive_rating'] + $homeTeamDefensiveStats['rebounding_rating']) / 20; // Adjust scaling factor as needed
                         $points -= round($defensiveImpact * $minutes * 0.1);
                         $points = max($points, 0);
 
@@ -1403,21 +1360,6 @@ class SimulateController extends Controller
             ], 500);
         }
     }
-    public function getMinimumPointsByRole($role) {
-        switch ($role) {
-            case 'star player':
-                return rand(0,20); // Minimum points for star players
-            case 'starter':
-                return rand(0,10); // Minimum points for starters
-            case 'role player':
-                return rand(0,2); // Minimum points for role players
-            case 'bench':
-                return 0; // Minimum points for bench players
-            default:
-                return 0; // Default case
-        }
-    }
-
     public function getscheduleids(Request $request)
     {
         // Validate the request data
