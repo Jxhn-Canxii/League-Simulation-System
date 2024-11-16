@@ -19,17 +19,8 @@ class Kernel extends ConsoleKernel
         $schedule->call(function () {
             try {
                 // Check if the latest season status is 12
-                $latestSeason = DB::table('seasons')
-                    ->orderByDesc('id') // Assuming 'id' is the season identifier
-                    ->first();
-
-                if ($latestSeason && $latestSeason->status == 12) {
-                    // Call the updateAllTimeTopStats method from LeadersController
-                    app(AwardsController::class)->storeallplayerseasonstats();
-                    app(LeadersController::class)->updateAllTimeTopStats();
-                } else {
-                    app(AwardsController::class)->storeallplayerseasonstats();
-                }
+                app(AwardsController::class)->storeallplayerseasonstats();
+                app(LeadersController::class)->updateAllTimeTopStats();
 
                 Log::info('Scheduler ran successfully!');
             } catch (\Exception $e) {
