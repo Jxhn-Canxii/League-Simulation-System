@@ -188,7 +188,7 @@ class SimulateController extends Controller
                 $steals = rand(0, $steals);
 
                 // Apply defensive adjustments based on away team's defensive stats
-                $defensiveImpact = ($awayTeamDefensiveStats['defensive_rating'] + $awayTeamDefensiveStats['rebounding_rating']) / 20; // Scale factor
+                $defensiveImpact = ($awayTeamDefensiveStats['defensive_rating'] + $awayTeamDefensiveStats['rebounding_rating']) / 200; // Scale factor
                 $points -= round($defensiveImpact * $minutes * 0.1); // Adjust points based on opponent's defense
                 $points = max($points, 0); // Ensure no negative points
 
@@ -273,7 +273,7 @@ class SimulateController extends Controller
                 $steals = rand(0, $steals);
 
                 // Apply defensive adjustments based on home team's defensive stats
-                $defensiveImpact = ($homeTeamDefensiveStats['defensive_rating'] + $homeTeamDefensiveStats['rebounding_rating']) / 20; // Scale factor
+                $defensiveImpact = ($homeTeamDefensiveStats['defensive_rating'] + $homeTeamDefensiveStats['rebounding_rating']) / 200; // Scale factor
                 $points -= round($defensiveImpact * $minutes * 0.1); // Adjust points based on opponent's defense
                 $points = max($points, 0); // Ensure no negative points
 
@@ -640,7 +640,7 @@ class SimulateController extends Controller
                     $steals = rand(0, $steals);
 
                     // Apply defensive adjustments based on away team's defensive stats
-                    $defensiveImpact = ($awayTeamDefensiveStats['defensive_rating'] + $awayTeamDefensiveStats['rebounding_rating']) / 20; // Scale factor
+                    $defensiveImpact = ($awayTeamDefensiveStats['defensive_rating'] + $awayTeamDefensiveStats['rebounding_rating']) / 200; // Scale factor
                     $points -= round($defensiveImpact * $minutes * 0.1); // Adjust points based on opponent's defense
                     $points = max($points, 0); // Ensure no negative points
 
@@ -720,7 +720,7 @@ class SimulateController extends Controller
                     $steals = rand(0, $steals);
 
                     // Apply defensive adjustments based on home team's defensive stats
-                    $defensiveImpact = ($homeTeamDefensiveStats['defensive_rating'] + $homeTeamDefensiveStats['rebounding_rating']) / 20; // Scale factor
+                    $defensiveImpact = ($homeTeamDefensiveStats['defensive_rating'] + $homeTeamDefensiveStats['rebounding_rating']) / 200; // Scale factor
                     $points -= round($defensiveImpact * $minutes * 0.1); // Adjust points based on opponent's defense
                     $points = max($points, 0); // Ensure no negative points
 
