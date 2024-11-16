@@ -137,7 +137,7 @@ class SimulateController extends Controller
             $awayTeamDefensiveStats = [
                 'defensive_rating' => Player::where('team_id', $gameData->away_team_id)
                     ->where('is_active', 1) // Optional: If you have an active player flag
-                    ->avg('defensive_rating') ?? 0,
+                    ->avg('defense_rating') ?? 0,
                 'rebounding_rating' => Player::where('team_id', $gameData->away_team_id)
                     ->where('is_active', 1) // Optional: If you have an active player flag
                     ->avg('rebounding_rating') ?? 0,
@@ -222,7 +222,7 @@ class SimulateController extends Controller
             $homeTeamDefensiveStats = [
                 'defensive_rating' => Player::where('team_id', $gameData->home_team_id)
                     ->where('is_active', 1) // Optional: If you have an active player flag
-                    ->avg('defensive_rating') ?? 0,
+                    ->avg('defense_rating') ?? 0,
                 'rebounding_rating' => Player::where('team_id', $gameData->home_team_id)
                     ->where('is_active', 1) // Optional: If you have an active player flag
                     ->avg('rebounding_rating') ?? 0,
@@ -595,7 +595,7 @@ class SimulateController extends Controller
                 $awayTeamDefensiveStats = [
                     'defensive_rating' => Player::where('team_id', $gameData->away_team_id)
                         ->where('is_active', 1) // Optional: If you have an active player flag
-                        ->avg('defensive_rating') ?? 0,
+                        ->avg('defense_rating') ?? 0,
                     'rebounding_rating' => Player::where('team_id', $gameData->away_team_id)
                         ->where('is_active', 1) // Optional: If you have an active player flag
                         ->avg('rebounding_rating') ?? 0,
@@ -675,7 +675,7 @@ class SimulateController extends Controller
                 $homeTeamDefensiveStats = [
                     'defensive_rating' => Player::where('team_id', $gameData->home_team_id)
                         ->where('is_active', 1) // Optional: If you have an active player flag
-                        ->avg('defensive_rating') ?? 0,
+                        ->avg('defense_rating') ?? 0,
                     'rebounding_rating' => Player::where('team_id', $gameData->home_team_id)
                         ->where('is_active', 1) // Optional: If you have an active player flag
                         ->avg('rebounding_rating') ?? 0,
