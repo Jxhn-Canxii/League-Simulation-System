@@ -184,6 +184,7 @@ Route::middleware('auth')->group(function () {
         Route::get('player-awards-dropdown', [AwardsController::class, 'getawardnamesdropdown'])->name('player.awards.dropdown');
         Route::post('player-awards-filter', [AwardsController::class, 'filterawardsperseason'])->name('player.awards.filter');
         Route::post('player-season-awards', [AwardsController::class, 'getseasonawards'])->name('player.season.awards');
+        Route::get('awarding/{season_id}', [AwardsController::class, 'storeseasonawardsauto'])->name('awarding.per.season');
     });
 
     Route::prefix('users/')->group(function(){

@@ -414,12 +414,14 @@ class DraftController extends Controller
                 ->whereIn('player_game_stats.player_id', $rankGroupPlayerIds) // Filter by rank group
                 ->select(
                     'player_game_stats.player_id',
+                    DB::raw('COUNT(CASE WHEN minutes > 0 THEN 1 END) as total_games_played'),
                     DB::raw('AVG(player_game_stats.points) as avg_points_per_game'),
                     DB::raw('AVG(player_game_stats.rebounds) as avg_rebounds_per_game'),
                     DB::raw('AVG(player_game_stats.assists) as avg_assists_per_game'),
                     DB::raw('AVG(player_game_stats.steals) as avg_steals_per_game'),
                     DB::raw('AVG(player_game_stats.blocks) as avg_blocks_per_game'),
-                    DB::raw('AVG(player_game_stats.turnovers) as avg_turnovers_per_game')
+                    DB::raw('AVG(player_game_stats.turnovers) as avg_turnovers_per_game'),
+                    DB::raw('AVG(player_game_stats.minutes) as avg_minutes_played')
                 )
                 ->groupBy('player_game_stats.player_id')
                 ->get();
@@ -437,29 +439,42 @@ class DraftController extends Controller
                     'player_season_stats.avg_assists_per_game',
                     'player_season_stats.avg_steals_per_game',
                     'player_season_stats.avg_blocks_per_game',
-                    'player_season_stats.avg_turnovers_per_game'
+                    'player_season_stats.avg_turnovers_per_game',
+                    'player_season_stats.total_games_played',
+                    'player_season_stats.avg_minutes_per_game as avg_minutes_played'
                 )
                 ->get();
             $playerStats = $playerSeasonStats;
         }
 
         // Assign ranks based on the custom formula
-        $rankedPlayers = $playerStats->sort(function ($a, $b) {
+        $rankedPlayers = $playerStats->filter(function ($player) {
+            // Only include players who have played at least one game and have minutes played > 0
+            return $player->total_games_played > 0 && $player->avg_minutes_played > 0;
+        })->sort(function ($a, $b) {
+            // Calculate ranking scores for player A
             $aStats = $a->avg_points_per_game * 1.0 + $a->avg_rebounds_per_game * 1.2 +
                       $a->avg_assists_per_game * 1.5 + $a->avg_steals_per_game * 2.0 +
                       $a->avg_blocks_per_game * 2.0 - $a->avg_turnovers_per_game * 1.5;
+
+            // Calculate ranking scores for player B
             $bStats = $b->avg_points_per_game * 1.0 + $b->avg_rebounds_per_game * 1.2 +
                       $b->avg_assists_per_game * 1.5 + $b->avg_steals_per_game * 2.0 +
                       $b->avg_blocks_per_game * 2.0 - $b->avg_turnovers_per_game * 1.5;
-            return $bStats <=> $aStats;
-        })->values(); // Re-index the collection after sorting
+
+            // Factor in total games played and minutes played for ranking score
+            // Example: Multiply score by total games played and average minutes played to give it weight
+            $aFinalScore = $aStats * $a->total_games_played * $a->avg_minutes_played;
+            $bFinalScore = $bStats * $b->total_games_played * $b->avg_minutes_played;
+
+            return $bFinalScore <=> $aFinalScore;
+        })->values(); // Re-index after sorting
 
         // Add ranks to each player
         $rankedPlayers = $rankedPlayers->map(function ($stats, $index) {
             $stats->rank = $index + 1; // Add rank starting from 1
             return $stats;
         });
-
 
         // Merge ranks into the draft results
         $draftResultsWithNamesAndRanks = $draftResultsWithNames->map(function ($draft) use ($rankedPlayers) {
