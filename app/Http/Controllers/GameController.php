@@ -74,7 +74,7 @@ class GameController extends Controller
                 'player_game_stats.minutes',
 
                 // Get the list of awards for the player in the current season
-                DB::raw("COALESCE(GROUP_CONCAT(CONCAT(sa.award_name, ' (Season ', sa.season_id, ')') SEPARATOR ', '), 'No Awards') as awards"),
+                DB::raw("COALESCE(GROUP_CONCAT(CONCAT(sa.award_name, ' (Season ', sa.season_id, ')') SEPARATOR ', '), null) as awards"),
 
                 // Determine if the player is the Finals MVP for this season
                 DB::raw("CASE WHEN p.id = (SELECT finals_mvp_id FROM seasons WHERE seasons.finals_mvp_id = p.id LIMIT 1) THEN 1 ELSE 0 END as is_finals_mvp"),
