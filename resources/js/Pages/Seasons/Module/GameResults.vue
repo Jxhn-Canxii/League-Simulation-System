@@ -296,6 +296,9 @@
                     <div class="flex flex-col items-center mb-4">
                         <p class="text-4xl font-extrabold mb-1">
                             {{ playerFormatter(bestPlayer?.name) }}
+                            <sup v-if="bestPlayer?.is_finals_mvp">
+                                <i class="fa fa-star fa-sm text-yellow-500"></i>
+                            </sup>
                         </p>
                         <p class="text-gray-600 text-xl">
                             {{ bestPlayer?.team }}
