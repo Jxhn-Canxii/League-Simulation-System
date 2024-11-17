@@ -357,7 +357,8 @@ class SimulateController extends Controller
         });
 
         // Function to distribute assists
-        function distributeAssistsPlayoffs(&$playerGameStats, $teamId, $maxAssists, &$assistsAssigned) {
+        function distributeAssistsPlayoffs(&$playerGameStats, $teamId, $maxAssists, &$assistsAssigned)
+        {
             $playmakerIndex = 0; // Track number of players assigned assists in this iteration
 
             // Calculate the assist range (half to 3/4 of max assists)
@@ -668,8 +669,7 @@ class SimulateController extends Controller
 
             // Simulate player game stats for away team
             foreach ($awayTeamPlayers as $player) {
-                $minutes = $awayMinutes[$player->id] ?? 0;
-;
+                $minutes = $awayMinutes[$player->id] ?? 0;;
 
                 // Calculate average defensive stats per game for the home team
                 $homeTeamDefensiveStats = [
@@ -805,7 +805,8 @@ class SimulateController extends Controller
             });
 
             // Function to distribute assists
-            function distributeAssists(&$playerGameStats, $teamId, $maxAssists, &$assistsAssigned) {
+            function distributeAssists(&$playerGameStats, $teamId, $maxAssists, &$assistsAssigned)
+            {
                 $playmakerIndex = 0; // Track number of players assigned assists in this iteration
 
                 // Calculate the assist range (half to 3/4 of max assists)
@@ -1388,16 +1389,16 @@ class SimulateController extends Controller
     {
         // Define role-based priorities and their minute allocation limits
         $rolePriority = [
-            'star player' => 1,
-            'starter' => 2,
-            'role player' => 3,
-            'bench' => 4,
+            'star player' => 1,   // Highest priority
+            'starter' => 2,       // Second highest priority
+            'role player' => 3,   // Lower priority
+            'bench' => 4,         // Lowest priority
         ];
 
         // Convert Eloquent collection to array
         $playersArray = $players->toArray();
 
-        // Sort players based on their role priority
+        // Sort players based on their role priority (higher priority first)
         $sortedPlayers = collect($playersArray)->sortBy(function ($player) use ($rolePriority) {
             return $rolePriority[$player['role']] ?? 5; // Default to lowest priority if role not found
         })->values();
@@ -1408,22 +1409,22 @@ class SimulateController extends Controller
         // Allocate minutes based on priority roles
         foreach ($sortedPlayers as $player) {
             if (rand(1, 100) >= $player['injury_prone_percentage']) {
-                // Player is injured
+                // Player is injured and should get zero minutes
                 $minutes[$player['id']] = 0;
             } else {
                 // Define initial minute ranges based on role priority
                 switch ($rolePriority[$player['role']] ?? 5) {
                     case 1: // Star player
-                        $assignedMinutesForRole = rand(30, 35);
+                        $assignedMinutesForRole = rand(30, 35); // Star players get the most minutes
                         break;
                     case 2: // Starter
-                        $assignedMinutesForRole = rand(25, 30);
+                        $assignedMinutesForRole = rand(25, 30); // Starters get slightly fewer minutes
                         break;
                     case 3: // Role player
-                        $assignedMinutesForRole = rand(15, 20);
+                        $assignedMinutesForRole = rand(15, 20); // Role players get fewer minutes
                         break;
                     case 4: // Bench
-                        $assignedMinutesForRole = rand(5, 10);
+                        $assignedMinutesForRole = rand(5, 10);  // Bench players get the least minutes
                         break;
                     default:
                         $assignedMinutesForRole = 0;
@@ -1437,24 +1438,45 @@ class SimulateController extends Controller
 
         // Calculate remaining minutes to reach the target
         $remainingMinutes = $totalMinutes - $assignedMinutes;
+
+        // Get players who were not assigned any minutes (injured or otherwise)
         $availablePlayers = array_filter($sortedPlayers->toArray(), function ($player) use ($minutes) {
             return !isset($minutes[$player['id']]) || $minutes[$player['id']] === 0;
         });
+
+        // Count the number of available players
         $numAvailablePlayers = count($availablePlayers);
 
-        // Distribute remaining minutes proportionally
+        // Distribute remaining minutes based on role priority (higher priority roles get more of the remaining minutes)
         if ($numAvailablePlayers > 0) {
-            $minutesPerPlayer = $remainingMinutes / $numAvailablePlayers;
+            // First, calculate how much "weight" each player should get based on role priority
+            $totalWeight = array_sum(array_map(function ($player) use ($rolePriority) {
+                return 1 / $rolePriority[$player['role']] ?? 5;
+            }, $availablePlayers));
 
+            // Now, distribute the remaining minutes according to weight
             foreach ($availablePlayers as $player) {
-                $minutes[$player['id']] = $minutesPerPlayer;
+                $playerWeight = 1 / ($rolePriority[$player['role']] ?? 5);  // Lower priority roles get more weight
+                $allocatedMinutes = ($playerWeight / $totalWeight) * $remainingMinutes;  // Proportional allocation
+                $minutes[$player['id']] += $allocatedMinutes;
+            }
+        }
+
+        // Ensure total minutes match the target (adjust if necessary)
+        $totalAssignedMinutes = array_sum($minutes);
+
+        if ($totalAssignedMinutes !== $totalMinutes) {
+            // If there is a discrepancy, adjust the last few players' minutes (either add or subtract)
+            $difference = $totalMinutes - $totalAssignedMinutes;
+            foreach ($minutes as $id => &$minute) {
+                // Add or subtract the difference proportionally
+                $minute += ($difference / count($minutes)); // Simple proportional adjustment
             }
         }
 
         return $minutes;
     }
 
-    // Helper function to create a match pair
 
     // Method to handle semi-finals logic
     private function updateConferenceChampions($gameData, $winnerId)
