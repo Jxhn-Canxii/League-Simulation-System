@@ -300,6 +300,14 @@
                                 <i class="fa fa-star fa-sm text-yellow-500"></i>
                             </sup>
                         </p>
+                        <sup class="float-right font-bold mt-2 text-red-300"
+                            >{{ bestPlayer.draft_status == 'Undrafted' ? 'Season '+bestPlayer.draft_id+' '+bestPlayer.draft_status : bestPlayer.draft_status}}
+                            {{
+                                bestPlayer.drafted_team_acro
+                                    ? `(${bestPlayer.drafted_team_acro})`
+                                    : ""
+                            }}
+                        </sup>
                         <p class="text-gray-600 text-xl">
                             {{ bestPlayer?.team }}
                         </p>
@@ -379,14 +387,6 @@
                             {{ bestPlayer?.championship_won }}
                        </p>
                     </div>
-                    <small class="float-right font-bold text-red-500"
-                        >{{ bestPlayer.draft_status }}
-                        {{
-                            bestPlayer.drafted_team_acro
-                                ? `(${bestPlayer.drafted_team_acro})`
-                                : ""
-                        }}
-                    </small>
                 </div>
             </div>
             <!-- Stat Leaders Section: 3/4 Width -->
