@@ -301,7 +301,7 @@
                             </sup>
                         </p>
                         <sup class="float-right font-bold mt-2 text-red-300"
-                            >{{ bestPlayer.draft_status == 'Undrafted' ? 'Season '+bestPlayer.draft_id+' '+bestPlayer.draft_status : bestPlayer.draft_status}}
+                            >{{ bestPlayer.draft_status == 'Undrafted' ? 'S'+bestPlayer.draft_id+' '+bestPlayer.draft_status : bestPlayer.draft_status}}
                             {{
                                 bestPlayer.drafted_team_acro
                                     ? `(${bestPlayer.drafted_team_acro})`
