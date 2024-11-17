@@ -95,6 +95,7 @@ Route::middleware('auth')->group(function () {
         Route::get('total-stats-leaders', [LeadersController::class, 'getTotalStatsLeaders'])->name('total.stats.leaders');
         Route::get('average-stats-leaders', [LeadersController::class, 'getAverageStatsLeaders'])->name('average.stats.leaders');
         Route::get('update-stats-leaders', [LeadersController::class, 'updateAllTimeTopStats'])->name('update.stats.leaders');
+        Route::get('update-season-stats-leaders/{season_id}', [LeadersController::class, 'updateAllTimeTopStatsPerSeason'])->name('update.season.stats.leaders');
     });
 
     Route::prefix('ratings/')->group(function(){
