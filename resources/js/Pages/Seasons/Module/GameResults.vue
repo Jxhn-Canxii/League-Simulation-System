@@ -291,7 +291,7 @@
                 <h3 class="text-lg font-semibold mb-2">Player of the Game</h3>
                 <div
                     v-if="bestPlayer"
-                    class="bg-white shadow-lg p-4 px-0 rounded-lg text-black"
+                    class="bg-white shadow-lg p-4 rounded-lg text-black"
                 >
                     <div class="flex flex-col items-center text-white mx-0"
                     :style="{
@@ -397,7 +397,7 @@
             <!-- Stat Leaders Section: 3/4 Width -->
             <div class="w-1/2 p-4 bg-white">
                 <h3 class="text-lg font-semibold mb-2">Stat Leaders</h3>
-                <div class="min-w-full shadow-lg border-gray-300 p-4 px-0">
+                <div class="min-w-full shadow-lg border-gray-300 p-4">
                     <ul class="space-y-4">
                         <li
                             v-if="statLeaders.points"
