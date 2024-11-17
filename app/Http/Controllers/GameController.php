@@ -80,7 +80,17 @@ class GameController extends Controller
                 DB::raw("GROUP_CONCAT(CONCAT(sa.award_name, ' (Season ', sa.season_id, ')') SEPARATOR ', ') as awards"),
 
                 // Determine if the player is the Finals MVP
-                DB::raw("CASE WHEN p.id = (SELECT finals_mvp_id FROM seasons WHERE seasons.finals_mvp_id = p.id) THEN 1 ELSE 0 END as is_finals_mvp")
+                DB::raw("CASE WHEN p.id = (SELECT finals_mvp_id FROM seasons WHERE seasons.finals_mvp_id = p.id) THEN 1 ELSE 0 END as is_finals_mvp"),
+
+                DB::raw("
+                    COALESCE(
+                        (SELECT
+                            CONCAT('Finals MVP (Season ', seasons.id, ')')
+                         FROM seasons
+                         WHERE seasons.finals_mvp_id = p.id
+                         LIMIT 1
+                        ), '') as finals_mvp
+                "),
             )
             ->groupBy(
                 'player_game_stats.player_id',
@@ -162,6 +172,7 @@ class GameController extends Controller
             'draft_status' => $bestWinningTeamPlayer->draft_status,
             'drafted_team_acro' => $bestWinningTeamPlayer->drafted_team_acro,
             'awards' => $bestWinningTeamPlayer->awards,
+            'finals_mvp' => $bestWinningTeamPlayer->finals_mvp,
             'is_finals_mvp' => $bestWinningTeamPlayer->is_finals_mvp,
         ] : null;
 
