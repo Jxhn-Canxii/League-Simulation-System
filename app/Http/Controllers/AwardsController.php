@@ -690,8 +690,12 @@ class AwardsController extends Controller
             })->first();
 
             // Filter out rookies and determine the Rookie of the Year award
-            $rookies = $eligiblePlayerStats->filter(function ($stats) {
-                return DB::table('players')->where('id', $stats->player_id)->value('is_rookie') == 1;
+            $rookies = $playerStats->filter(function ($stats) {
+                // Check if the player is a rookie by comparing the draft_id and season_id
+                return DB::table('players')
+                    ->where('id', $stats->player_id)          // Match the player_id
+                    ->where('draft_id', $stats->season_id)    // Check if draft_id matches season_id
+                    ->exists();  // Return true if a record is found (i.e., player is a rookie)
             });
 
             // Calculate Rookie of the Year by sorting the rookies based on the weighted stats and returning the top rookie
