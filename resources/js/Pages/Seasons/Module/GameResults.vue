@@ -369,15 +369,15 @@
 
                     <!-- Marquee for awards -->
                     <div class="mt-4 flex justify-start">
-                        <marquee class="text-sm font-bold text-gray-600" v-if="bestPlayer?.awards && bestPlayer?.awards.length > 0">
-                            {{ bestPlayer?.awards }}
-                        </marquee>
-                        <marquee class="text-sm font-bold text-gray-600" v-if="bestPlayer?.finals_mvp && bestPlayer?.finals_mvp.length > 0">
-                             {{ bestPlayer?.finals_mvp }}
-                        </marquee>
-                        <marquee class="text-sm font-bold text-gray-600" v-if="bestPlayer?.championship_won && bestPlayer?.championship_won.length > 0">
+                        <p class="text-sm font-bold text-gray-600" v-if="bestPlayer?.awards && bestPlayer?.awards.length > 0">
+                            {{ bestPlayer?.awards }},
+                        </p>
+                        <p class="text-sm font-bold text-gray-600" v-if="bestPlayer?.finals_mvp && bestPlayer?.finals_mvp.length > 0">
+                             {{ bestPlayer?.finals_mvp }},
+                        </p>
+                        <p class="text-sm font-bold text-gray-600" v-if="bestPlayer?.championship_won && bestPlayer?.championship_won.length > 0">
                             {{ bestPlayer?.championship_won }}
-                       </marquee>
+                       </p>
                     </div>
                     <small class="float-right font-bold text-red-500"
                         >{{ bestPlayer.draft_status }}
