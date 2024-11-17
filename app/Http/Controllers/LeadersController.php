@@ -196,7 +196,7 @@ class LeadersController extends Controller
     public function getSingleStatsLeaders()
     {
         // Fetch top players for each stat category from all_time_top_stats
-
+        $this->updateAllTimeTopStats();
         // Highest Points in a Single Game
         $topSinglePoints = DB::table('all_time_top_stats')
             ->select(
@@ -302,9 +302,9 @@ class LeadersController extends Controller
         ]);
     }
 
-
     public function updateAllTimeTopStats()
     {
+        // Define stat categories and their corresponding columns
         $statCategories = [
             'points' => 'pgs.points',
             'rebounds' => 'pgs.rebounds',
@@ -313,11 +313,14 @@ class LeadersController extends Controller
             'blocks' => 'pgs.blocks'
         ];
 
+        // Get the current season id (you can get this from your business logic or the latest game)
+        $currentSeasonId = DB::table('seasons')->latest('id')->value('id');
+
+        // For each stat category, check if a player qualifies for the all-time top 10
         foreach ($statCategories as $category => $column) {
-            // Define the top 10 query for each stat category
-            $topStats = DB::table('player_game_stats as pgs')
+            // Get the current season's top players for the given stat category
+            $currentSeasonTopStats = DB::table('player_game_stats as pgs')
                 ->select(
-                    DB::raw("'$category' AS stat_category"),
                     'pgs.player_id',
                     'players.name as player_name',
                     'pgs.game_id',
@@ -328,15 +331,55 @@ class LeadersController extends Controller
                 )
                 ->join('players', 'pgs.player_id', '=', 'players.id')
                 ->join('schedule_view', 'pgs.game_id', '=', 'schedule_view.game_id')
-                ->orderByDesc($column)
-                ->limit(10);
+                ->where('pgs.season_id', $currentSeasonId) // Filter by current season
+                ->orderByDesc($column) // Order by stat value in descending order
+                ->limit(10) // Get the top 10 players
+                ->get();
 
-            // Insert the results for the current stat category into the all_time_top_stats table
-            DB::table('all_time_top_stats')->insertUsing([
-                'stat_category', 'player_id', 'player_name', 'game_id', 'team_id', 'opponent_id', 'season_id', 'stat_value'
-            ], $topStats);
+            // Get the existing top 10 all-time stats for the category
+            $allTimeTopStats = DB::table('all_time_top_stats')
+                ->where('stat_category', $category)
+                ->orderByDesc('stat_value') // Ensure the top 10 are ordered by stat value
+                ->limit(10)
+                ->get();
+
+            // Check if the current season stats qualify to replace any of the all-time top 10 stats
+            foreach ($currentSeasonTopStats as $currentStat) {
+                // Check if the current season stat qualifies to be in the all-time top 10
+                $isQualified = false;
+                if ($allTimeTopStats->count() < 10) {
+                    $isQualified = true; // If there's space in the top 10, the current stat qualifies
+                } else {
+                    // Check if the current season's stat is better than the lowest stat in the all-time top 10
+                    $lowestTopStat = $allTimeTopStats->last();
+                    if ($currentStat->stat_value > $lowestTopStat->stat_value) {
+                        $isQualified = true;
+                    }
+                }
+
+                // If qualified, insert it into the all-time top stats
+                if ($isQualified) {
+                    // Remove the lowest entry if the all-time top 10 is already full
+                    if ($allTimeTopStats->count() >= 10) {
+                        $lowestTopStat = $allTimeTopStats->last();
+                        DB::table('all_time_top_stats')
+                            ->where('id', $lowestTopStat->id)
+                            ->delete(); // Remove the lowest stat
+                    }
+
+                    // Insert the new top stat into the all-time table
+                    DB::table('all_time_top_stats')->insert([
+                        'stat_category' => $category,
+                        'player_id' => $currentStat->player_id,
+                        'player_name' => $currentStat->player_name,
+                        'game_id' => $currentStat->game_id,
+                        'team_id' => $currentStat->team_id,
+                        'opponent_id' => $currentStat->opponent_id,
+                        'season_id' => $currentStat->season_id,
+                        'stat_value' => $currentStat->stat_value
+                    ]);
+                }
+            }
         }
     }
-
-
 }
