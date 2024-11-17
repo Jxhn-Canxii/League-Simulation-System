@@ -196,7 +196,6 @@ class LeadersController extends Controller
     public function getSingleStatsLeaders()
     {
         // Fetch top players for each stat category from all_time_top_stats
-        $this->updateAllTimeTopStats();
         // Highest Points in a Single Game
         $topSinglePoints = DB::table('all_time_top_stats')
             ->select(
