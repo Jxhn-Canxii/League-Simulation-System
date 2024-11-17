@@ -94,6 +94,7 @@ Route::middleware('auth')->group(function () {
         Route::get('single-stats-leaders', [LeadersController::class, 'getSingleStatsLeaders'])->name('single.stats.leaders');
         Route::get('total-stats-leaders', [LeadersController::class, 'getTotalStatsLeaders'])->name('total.stats.leaders');
         Route::get('average-stats-leaders', [LeadersController::class, 'getAverageStatsLeaders'])->name('average.stats.leaders');
+        Route::get('update-stats-leaders', [LeadersController::class, 'updateAllTimeTopStats'])->name('update.stats.leaders');
     });
 
     Route::prefix('ratings/')->group(function(){
