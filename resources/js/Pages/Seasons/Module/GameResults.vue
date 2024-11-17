@@ -1,7 +1,5 @@
 <template>
-    <div
-        class="p-4 bg-gray-900  shadow-md rounded-lg max-w-7xl mx-auto"
-    >
+    <div class="p-4 bg-gray-900 shadow-md rounded-lg max-w-7xl mx-auto">
         <!-- Game Summary -->
         <div
             class="flex flex-col lg:flex-row justify-between mb-4 border-b-2 border-gray-700 pb-4"
@@ -19,12 +17,16 @@
                 <h2 class="text-5xl font-bold text-white">
                     {{ gameDetails?.home_team.score }}
                 </h2>
-                <p class="text-md font-semibold text-white"
+                <p
+                    class="text-md font-semibold text-white"
                     :style="{
-                        backgroundColor: '#' + gameDetails?.home_team.secondary_color,
+                        backgroundColor:
+                            '#' + gameDetails?.home_team.secondary_color,
                     }"
                 >
-                    {{ gameDetails?.home_team.name }} ({{ gameDetails?.home_team.streak }})
+                    {{ gameDetails?.home_team.name }} ({{
+                        gameDetails?.home_team.streak
+                    }})
                 </p>
             </div>
 
@@ -51,7 +53,16 @@
                     <p class="text-xs font-semibold">
                         Game ID: {{ gameDetails?.game_id }}
                     </p>
-                    <p class="text-xs font-semibold">Matchup Record: {{ gameDetails?.head_to_head_record.home_team_wins ?? 0 }} - {{ gameDetails?.head_to_head_record.away_team_wins ?? 0 }}</p>
+                    <p class="text-xs font-semibold">
+                        Matchup Record:
+                        {{
+                            gameDetails?.head_to_head_record.home_team_wins ?? 0
+                        }}
+                        -
+                        {{
+                            gameDetails?.head_to_head_record.away_team_wins ?? 0
+                        }}
+                    </p>
                 </div>
             </div>
 
@@ -65,17 +76,19 @@
                 }"
             >
                 <!-- Away team primary color -->
-                <h2 class="text-5xl font-bold text-white"
-                >
+                <h2 class="text-5xl font-bold text-white">
                     {{ gameDetails?.away_team.score }}
                 </h2>
                 <p
                     class="text-md font-semibold text-white"
                     :style="{
-                        backgroundColor: '#' + gameDetails?.away_team.secondary_color,
+                        backgroundColor:
+                            '#' + gameDetails?.away_team.secondary_color,
                     }"
                 >
-                    {{ gameDetails?.away_team.name }} ({{ gameDetails?.away_team.streak }})
+                    {{ gameDetails?.away_team.name }} ({{
+                        gameDetails?.away_team.streak
+                    }})
                 </p>
             </div>
         </div>
@@ -85,7 +98,8 @@
             <h3 class="text-xl font-semibold mb-2">Player Statistics</h3>
 
             <!-- Home Team Player Stats -->
-            <div class="mb-2 p-2 rounded"
+            <div
+                class="mb-2 p-2 rounded"
                 :style="{
                     backgroundColor: '#' + gameDetails?.home_team.primary_color,
                 }"
@@ -97,9 +111,12 @@
                     class="min-w-full bg-gray-800 rounded-lg overflow-hidden text-sm"
                 >
                     <thead>
-                        <tr class="bg-gray-700 text-left"
+                        <tr
+                            class="bg-gray-700 text-left"
                             :style="{
-                                backgroundColor: '#' + gameDetails?.home_team.secondary_color,
+                                backgroundColor:
+                                    '#' +
+                                    gameDetails?.home_team.secondary_color,
                             }"
                         >
                             <th class="py-2 px-3 text-xs">Name</th>
@@ -174,7 +191,8 @@
             </div>
 
             <!-- Away Team Player Stats -->
-            <div class="mb-2 p-2 rounded"
+            <div
+                class="mb-2 p-2 rounded"
                 :style="{
                     backgroundColor: '#' + gameDetails?.away_team.primary_color,
                 }"
@@ -186,10 +204,13 @@
                     class="min-w-full bg-gray-800 rounded-lg overflow-hidden text-sm"
                 >
                     <thead>
-                        <tr class="text-left"
-                        :style="{
-                            backgroundColor: '#' + gameDetails?.away_team.secondary_color,
-                        }"
+                        <tr
+                            class="text-left"
+                            :style="{
+                                backgroundColor:
+                                    '#' +
+                                    gameDetails?.away_team.secondary_color,
+                            }"
                         >
                             <th class="py-2 px-3 text-xs">Name</th>
                             <th class="py-2 px-3 text-xs">Role</th>
@@ -268,140 +289,256 @@
             <!-- Best Player Section: 1/4 Width -->
             <div class="w-1/2 p-4">
                 <h3 class="text-lg font-semibold mb-3">Player of the Game</h3>
-                <div v-if="bestPlayer" class="bg-white shadow-lg p-4 rounded-lg text-black mb-4">
-                  <div class="flex flex-col items-center mb-4">
-                    <p class="text-4xl font-extrabold mb-1">{{ playerFormatter(bestPlayer?.name) }}</p>
-                    <p class="text-gray-600 text-xl">{{ bestPlayer?.team }}</p>
-                  </div>
-                  <ul class="grid grid-cols-3 gap-4 p-4">
-                    <li class="flex flex-col items-center">
-                      <span class="flex-shrink-0 w-25 h-25 p-2 bg-blue-600 rounded-full flex items-center justify-center">
-                        <span class="text-6xl font-bold text-white">{{ bestPlayer?.points }}</span>
-                      </span>
-                      <p class="text-xl text-gray-900 font-bold">PTS</p>
-                    </li>
-                    <li class="flex flex-col items-center">
-                        <span class="flex-shrink-0 w-25 h-25 p-2 bg-blue-600 rounded-full flex items-center justify-center">
-                          <span class="text-6xl font-bold text-white">{{ bestPlayer?.rebounds }}</span>
-                        </span>
-                        <p class="text-xl text-gray-900 font-bold">REB</p>
-                      </li>
-                      <li class="flex flex-col items-center">
-                        <span class="flex-shrink-0 w-25 h-25 p-2 bg-blue-600 rounded-full flex items-center justify-center">
-                          <span class="text-6xl font-bold text-white">{{ bestPlayer?.assists }}</span>
-                        </span>
-                        <p class="text-xl text-gray-900 font-bold">AST</p>
-                      </li>
-                      <li class="flex flex-col items-center">
-                        <span class="flex-shrink-0 w-25 h-25 p-2 bg-blue-600 rounded-full flex items-center justify-center">
-                          <span class="text-6xl font-bold text-white">{{ bestPlayer?.steals }}</span>
-                        </span>
-                        <p class="text-xl text-gray-900 font-bold">STL</p>
-                      </li>
-                      <li class="flex flex-col items-center">
-                        <span class="flex-shrink-0 w-25 h-25 p-2 bg-blue-600 rounded-full flex items-center justify-center">
-                          <span class="text-6xl font-bold text-white">{{ bestPlayer?.blocks }}</span>
-                        </span>
-                        <p class="text-xl text-gray-900 font-bold">BLK</p>
-                      </li>
-                      <li class="flex flex-col items-center">
-                        <span class="flex-shrink-0 w-25 h-25 p-2 bg-red-600 rounded-full flex items-center justify-center">
-                          <span class="text-6xl font-bold text-white">{{ bestPlayer?.turnovers }}</span>
-                        </span>
-                        <p class="text-xl text-gray-900 font-bold">TO</p>
-                      </li>
-                  </ul>
-                  <small class="float-right font-bold text-red-500">{{ bestPlayer.draft_status }} {{ bestPlayer.drafted_team_acro ? `(${bestPlayer.drafted_team_acro})` : '' }}</small>
+                <div
+                    v-if="bestPlayer"
+                    class="bg-white shadow-lg p-4 rounded-lg text-black mb-4"
+                >
+                    <div class="flex flex-col items-center mb-4">
+                        <p class="text-4xl font-extrabold mb-1">
+                            {{ playerFormatter(bestPlayer?.name) }}
+                        </p>
+                        <p class="text-gray-600 text-xl">
+                            {{ bestPlayer?.team }}
+                        </p>
+                    </div>
+                    <ul class="grid grid-cols-3 gap-4 p-4">
+                        <li class="flex flex-col items-center">
+                            <span
+                                class="flex-shrink-0 w-25 h-25 p-2 bg-blue-600 rounded-full flex items-center justify-center"
+                            >
+                                <span class="text-6xl font-bold text-white">{{
+                                    bestPlayer?.points
+                                }}</span>
+                            </span>
+                            <p class="text-xl text-gray-900 font-bold">PTS</p>
+                        </li>
+                        <li class="flex flex-col items-center">
+                            <span
+                                class="flex-shrink-0 w-25 h-25 p-2 bg-blue-600 rounded-full flex items-center justify-center"
+                            >
+                                <span class="text-6xl font-bold text-white">{{
+                                    bestPlayer?.rebounds
+                                }}</span>
+                            </span>
+                            <p class="text-xl text-gray-900 font-bold">REB</p>
+                        </li>
+                        <li class="flex flex-col items-center">
+                            <span
+                                class="flex-shrink-0 w-25 h-25 p-2 bg-blue-600 rounded-full flex items-center justify-center"
+                            >
+                                <span class="text-6xl font-bold text-white">{{
+                                    bestPlayer?.assists
+                                }}</span>
+                            </span>
+                            <p class="text-xl text-gray-900 font-bold">AST</p>
+                        </li>
+                        <li class="flex flex-col items-center">
+                            <span
+                                class="flex-shrink-0 w-25 h-25 p-2 bg-blue-600 rounded-full flex items-center justify-center"
+                            >
+                                <span class="text-6xl font-bold text-white">{{
+                                    bestPlayer?.steals
+                                }}</span>
+                            </span>
+                            <p class="text-xl text-gray-900 font-bold">STL</p>
+                        </li>
+                        <li class="flex flex-col items-center">
+                            <span
+                                class="flex-shrink-0 w-25 h-25 p-2 bg-blue-600 rounded-full flex items-center justify-center"
+                            >
+                                <span class="text-6xl font-bold text-white">{{
+                                    bestPlayer?.blocks
+                                }}</span>
+                            </span>
+                            <p class="text-xl text-gray-900 font-bold">BLK</p>
+                        </li>
+                        <li class="flex flex-col items-center">
+                            <span
+                                class="flex-shrink-0 w-25 h-25 p-2 bg-red-600 rounded-full flex items-center justify-center"
+                            >
+                                <span class="text-6xl font-bold text-white">{{
+                                    bestPlayer?.turnovers
+                                }}</span>
+                            </span>
+                            <p class="text-xl text-gray-900 font-bold">TO</p>
+                        </li>
+                    </ul>
+
+                    <!-- Marquee for awards -->
+                    <div class="mt-4">
+                        <marquee class="text-sm font-bold text-gray-600">
+                            Awards: {{ bestPlayer?.awards }}
+                        </marquee>
+                    </div>
+                    <small class="float-right font-bold text-red-500"
+                        >{{ bestPlayer.draft_status }}
+                        {{
+                            bestPlayer.drafted_team_acro
+                                ? `(${bestPlayer.drafted_team_acro})`
+                                : ""
+                        }}
+                    </small>
                 </div>
-              </div>
+            </div>
             <!-- Stat Leaders Section: 3/4 Width -->
             <div class="w-1/2 p-4 bg-white">
-              <h3 class="text-lg font-semibold mb-2">Stat Leaders</h3>
-              <div class="min-w-full shadow-lg border-gray-300 p-4">
-                <ul class="space-y-4">
-                    <li v-if="statLeaders.points" class="flex items-center border-b border-gray-300 pb-2">
-                        <span class="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                          <i class="fas fa-basketball-ball text-gray-600"></i>
-                        </span>
-                        <div class="ml-3 flex-grow">
-                          <div class="flex justify-between items-start">
-                            <div>
-                              <span class="font-bold">{{ statLeaders.points.player_name }}</span>
-                              <small class="text-gray-400 block">{{ statLeaders.points.team_name }}</small>
+                <h3 class="text-lg font-semibold mb-2">Stat Leaders</h3>
+                <div class="min-w-full shadow-lg border-gray-300 p-4">
+                    <ul class="space-y-4">
+                        <li
+                            v-if="statLeaders.points"
+                            class="flex items-center border-b border-gray-300 pb-2"
+                        >
+                            <span
+                                class="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center"
+                            >
+                                <i
+                                    class="fas fa-basketball-ball text-gray-600"
+                                ></i>
+                            </span>
+                            <div class="ml-3 flex-grow">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <span class="font-bold">{{
+                                            statLeaders.points.player_name
+                                        }}</span>
+                                        <small class="text-gray-400 block">{{
+                                            statLeaders.points.team_name
+                                        }}</small>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-bold text-2xl">
+                                            {{ statLeaders.points.points }} pts
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="text-right">
-                              <p class="font-bold text-2xl">{{ statLeaders.points.points }} pts</p>
-                            </div>
-                          </div>
-                        </div>
-                      </li>
+                        </li>
 
-                      <li v-if="statLeaders.assists" class="flex items-center border-b border-gray-300 pb-2">
-                        <span class="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                          <i class="fas fa-basketball-ball text-gray-600"></i>
-                        </span>
-                        <div class="ml-3 flex-grow">
-                          <div class="flex justify-between items-start">
-                            <div>
-                              <span class="font-semibold">{{ statLeaders.assists.player_name }}</span>
-                              <small class="text-gray-400 block">{{ statLeaders.assists.team_name }}</small>
+                        <li
+                            v-if="statLeaders.assists"
+                            class="flex items-center border-b border-gray-300 pb-2"
+                        >
+                            <span
+                                class="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center"
+                            >
+                                <i
+                                    class="fas fa-basketball-ball text-gray-600"
+                                ></i>
+                            </span>
+                            <div class="ml-3 flex-grow">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <span class="font-semibold">{{
+                                            statLeaders.assists.player_name
+                                        }}</span>
+                                        <small class="text-gray-400 block">{{
+                                            statLeaders.assists.team_name
+                                        }}</small>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-bold text-2xl">
+                                            {{
+                                                statLeaders.assists.assists
+                                            }}
+                                            ast
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="text-right">
-                              <p class="font-bold text-2xl">{{ statLeaders.assists.assists }} ast</p>
+                        </li>
+                        <li
+                            v-if="statLeaders.rebounds"
+                            class="flex items-center border-b border-gray-300 pb-2"
+                        >
+                            <span
+                                class="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center"
+                            >
+                                <i
+                                    class="fas fa-basketball-ball text-gray-600"
+                                ></i>
+                            </span>
+                            <div class="ml-3 flex-grow">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <span class="font-semibold">{{
+                                            statLeaders.rebounds.player_name
+                                        }}</span>
+                                        <small class="text-gray-400 block">{{
+                                            statLeaders.rebounds.team_name
+                                        }}</small>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-bold text-2xl">
+                                            {{
+                                                statLeaders.rebounds.rebounds
+                                            }}
+                                            reb
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
-                          </div>
-                        </div>
-                      </li>
-                      <li v-if="statLeaders.rebounds" class="flex items-center border-b border-gray-300 pb-2">
-                        <span class="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                          <i class="fas fa-basketball-ball text-gray-600"></i>
-                        </span>
-                        <div class="ml-3 flex-grow">
-                          <div class="flex justify-between items-start">
-                            <div>
-                              <span class="font-semibold">{{ statLeaders.rebounds.player_name }}</span>
-                              <small class="text-gray-400 block">{{ statLeaders.rebounds.team_name }}</small>
+                        </li>
+                        <li
+                            v-if="statLeaders.steals"
+                            class="flex items-center border-b border-gray-300 pb-2"
+                        >
+                            <span
+                                class="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center"
+                            >
+                                <i
+                                    class="fas fa-basketball-ball text-gray-600"
+                                ></i>
+                            </span>
+                            <div class="ml-3 flex-grow">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <span class="font-semibold">{{
+                                            statLeaders.steals.player_name
+                                        }}</span>
+                                        <small class="text-gray-400 block">{{
+                                            statLeaders.steals.team_name
+                                        }}</small>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-bold text-2xl">
+                                            {{ statLeaders.steals.steals }} stl
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="text-right">
-                              <p class="font-bold text-2xl">{{ statLeaders.rebounds.rebounds }} reb</p>
+                        </li>
+                        <li
+                            v-if="statLeaders.blocks"
+                            class="flex items-center border-b border-gray-300 pb-2"
+                        >
+                            <span
+                                class="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center"
+                            >
+                                <i
+                                    class="fas fa-basketball-ball text-gray-600"
+                                ></i>
+                            </span>
+                            <div class="ml-3 flex-grow">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <span class="font-semibold">{{
+                                            statLeaders.blocks.player_name
+                                        }}</span>
+                                        <small class="text-gray-400 block">{{
+                                            statLeaders.blocks.team_name
+                                        }}</small>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-bold text-2xl">
+                                            {{ statLeaders.blocks.blocks }} blk
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
-                          </div>
-                        </div>
-                      </li>
-                      <li v-if="statLeaders.steals" class="flex items-center border-b border-gray-300 pb-2">
-                        <span class="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                          <i class="fas fa-basketball-ball text-gray-600"></i>
-                        </span>
-                        <div class="ml-3 flex-grow">
-                          <div class="flex justify-between items-start">
-                            <div>
-                              <span class="font-semibold">{{ statLeaders.steals.player_name }}</span>
-                              <small class="text-gray-400 block">{{ statLeaders.steals.team_name }}</small>
-                            </div>
-                            <div class="text-right">
-                              <p class="font-bold text-2xl">{{ statLeaders.steals.steals }} stl</p>
-                            </div>
-                          </div>
-                        </div>
-                      </li>
-                      <li v-if="statLeaders.blocks" class="flex items-center border-b border-gray-300 pb-2">
-                        <span class="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                          <i class="fas fa-basketball-ball text-gray-600"></i>
-                        </span>
-                        <div class="ml-3 flex-grow">
-                          <div class="flex justify-between items-start">
-                            <div>
-                              <span class="font-semibold">{{ statLeaders.blocks.player_name }}</span>
-                              <small class="text-gray-400 block">{{ statLeaders.blocks.team_name }}</small>
-                            </div>
-                            <div class="text-right">
-                              <p class="font-bold text-2xl">{{ statLeaders.blocks.blocks }} blk</p>
-                            </div>
-                          </div>
-                        </div>
-                      </li>
-                </ul>
-              </div>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
         <Modal :show="isTeamRosterModalOpen" :maxWidth="'fullscreen'">
@@ -481,7 +618,7 @@ const fetchBoxScore = async () => {
 };
 
 const playerFormatter = (name) => {
-    const nameParts = name.split(' '); // Split the name into parts
+    const nameParts = name.split(" "); // Split the name into parts
 
     // Assume the last part is the surname
     const firstName = nameParts[0];

@@ -43,38 +43,68 @@ class GameController extends Controller
         }
 
         $playerStats = \DB::table('player_game_stats')
-            ->where('player_game_stats.game_id', $game_id)
-            ->leftJoin('players', 'player_game_stats.player_id', '=', 'players.id') // Join with players
-            ->leftJoin('teams as drafted_team', 'drafted_team.id', '=', 'players.drafted_team_id') // Join with players
-            ->leftJoin('teams', 'player_game_stats.team_id', '=', 'teams.id') // Join with teams to get team names
-            ->leftJoin('player_season_stats', function ($join) {
-                $join->on('player_season_stats.player_id', '=', 'players.id')
-                    ->on('player_season_stats.season_id', '=', 'player_game_stats.season_id'); // Assuming season_id should match
-            })
-            ->select(
-                'player_game_stats.player_id',
-                'players.name as player_name',
-                'players.is_rookie as is_rookie',
-                'players.draft_status',
-                'players.draft_id',
-                'drafted_team.acronym as drafted_team_acro',
-                'player_game_stats.team_id',
-                'player_game_stats.game_id',
-                'player_game_stats.season_id as game_season_id',
-                'player_season_stats.season_id as stats_season_id',
-                'teams.name as team_name',
-                'player_season_stats.role as player_role',
-                'player_game_stats.points',
-                'player_game_stats.assists',
-                'player_game_stats.rebounds',
-                'player_game_stats.steals',
-                'player_game_stats.blocks',
-                'player_game_stats.turnovers',
-                'player_game_stats.fouls',
-                'player_game_stats.minutes'
-            )
-            ->get()
-            ->keyBy('player_id');
+    ->where('player_game_stats.game_id', $game_id)
+    ->leftJoin('players', 'player_game_stats.player_id', '=', 'players.id') // Join with players
+    ->leftJoin('teams as drafted_team', 'drafted_team.id', '=', 'players.drafted_team_id') // Join with drafted team
+    ->leftJoin('teams', 'player_game_stats.team_id', '=', 'teams.id') // Join with teams to get team names
+    ->leftJoin('player_season_stats', function ($join) {
+        $join->on('player_season_stats.player_id', '=', 'players.id')
+             ->on('player_season_stats.season_id', '=', 'player_game_stats.season_id'); // Assuming season_id should match
+    })
+    ->leftJoin('season_awards', function ($join) {
+        $join->on('season_awards.player_id', '=', 'players.id')
+             ->on('season_awards.season_id', '=', 'player_game_stats.season_id'); // Match the season_id
+    })
+    ->select(
+        'player_game_stats.player_id',
+        'players.name as player_name',
+        'players.is_rookie as is_rookie',
+        'players.draft_status',
+        'players.draft_id',
+        'drafted_team.acronym as drafted_team_acro',
+        'player_game_stats.team_id',
+        'player_game_stats.game_id',
+        'player_game_stats.season_id as game_season_id',
+        'player_season_stats.season_id as stats_season_id',
+        'teams.name as team_name',
+        'player_season_stats.role as player_role',
+        'player_game_stats.points',
+        'player_game_stats.assists',
+        'player_game_stats.rebounds',
+        'player_game_stats.steals',
+        'player_game_stats.blocks',
+        'player_game_stats.turnovers',
+        'player_game_stats.fouls',
+        'player_game_stats.minutes',
+
+        // Get the list of awards for the player (for the current season)
+        DB::raw("GROUP_CONCAT(CONCAT(season_awards.award_name, ' (Season ', season_awards.season_id, ')') SEPARATOR ', ') as awards")
+    )
+    ->groupBy(
+        'player_game_stats.player_id',
+        'players.name',
+        'players.is_rookie',
+        'players.draft_status',
+        'players.draft_id',
+        'drafted_team.acronym',
+        'player_game_stats.team_id',
+        'player_game_stats.game_id',
+        'player_game_stats.season_id',
+        'player_season_stats.season_id',
+        'teams.name',
+        'player_season_stats.role',
+        'player_game_stats.points',
+        'player_game_stats.assists',
+        'player_game_stats.rebounds',
+        'player_game_stats.steals',
+        'player_game_stats.blocks',
+        'player_game_stats.turnovers',
+        'player_game_stats.fouls',
+        'player_game_stats.minutes'
+    )
+    ->get()
+    ->keyBy('player_id');
+
 
 
         // Fetch all players that might be relevant to the game (ignoring team_id here)
@@ -130,6 +160,7 @@ class GameController extends Controller
             'minutes' => $bestWinningTeamPlayer->minutes,
             'draft_status' => $bestWinningTeamPlayer->draft_status,
             'drafted_team_acro' => $bestWinningTeamPlayer->drafted_team_acro,
+            'awards' => $bestWinningTeamPlayer->awards,
         ] : null;
 
         $homeTeamStreak = $this->getTeamStreak($game->home_id, $game->id);

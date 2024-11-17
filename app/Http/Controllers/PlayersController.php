@@ -219,7 +219,8 @@ class PlayersController extends Controller
         $query = Player::select(
                 'players.*',
                 'teams.acronym as drafted_team',
-                DB::raw("(SELECT GROUP_CONCAT(award_name SEPARATOR ', ') FROM season_awards WHERE season_awards.player_id = players.id) as awards"),
+                DB::raw("(SELECT GROUP_CONCAT(CONCAT(award_name, ' (Season ', season_id, ')') SEPARATOR ', ') FROM season_awards WHERE season_awards.player_id = players.id) as awards"),
+                DB::raw("(SELECT  CONCAT('Finals MVP (Season ', seasons.id, ')')  FROM seasons WHERE seasons.finals_mvp_id = players.id LIMIT 1) as finals_mvp"),
                 DB::raw("CASE WHEN players.id = (SELECT finals_mvp_id FROM seasons WHERE seasons.finals_mvp_id = players.id) THEN 1 ELSE 0 END as is_finals_mvp"),
                 DB::raw("(SELECT GROUP_CONCAT(seasons.name SEPARATOR ', ') FROM seasons WHERE seasons.finals_mvp_id = players.id) as finals_mvp_seasons")
             )
@@ -234,9 +235,9 @@ class PlayersController extends Controller
 
         // Add ordering for awards, finals MVP status, and role priority
         $query->orderByRaw("
-            LENGTH(awards) DESC,           -- Sort by length of awards (more awards higher)
-            is_finals_mvp DESC,            -- Finals MVPs appear first
-            FIELD(role, 'star player', 'starter', 'role player', 'bench') -- Sort by role priority
+            LENGTH(awards) DESC,
+            is_finals_mvp DESC,
+            FIELD(role, 'star player', 'starter', 'role player', 'bench')
         ");
 
         // Get total number of records
@@ -272,9 +273,43 @@ class PlayersController extends Controller
         // Calculate the offset for the query
         $offset = ($currentPage - 1) * $perPage;
 
-        // Build the query with optional search filter and join with teams
+        // Start building the query with optional search filter and join with teams
         $query = DB::table('players')
-            ->select('players.id as player_id', 'players.country', 'players.name', 'players.age', 'players.role', 'players.is_active', 'players.retirement_age', 'players.contract_years', DB::raw("IF(players.team_id = 0, 'none', teams.name) as team_name"))
+            ->select(
+                'players.id as player_id',
+                'players.country',
+                'players.name',
+                'players.age',
+                'players.role',
+                'players.is_active',
+                'players.retirement_age',
+                'players.contract_years',
+                DB::raw("IF(players.team_id = 0, 'none', teams.name) as team_name"),
+
+                // Get the list of awards for the player
+                DB::raw("
+                    (SELECT GROUP_CONCAT(
+                            CONCAT(award_name, ' (Season ', season_awards.season_id, ')')
+                            SEPARATOR ', ')
+                     FROM season_awards
+                     WHERE season_awards.player_id = players.id
+                    ) as awards
+                "),
+
+                // Get the Finals MVP for the player, if applicable
+                DB::raw("
+                    COALESCE(
+                        (SELECT
+                            CONCAT('Finals MVP (Season ', seasons.id, ')')
+                         FROM seasons
+                         WHERE seasons.finals_mvp_id = players.id
+                         LIMIT 1
+                        ), '') as finals_mvp
+                "),
+
+                // Check if player is finals MVP (this is somewhat redundant with the previous subquery)
+                DB::raw("CASE WHEN players.id = (SELECT finals_mvp_id FROM seasons WHERE seasons.finals_mvp_id = players.id) THEN 1 ELSE 0 END as is_finals_mvp")
+            )
             ->leftJoin('teams', 'players.team_id', '=', 'teams.id');
 
         // Apply search filter if provided
@@ -284,7 +319,7 @@ class PlayersController extends Controller
 
         // Add sorting by is_active status, then by role priority
         $query->orderBy('players.is_active', 'desc') // Active players first
-            ->orderByRaw("FIELD(players.role, 'star player', 'starter', 'role player', 'bench')");
+              ->orderByRaw("FIELD(players.role, 'star player', 'starter', 'role player', 'bench')");
 
         // Get total number of records
         $total = $query->count();
@@ -305,6 +340,7 @@ class PlayersController extends Controller
             'free_agents' => $freeAgents,
         ]);
     }
+
 
     // Add a player to a team with random attributes
     public function addplayer(Request $request)
