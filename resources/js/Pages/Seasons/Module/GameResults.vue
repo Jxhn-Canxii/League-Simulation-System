@@ -365,7 +365,7 @@
                     </ul>
 
                     <!-- Marquee for awards -->
-                    <div class="mt-4" v-if="bestPlayer?.awards">
+                    <div class="mt-4"  v-if="bestPlayer?.awards && bestPlayer?.awards.length > 0">
                         <marquee class="text-sm font-bold text-gray-600">
                             Awards: {{ bestPlayer?.awards }}
                         </marquee>
