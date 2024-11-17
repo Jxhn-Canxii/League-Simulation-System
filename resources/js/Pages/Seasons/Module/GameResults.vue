@@ -375,6 +375,9 @@
                         <marquee class="text-sm font-bold text-gray-600" v-if="bestPlayer?.finals_mvp && bestPlayer?.finals_mvp.length > 0">
                              {{ bestPlayer?.finals_mvp }}
                         </marquee>
+                        <marquee class="text-sm font-bold text-gray-600" v-if="bestPlayer?.championship_won && bestPlayer?.championship_won.length > 0">
+                            {{ bestPlayer?.championship_won }}
+                       </marquee>
                     </div>
                     <small class="float-right font-bold text-red-500"
                         >{{ bestPlayer.draft_status }}

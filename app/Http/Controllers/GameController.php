@@ -81,10 +81,27 @@ class GameController extends Controller
 
                 // Return the string for Finals MVP
                 DB::raw("COALESCE(
-            (SELECT CONCAT('Finals MVP (Season ', s.id, ')')
-             FROM seasons s
-             WHERE s.finals_mvp_id = p.id
-             LIMIT 1), '') as finals_mvp")
+                (SELECT CONCAT('Finals MVP (Season ', s.id, ')')
+                FROM seasons s
+                WHERE s.finals_mvp_id = p.id
+                LIMIT 1), '') as finals_mvp"),
+
+                DB::raw("COALESCE(
+                    (SELECT CONCAT('Championship Won (Season ', s.id, ') by ',
+                                   CASE
+                                       WHEN pgs.team_id = s.finals_winner_id AND s.finals_winner_score > s.finals_loser_score THEN th.name
+                                       WHEN pgs.team_id = s.finals_loser_id AND s.finals_loser_score > s.finals_winner_score THEN ta.name
+                                   END)
+                     FROM seasons s
+                     JOIN player_game_stats pgs ON pgs.season_id = s.id AND pgs.player_id = p.id
+                     LEFT JOIN teams th ON th.id = s.finals_winner_id  -- Join for home team name
+                     LEFT JOIN teams ta ON ta.id = s.finals_loser_id  -- Join for away team name
+                     WHERE (
+                         (pgs.team_id = s.finals_winner_id AND s.finals_winner_score > s.finals_loser_score)  -- Home team wins
+                         OR
+                         (pgs.team_id = s.finals_loser_id AND s.finals_loser_score > s.finals_winner_score)  -- Away team wins
+                     )
+                     LIMIT 1), '') as championship_won")
             )
             ->groupBy(
                 'player_game_stats.player_id',
@@ -169,6 +186,7 @@ class GameController extends Controller
             'drafted_team_acro' => $bestWinningTeamPlayer->drafted_team_acro,
             'awards' => $bestWinningTeamPlayer->awards,
             'finals_mvp' => $bestWinningTeamPlayer->finals_mvp,
+            'championship_won' => $bestWinningTeamPlayer->championship_won,
             'is_finals_mvp' => $bestWinningTeamPlayer->is_finals_mvp,
         ] : null;
 
