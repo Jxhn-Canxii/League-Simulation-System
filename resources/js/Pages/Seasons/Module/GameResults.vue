@@ -293,7 +293,7 @@
                     v-if="bestPlayer"
                     class="bg-white shadow-lg p-4 rounded-lg text-black"
                 >
-                    <div class="flex flex-col items-center text-white mx-0"
+                    <div class="flex flex-col items-center text-white mx-0 p-2 rounded"
                     :style="{
                         backgroundColor:
                             '#' + (gameDetails?.home_team.score > gameDetails?.away_team.score ? gameDetails?.home_team.primary_color : gameDetails?.away_team.primary_color),
@@ -381,16 +381,16 @@
                     </ul>
 
                     <!-- Marquee for awards -->
-                    <div class="mt-4 flex justify-start text-wrap">
-                        <marquee class="text-xs font-bold text-gray-600" v-if="bestPlayer?.awards && bestPlayer?.awards.length > 0">
+                    <div class="mt-4 block justify-start text-wrap">
+                        <p class="text-xs font-bold text-gray-600" v-if="bestPlayer?.awards && bestPlayer?.awards.length > 0">
                             {{ bestPlayer?.awards }}
-                        </marquee>
-                        <marquee class="text-xs font-bold text-gray-600" v-if="bestPlayer?.finals_mvp && bestPlayer?.finals_mvp.length > 0">
+                        </p>
+                        <p class="text-xs font-bold text-gray-600" v-if="bestPlayer?.finals_mvp && bestPlayer?.finals_mvp.length > 0">
                              {{ bestPlayer?.finals_mvp }}
-                        </marquee>
-                        <marquee class="text-xs font-bold text-gray-600" v-if="bestPlayer?.championship_won && bestPlayer?.championship_won.length > 0">
+                        </p>
+                        <p class="text-xs font-bold text-gray-600" v-if="bestPlayer?.championship_won && bestPlayer?.championship_won.length > 0">
                             {{ bestPlayer?.championship_won }}
-                       </marquee>
+                       </p>
                     </div>
                 </div>
             </div>
