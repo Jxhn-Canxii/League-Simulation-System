@@ -288,12 +288,17 @@
         <div class="flex bg-white">
             <!-- Best Player Section: 1/4 Width -->
             <div class="w-1/2 p-4">
-                <h3 class="text-lg font-semibold mb-3">Player of the Game</h3>
+                <h3 class="text-lg font-semibold mb-2">Player of the Game</h3>
                 <div
                     v-if="bestPlayer"
-                    class="bg-white shadow-lg p-4 rounded-lg text-black mb-4"
+                    class="bg-white shadow-lg p-4 px-0 rounded-lg text-black"
                 >
-                    <div class="flex flex-col items-center mb-4">
+                    <div class="flex flex-col items-center text-white mx-0"
+                    :style="{
+                        backgroundColor:
+                            '#' + (gameDetails?.home_team.score > gameDetails?.away_team.score ? gameDetails?.home_team.primary_color : gameDetails?.away_team.primary_color),
+                    }"
+                    >
                         <p class="text-4xl font-extrabold mb-1">
                             {{ playerFormatter(bestPlayer?.name) }}
                             <sup v-if="bestPlayer?.is_finals_mvp">
@@ -308,7 +313,7 @@
                                     : ""
                             }}
                         </sup>
-                        <p class="text-gray-600 text-xl">
+                        <p class="text-xl">
                             {{ bestPlayer?.team }}
                         </p>
                     </div>
@@ -378,10 +383,10 @@
                     <!-- Marquee for awards -->
                     <div class="mt-4 flex justify-start text-wrap">
                         <p class="text-xs font-bold text-gray-600" v-if="bestPlayer?.awards && bestPlayer?.awards.length > 0">
-                            {{ bestPlayer?.awards }},
+                            {{ bestPlayer?.awards }}
                         </p>
                         <p class="text-xs font-bold text-gray-600" v-if="bestPlayer?.finals_mvp && bestPlayer?.finals_mvp.length > 0">
-                             {{ bestPlayer?.finals_mvp }},
+                             {{ bestPlayer?.finals_mvp }}
                         </p>
                         <p class="text-xs font-bold text-gray-600" v-if="bestPlayer?.championship_won && bestPlayer?.championship_won.length > 0">
                             {{ bestPlayer?.championship_won }}
@@ -392,7 +397,7 @@
             <!-- Stat Leaders Section: 3/4 Width -->
             <div class="w-1/2 p-4 bg-white">
                 <h3 class="text-lg font-semibold mb-2">Stat Leaders</h3>
-                <div class="min-w-full shadow-lg border-gray-300 p-4">
+                <div class="min-w-full shadow-lg border-gray-300 p-4 px-0">
                     <ul class="space-y-4">
                         <li
                             v-if="statLeaders.points"
