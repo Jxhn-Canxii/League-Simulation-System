@@ -101,6 +101,7 @@
                                                 @click="
                                                     simulateGame(
                                                         match.id,
+                                                        match.game_id,
                                                         2,
                                                         mm,
                                                         roundName
@@ -419,7 +420,7 @@ const fetchSeasonPlayoffs = async (type) => {
         console.error("Error fetching season playoffs:", error);
     }
 };
-const simulateGame = async (id, type, index, round) => {
+const simulateGame = async (id, game_id, type, index, round) => {
     try {
         isHide.value = true;
         activeIndex.value = index;
@@ -451,7 +452,10 @@ const simulateGame = async (id, type, index, round) => {
             text: response.data.message, // Assuming the response contains a 'message' field
         });
 
+        Swal.close();
+
         isHide.value = false;
+        isGameResultModalOpen.value = game_id;
     } catch (error) {
         console.error("Error simulating the game:", error);
 
