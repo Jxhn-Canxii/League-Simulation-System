@@ -50,10 +50,7 @@ class GameController extends Controller
                 $join->on('pss.player_id', '=', 'p.id')
                     ->on('pss.season_id', '=', 'player_game_stats.season_id'); // Join player_season_stats on player_id and season_id
             })
-            ->leftJoin('season_awards as sa', function ($join) {
-                $join->on('sa.player_id', '=', 'p.id')
-                    ->on('sa.season_id', '=', 'player_game_stats.season_id'); // Join season_awards on player_id and season_id
-            })
+            ->leftJoin('season_awards as sa', 'sa.player_id', '=', 'p.id')
             ->select(
                 'player_game_stats.player_id',
                 'p.name as player_name',
@@ -77,20 +74,17 @@ class GameController extends Controller
                 'player_game_stats.minutes',
 
                 // Get the list of awards for the player in the current season
-                DB::raw("GROUP_CONCAT(CONCAT(sa.award_name, ' (Season ', sa.season_id, ')') SEPARATOR ', ') as awards"),
+                DB::raw("COALESCE(GROUP_CONCAT(CONCAT(sa.award_name, ' (Season ', sa.season_id, ')') SEPARATOR ', '), 'No Awards') as awards"),
 
-                // Determine if the player is the Finals MVP
-                DB::raw("CASE WHEN p.id = (SELECT finals_mvp_id FROM seasons WHERE seasons.finals_mvp_id = p.id) THEN 1 ELSE 0 END as is_finals_mvp"),
+                // Determine if the player is the Finals MVP for this season
+                DB::raw("CASE WHEN p.id = (SELECT finals_mvp_id FROM seasons WHERE seasons.finals_mvp_id = p.id LIMIT 1) THEN 1 ELSE 0 END as is_finals_mvp"),
 
-                DB::raw("
-                    COALESCE(
-                        (SELECT
-                            CONCAT('Finals MVP (Season ', seasons.id, ')')
-                         FROM seasons
-                         WHERE seasons.finals_mvp_id = p.id
-                         LIMIT 1
-                        ), '') as finals_mvp
-                "),
+                // Return the string for Finals MVP
+                DB::raw("COALESCE(
+            (SELECT CONCAT('Finals MVP (Season ', s.id, ')')
+             FROM seasons s
+             WHERE s.finals_mvp_id = p.id
+             LIMIT 1), '') as finals_mvp")
             )
             ->groupBy(
                 'player_game_stats.player_id',
@@ -117,6 +111,8 @@ class GameController extends Controller
             )
             ->get()
             ->keyBy('player_id');
+
+
 
         // Fetch all players that might be relevant to the game (ignoring team_id here)
         $players = \DB::table('players')
