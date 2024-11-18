@@ -305,14 +305,6 @@
                                 <i class="fa fa-star fa-sm text-yellow-500"></i>
                             </sup>
                         </p>
-                        <sup class="float-right font-bold mt-2 text-red-300"
-                            >{{ bestPlayer.draft_status == 'Undrafted' ? 'S'+bestPlayer.draft_id+' '+bestPlayer.draft_status : bestPlayer.draft_status}}
-                            {{
-                                bestPlayer.drafted_team_acro
-                                    ? `(${bestPlayer.drafted_team_acro})`
-                                    : ""
-                            }}
-                        </sup>
                         <p class="text-xl">
                             {{ bestPlayer?.team }}
                         </p>
@@ -391,6 +383,16 @@
                         <p class="text-xs font-bold text-gray-600" v-if="bestPlayer?.championship_won && bestPlayer?.championship_won.length > 0">
                             {{ bestPlayer?.championship_won }}
                        </p>
+                    </div>
+                    <div class="flex justify-center">
+                        <sup class="float-center font-bold mt-2 text-red-500">
+                            {{ bestPlayer.draft_status == 'Undrafted' ? 'S'+bestPlayer.draft_id+' '+bestPlayer.draft_status : bestPlayer.draft_status}}
+                            {{
+                                bestPlayer.drafted_team_acro
+                                    ? `(${bestPlayer.drafted_team_acro})`
+                                    : ""
+                            }}
+                        </sup>
                     </div>
                 </div>
             </div>
