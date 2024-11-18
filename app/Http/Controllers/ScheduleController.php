@@ -518,14 +518,14 @@ class ScheduleController extends Controller
             }
         }
 
-        // If the round is semi-finals, order the winning teams by their overall rank
-        if ($round == 'semi_finals') {
-            $winningIds = DB::table('standings_view')
-                ->whereIn('team_id', $winningIds)  // Filter by the winning team IDs
-                ->orderBy('overall_rank')  // Order by overall rank
-                ->pluck('team_id')  // Get the ordered list of team IDs
-                ->toArray();  // Convert the result to a plain array
-        }
+        // // If the round is semi-finals, order the winning teams by their overall rank
+        // if ($round == 'semi_finals') {
+        //     $winningIds = DB::table('standings_view')
+        //         ->whereIn('team_id', $winningIds)  // Filter by the winning team IDs
+        //         ->orderBy('overall_rank')  // Order by overall rank
+        //         ->pluck('team_id')  // Get the ordered list of team IDs
+        //         ->toArray();  // Convert the result to a plain array
+        // }
 
         return $winningIds;
     }
