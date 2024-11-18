@@ -197,6 +197,7 @@ class GameController extends Controller
             'fouls' => $bestWinningTeamPlayer->fouls,
             'role' => $bestWinningTeamPlayer->player_role,
             'minutes' => $bestWinningTeamPlayer->minutes,
+            'draft_id' => $bestWinningTeamPlayer->draft_id,
             'draft_status' => $bestWinningTeamPlayer->draft_status,
             'drafted_team_acro' => $bestWinningTeamPlayer->drafted_team_acro,
             'awards' => $bestWinningTeamPlayer->awards ?? null,
