@@ -1385,7 +1385,7 @@ class SimulateController extends Controller
         ]);
     }
 
-    private function distributeMinutes($players, $totalMinutes)
+    private function distributeMinutes($playersArray, $totalMinutes)
     {
         // Define role-based priorities and their minute allocation limits
         $rolePriority = [
@@ -1396,7 +1396,7 @@ class SimulateController extends Controller
         ];
 
         // Convert Eloquent collection to array
-        $playersArray = $players->toArray();
+        // $playersArray = $players->toArray();
 
         // Sort players based on their role priority (higher priority first)
         $sortedPlayers = collect($playersArray)->sortBy(function ($player) use ($rolePriority) {
