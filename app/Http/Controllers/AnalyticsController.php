@@ -87,7 +87,7 @@ class AnalyticsController extends Controller
                 'data' => array_map(function ($season) use ($data) {
                     return $data['winsData'][$season] ?? 0; // Default to 0 if no wins recorded
                 }, $seasons),
-                'fill' => true,
+                'fill' => false,
                 'borderColor' => $data['color'], // Use the team's primary color with #
                 'backgroundColor' => $data['secondaryColor'], // Use the team's secondary color with #
             ];
