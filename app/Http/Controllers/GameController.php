@@ -82,7 +82,6 @@ class GameController extends Controller
                 //             t.name
                 //         ) SEPARATOR ', '),
                 //     null) as awards"),
-                'null as awards',
 
                 // Determine if the player is the Finals MVP for this season
                 DB::raw("CASE WHEN p.id = (SELECT finals_mvp_id FROM seasons WHERE seasons.finals_mvp_id = p.id LIMIT 1) THEN 1 ELSE 0 END as is_finals_mvp"),
@@ -101,7 +100,7 @@ class GameController extends Controller
                 //     JOIN player_game_stats pgs ON pgs.season_id = s.id AND pgs.player_id = p.id  -- Join to get the player’s game stats
                 //     WHERE s.finals_mvp_id = p.id
                 //     LIMIT 1), '') as finals_mvp"),
-                'null as finals_mvp',
+
                 // DB::raw("COALESCE(
                 //     (SELECT CONCAT('Championship Won (Season ', s.id, ') by ',
                 //                    CASE
@@ -118,7 +117,6 @@ class GameController extends Controller
                 //          (pgs.team_id = s.finals_loser_id AND s.finals_loser_score > s.finals_winner_score)  -- Away team wins
                 //      )
                 //      LIMIT 1), '') as championship_won"),
-                'null as championship_won',
             )
             ->groupBy(
                 'player_game_stats.player_id',
@@ -201,9 +199,9 @@ class GameController extends Controller
             'minutes' => $bestWinningTeamPlayer->minutes,
             'draft_status' => $bestWinningTeamPlayer->draft_status,
             'drafted_team_acro' => $bestWinningTeamPlayer->drafted_team_acro,
-            'awards' => $bestWinningTeamPlayer->awards,
-            'finals_mvp' => $bestWinningTeamPlayer->finals_mvp,
-            'championship_won' => $bestWinningTeamPlayer->championship_won,
+            'awards' => $bestWinningTeamPlayer->awards ?? null,
+            'finals_mvp' => $bestWinningTeamPlayer->finals_mvp ?? null,
+            'championship_won' => $bestWinningTeamPlayer->championship_won ?? null,
             'is_finals_mvp' => $bestWinningTeamPlayer->is_finals_mvp,
         ] : null;
 
