@@ -158,7 +158,7 @@ class ScheduleController extends Controller
                                 'game_id' => $gameId,
                                 'round' => $roundCounter + 1, // Continue round number
                                 'conference_id' => $conferenceId,
-                                'home_id' => $awayTeam->id ,
+                                'home_id' => $awayTeam->id,
                                 'away_id' => $homeTeam->id,
                                 'home_score' => 0, // Initialize with default score
                                 'away_score' => 0, // Initialize with default score
@@ -168,7 +168,7 @@ class ScheduleController extends Controller
                     }
                     $roundCounter++; // Increment round number after each round
                 }
-                 // Generate matches for each round 3rd leg
+                // Generate matches for each round 3rd leg
                 // for ($round = 0; $round < ($numTeams - 1); $round++) {
                 //     for ($i = 0; $i < $numTeams / 2; $i++) {
                 //         $homeIndex = ($round + $i) % ($numTeams - 1);
@@ -456,7 +456,7 @@ class ScheduleController extends Controller
         return $pairings;
     }
     // Function to get the winners of a specific round
-    private static function getWinnersOfRound($round, $seasonId, $conferenceId)
+    private static function getWinnersOfRoundV1($round, $seasonId, $conferenceId)
     {
         // Retrieve the winners of the specified round from the database
         $winners = false;
@@ -488,6 +488,48 @@ class ScheduleController extends Controller
 
         return $winningIds;
     }
+    private static function getWinnersOfRound($round, $seasonId, $conferenceId)
+    {
+        // Retrieve the winners of the specified round from the database
+        $winners = false;
+        if ($round != 'semi_finals') {
+            $winners = DB::table('schedules')
+                ->where('round', $round)
+                ->where('conference_id', $conferenceId)
+                ->where('season_id', $seasonId)
+                ->get();
+        } else {
+            $winners = DB::table('schedules')
+                ->where('round', $round)
+                ->where('season_id', $seasonId)
+                ->get();
+        }
+
+        $winningIds = [];
+
+        // Iterate through the winners to determine the winning teams
+        foreach ($winners as $game) {
+            if ($game->home_score > $game->away_score) {
+                $winningIds[] = $game->home_id;
+            } elseif ($game->away_score > $game->home_score) {
+                $winningIds[] = $game->away_id;
+            } else {
+                // Handle draws if necessary
+            }
+        }
+
+        // If the round is semi-finals, order the winning teams by their overall rank
+        if ($round == 'semi_finals') {
+            $winningIds = DB::table('standings_view')
+                ->whereIn('team_id', $winningIds)  // Filter by the winning team IDs
+                ->orderBy('overall_rank')  // Order by overall rank
+                ->pluck('team_id')  // Get the ordered list of team IDs
+                ->toArray();  // Convert the result to a plain array
+        }
+
+        return $winningIds;
+    }
+
     private static function pairTeams($teams, $pairCount)
     {
         // Generate pairings based on the teams array
