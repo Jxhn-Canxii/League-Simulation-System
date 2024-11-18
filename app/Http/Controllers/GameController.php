@@ -74,50 +74,51 @@ class GameController extends Controller
                 'player_game_stats.minutes',
 
                 // Get the list of awards for the player in the current season
-                DB::raw("COALESCE(
-                    GROUP_CONCAT(
-                        CONCAT(
-                            sa.award_name,
-                            ' (Season ', sa.season_id, ') by ',
-                            t.name
-                        ) SEPARATOR ', '),
-                    null) as awards"),
-
+                // DB::raw("COALESCE(
+                //     GROUP_CONCAT(
+                //         CONCAT(
+                //             sa.award_name,
+                //             ' (Season ', sa.season_id, ') by ',
+                //             t.name
+                //         ) SEPARATOR ', '),
+                //     null) as awards"),
+                'null as awards',
 
                 // Determine if the player is the Finals MVP for this season
                 DB::raw("CASE WHEN p.id = (SELECT finals_mvp_id FROM seasons WHERE seasons.finals_mvp_id = p.id LIMIT 1) THEN 1 ELSE 0 END as is_finals_mvp"),
 
                 // Return the string for Finals MVP
-                DB::raw("COALESCE(
-                    (SELECT CONCAT('Finals MVP (Season ', s.id, ') by ',
-                        CASE
-                            WHEN pgs.team_id = s.finals_winner_id AND s.finals_winner_score > s.finals_loser_score THEN th.name
-                            WHEN pgs.team_id = s.finals_loser_id AND s.finals_loser_score > s.finals_winner_score THEN ta.name
-                            ELSE 'No Winner'
-                        END)
-                    FROM seasons s
-                    LEFT JOIN teams th ON th.id = s.finals_winner_id  -- Join for winner team name
-                    LEFT JOIN teams ta ON ta.id = s.finals_loser_id  -- Join for loser team name
-                    JOIN player_game_stats pgs ON pgs.season_id = s.id AND pgs.player_id = p.id  -- Join to get the player’s game stats
-                    WHERE s.finals_mvp_id = p.id
-                    LIMIT 1), '') as finals_mvp"),
-
-                DB::raw("COALESCE(
-                    (SELECT CONCAT('Championship Won (Season ', s.id, ') by ',
-                                   CASE
-                                       WHEN pgs.team_id = s.finals_winner_id AND s.finals_winner_score > s.finals_loser_score THEN th.name
-                                       WHEN pgs.team_id = s.finals_loser_id AND s.finals_loser_score > s.finals_winner_score THEN ta.name
-                                   END)
-                     FROM seasons s
-                     JOIN player_game_stats pgs ON pgs.season_id = s.id AND pgs.player_id = p.id
-                     LEFT JOIN teams th ON th.id = s.finals_winner_id  -- Join for home team name
-                     LEFT JOIN teams ta ON ta.id = s.finals_loser_id  -- Join for away team name
-                     WHERE (
-                         (pgs.team_id = s.finals_winner_id AND s.finals_winner_score > s.finals_loser_score)  -- Home team wins
-                         OR
-                         (pgs.team_id = s.finals_loser_id AND s.finals_loser_score > s.finals_winner_score)  -- Away team wins
-                     )
-                     LIMIT 1), '') as championship_won")
+                // DB::raw("COALESCE(
+                //     (SELECT CONCAT('Finals MVP (Season ', s.id, ') by ',
+                //         CASE
+                //             WHEN pgs.team_id = s.finals_winner_id AND s.finals_winner_score > s.finals_loser_score THEN th.name
+                //             WHEN pgs.team_id = s.finals_loser_id AND s.finals_loser_score > s.finals_winner_score THEN ta.name
+                //             ELSE 'No Winner'
+                //         END)
+                //     FROM seasons s
+                //     LEFT JOIN teams th ON th.id = s.finals_winner_id  -- Join for winner team name
+                //     LEFT JOIN teams ta ON ta.id = s.finals_loser_id  -- Join for loser team name
+                //     JOIN player_game_stats pgs ON pgs.season_id = s.id AND pgs.player_id = p.id  -- Join to get the player’s game stats
+                //     WHERE s.finals_mvp_id = p.id
+                //     LIMIT 1), '') as finals_mvp"),
+                'null as finals_mvp',
+                // DB::raw("COALESCE(
+                //     (SELECT CONCAT('Championship Won (Season ', s.id, ') by ',
+                //                    CASE
+                //                        WHEN pgs.team_id = s.finals_winner_id AND s.finals_winner_score > s.finals_loser_score THEN th.name
+                //                        WHEN pgs.team_id = s.finals_loser_id AND s.finals_loser_score > s.finals_winner_score THEN ta.name
+                //                    END)
+                //      FROM seasons s
+                //      JOIN player_game_stats pgs ON pgs.season_id = s.id AND pgs.player_id = p.id
+                //      LEFT JOIN teams th ON th.id = s.finals_winner_id  -- Join for home team name
+                //      LEFT JOIN teams ta ON ta.id = s.finals_loser_id  -- Join for away team name
+                //      WHERE (
+                //          (pgs.team_id = s.finals_winner_id AND s.finals_winner_score > s.finals_loser_score)  -- Home team wins
+                //          OR
+                //          (pgs.team_id = s.finals_loser_id AND s.finals_loser_score > s.finals_winner_score)  -- Away team wins
+                //      )
+                //      LIMIT 1), '') as championship_won"),
+                'null as championship_won',
             )
             ->groupBy(
                 'player_game_stats.player_id',
