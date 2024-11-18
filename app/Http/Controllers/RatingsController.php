@@ -32,6 +32,9 @@ class RatingsController extends Controller
             $teamId = $request->team_id;
             $isLast = $request->is_last;
 
+            // Get the last (highest) team ID in the teams table
+            $lastTeamId = DB::table('teams')->max('id');
+
             \Log::info('Received request:', ['team_id' => $teamId, 'is_last' => $isLast]);
 
             // Fetch all active players, filtered by team_id if provided
@@ -266,7 +269,7 @@ class RatingsController extends Controller
 
 
             // Show alert if this is the last update
-            if ($isLast) {
+            if ($teamId == $lastTeamId) {
                 \Log::info('Processing last update.');
 
                 ///lastly update all active players to non rookie
