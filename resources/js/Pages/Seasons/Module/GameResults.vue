@@ -293,7 +293,7 @@
                     v-if="bestPlayer"
                     class="bg-white shadow-lg p-4 rounded-lg text-black"
                 >
-                    <div class="flex flex-col items-center text-white mx-0 p-2 rounded"
+                    <div class="flex flex-col items-center text-white mx-0 p-0 rounded"
                     :style="{
                         backgroundColor:
                             '#' + (gameDetails?.home_team.score > gameDetails?.away_team.score ? gameDetails?.home_team.primary_color : gameDetails?.away_team.primary_color),
@@ -305,9 +305,16 @@
                                 <i class="fa fa-star fa-sm text-yellow-500"></i>
                             </sup>
                         </p>
-                        <p class="text-xl">
-                            {{ bestPlayer?.team }}
-                        </p>
+                        <div class="flex w-full justify-center px-0 mx-0"
+                        :style="{
+                            backgroundColor:
+                                '#' + (gameDetails?.home_team.score > gameDetails?.away_team.score ? gameDetails?.home_team.secondary_color : gameDetails?.away_team.secondary_color),
+                        }"
+                        >
+                            <p class="text-xl">
+                                {{ bestPlayer?.team }}
+                            </p>
+                        </div>
                     </div>
                     <ul class="grid grid-cols-3 gap-4 p-4">
                         <li class="flex flex-col items-center">
