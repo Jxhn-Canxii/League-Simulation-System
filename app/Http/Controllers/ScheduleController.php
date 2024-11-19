@@ -274,7 +274,7 @@ class ScheduleController extends Controller
         $start = $request->start;
 
         // Update season champions and losers if needed
-        if (($start == 16 && $round === 'play_ins_elims')) {
+        if (($start == 16 && $round === 'play_ins_elims_round_1')) {
             self::updateSeasonChampionsAndLosers($seasonId);
         }
 
@@ -318,7 +318,7 @@ class ScheduleController extends Controller
                     ->toArray();
 
                 // Ensure there are at least four teams for play-ins
-                if (count($playInTeams) >= 2) {
+                if (count($playInTeams) == 2) {
                     // **First Round**: 7th vs 8th seed
                     $pairing1 = self::pairTeams([$playInTeams[0], $playInTeams[1]], 2);
 
@@ -344,12 +344,12 @@ class ScheduleController extends Controller
                     ->toArray();
 
                 // Ensure there are at least four teams for play-ins
-                if (count($playInTeams) >= 2) {
+                if (count($playInTeams) == 2) {
                     // **First Round**: 7th vs 8th seed
                     $pairing1 = self::pairTeams([$playInTeams[0], $playInTeams[1]], 2);
 
                     // Create the first round schedule
-
+                    dd($pairing1);
                     $scheduleFirstRound = self::createSchedule($pairing1, $seasonId, 'play_ins_elims_round_2', $conferenceId);
 
                     // Add to overall schedule
@@ -402,11 +402,11 @@ class ScheduleController extends Controller
 
                     // Output or process the winners and losers as needed
                     // Example:
-                    Log::info("Winner 7vs8: {$winner7vs8}, Loser 7vs8: {$loser7vs8}");
-                    Log::info("Winner 9vs10: {$winner9vs10}, Loser 9vs10: {$loser9vs10}");
+                    \Log::info("Winner 7vs8: {$winner7vs8}, Loser 7vs8: {$loser7vs8}");
+                    \Log::info("Winner 9vs10: {$winner9vs10}, Loser 9vs10: {$loser9vs10}");
                 } else {
                     // Handle cases where there are no results
-                    Log::error("Missing results for play-in games in conference ID: {$conferenceId}");
+                    \Log::error("Missing results for play-in games in conference ID: {$conferenceId}");
                 }
 
 
@@ -513,7 +513,7 @@ class ScheduleController extends Controller
 
         // Ensure there are results before accessing them
         if ($playInRound1Results->isEmpty() || $playInFinalsResults->isEmpty()) {
-            Log::error("Missing results for play-ins in conference ID: {$conferenceId}");
+            \Log::error("Missing results for play-ins in conference ID: {$conferenceId}");
             return [
                 'winner_of_7vs8' => null,
                 'winner_of_9vs10' => null,
@@ -713,9 +713,6 @@ class ScheduleController extends Controller
     // Function to create schedule for a round of playoff matches
     private static function createSchedule($pairings, $seasonId, $round, $conferenceId)
     {
-        if (empty($pairings) || !is_array($pairings)) {
-            throw new \Exception("Invalid pairings data provided.");
-        }
 
         $schedule = [];
         // dd($pairings);
