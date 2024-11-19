@@ -94,15 +94,15 @@ class RatingsController extends Controller
                 // // Last 3 players become bench players
                 // Update the player's role to "bench" and set contract years and team ID
                 DB::table('players')
-                    ->where('id', $playerStat->player_id)
-                    ->update([
-                        'role' => 'bench', // Assign the role
-                        'contract_years' => 0,
-                        'team_id' => 0,
-                    ]);
+                ->where('id', $playerStat->player_id)
+                ->update([
+                    'role' => 'bench', // Assign the role
+                    'contract_years' => 0,
+                    'team_id' => 0,
+                ]);
 
-                // Log the transaction for the waived player
-                DB::table('transactions')->insert([
+                 // Log the transaction for the waived player
+                 DB::table('transactions')->insert([
                     'player_id' => $playerStat->player_id,
                     'season_id' => $seasonId,
                     'details' => 'Waived by ' . ($teamName ?? 'Unknown Team'),
@@ -116,6 +116,7 @@ class RatingsController extends Controller
                     'team_name' => $teamName ?? 'Unknown Team',
                     'season_id' => $seasonId,
                 ]);
+
             }
 
             // Fetch updated players
@@ -149,12 +150,12 @@ class RatingsController extends Controller
                 $player->is_rookie = 0; // All players are no longer rookies
 
                 // Check for retirement
-                if ($player->age >= $player->retirement_age) {
+                if($player->age >= $player->retirement_age){
 
                     DB::table('transactions')->insert([
                         'player_id' => $player->id,
                         'season_id' => $seasonId,
-                        'details' => 'has retired from the league.[Last team: ' . $teamName . ']',
+                        'details' => 'has retired from the league.[Last team: '.$teamName.']',
                         'from_team_id' => $player->team_id,
                         'to_team_id' => 0,
                         'status' => 'retired',
@@ -246,11 +247,11 @@ class RatingsController extends Controller
                     $declinedPlayers[] = $player;
                 }
 
-                $affectedRows = DB::table('players')->where('id', $player->id)->update([
+                DB::table('players')->where('id', $player->id)->update([
                     'contract_years' => $player->contract_years,
                     'team_id' => $player->team_id,
                     'is_active' => $player->is_active,
-                    'is_rookie' => 0,
+                    'is_rookie' => $player->is_rookie,
                     'age' => $player->age,
                     'role' => $player->role,
                     'shooting_rating' => $player->shooting_rating,
@@ -261,12 +262,9 @@ class RatingsController extends Controller
                     'injury_prone_percentage' => $player->injury_prone_percentage,
                 ]);
 
-                // Log the number of affected rows
-                \Log::info("Number of rows updated: {$affectedRows}");
-
-
                 // Log the updated ratings
                 $this->logPlayerRatings($player, $seasonId);
+
             }
 
 
@@ -274,38 +272,26 @@ class RatingsController extends Controller
             if ($teamId == $lastTeamId) {
                 \Log::info('Processing last update.');
 
-                \DB::beginTransaction();
+                ///lastly update all active players to non rookie
+                \DB::table('players')
+                ->where('team_id', 0)
+                ->where('is_active', 1)
+                ->update([
+                    'is_rookie' => 0,
+                    'age' => \DB::raw('age + 1'), // Increment age by 1
+                    'contract_years' => \DB::raw("CASE WHEN age + 1 >= retirement_age THEN 0 ELSE contract_years END"), // Set contract_years to 0 if age reaches retirement_age
+                    'is_active' => \DB::raw("CASE WHEN age + 1 >= retirement_age THEN 0 ELSE is_active END"), // Set is_active to 0 if age reaches retirement_age
+                ]);
 
-                try {
-                    // Update active players
-                    \DB::table('players')
-                        ->where('team_id', 0)
-                        ->where('is_active', 1)
-                        ->update([
-                            'is_rookie' => 0,
-                            'age' => \DB::raw('age + 1'),
-                            'contract_years' => \DB::raw("CASE WHEN age + 1 >= retirement_age THEN 0 ELSE contract_years END"),
-                            'is_active' => \DB::raw("CASE WHEN age + 1 >= retirement_age THEN 0 ELSE is_active END"),
-                        ]);
-
-                    // Update non-active players
-                    \DB::table('players')
-                        ->where('team_id', 0)
-                        ->where('is_active', 0)
-                        ->update([
-                            'team_id' => 0,
-                            'contract_years' => 0,
-                            'age' => \DB::raw('age + 1'),
-                        ]);
-
-                    // Commit the transaction if everything is successful
-                    \DB::commit();
-                } catch (\Exception $e) {
-                    // Rollback the transaction if something goes wrong
-                    \DB::rollBack();
-                    \Log::error("Error updating players: " . $e->getMessage());
-                }
-
+                ///lastly update the age of non active players
+                \DB::table('players')
+                ->where('team_id', 0)
+                ->where('is_active', 0)
+                ->update([
+                    'team_id' => 0,
+                    'contract_years' => 0,
+                    'age' => \DB::raw('age + 1'), // Increment age by 1
+                ]);
 
 
                 // Update season status
