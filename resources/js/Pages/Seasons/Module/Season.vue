@@ -139,10 +139,10 @@
                         <div v-else class="text-center font-bold text-red-500">
                             No Standings available
                         </div>
-                        <small class="text-red-500 font-bold" v-if="currentRound"
+                        <!-- <small class="text-red-500 font-bold" v-if="currentRound"
                             >Simulating Round #
                             {{ parseFloat(currentRound) }}</small
-                        >
+                        > -->
                         <div class="flex mt-4">
                             <!-- <TopPlayers
                                 v-if="season_info?.seasons"
