@@ -481,7 +481,7 @@ class SimulateController extends Controller
             'home_team' => [
                 'id' => $gameData->home_team_id,
                 'name' => $gameData->home_team_name,
-                'score' => $gameData->home_score,
+                'home_score' => $gameData->home_score,
                 'conference' => $gameData->home_conference_name,
                 'conference_rank' => $gameData->home_conference_rank,
                 'overall_rank' => $gameData->home_overall_rank,
@@ -489,7 +489,7 @@ class SimulateController extends Controller
             'away_team' => [
                 'id' => $gameData->away_team_id,
                 'name' => $gameData->away_team_name,
-                'score' => $gameData->away_score,
+                'away_score' => $gameData->away_score,
                 'conference' => $gameData->away_conference_name,
                 'conference_rank' => $gameData->away_conference_rank,
                 'overall_rank' => $gameData->away_overall_rank,

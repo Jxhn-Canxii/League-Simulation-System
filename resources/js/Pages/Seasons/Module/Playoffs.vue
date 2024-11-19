@@ -89,8 +89,8 @@
                                 <div class="border-t border-gray-200">
                                     <dl
                                         v-if="
-                                            (match.home_team.score === 0 &&
-                                            match.away_team.score === 0) ||  (match.home_team.score ==  match.away_team.score)
+                                            (match.home_team.home_score === 0 &&
+                                            match.away_team.away_score === 0) ||  (match.home_team.home_score ==  match.away_team.away_score)
                                         "
                                     >
                                         <div
@@ -109,8 +109,8 @@
                                                 "
                                                 class="text-nowrap text-indigo-600 font-bold text-sm hover:text-indigo-900"
                                             >
-                                                Simulate Game {{ match.home_team.score ==  match.away_team.score && (match.home_team.score != 0 &&
-                                                    match.away_team.score != 0) ? '(Overtime)' : '' }}
+                                                Simulate Game {{ match.home_team.score ==  match.away_team.away_score && (match.home_team.home_score != 0 &&
+                                                    match.away_team.away_score != 0) ? '(Overtime)' : '' }}
                                             </button>
                                             <a href="#" class="text-sm text-green-500 underline font-bold" @click.prevent="isGameResultModalOpen = match.game_id">View Result</a>
                                         </div>
@@ -137,8 +137,8 @@
                                             <dd
                                                 class="mt-1 text-sm text-gray-900 sm:col-span-2"
                                                 :class="
-                                                    match.away_team.score <
-                                                    match.home_team.score
+                                                    match.away_team.away_score <
+                                                    match.home_team.home_score
                                                         ? 'font-bold'
                                                         : ''
                                                 "
@@ -147,8 +147,8 @@
                                                 <!-- Medal icon for winner -->
                                                 <span
                                                     v-if="
-                                                        match.home_team.score >
-                                                        match.away_team.score
+                                                        match.home_team.home_score >
+                                                        match.away_team.away_score
                                                     "
                                                     class="ml-2 text-yellow-500"
                                                 >
@@ -167,8 +167,8 @@
                                             <dd
                                                 class="mt-1 text-sm text-gray-900 sm:col-span-2"
                                                 :class="
-                                                    match.away_team.score >
-                                                    match.home_team.score
+                                                    match.away_team.away_score >
+                                                    match.home_team.home_score
                                                         ? 'font-bold'
                                                         : ''
                                                 "
@@ -177,8 +177,8 @@
                                                 <!-- Medal icon for winner -->
                                                 <span
                                                     v-if="
-                                                        match.away_team.score >
-                                                        match.home_team.score
+                                                        match.away_team.away_score >
+                                                        match.home_team.home_score
                                                     "
                                                     class="ml-2 text-yellow-500"
                                                 >
