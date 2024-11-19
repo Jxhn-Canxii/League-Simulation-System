@@ -132,7 +132,6 @@ class TransactionsController extends Controller
 
         // Fetch free agents (players with team_id = 0)
         $freeAgents = Player::where('team_id', 0)
-            ->where('contract_years', 0)
             ->where('is_active', 1)
             ->orderBy("overall_rating","desc")
             ->get();
