@@ -158,7 +158,7 @@ class AnalyticsController extends Controller
         // Determine the type of leader to return based on the request
         $leaderType = $request->input('leader_type', 'mvp_leaders'); // Default to 'mvp_leaders'
         $seasonId =  $request->input('season_id', $this->getLatestSeasonId());
-        $excludedRounds = ['quarter_finals', 'round_of_16', 'round_of_32', 'semi_finals', 'interconference_semi_finals', 'finals'];
+        $excludedRounds = ['play_ins_elims_round_1','play_ins_elims_round_2','play_ins_finals','quarter_finals', 'round_of_16', 'round_of_32', 'semi_finals', 'interconference_semi_finals', 'finals'];
 
         // Fetch player stats for the given season and conference
         $playerStats = \DB::table('player_game_stats')
