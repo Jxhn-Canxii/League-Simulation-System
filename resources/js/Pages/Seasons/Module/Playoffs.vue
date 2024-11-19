@@ -137,8 +137,8 @@
                                             <dd
                                                 class="mt-1 text-sm text-gray-900 sm:col-span-2"
                                                 :class="
-                                                    match.away_team.away_score <
-                                                    match.home_team.home_score
+                                                    match.home_team.id ==
+                                                    match.winner
                                                         ? 'font-bold'
                                                         : ''
                                                 "
@@ -147,8 +147,8 @@
                                                 <!-- Medal icon for winner -->
                                                 <span
                                                     v-if="
-                                                        match.home_team.home_score >
-                                                        match.away_team.away_score
+                                                    match.home_team.id ==
+                                                    match.winner
                                                     "
                                                     class="ml-2 text-yellow-500"
                                                 >
@@ -167,8 +167,8 @@
                                             <dd
                                                 class="mt-1 text-sm text-gray-900 sm:col-span-2"
                                                 :class="
-                                                    match.away_team.away_score >
-                                                    match.home_team.home_score
+                                                    match.away_team.id ==
+                                                    match.winner
                                                         ? 'font-bold'
                                                         : ''
                                                 "
@@ -177,8 +177,8 @@
                                                 <!-- Medal icon for winner -->
                                                 <span
                                                     v-if="
-                                                        match.away_team.away_score >
-                                                        match.home_team.home_score
+                                                        match.away_team.id ==
+                                                        match.winner
                                                     "
                                                     class="ml-2 text-yellow-500"
                                                 >
@@ -215,7 +215,7 @@
                             class="text-indigo-600 font-bold text-md flex bg-orange-200 shadow p-1 rounded-full hover:text-indigo-900 mt-4"
                         >
                             End
-                            {{ roundNameFormatter(roundName) }}
+                            {{ roundNameFormatter(roundName) }} {{ roundName }}
                         </button>
 
                     </div>

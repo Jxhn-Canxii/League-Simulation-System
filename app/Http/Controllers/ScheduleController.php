@@ -349,7 +349,6 @@ class ScheduleController extends Controller
                     $pairing1 = self::pairTeams([$playInTeams[0], $playInTeams[1]], 2);
 
                     // Create the first round schedule
-                    dd($pairing1);
                     $scheduleFirstRound = self::createSchedule($pairing1, $seasonId, 'play_ins_elims_round_2', $conferenceId);
 
                     // Add to overall schedule

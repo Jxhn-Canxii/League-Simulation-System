@@ -326,7 +326,7 @@ class ConferenceController extends Controller
                     'home_team' => [
                         'id' => $game->home_id,
                         'name' => $homeTeamName,
-                        'score' => $game->home_score,
+                        'home_score' => $game->home_score,
                         'conference' => isset($standingsData[$game->home_id]->conference_name) ? $standingsData[$game->home_id]->conference_name : null,
                         'conference_rank' => isset($standingsData[$game->home_id]->conference_rank) ? $standingsData[$game->home_id]->conference_rank : null,
                         'overall_rank' => isset($standingsData[$game->home_id]->overall_rank) ? $standingsData[$game->home_id]->overall_rank : null
@@ -334,14 +334,15 @@ class ConferenceController extends Controller
                     'away_team' => [
                         'id' => $game->away_id,
                         'name' => $awayTeamName,
-                        'score' => $game->away_score,
+                        'away_score' => $game->away_score,
                         'conference' => isset($standingsData[$game->away_id]->conference_name) ? $standingsData[$game->away_id]->conference_name : null,
                         'conference_rank' => isset($standingsData[$game->away_id]->conference_rank) ? $standingsData[$game->away_id]->conference_rank : null,
                         'overall_rank' => isset($standingsData[$game->away_id]->overall_rank) ? $standingsData[$game->away_id]->overall_rank : null
                     ],
-                    'winner' => null, // Initialize winner as null
+                    'winner' => $game->home_score > $game->away_score ? $game->home_id : ($game->home_score < $game->away_score ? $game->away_id : null), // Set winner_id based on score comparison
                     'season_id' => $seasonId // Include season_id
                 ];
+
 
                 // Determine the winner based on home_score and away_score
                 if ($game->home_score > $game->away_score) {
