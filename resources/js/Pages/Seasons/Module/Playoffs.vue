@@ -143,7 +143,7 @@
                                                         : ''
                                                 "
                                             >
-                                                {{ match.home_team.score }}
+                                                {{ match.home_team.home_score }}
                                                 <!-- Medal icon for winner -->
                                                 <span
                                                     v-if="
@@ -173,7 +173,7 @@
                                                         : ''
                                                 "
                                             >
-                                                {{ match.away_team.score }}
+                                                {{ match.away_team.away_score }}
                                                 <!-- Medal icon for winner -->
                                                 <span
                                                     v-if="
