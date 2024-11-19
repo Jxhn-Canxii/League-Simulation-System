@@ -54,20 +54,46 @@
                             :key="match.game_id"
                             class="col-span-1"
                         >
-                            <div
-                                class="shadow-md rounded-md overflow-hidden"
-                            >
+                            <div class="shadow-md rounded-md overflow-hidden">
                                 <div
-                                :class="getConferenceClass(match.home_team.conference,match.away_team.conference)"
-                                class="px-4 py-5 sm:px-6">
+                                    :class="
+                                        getConferenceClass(
+                                            match.home_team.conference,
+                                            match.away_team.conference
+                                        )
+                                    "
+                                    class="px-4 py-5 sm:px-6"
+                                >
                                     <h3
                                         class="text-xs font-extrabold text-nowrap uppercase leading-6 text-gray-800"
                                     >
                                         #{{ match.home_team.overall_rank }}
-                                        <a href="#" class="text-blue-500" @click.prevent="isTeamModalOpen = match.home_team.id"><u>{{ match.home_team.name || "TBD" }}</u></a>
-                                        <sup class="text-red-500 font-bold">vs</sup>
+                                        <a
+                                            href="#"
+                                            class="text-blue-500"
+                                            @click.prevent="
+                                                isTeamModalOpen =
+                                                    match.home_team.id
+                                            "
+                                            ><u>{{
+                                                match.home_team.name || "TBD"
+                                            }}</u></a
+                                        >
+                                        <sup class="text-red-500 font-bold"
+                                            >vs</sup
+                                        >
                                         #{{ match.away_team.overall_rank }}
-                                        <a href="#" class="text-blue-500" @click.prevent="isTeamModalOpen = match.away_team.id"><u>{{ match.away_team.name || "TBD" }}</u></a>
+                                        <a
+                                            href="#"
+                                            class="text-blue-500"
+                                            @click.prevent="
+                                                isTeamModalOpen =
+                                                    match.away_team.id
+                                            "
+                                            ><u>{{
+                                                match.away_team.name || "TBD"
+                                            }}</u></a
+                                        >
                                     </h3>
                                     <p
                                         class="mt-1 text-xs uppercase text-gray-500"
@@ -75,14 +101,36 @@
                                         {{ roundNameFormatter(roundName) }}
                                     </p>
                                 </div>
-                                <div class="border-gray-200 flex justify-between">
-                                    <div class="bg-white px-4 text-nowrap text-gray-600 text-xs py-3">
-                                        {{ match.home_team.conference }} #{{ match.home_team.conference_rank }} vs {{ match.away_team.conference }} #{{ match.away_team.conference_rank }}
+                                <div
+                                    class="border-gray-200 flex justify-between"
+                                >
+                                    <div
+                                        class="bg-white px-4 text-nowrap text-gray-600 text-xs py-3"
+                                    >
+                                        {{ match.home_team.conference }} #{{
+                                            match.home_team.conference_rank
+                                        }}
+                                        vs {{ match.away_team.conference }} #{{
+                                            match.away_team.conference_rank
+                                        }}
                                     </div>
-                                    <div class="bg-white px-4 text-nowrap text-red-600 text-xs py-3 flex items-center">
-                                        <button class="button" @click.prevent="compareTeams(match.home_team.id, match.away_team.id)">
+                                    <div
+                                        class="bg-white px-4 text-nowrap text-red-600 text-xs py-3 flex items-center"
+                                    >
+                                        <button
+                                            class="button"
+                                            @click.prevent="
+                                                compareTeams(
+                                                    match.home_team.id,
+                                                    match.away_team.id
+                                                )
+                                            "
+                                        >
                                             Compare
-                                            <i class="fa fa-exchange-alt ml-1"></i> <!-- Font Awesome icon -->
+                                            <i
+                                                class="fa fa-exchange-alt ml-1"
+                                            ></i>
+                                            <!-- Font Awesome icon -->
                                         </button>
                                     </div>
                                 </div>
@@ -90,7 +138,10 @@
                                     <dl
                                         v-if="
                                             (match.home_team.home_score === 0 &&
-                                            match.away_team.away_score === 0) ||  (match.home_team.home_score ==  match.away_team.away_score)
+                                                match.away_team.away_score ===
+                                                    0) ||
+                                            match.home_team.home_score ==
+                                                match.away_team.away_score
                                         "
                                     >
                                         <div
@@ -109,10 +160,28 @@
                                                 "
                                                 class="text-nowrap text-indigo-600 font-bold text-sm hover:text-indigo-900"
                                             >
-                                                Simulate Game {{ match.home_team.score ==  match.away_team.away_score && (match.home_team.home_score != 0 &&
-                                                    match.away_team.away_score != 0) ? '(Overtime)' : '' }}
+                                                Simulate Game
+                                                {{
+                                                    match.home_team.score ==
+                                                        match.away_team
+                                                            .away_score &&
+                                                    match.home_team
+                                                        .home_score != 0 &&
+                                                    match.away_team
+                                                        .away_score != 0
+                                                        ? "(Overtime)"
+                                                        : ""
+                                                }}
                                             </button>
-                                            <a href="#" class="text-sm text-green-500 underline font-bold" @click.prevent="isGameResultModalOpen = match.game_id">View Result</a>
+                                            <a
+                                                href="#"
+                                                class="text-sm text-green-500 underline font-bold"
+                                                @click.prevent="
+                                                    isGameResultModalOpen =
+                                                        match.game_id
+                                                "
+                                                >View Result</a
+                                            >
                                         </div>
                                         <div
                                             v-else
@@ -147,8 +216,8 @@
                                                 <!-- Medal icon for winner -->
                                                 <span
                                                     v-if="
-                                                    match.home_team.id ==
-                                                    match.winner
+                                                        match.home_team.id ==
+                                                        match.winner
                                                     "
                                                     class="ml-2 text-yellow-500"
                                                 >
@@ -187,9 +256,17 @@
                                             </dd>
                                         </div>
                                         <div
-                                         class="bg-white px-4 py-3 text-center text-nowrap sm:grid sm:grid-cols-1 sm:gap-4 sm:px-6"
+                                            class="bg-white px-4 py-3 text-center text-nowrap sm:grid sm:grid-cols-1 sm:gap-4 sm:px-6"
                                         >
-                                            <a href="#" class="text-sm text-green-500 underline font-bold" @click.prevent="isGameResultModalOpen = match.game_id">View Result</a>
+                                            <a
+                                                href="#"
+                                                class="text-sm text-green-500 underline font-bold"
+                                                @click.prevent="
+                                                    isGameResultModalOpen =
+                                                        match.game_id
+                                                "
+                                                >View Result</a
+                                            >
                                         </div>
                                     </dl>
                                 </div>
@@ -206,7 +283,10 @@
                         <button
                             v-if="
                                 season_info.seasons[0].status ==
-                                    roundGridFormatter(roundName,season_info.seasons[0].start_playoffs) &&
+                                    roundGridFormatter(
+                                        roundName,
+                                        season_info.seasons[0].start_playoffs
+                                    ) &&
                                 season_playoffs.playoffs[roundName].length >
                                     0 &&
                                 roundName != 'finals'
@@ -217,7 +297,6 @@
                             End
                             {{ roundNameFormatter(roundName) }}
                         </button>
-
                     </div>
                     <!-- <div class="flex justify-end" v-else>
                         <button
@@ -231,6 +310,32 @@
             </div>
         </div>
     </div>
+    <div
+        class="flex justify-center min-h-screen items-center border-b-2 border-dashed p-4 bg-gray-100"
+        v-else
+    >
+        <div
+            class="text-center bg-white p-8 rounded-lg shadow-lg border-2 border-red-500"
+        >
+            <p
+                class="text-red-500 font-bold text-3xl md:text-4xl leading-relaxed mb-4"
+            >
+                Not playoffs season yet! Finish the Regular season first.
+            </p>
+            <p class="text-gray-700 text-lg md:text-xl">
+                Please make sure all regular season games are completed before
+                proceeding to playoffs.
+            </p>
+            <div class="mt-6">
+                <a :href="route('seasons.details', { season_id: props.season_id })"
+                    class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-6 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-red-300"
+                >
+                        Go to Regular Season
+                </a>
+            </div>
+        </div>
+    </div>
+
     <Modal :show="isTeamModalOpen" :maxWidth="'fullscreen'">
         <button
             class="flex float-end bg-gray-100 p-3"
@@ -240,28 +345,49 @@
         </button>
         <div class="flex justify-start mt-5 border-b border-gray-200">
             <button
-                :class="['px-4 py-2', currentTab === 'history' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700']"
+                :class="[
+                    'px-4 py-2',
+                    currentTab === 'history'
+                        ? 'border-b-2 border-blue-500 text-blue-500'
+                        : 'text-gray-500 hover:text-gray-700',
+                ]"
                 @click="currentTab = 'history'"
             >
                 Team Season History
             </button>
             <button
-                :class="['px-4 py-2', currentTab === 'info' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700']"
+                :class="[
+                    'px-4 py-2',
+                    currentTab === 'info'
+                        ? 'border-b-2 border-blue-500 text-blue-500'
+                        : 'text-gray-500 hover:text-gray-700',
+                ]"
                 @click="currentTab = 'info'"
             >
                 Team Info
             </button>
             <button
-            :class="['px-4 py-2', currentTab === 'legend' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700']"
-            @click="currentTab = 'legend'"
-        >
-            Top 10 Player
-        </button>
+                :class="[
+                    'px-4 py-2',
+                    currentTab === 'legend'
+                        ? 'border-b-2 border-blue-500 text-blue-500'
+                        : 'text-gray-500 hover:text-gray-700',
+                ]"
+                @click="currentTab = 'legend'"
+            >
+                Top 10 Player
+            </button>
         </div>
         <div class="mt-4">
             <TeamInfo v-if="currentTab === 'info'" :team_id="isTeamModalOpen" />
-            <TeamHistory v-if="currentTab === 'history'" :team_id="isTeamModalOpen" />
-            <Top10Player v-if="currentTab === 'legend'" :team_id="isTeamModalOpen" />
+            <TeamHistory
+                v-if="currentTab === 'history'"
+                :team_id="isTeamModalOpen"
+            />
+            <Top10Player
+                v-if="currentTab === 'legend'"
+                :team_id="isTeamModalOpen"
+            />
         </div>
     </Modal>
     <Modal :show="isTeamComparisonModalOpen" :maxWidth="'6xl'">
@@ -273,7 +399,11 @@
         </button>
 
         <div class="mt-4">
-            <TeamComparison :home_id="comparison.home_id" :away_id="comparison.away_id" :season_id="comparison.season_id" />
+            <TeamComparison
+                :home_id="comparison.home_id"
+                :away_id="comparison.away_id"
+                :season_id="comparison.season_id"
+            />
         </div>
     </Modal>
     <Modal :show="isGameResultModalOpen" :maxWidth="'4xl'">
@@ -290,7 +420,6 @@
 </template>
 
 <script setup>
-
 import { useForm } from "@inertiajs/vue3";
 import { ref, onMounted, watch } from "vue";
 import Modal from "@/Components/Modal.vue";
@@ -310,7 +439,7 @@ import Top10Player from "@/Pages/Teams/Module/Top10Player.vue";
 
 const isAddModalOpen = ref(false);
 const isTeamModalOpen = ref(false);
-const isTeamComparisonModalOpen  = ref(false);
+const isTeamComparisonModalOpen = ref(false);
 const isGameResultModalOpen = ref(false);
 const currentTab = ref("history");
 const change_key = ref(localStorage.getItem("season-key"));
@@ -330,20 +459,20 @@ const comparison = useForm({
 const props = defineProps({
     season_id: {
         type: Number,
-        required: true
-    }
+        required: true,
+    },
 });
-const compareTeams = (home_id,away_id) => {
+const compareTeams = (home_id, away_id) => {
     comparison.season_id = props.season_id;
     comparison.home_id = home_id;
     comparison.away_id = away_id;
 
     isTeamComparisonModalOpen.value = true;
-}
+};
 const createPlayOffSchedule = async (round) => {
     try {
         let start_playoffs = season_info.value.seasons[0].start_playoffs;
-        round = roundStatusFormatter(round,start_playoffs);
+        round = roundStatusFormatter(round, start_playoffs);
         const response = await axios.post(route("create.schedule.playoff"), {
             season_id: form.seasons_id, // Assuming the parameter name should be schedule_id
             round: round,
@@ -474,27 +603,30 @@ const simulateGame = async (id, game_id, type, index, round) => {
 const getConferenceClass = (home_conference, away_conference) => {
     // Define Tailwind classes for each conference
     const conferenceClasses = {
-        'North': 'bg-blue-100',
-        'South': 'bg-green-100',
-        'East': 'bg-yellow-100',
-        'West': 'bg-red-100',
+        North: "bg-blue-100",
+        South: "bg-green-100",
+        East: "bg-yellow-100",
+        West: "bg-red-100",
     };
 
     // Check if the home and away conferences are different
     if (home_conference !== away_conference) {
-        return 'bg-yellow-100'; // Color when conferences do not match
+        return "bg-yellow-100"; // Color when conferences do not match
     }
 
     // Return the Tailwind class for the home conference
-    return conferenceClasses[home_conference] || 'bg-gray-100'; // Default color if conference is not found
+    return conferenceClasses[home_conference] || "bg-gray-100"; // Default color if conference is not found
 };
 
-watch(() => props.season_id, async (n, o) => {
-    if (n !== o) {
-        await fetchSeasonInfo(o);
+watch(
+    () => props.season_id,
+    async (n, o) => {
+        if (n !== o) {
+            await fetchSeasonInfo(o);
+        }
     }
-});
+);
 onMounted(() => {
-    fetchSeasonInfo(props.season_id)
+    fetchSeasonInfo(props.season_id);
 });
 </script>

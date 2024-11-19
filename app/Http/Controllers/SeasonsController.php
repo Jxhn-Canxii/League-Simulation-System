@@ -281,7 +281,7 @@ class SeasonsController extends Controller
     {
         // Fetch all seasons with their id and name, ordered by the latest season_id
         $seasons = DB::table('seasons')
-            ->select('id as season_id', 'name')
+            ->select('id as season_id', 'name','status as status')
             ->orderBy('id', 'desc') // Order by season_id in descending order
             ->get();
 
