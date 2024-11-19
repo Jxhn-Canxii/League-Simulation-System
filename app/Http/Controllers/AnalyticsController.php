@@ -126,9 +126,8 @@ class AnalyticsController extends Controller
             ->count();
 
         // Count unique teams with players (team_id > 0)
-        $totalTeams = DB::table('players')
-            ->where('team_id', '>', 0)
-            ->distinct('team_id')
+        $totalTeams = DB::table('teams')
+            ->distinct('id')
             ->count('team_id');
 
         // Count active players in teams (team_id > 0)
@@ -149,6 +148,7 @@ class AnalyticsController extends Controller
             'retired_players' => $retiredPlayers,
             'rookie_players' => $rookiePlayers,
             'free_agents' => $freeAgents,
+            'active_players_with_team' => $activePlayersInTeams,
             'total_available_slots' => $totalAvailableSlots,
         ]);
     }

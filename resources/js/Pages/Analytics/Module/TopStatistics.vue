@@ -1,5 +1,5 @@
 <template>
-    <div class="grid md:grid-cols-5 grid-cols-1 gap-6">
+    <div class="grid md:grid-cols-6 grid-cols-1 gap-6">
         <div class="flex items-center border shadow-xs p-4 bg-white rounded-lg shadow-xs">
             <div class="p-3 mr-4 text-orange-500 bg-orange-100 rounded-full dark:text-orange-100 dark:bg-orange-500">
                 <i class="fa fa-users"></i> <!-- Total Players -->
@@ -27,6 +27,15 @@
             <div>
                 <p class="mb-2 text-sm font-medium text-gray-600">Retired</p>
                 <p class="text-lg font-semibold text-black">{{ moneyFormatter(data.retired_players ?? 0) }}</p>
+            </div>
+        </div>
+        <div class="flex items-center border shadow-xs p-4 bg-white rounded-lg shadow-xs">
+            <div class="p-3 mr-4 text-blue-500 bg-blue-100 rounded-full dark:text-blue-100 dark:bg-blue-500">
+                <i class="fa fa-chess"></i> <!-- Total Free Agents -->
+            </div>
+            <div>
+                <p class="mb-2 text-sm font-medium text-gray-600">Active Players</p>
+                <p class="text-lg font-semibold text-black">{{ moneyFormatter(data.active_players_with_team ?? 0) }}</p>
             </div>
         </div>
         <div class="flex items-center border shadow-xs p-4 bg-white rounded-lg shadow-xs">
