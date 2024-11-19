@@ -308,38 +308,59 @@ class ScheduleController extends Controller
             ->pluck('id')
             ->toArray();
 
-        if ($round == 'play_ins_elims') {
+        if ($round == 'play_ins_elims_round_1') {
             foreach ($conferences as $conferenceId) {
                 $playInTeams = DB::table('standings_view')
                     ->where('season_id', $seasonId)
                     ->where('conference_id', $conferenceId)
-                    ->whereIn('conference_rank', [7, 8, 9, 10])
+                    ->whereIn('conference_rank', [7, 8])
                     ->pluck('team_id')
                     ->toArray();
 
                 // Ensure there are at least four teams for play-ins
-                if (count($playInTeams) >= 4) {
+                if (count($playInTeams) >= 2) {
                     // **First Round**: 7th vs 8th seed
                     $pairing1 = self::pairTeams([$playInTeams[0], $playInTeams[1]], 2);
-
-                    // **Second Round**: 9th vs 10th seed
-                    $pairing2 =  self::pairTeams([$playInTeams[2], $playInTeams[3]], 2);
 
                     // Create the first round schedule
 
                     $scheduleFirstRound = self::createSchedule($pairing1, $seasonId, 'play_ins_elims_round_1', $conferenceId);
 
-                    // Create the second round schedule
-                    $scheduleSecondRound = self::createSchedule($pairing2, $seasonId, 'play_ins_elims_round_2', $conferenceId);
-
                     // Add to overall schedule
-                    $allSchedules = array_merge($allSchedules, $scheduleFirstRound, $scheduleSecondRound);
+                    $allSchedules = array_merge($allSchedules, $scheduleFirstRound);
                 } else {
                     // Handle insufficient teams (e.g., log an error, skip this conference, etc.)
                     Log::error("Not enough teams for play-ins in conference ID: {$conferenceId}");
                 }
             }
-        } else if ($round == 'play_ins_finals') {
+        }
+        if ($round == 'play_ins_elims_round_2') {
+            foreach ($conferences as $conferenceId) {
+                $playInTeams = DB::table('standings_view')
+                    ->where('season_id', $seasonId)
+                    ->where('conference_id', $conferenceId)
+                    ->whereIn('conference_rank', [9, 10])
+                    ->pluck('team_id')
+                    ->toArray();
+
+                // Ensure there are at least four teams for play-ins
+                if (count($playInTeams) >= 2) {
+                    // **First Round**: 7th vs 8th seed
+                    $pairing1 = self::pairTeams([$playInTeams[0], $playInTeams[1]], 2);
+
+                    // Create the first round schedule
+
+                    $scheduleFirstRound = self::createSchedule($pairing1, $seasonId, 'play_ins_elims_round_2', $conferenceId);
+
+                    // Add to overall schedule
+                    $allSchedules = array_merge($allSchedules, $scheduleFirstRound);
+                } else {
+                    // Handle insufficient teams (e.g., log an error, skip this conference, etc.)
+                    Log::error("Not enough teams for play-ins in conference ID: {$conferenceId}");
+                }
+            }
+        }
+        else if ($round == 'play_ins_finals') {
             // Get the results of the previous play-in rounds to determine the winners and losers
             foreach ($conferences as $conferenceId) {
                 // Get the results of the 7th vs 8th and 9th vs 10th games

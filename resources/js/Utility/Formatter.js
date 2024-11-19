@@ -88,25 +88,28 @@ export const roundGridFormatter = (round,start) => {
         }
     }else{
         switch (round) {
-            case 'play_ins_elims':
+            case 'play_ins_elims_round_1':
                 return 4;
                  break;
-            case 'play_ins_finals':
+            case 'play_ins_elims_round_2':
                 return 5;
                     break;
-            case 'round_of_16':
+            case 'play_ins_finals':
                 return 6;
+                    break;
+            case 'round_of_16':
+                return 7;
                  break;
             case 'quarter_finals':
-                return 7;
+                return 8;
                 break;
             case 'semi_finals':
-                return 8;
-            case 'interconference_semi_finals':
                 return 9;
+            case 'interconference_semi_finals':
+                return 10;
                 break;
             case 'finals':
-                return 10;
+                return 11;
                 break;
             default:
                 return 2;
@@ -168,7 +171,10 @@ export const roundStatusFormatter = (round,start) => {
     else if(start == 16 && playIns == true){
         switch (round) {
             case 'start':
-                newRound = 'play_ins_elims';
+                newRound = 'play_ins_elims_round_1';
+                break;
+            case 'play_ins_elims_round_1':
+                newRound = 'play_ins_elims_round_2';
                 break;
             case 'play_ins_elims':
                 newRound = 'play_ins_finals';
