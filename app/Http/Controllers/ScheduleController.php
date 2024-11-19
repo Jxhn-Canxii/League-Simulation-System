@@ -572,21 +572,30 @@ class ScheduleController extends Controller
 
         switch ($round) {
             case 'round_of_32':
-                return 3;
+                return 6;
                 break;
-            case 'round_of_16':
+            case 'play_ins_elims_round_1':
                 return 4;
                 break;
-            case 'quarter_finals':
+            case 'play_ins_elims_round_2':
                 return 5;
                 break;
-            case 'semi_finals':
+            case 'play_ins_finals':
                 return 6;
-            case 'interconference_semi_finals':
+                break;
+            case 'round_of_16':
                 return 7;
                 break;
-            case 'finals':
+            case 'quarter_finals':
                 return 8;
+                break;
+            case 'semi_finals':
+                return 9;
+            case 'interconference_semi_finals':
+                return 10;
+                break;
+            case 'finals':
+                return 11;
                 break;
             default:
                 return 8;
