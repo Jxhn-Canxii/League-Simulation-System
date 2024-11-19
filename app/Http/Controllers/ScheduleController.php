@@ -358,8 +358,7 @@ class ScheduleController extends Controller
                     Log::error("Not enough teams for play-ins in conference ID: {$conferenceId}");
                 }
             }
-        }
-        else if ($round == 'play_ins_finals') {
+        } else if ($round == 'play_ins_finals') {
             // Get the results of the previous play-in rounds to determine the winners and losers
             foreach ($conferences as $conferenceId) {
                 // Get the results of the 7th vs 8th and 9th vs 10th games
@@ -457,6 +456,7 @@ class ScheduleController extends Controller
 
                 // Get the results of the Play-In Elimination Round 1 and Play-In Finals to determine the winners
                 $playInTeams = self::getPlayInEliminationTeams($seasonId, $conferenceId);
+
                 $winnerPlayInRound1 = $playInTeams['winner_of_7vs8']; // Winner of 7th vs 8th (Play-In Elimination Round 1)
                 $winnerPlayInFinals = $playInTeams['winner_of_9vs10']; // Winner of 9th vs 10th (Play-In Finals)
 
@@ -494,7 +494,6 @@ class ScheduleController extends Controller
             return response()->json(['success' => false, 'error' => $e->getMessage(), 'line' => 475], 400);
         }
     }
-
     private static function getPlayInEliminationTeams($seasonId, $conferenceId)
     {
         // Get the results of the Play-In Elimination Rounds and Finals
@@ -519,7 +518,7 @@ class ScheduleController extends Controller
             ];
         }
 
-        // Determine the winners based on the highest score
+        // Determine the winners based on the highest score, return only team_id
         $winnerPlayInRound1 = $playInRound1Results->first(function ($game) {
             return $game->home_score > $game->away_score ? $game->home_id : $game->away_id;
         });
@@ -529,11 +528,10 @@ class ScheduleController extends Controller
         });
 
         return [
-            'winner_of_7vs8' => $winnerPlayInRound1,
-            'winner_of_9vs10' => $winnerPlayInFinals,
+            'winner_of_7vs8' => $winnerPlayInRound1 ? ($winnerPlayInRound1->home_score > $winnerPlayInRound1->away_score ? $winnerPlayInRound1->home_id : $winnerPlayInRound1->away_id) : null,
+            'winner_of_9vs10' => $winnerPlayInFinals ? ($winnerPlayInFinals->home_score > $winnerPlayInFinals->away_score ? $winnerPlayInFinals->home_id : $winnerPlayInFinals->away_id) : null,
         ];
     }
-
 
     private static function updateSeasonChampionsAndLosers($seasonId)
     {
