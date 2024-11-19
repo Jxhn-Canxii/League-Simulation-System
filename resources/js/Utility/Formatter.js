@@ -24,6 +24,10 @@ export const roundNameFormatter = (round) => {
     }
 
     switch (round) {
+        case 'play_ins_elims':
+            return 'Conference Play-ins Elimination'
+        case 'play_ins_finals':
+            return 'Conference Play-ins Finals'
         case 'round_of_32':
             return 'Conference Round of 16'
             break;
@@ -74,19 +78,25 @@ export const roundGridFormatter = (round,start) => {
         }
     }else{
         switch (round) {
-            case 'round_of_16':
+            case 'play_ins_elims':
                 return 4;
                  break;
-            case 'quarter_finals':
+            case 'play_ins_finals':
+                return 4;
+                    break;
+            case 'round_of_16':
                 return 5;
+                 break;
+            case 'quarter_finals':
+                return 6;
                 break;
             case 'semi_finals':
-                return 6;
-            case 'interconference_semi_finals':
                 return 7;
+            case 'interconference_semi_finals':
+                return 8;
                 break;
             case 'finals':
-                return 8;
+                return 9;
                 break;
             default:
                 return 2;
@@ -96,6 +106,7 @@ export const roundGridFormatter = (round,start) => {
 
 }
 export const roundStatusFormatter = (round,start) => {
+    const playIns = true;
     let newRound;
     if(start == 32){
         switch (round) {
@@ -122,9 +133,37 @@ export const roundStatusFormatter = (round,start) => {
                 break;
         }
     }
-    else if(start == 16){
+    else if(start == 16 && playIns == false){
         switch (round) {
             case 'start':
+                newRound = 'round_of_16';
+                break;
+            case 'round_of_16':
+                newRound = 'quarter_finals';
+                break;
+            case 'quarter_finals':
+                newRound = 'semi_finals';
+                break;
+            case 'semi_finals':
+                newRound = 'interconference_semi_finals';
+                break;
+            case 'interconference_semi_finals':
+                newRound = 'finals';
+                break;
+            default:
+                newRound = 'invalid';
+                break;
+        }
+    }
+    else if(start == 16 && playIns == true){
+        switch (round) {
+            case 'start':
+                newRound = 'play_ins_elims';
+                break;
+            case 'play_ins_elims':
+                newRound = 'play_ins_finals';
+                break;
+            case 'play_ins_finals':
                 newRound = 'round_of_16';
                 break;
             case 'round_of_16':

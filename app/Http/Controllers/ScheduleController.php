@@ -274,7 +274,7 @@ class ScheduleController extends Controller
         $start = $request->start;
 
         // Update season champions and losers if needed
-        if (($start == 16 && $round === 'round_of_16')) {
+        if (($start == 16 && $round === 'play_in_elims')) {
             self::updateSeasonChampionsAndLosers($seasonId);
         }
 
@@ -300,32 +300,94 @@ class ScheduleController extends Controller
         // Initialize an array to collect all schedules
         $allSchedules = [];
 
-        if ($round == 'interconference_semi_finals' || $round == 'finals') {
-            $pairings = self::generatePairings16($seasonId, 0, $round);
-            $allSchedules = self::createSchedule($pairings, $seasonId, $round, 0);
-        } else {
-            // Determine the number of top teams to select per conference
-            $topTeamsCount = $conferenceCount * 16 / $conferenceCount;
+        $topTeamsCount = $conferenceCount * 16 / $conferenceCount;
 
-            // Get top teams from each conference
-            $conferences = DB::table('conferences')
-                ->where('league_id', $leagueId)
-                ->pluck('id')
-                ->toArray();
+        // Get top teams from each conference
+        $conferences = DB::table('conferences')
+            ->where('league_id', $leagueId)
+            ->pluck('id')
+            ->toArray();
 
+        if ($round == 'play_ins_elims') {
             foreach ($conferences as $conferenceId) {
-                $conferenceTeams = DB::table('standings_view')
+                // Get the top 10 teams in each conference (7th to 10th for play-ins)
+                $playInTeams = DB::table('standings_view')
                     ->where('season_id', $seasonId)
                     ->where('conference_id', $conferenceId)
-                    ->where('overall_rank', '<=', $topTeamsCount)
+                    ->whereIn('overall_rank', [7, 8, 9, 10])
                     ->orderBy('overall_rank', 'asc')
                     ->pluck('team_id')
                     ->toArray();
 
-                // Ensure we have enough teams, pad if necessary
+                // **First Round**: 7th vs 8th seed
+                $pairing1 = [$playInTeams[0], $playInTeams[1]]; // 7th vs 8th
+
+                // **Second Round**: 9th vs 10th seed
+                $pairing2 = [$playInTeams[2], $playInTeams[3]]; // 9th vs 10th
+
+                // Create the first round schedule
+                $scheduleFirstRound = self::createSchedule([$pairing1], $seasonId, 'play_ins_elims_round_1', $conferenceId);
+                // Create the second round schedule
+                $scheduleSecondRound = self::createSchedule([$pairing2], $seasonId, 'play_ins_elims_round_2', $conferenceId);
+
+                // Add both rounds to the overall schedule
+                $allSchedules = array_merge($allSchedules, $scheduleFirstRound, $scheduleSecondRound);
+            }
+
+        }
+        if ($round == 'play_ins_finals') {
+            // Get the results of the previous play-in rounds to determine the winners and losers
+            foreach ($conferences as $conferenceId) {
+                // Get the results of the 7th vs 8th and 9th vs 10th games
+                $round1Results = DB::table('schedules')
+                    ->where('season_id', $seasonId)
+                    ->where('round', 'play_ins_elims_round_1')
+                    ->where('conference_id', $conferenceId)
+                    ->get();
+
+                $round2Results = DB::table('schedules')
+                    ->where('season_id', $seasonId)
+                    ->where('round', 'play_ins_elims_round_2')
+                    ->where('conference_id', $conferenceId)
+                    ->get();
+
+                // Get the winners and losers of the 7th vs 8th and 9th vs 10th games
+                $winner7vs8 = $round1Results->where('team_id', $round1Results[0]->winning_team_id)->first();
+                $loser7vs8 = $round1Results->where('team_id', $round1Results[0]->losing_team_id)->first();
+
+                $winner9vs10 = $round2Results->where('team_id', $round2Results[0]->winning_team_id)->first();
+                $loser9vs10 = $round2Results->where('team_id', $round2Results[0]->losing_team_id)->first();
+
+                // **Play-In Finals**: The loser of 7th vs 8th faces the winner of 9th vs 10th
+                $playInFinalsTeams = [$loser7vs8->team_id, $winner9vs10->team_id];
+
+                // Create the schedule for the Play-In Finals
+                $schedulePlayInFinals = self::createSchedule([$playInFinalsTeams], $seasonId, 'play_in_finals', $conferenceId);
+                $allSchedules = array_merge($allSchedules, $schedulePlayInFinals);
+            }
+        }
+        else if ($round == 'interconference_semi_finals' || $round == 'finals') {
+            $pairings = self::generatePairings16($seasonId, 0, $round);
+            $allSchedules = self::createSchedule($pairings, $seasonId, $round, 0);
+        } else {
+            // Determine the number of top teams to select per conference
+
+            foreach ($conferences as $conferenceId) {
+                // Get the top 6 teams by overall rank for the conference, breaking ties as necessary
+                $conferenceTeams = DB::table('standings_view')
+                    ->where('season_id', $seasonId)
+                    ->where('conference_id', $conferenceId)
+                    ->orderBy('overall_rank', 'asc') // Order by overall rank
+                    ->orderByDesc('points') // Add tie-breaking based on points (or other criteria)
+                    ->take(6) // Get exactly 6 teams, breaking ties with the additional criteria
+                    ->pluck('team_id')
+                    ->toArray();
+
+                // If there are still fewer than 6 teams, ensure that we get the correct padding teams
                 $totalTeams = count($conferenceTeams);
-                if ($totalTeams < $topTeamsCount) {
-                    $paddingNeeded = $topTeamsCount - $totalTeams;
+                if ($totalTeams < 6) {
+                    // Handle the case where there are fewer than 6 teams by padding
+                    $paddingNeeded = 6 - $totalTeams;
                     $paddingTeams = DB::table('standings_view')
                         ->where('season_id', $seasonId)
                         ->where('conference_id', $conferenceId)
@@ -334,13 +396,28 @@ class ScheduleController extends Controller
                         ->take($paddingNeeded)
                         ->pluck('team_id')
                         ->toArray();
+
                     $conferenceTeams = array_merge($conferenceTeams, $paddingTeams);
                 }
 
-                // Convert the array to the desired format
-                $topTeamsByOverallRank = array_values($conferenceTeams);
+                // Ensure we only have 6 teams, in case of any unforeseen issues
+                $conferenceTeams = array_slice($conferenceTeams, 0, 6); // Take the first 6 teams
 
+                // Get the results of the Play-In Elimination Round 1 and Play-In Finals to determine the winners
+                $playInTeams = self::getPlayInEliminationTeams($seasonId, $conferenceId);
+                $winnerPlayInRound1 = $playInTeams['winner_of_7vs8']; // Winner of 7th vs 8th (Play-In Elimination Round 1)
+                $winnerPlayInFinals = $playInTeams['winner_of_9vs10']; // Winner of 9th vs 10th (Play-In Finals)
+
+                // Add the winners from the Play-In rounds into the 7th and 8th spots
+                $conferenceTeams[6] = $winnerPlayInRound1; // Place the Play-In Elimination Round 1 winner at 7th
+                $conferenceTeams[7] = $winnerPlayInFinals; // Place the Play-In Finals winner at 8th
+
+                // Step 4: Combine the top 6 teams with the play-in winners to form the full list of teams for the round
+                $topTeamsByOverallRank = $conferenceTeams; // Now this contains the 8 teams (6 top + 2 play-in winners)
+
+                // Generate pairings for the round of 16 (or other rounds)
                 $pairings = ($round == 'round_of_16') ? self::pairTeams($topTeamsByOverallRank, 8) : self::generatePairings16($seasonId, $conferenceId, $round);
+
                 // Create the playoff schedule for the specified round for the current conference
                 $schedule = self::createSchedule($pairings, $seasonId, $round, $conferenceId);
 
@@ -364,6 +441,31 @@ class ScheduleController extends Controller
             // If an exception occurred (due to duplicate schedule), return an error response
             return response()->json(['success' => false, 'error' => $e->getMessage()], 400);
         }
+    }
+
+    private static function getPlayInEliminationTeams($seasonId, $conferenceId)
+    {
+        // Get the results of the Play-In Elimination Rounds and Finals
+        $playInRound1Results = DB::table('schedules')
+            ->where('season_id', $seasonId)
+            ->where('round', 'play_ins_elims_round_1')
+            ->where('conference_id', $conferenceId)
+            ->get();
+
+        $playInFinalsResults = DB::table('schedules')
+            ->where('season_id', $seasonId)
+            ->where('round', 'play_in_finals')
+            ->where('conference_id', $conferenceId)
+            ->get();
+
+        // Determine the winners from the results (assuming 'winning_team_id' is the winning team's ID)
+        $winnerPlayInRound1 = $playInRound1Results->where('team_id', $playInRound1Results[0]->winning_team_id)->first();
+        $winnerPlayInFinals = $playInFinalsResults->where('team_id', $playInFinalsResults[0]->winning_team_id)->first();
+
+        return [
+            'winner_of_7vs8' => $winnerPlayInRound1->team_id,
+            'winner_of_9vs10' => $winnerPlayInFinals->team_id,
+        ];
     }
 
     private static function updateSeasonChampionsAndLosers($seasonId)
