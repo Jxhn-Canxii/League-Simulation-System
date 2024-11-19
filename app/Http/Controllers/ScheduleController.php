@@ -324,10 +324,11 @@ class ScheduleController extends Controller
                 // **Second Round**: 9th vs 10th seed
                 $pairing2 = [$playInTeams[2], $playInTeams[3]]; // 9th vs 10th
 
+
                 // Create the first round schedule
-                $scheduleFirstRound = self::createSchedule([$pairing1], $seasonId, 'play_ins_elims_round_1', $conferenceId);
+                $scheduleFirstRound = self::createSchedule($pairing1, $seasonId, 'play_ins_elims_round_1', $conferenceId);
                 // Create the second round schedule
-                $scheduleSecondRound = self::createSchedule([$pairing2], $seasonId, 'play_ins_elims_round_2', $conferenceId);
+                $scheduleSecondRound = self::createSchedule($pairing2, $seasonId, 'play_ins_elims_round_2', $conferenceId);
 
                 // Add both rounds to the overall schedule
                 $allSchedules = array_merge($allSchedules, $scheduleFirstRound, $scheduleSecondRound);
@@ -361,7 +362,7 @@ class ScheduleController extends Controller
                 $playInFinalsTeams = [$loser7vs8->team_id, $winner9vs10->team_id];
 
                 // Create the schedule for the Play-In Finals
-                $schedulePlayInFinals = self::createSchedule([$playInFinalsTeams], $seasonId, 'play_in_finals', $conferenceId);
+                $schedulePlayInFinals = self::createSchedule($playInFinalsTeams, $seasonId, 'play_in_finals', $conferenceId);
                 $allSchedules = array_merge($allSchedules, $schedulePlayInFinals);
             }
         }
@@ -377,7 +378,7 @@ class ScheduleController extends Controller
                     ->where('season_id', $seasonId)
                     ->where('conference_id', $conferenceId)
                     ->orderBy('overall_rank', 'asc') // Order by overall rank
-                    ->orderByDesc('points') // Add tie-breaking based on points (or other criteria)
+                    ->orderByDesc('overall_rank') // Add tie-breaking based on points (or other criteria)
                     ->take(6) // Get exactly 6 teams, breaking ties with the additional criteria
                     ->pluck('team_id')
                     ->toArray();
