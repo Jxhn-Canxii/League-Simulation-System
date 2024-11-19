@@ -274,7 +274,7 @@ class ScheduleController extends Controller
         $start = $request->start;
 
         // Update season champions and losers if needed
-        if (($start == 16 && $round === 'play_in_elims')) {
+        if (($start == 16 && $round === 'play_ins_elims')) {
             self::updateSeasonChampionsAndLosers($seasonId);
         }
 
@@ -310,7 +310,6 @@ class ScheduleController extends Controller
 
         if ($round == 'play_ins_elims') {
             foreach ($conferences as $conferenceId) {
-                // Get the top 10 teams in each conference (7th to 10th for play-ins)
                 $playInTeams = DB::table('standings_view')
                     ->where('season_id', $seasonId)
                     ->where('conference_id', $conferenceId)
@@ -318,58 +317,91 @@ class ScheduleController extends Controller
                     ->pluck('team_id')
                     ->toArray();
 
-                // **First Round**: 7th vs 8th seed
-                $pairing1 = [$playInTeams[0], $playInTeams[1]]; // 7th vs 8th
+                // Ensure there are at least four teams for play-ins
+                if (count($playInTeams) >= 4) {
+                    // **First Round**: 7th vs 8th seed
+                    $pairing1 = self::pairTeams([$playInTeams[0], $playInTeams[1]], 2);
 
-                // **Second Round**: 9th vs 10th seed
-                $pairing2 = [$playInTeams[2], $playInTeams[3]]; // 9th vs 10th
+                    // **Second Round**: 9th vs 10th seed
+                    $pairing2 =  self::pairTeams([$playInTeams[2], $playInTeams[3]], 2);
 
+                    // Create the first round schedule
 
-                // Create the first round schedule
-                $scheduleFirstRound = self::createSchedule($pairing1, $seasonId, 'play_ins_elims_round_1', $conferenceId);
-                // Create the second round schedule
-                $scheduleSecondRound = self::createSchedule($pairing2, $seasonId, 'play_ins_elims_round_2', $conferenceId);
+                    $scheduleFirstRound = self::createSchedule($pairing1, $seasonId, 'play_ins_elims_round_1', $conferenceId);
 
-                // Add both rounds to the overall schedule
-                $allSchedules = array_merge($allSchedules, $scheduleFirstRound, $scheduleSecondRound);
+                    // Create the second round schedule
+                    $scheduleSecondRound = self::createSchedule($pairing2, $seasonId, 'play_ins_elims_round_2', $conferenceId);
+
+                    // Add to overall schedule
+                    $allSchedules = array_merge($allSchedules, $scheduleFirstRound, $scheduleSecondRound);
+                } else {
+                    // Handle insufficient teams (e.g., log an error, skip this conference, etc.)
+                    Log::error("Not enough teams for play-ins in conference ID: {$conferenceId}");
+                }
             }
-
-        }
-        if ($round == 'play_ins_finals') {
+        } else if ($round == 'play_ins_finals') {
             // Get the results of the previous play-in rounds to determine the winners and losers
             foreach ($conferences as $conferenceId) {
                 // Get the results of the 7th vs 8th and 9th vs 10th games
+                // Fetch results for the first round (7th vs 8th)
                 $round1Results = DB::table('schedules')
                     ->where('season_id', $seasonId)
                     ->where('round', 'play_ins_elims_round_1')
                     ->where('conference_id', $conferenceId)
                     ->get();
 
+                // Fetch results for the second round (9th vs 10th)
                 $round2Results = DB::table('schedules')
                     ->where('season_id', $seasonId)
                     ->where('round', 'play_ins_elims_round_2')
                     ->where('conference_id', $conferenceId)
                     ->get();
 
-                // Get the winners and losers of the 7th vs 8th and 9th vs 10th games
-                $winner7vs8 = $round1Results->where('team_id', $round1Results[0]->winning_team_id)->first();
-                $loser7vs8 = $round1Results->where('team_id', $round1Results[0]->losing_team_id)->first();
+                // Ensure the results contain at least one game for each round
+                if ($round1Results->isNotEmpty() && $round2Results->isNotEmpty()) {
+                    // Determine the winner and loser for the 7th vs 8th game
+                    $round1Game = $round1Results->first(); // Assuming one game per round
+                    if ($round1Game->home_score > $round1Game->away_score) {
+                        $winner7vs8 = $round1Game->home_id;
+                        $loser7vs8 = $round1Game->away_id;
+                    } else {
+                        $winner7vs8 = $round1Game->away_id;
+                        $loser7vs8 = $round1Game->home_id;
+                    }
 
-                $winner9vs10 = $round2Results->where('team_id', $round2Results[0]->winning_team_id)->first();
-                $loser9vs10 = $round2Results->where('team_id', $round2Results[0]->losing_team_id)->first();
+                    // Determine the winner and loser for the 9th vs 10th game
+                    $round2Game = $round2Results->first(); // Assuming one game per round
+                    if ($round2Game->home_score > $round2Game->away_score) {
+                        $winner9vs10 = $round2Game->home_id;
+                        $loser9vs10 = $round2Game->away_id;
+                    } else {
+                        $winner9vs10 = $round2Game->away_id;
+                        $loser9vs10 = $round2Game->home_id;
+                    }
+
+                    // Output or process the winners and losers as needed
+                    // Example:
+                    Log::info("Winner 7vs8: {$winner7vs8}, Loser 7vs8: {$loser7vs8}");
+                    Log::info("Winner 9vs10: {$winner9vs10}, Loser 9vs10: {$loser9vs10}");
+                } else {
+                    // Handle cases where there are no results
+                    Log::error("Missing results for play-in games in conference ID: {$conferenceId}");
+                }
+
 
                 // **Play-In Finals**: The loser of 7th vs 8th faces the winner of 9th vs 10th
-                $playInFinalsTeams = [$loser7vs8->team_id, $winner9vs10->team_id];
+                $playInFinalsTeams = self::pairTeams([$loser7vs8, $winner9vs10], 2);
 
                 // Create the schedule for the Play-In Finals
+                // self::pairTeams($topTeamsByOverallRank, 8)
                 $schedulePlayInFinals = self::createSchedule($playInFinalsTeams, $seasonId, 'play_in_finals', $conferenceId);
                 $allSchedules = array_merge($allSchedules, $schedulePlayInFinals);
             }
-        }
-        else if ($round == 'interconference_semi_finals' || $round == 'finals') {
+        } else if ($round == 'interconference_semi_finals' || $round == 'finals') {
             $pairings = self::generatePairings16($seasonId, 0, $round);
             $allSchedules = self::createSchedule($pairings, $seasonId, $round, 0);
         } else {
+            //round of 32,round of 36 and quarter finals
             // Determine the number of top teams to select per conference
 
             foreach ($conferences as $conferenceId) {
@@ -439,7 +471,7 @@ class ScheduleController extends Controller
             return response()->json(['success' => true, 'message' => 'Schedule inserted successfully']);
         } catch (Exception $e) {
             // If an exception occurred (due to duplicate schedule), return an error response
-            return response()->json(['success' => false, 'error' => $e->getMessage()], 400);
+            return response()->json(['success' => false, 'error' => $e->getMessage(), 'line' => 475], 400);
         }
     }
 
@@ -458,15 +490,30 @@ class ScheduleController extends Controller
             ->where('conference_id', $conferenceId)
             ->get();
 
-        // Determine the winners from the results (assuming 'winning_team_id' is the winning team's ID)
-        $winnerPlayInRound1 = $playInRound1Results->where('team_id', $playInRound1Results[0]->winning_team_id)->first();
-        $winnerPlayInFinals = $playInFinalsResults->where('team_id', $playInFinalsResults[0]->winning_team_id)->first();
+        // Ensure there are results before accessing them
+        if ($playInRound1Results->isEmpty() || $playInFinalsResults->isEmpty()) {
+            Log::error("Missing results for play-ins in conference ID: {$conferenceId}");
+            return [
+                'winner_of_7vs8' => null,
+                'winner_of_9vs10' => null,
+            ];
+        }
+
+        // Determine the winners based on the highest score
+        $winnerPlayInRound1 = $playInRound1Results->first(function ($game) {
+            return $game->home_score > $game->away_score ? $game->home_id : $game->away_id;
+        });
+
+        $winnerPlayInFinals = $playInFinalsResults->first(function ($game) {
+            return $game->home_score > $game->away_score ? $game->home_id : $game->away_id;
+        });
 
         return [
-            'winner_of_7vs8' => $winnerPlayInRound1->team_id,
-            'winner_of_9vs10' => $winnerPlayInFinals->team_id,
+            'winner_of_7vs8' => $winnerPlayInRound1,
+            'winner_of_9vs10' => $winnerPlayInFinals,
         ];
     }
+
 
     private static function updateSeasonChampionsAndLosers($seasonId)
     {
@@ -645,10 +692,20 @@ class ScheduleController extends Controller
     // Function to create schedule for a round of playoff matches
     private static function createSchedule($pairings, $seasonId, $round, $conferenceId)
     {
+        if (empty($pairings) || !is_array($pairings)) {
+            throw new \Exception("Invalid pairings data provided.");
+        }
+
         $schedule = [];
+        // dd($pairings);
         foreach ($pairings as $game_number => $pair) {
+
+            if (!is_array($pair) || count($pair) < 2) {
+                throw new \Exception("Each pairing must contain exactly two team IDs.");
+            }
+            // dd($game_number);
             // Create schedule entries for each pairing in the round
-            $game_id = $seasonId . 'R' . $round . '-G' . ($game_number + 1) . 'C' . $conferenceId;
+            $game_id = 'S' . $seasonId . '-R' . $round . '-G' . ($game_number + 1) . 'C-' . $conferenceId;
             $schedule[] = [
                 'home_id' => $pair[0],
                 'conference_id' => ($round == 'finals' || $round == 'interconference_semi_finals') ? 0 : $conferenceId,

@@ -24,8 +24,12 @@ export const roundNameFormatter = (round) => {
     }
 
     switch (round) {
+        case 'play_ins_elims_round_1':
+            return 'Conference Play-ins(7th vs 8th)'
+        case 'play_ins_elims_round_2':
+            return 'Conference Play-ins(9th vs 10th)'
         case 'play_ins_elims':
-            return 'Conference Play-ins Elimination'
+            return 'Conference Play-ins'
         case 'play_ins_finals':
             return 'Conference Play-ins Finals'
         case 'round_of_32':

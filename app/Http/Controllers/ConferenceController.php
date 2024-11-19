@@ -222,13 +222,66 @@ class ConferenceController extends Controller
             }
             if ($type == 1) {
                 $roundIndices = [
-                    1 => [],
-                    2 => [],
-                    4 => ['round_of_16'],
-                    5 => ['round_of_16', 'quarter_finals'],
-                    6 => ['round_of_16', 'quarter_finals', 'semi_finals'],
-                    7 => ['round_of_16', 'quarter_finals', 'semi_finals', 'interconference_semi_finals'],
-                    8 => ['round_of_16', 'quarter_finals', 'semi_finals','interconference_semi_finals', 'finals']
+                    1 => [
+                        'play_ins_elims_round_1',
+                        'play_ins_elims_round_2',
+                        'play_in_finals',
+                    ],
+                    2 => [
+                        'play_ins_elims_round_1',
+                        'play_ins_elims_round_2',
+                        'play_in_finals',
+                    ],
+                    3 => [
+                        'play_ins_elims_round_1',
+                        'play_ins_elims_round_2',
+                        'play_in_finals',
+                        'round_of_16',
+                    ],
+                    4 => [
+                        'play_ins_elims_round_1',
+                        'play_ins_elims_round_2',
+                        'play_in_finals',
+                        'round_of_16',
+                        'quarter_finals',
+                    ],
+                    5 => [
+                        'play_ins_elims_round_1',
+                        'play_ins_elims_round_2',
+                        'play_in_finals',
+                        'round_of_16',
+                        'quarter_finals',
+                        'semi_finals',
+                    ],
+                    6 => [
+                        'play_ins_elims_round_1',
+                        'play_ins_elims_round_2',
+                        'play_in_finals',
+                        'round_of_16',
+                        'quarter_finals',
+                        'semi_finals',
+                        'finals',
+                    ],
+                    7 => [
+                        'play_ins_elims_round_1',
+                        'play_ins_elims_round_2',
+                        'play_in_finals',
+                        'round_of_16',
+                        'quarter_finals',
+                        'semi_finals',
+                        'interconference_semi_finals',
+                        'finals',
+                    ],
+                    8 => [
+                        'play_ins_elims_round_1',
+                        'play_ins_elims_round_2',
+                        'play_in_finals',
+                        'round_of_16',
+                        'quarter_finals',
+                        'semi_finals',
+                        'interconference_semi_finals',
+                        'finals',
+                    ],
                 ];
             }
         }
