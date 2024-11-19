@@ -251,7 +251,7 @@ class RatingsController extends Controller
                     'contract_years' => $player->contract_years,
                     'team_id' => $player->team_id,
                     'is_active' => $player->is_active,
-                    'is_rookie' => $player->is_rookie,
+                    'is_rookie' => 0,
                     'age' => $player->age,
                     'role' => $player->role,
                     'shooting_rating' => $player->shooting_rating,
