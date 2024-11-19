@@ -155,7 +155,7 @@ class TransactionsController extends Controller
                 return "{$championship->championship_season} ({$championship->championship_team})";
             })->implode(', ');
             // Assign the championship data to the transaction, if available
-            $transaction->championships = $championshipsFormatted;
+            $transaction->player_career_championships = $championshipsFormatted;
 
             // If the player is retired, set their status as 'retired'
             if ($transaction->is_retired) {
