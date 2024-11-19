@@ -11,6 +11,118 @@ use Inertia\Inertia;
 class TransactionsController extends Controller
 {
 
+    public function gettransactions(Request $request)
+    {
+        $seasonId = $request->season_id;
+        $teamId = $request->team_id;
+        $type = $request->type; // 'normal' or 'notable'
+        $perPage = $request->get('itemsperpage', 10); // Default items per page is 10
+        $page = $request->get('page_num', 1); // Default to page 1
+
+        // Build the initial query with necessary joins
+        $query = DB::table('transactions as t')
+            ->leftJoin('season_awards as sa', function ($join) {
+                $join->on('sa.player_id', '=', 't.player_id');
+            })
+            ->leftJoin('seasons as s', 's.id', '=', 't.season_id')
+            ->leftJoin('players as p', 'p.id', '=', 't.player_id')
+            ->leftJoin('teams as from_team', 'from_team.id', '=', 't.from_team_id')
+            ->leftJoin('teams as to_team', 'to_team.id', '=', 't.to_team_id')
+            ->leftJoin('teams as award_team', 'award_team.id', '=', 'sa.team_id') // Join teams for the awards
+            ->leftJoin('player_season_stats as ps', function ($join) {
+                $join->on('ps.player_id', '=', 't.player_id')
+                     ->on('ps.season_id', '=', 't.season_id');
+            })
+            ->select(
+                't.id',
+                't.player_id',
+                't.season_id',
+                't.details',
+                't.from_team_id',
+                't.to_team_id',
+                't.status',
+                'p.name as player_name',
+                'p.is_active as is_active',
+                'from_team.name as from_team_name',
+                'to_team.name as to_team_name',
+                'p.role', // Fetch player's role
+                's.finals_mvp_id', // Fetch finals MVP status
+                DB::raw("CASE
+                    WHEN sa.player_id IS NOT NULL  /* Player has an award */
+                        OR s.finals_mvp_id = t.player_id  /* Player is Finals MVP */
+                        OR p.role = 'star player'  /* Player is a star player */
+                    THEN 'notable'
+                    ELSE 'normal'
+                END AS transaction_type"),
+                // Use GROUP_CONCAT to fetch all awards for a player, including season and team
+                DB::raw("GROUP_CONCAT(DISTINCT CONCAT(sa.award_name, ' (Season: ', sa.season_id, ', Team: ', IFNULL(award_team.name, 'N/A'), ')') ORDER BY sa.season_id ASC) AS player_awards"),
+                DB::raw("MAX(CASE WHEN t.status = 'retired' THEN 1 ELSE 0 END) AS is_retired")  // Check if any transaction is retired
+            )
+            ->whereNotIn('t.status', ['draft', 'released']); // Filter out 'draft' and 'released' transactions
+
+        // Apply filters for 'normal' or 'notable' transaction type based on the CASE logic
+        if ($type) {
+            $query->whereRaw("
+                (sa.player_id IS NOT NULL
+                OR s.finals_mvp_id = t.player_id
+                OR p.role = 'star player') = ?
+            ", [$type === 'notable' ? 1 : 0]);
+        }
+
+        // Apply season_id filter if provided (if you want transactions from a specific season)
+        if ($seasonId) {
+            $query->where('t.season_id', $seasonId);
+        }
+
+        // Apply team_id filter if provided (filter by from_team_id or to_team_id)
+        if ($teamId) {
+            $query->where(function ($subQuery) use ($teamId) {
+                $subQuery->where('t.from_team_id', $teamId)
+                         ->orWhere('t.to_team_id', $teamId);
+            });
+        }
+
+        // Add GROUP BY clause to ensure proper grouping for each transaction and player
+        $query->groupBy(
+            't.id',
+            't.player_id',
+            't.season_id',
+            'sa.player_id',
+            't.details',
+            't.from_team_id',
+            't.to_team_id',
+            't.status',
+            'p.name',
+            'p.is_active',
+            'from_team.name',
+            'to_team.name',
+            'p.role',
+            's.finals_mvp_id',
+            'award_team.name'
+        );
+
+        // Fetch all transactions without pagination
+        $transactions = $query->get();
+
+        // Process to mark the player's status as retired if any transaction has "retired" status
+        foreach ($transactions as $transaction) {
+            if ($transaction->is_retired) {
+                $transaction->status = 'retired';
+            }
+            // Remove the temporary 'is_retired' field from the response
+            unset($transaction->is_retired);
+        }
+
+        // Return the data with total_items set to 0 (no pagination)
+        return response()->json([
+            'data' => $transactions,  // The actual data for all transactions
+            'current_page' => 1,      // Page 1 (since we're not paginating)
+            'total_items' => 0,       // Set total_items to 0 as requested
+            'total_pages' => 1,       // One page since no pagination
+            'per_page' => count($transactions),  // The number of items fetched
+        ]);
+    }
+
     // Waive a player (make them inactive)
     public function waiveplayer(Request $request)
     {
@@ -133,7 +245,7 @@ class TransactionsController extends Controller
         // Fetch free agents (players with team_id = 0)
         $freeAgents = Player::where('team_id', 0)
             ->where('is_active', 1)
-            ->orderBy("overall_rating","desc")
+            ->orderBy("overall_rating", "desc")
             ->get();
 
         $remainingFreeAgents = $freeAgents->count();

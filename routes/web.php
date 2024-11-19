@@ -177,6 +177,8 @@ Route::middleware('auth')->group(function () {
         Route::post('auto-assign-team-free-agents', [TransactionsController::class, 'assignremainingfreeagents'])->name('auto.assign.freeagent.teams');
         Route::post('waive-player', [TransactionsController::class, 'waiveplayer'])->name('players.waive');
         Route::post('extend-contract-player', [TransactionsController::class, 'extendcontract'])->name('players.contract.extend');
+        Route::post('player-transactions', [TransactionsController::class, 'gettransactions'])->name('players.transactions');
+
     });
 
     Route::prefix('awards/')->group(function(){

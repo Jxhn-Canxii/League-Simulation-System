@@ -215,7 +215,9 @@
                     <div
                         v-if="currentTab === 'Transactions' && season_id != 0"
                         class="min-w-full overflow-x-auto"
-                    ></div>
+                    >
+                        <Transactions :key="season_id" :season_id="season_id" />
+                    </div>
                 </div>
             </div>
         </AuthenticatedLayout>
@@ -237,6 +239,7 @@ import Playoffs from "@/Pages/Seasons/Module/Playoffs.vue";
 import SeasonAwards from "./Module/SeasonAwards.vue";
 import SeasonLeaders from "../Analytics/Module/SeasonLeaders.vue";
 import DraftBoard from "./Module/DraftBoard.vue";
+import Transactions from "./Module/Transactions.vue";
 
 const props = defineProps({
     season_id: {
