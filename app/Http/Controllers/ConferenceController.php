@@ -225,30 +225,30 @@ class ConferenceController extends Controller
                     1 => [
                         'play_ins_elims_round_1',
                         'play_ins_elims_round_2',
-                        'play_in_finals',
+                        'play_ins_finals',
                     ],
                     2 => [
                         'play_ins_elims_round_1',
                         'play_ins_elims_round_2',
-                        'play_in_finals',
+                        'play_ins_finals',
                     ],
                     3 => [
                         'play_ins_elims_round_1',
                         'play_ins_elims_round_2',
-                        'play_in_finals',
+                        'play_ins_finals',
                         'round_of_16',
                     ],
                     4 => [
                         'play_ins_elims_round_1',
                         'play_ins_elims_round_2',
-                        'play_in_finals',
+                        'play_ins_finals',
                         'round_of_16',
                         'quarter_finals',
                     ],
                     5 => [
                         'play_ins_elims_round_1',
                         'play_ins_elims_round_2',
-                        'play_in_finals',
+                        'play_ins_finals',
                         'round_of_16',
                         'quarter_finals',
                         'semi_finals',
@@ -256,7 +256,7 @@ class ConferenceController extends Controller
                     6 => [
                         'play_ins_elims_round_1',
                         'play_ins_elims_round_2',
-                        'play_in_finals',
+                        'play_ins_finals',
                         'round_of_16',
                         'quarter_finals',
                         'semi_finals',
@@ -265,7 +265,7 @@ class ConferenceController extends Controller
                     7 => [
                         'play_ins_elims_round_1',
                         'play_ins_elims_round_2',
-                        'play_in_finals',
+                        'play_ins_finals',
                         'round_of_16',
                         'quarter_finals',
                         'semi_finals',
@@ -275,7 +275,7 @@ class ConferenceController extends Controller
                     8 => [
                         'play_ins_elims_round_1',
                         'play_ins_elims_round_2',
-                        'play_in_finals',
+                        'play_ins_finals',
                         'round_of_16',
                         'quarter_finals',
                         'semi_finals',

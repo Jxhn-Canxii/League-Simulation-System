@@ -414,7 +414,7 @@ class ScheduleController extends Controller
 
                 // Create the schedule for the Play-In Finals
                 // self::pairTeams($topTeamsByOverallRank, 8)
-                $schedulePlayInFinals = self::createSchedule($playInFinalsTeams, $seasonId, 'play_in_finals', $conferenceId);
+                $schedulePlayInFinals = self::createSchedule($playInFinalsTeams, $seasonId, 'play_ins_finals', $conferenceId);
                 $allSchedules = array_merge($allSchedules, $schedulePlayInFinals);
             }
         } else if ($round == 'interconference_semi_finals' || $round == 'finals') {
@@ -506,7 +506,7 @@ class ScheduleController extends Controller
 
         $playInFinalsResults = DB::table('schedules')
             ->where('season_id', $seasonId)
-            ->where('round', 'play_in_finals')
+            ->where('round', 'play_ins_finals')
             ->where('conference_id', $conferenceId)
             ->get();
 
