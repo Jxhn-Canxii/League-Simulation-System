@@ -63,7 +63,7 @@
                                 {{ transaction.role }}
                             </span>
                         </td>
-                        <td class="px-2 py-1 whitespace-nowrap border">{{ transaction.player_awards ?? '-' }}</td>
+                        <td class="px-2 py-1 whitespace-nowrap border text-wrap">{{ transaction.player_awards ?? '-' }}</td>
                         <td class="px-2 py-1 whitespace-nowrap border">{{ transaction.from_team_name }}</td>
                         <td class="px-2 py-1 whitespace-nowrap border">{{ transaction.to_team_name }}</td>
                         <td class="px-2 py-1 whitespace-nowrap border">{{ transaction.status }}</td>
