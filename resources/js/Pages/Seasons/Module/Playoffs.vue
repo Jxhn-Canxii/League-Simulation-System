@@ -215,7 +215,7 @@
                             class="text-indigo-600 font-bold text-md flex bg-orange-200 shadow p-1 rounded-full hover:text-indigo-900 mt-4"
                         >
                             End
-                            {{ roundNameFormatter(roundName) }} {{ roundName }}
+                            {{ roundNameFormatter(roundName) }}
                         </button>
 
                     </div>
