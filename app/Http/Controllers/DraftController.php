@@ -292,7 +292,7 @@ class DraftController extends Controller
             // Update the season status to 11 after drafting
             $seasonUpdate = DB::table('seasons')
                 ->where('id', $latestSeasonId)
-                ->update(['status' => 11]);
+                ->update(['status' => 13]);
 
             // Log season update success or failure
             \Log::info('Season status updated:', [

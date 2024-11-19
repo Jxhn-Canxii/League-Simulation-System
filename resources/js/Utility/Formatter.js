@@ -82,21 +82,21 @@ export const roundGridFormatter = (round,start) => {
                 return 4;
                  break;
             case 'play_ins_finals':
-                return 4;
+                return 5;
                     break;
             case 'round_of_16':
-                return 5;
+                return 6;
                  break;
             case 'quarter_finals':
-                return 6;
+                return 7;
                 break;
             case 'semi_finals':
-                return 7;
-            case 'interconference_semi_finals':
                 return 8;
+            case 'interconference_semi_finals':
+                return 9;
                 break;
             case 'finals':
-                return 9;
+                return 10;
                 break;
             default:
                 return 2;

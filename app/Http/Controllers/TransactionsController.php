@@ -144,7 +144,7 @@ class TransactionsController extends Controller
             // Update the last season's status to 12 if there are no incomplete teams
             DB::table('seasons')
                 ->where('id', $seasonId)
-                ->update(['status' => 12]);
+                ->update(['status' => 14]);
 
             // Update player roles based on the last season's stats
             $update = $this->updateTeamRolesBasedOnStats();

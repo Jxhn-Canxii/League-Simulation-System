@@ -113,17 +113,17 @@ class SeasonsController extends Controller
             ->value('status');
 
         // Check the status and return the appropriate value
-        if ($lastSeasonStatus == 8) {
+        if ($lastSeasonStatus == 10) {
             return 1; //show update awards update to 9
-        } elseif ($lastSeasonStatus == 9) {
+        } elseif ($lastSeasonStatus == 11) {
             return 2; //update player status update to 10
-        } elseif ($lastSeasonStatus == 10) {
+        } elseif ($lastSeasonStatus == 12) {
             return 3; //player rookie drafting update to 11
         }
-        elseif ($lastSeasonStatus == 11) {
+        elseif ($lastSeasonStatus == 13) {
             return 4; //player signings update to 12
         }
-        elseif ($lastSeasonStatus == 12) {
+        elseif ($lastSeasonStatus == 14) {
             return 5; // new season
         }
         // Optionally, you can return a default value if no status matches
