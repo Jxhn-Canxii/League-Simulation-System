@@ -41,6 +41,7 @@
                         <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">From Team</th>
                         <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">To Team</th>
                         <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Transaction Type</th>
+                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Details</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -48,7 +49,7 @@
                     <tr v-for="transaction in data.data" :key="transaction.id" @click.prevent="showPlayerProfileModal = transaction.player_id" :class="transaction.is_active ? 'bg-green-100' : 'bg-red-100'" class="hover:bg-gray-100 cursor-pointer">
                         <td class="px-2 py-1 whitespace-nowrap border">
                             <span>
-                                {{ transaction.name }}
+                                {{ transaction.player_name }}
                                 <sup v-if="transaction.is_finals_mvp">
                                     <i class="fa fa-star fa-sm text-yellow-500"></i>
                                 </sup>
@@ -66,6 +67,7 @@
                         <td class="px-2 py-1 whitespace-nowrap border">{{ transaction.from_team_name }}</td>
                         <td class="px-2 py-1 whitespace-nowrap border">{{ transaction.to_team_name }}</td>
                         <td class="px-2 py-1 whitespace-nowrap border">{{ transaction.status }}</td>
+                        <td class="px-2 py-1 whitespace-nowrap border">{{ transaction.details }}</td>
                     </tr>
                 </tbody>
             </table>
