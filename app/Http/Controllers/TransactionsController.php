@@ -158,7 +158,7 @@ class TransactionsController extends Controller
 
                     // Convert the championships to a comma-separated string
             $championshipsFormatted = $championships->map(function ($championship) {
-                return "{$championship->championship_season} ({$championship->championship_team})";
+                return "{$championship->championship_season} Champion ({$championship->championship_team})";
             })->implode(', ');
             // Assign the championship data to the transaction, if available
             $transaction->player_career_championships = $championshipsFormatted;
