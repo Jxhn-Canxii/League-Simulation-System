@@ -41,7 +41,7 @@
                         <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">From Team</th>
                         <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">To Team</th>
                         <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Transaction Type</th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Details</th>
+                        <!-- <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">Details</th> -->
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -67,7 +67,7 @@
                         <td class="px-2 py-1 whitespace-nowrap border">{{ transaction.from_team_name }}</td>
                         <td class="px-2 py-1 whitespace-nowrap border">{{ transaction.to_team_name }}</td>
                         <td class="px-2 py-1 whitespace-nowrap border">{{ transaction.status }}</td>
-                        <td class="px-2 py-1 whitespace-nowrap border">{{ transaction.details }}</td>
+                        <!-- <td class="px-2 py-1 whitespace-nowrap border">{{ transaction.details }}</td> -->
                     </tr>
                 </tbody>
             </table>
