@@ -46,17 +46,25 @@ class TransactionsController extends Controller
                 'from_team.name as from_team_name',
                 'to_team.name as to_team_name',
                 'p.role', // Fetch player's role
-                's.finals_mvp_id', // Fetch finals MVP status
                 DB::raw("CASE
-                    WHEN sa.player_id IS NOT NULL  /* Player has an award */
-                        OR s.finals_mvp_id = t.player_id  /* Player is Finals MVP */
-                        OR p.role = 'star player'  /* Player is a star player */
-                    THEN 'notable'
-                    ELSE 'normal'
+                WHEN sa.player_id IS NOT NULL  /* Player has an award */
+                    OR s.finals_mvp_id = t.player_id  /* Player is Finals MVP */
+                    OR p.role = 'star player'  /* Player is a star player */
+                THEN 'notable'
+                ELSE 'normal'
                 END AS transaction_type"),
-                // Use GROUP_CONCAT to fetch all awards for a player, including season and team
                 DB::raw("GROUP_CONCAT(DISTINCT CONCAT(sa.award_name, ' (Season: ', sa.season_id, ', Team: ', IFNULL(award_team.name, 'N/A'), ')') ORDER BY sa.season_id ASC) AS player_awards"),
-                DB::raw("MAX(CASE WHEN t.status = 'retired' THEN 1 ELSE 0 END) AS is_retired")  // Check if any transaction is retired
+                DB::raw("(SELECT CONCAT('Finals MVP (Season ', s.id, ')')
+                    FROM seasons AS s
+                    WHERE s.finals_mvp_id = p.id
+                    LIMIT 1) AS finals_mvp"),
+                DB::raw("CASE
+                    WHEN s.finals_mvp_id = p.id THEN 1
+                    ELSE 0
+                END as is_finals_mvp"),
+                // Fetch player career championships (all seasons they were champions)
+                DB::raw("MAX(CASE WHEN t.status = 'retired' THEN 1 ELSE 0 END) AS is_retired"),  // Check if the player has any 'retired' status
+                's.finals_winner_name'  // Add finals_winner_name from the seasons table
             )
             ->whereNotIn('t.status', ['draft', 'released']); // Filter out 'draft' and 'released' transactions
 
@@ -97,21 +105,67 @@ class TransactionsController extends Controller
             'from_team.name',
             'to_team.name',
             'p.role',
+            's.id',
+            'p.id',
             's.finals_mvp_id',
-            'award_team.name'
+            'award_team.name',
+            's.champion_id',       // Added champion_id in GROUP BY
+            's.finals_winner_id',   // Added finals_winner_id in GROUP BY
+            's.finals_winner_name'  // Added finals_winner_name in GROUP BY
         );
 
         // Fetch all transactions without pagination
         $transactions = $query->get();
 
-        // Process to mark the player's status as retired if any transaction has "retired" status
+
         foreach ($transactions as $transaction) {
+            $playerId = $transaction->player_id;
+            $championships = \DB::table('seasons')
+                ->join('player_game_stats', 'seasons.id', '=', 'player_game_stats.season_id')
+                ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id')
+                ->join('teams', 'player_game_stats.team_id', '=', 'teams.id')
+                ->select('seasons.id as season_id', 'teams.name as championship_team', 'seasons.name as championship_season')
+                ->where('player_game_stats.player_id',  $playerId)
+                ->where('schedules.round', 'finals')
+                ->whereColumn('seasons.id', 'player_game_stats.season_id')
+                ->whereExists(function ($query) use ( $playerId) {
+                    $query->select(\DB::raw(1))
+                        ->from('schedules as s')
+                        ->join('player_game_stats as pg', 's.game_id', '=', 'pg.game_id')
+                        ->where('pg.team_id', '=', \DB::raw('player_game_stats.team_id'))
+                        ->where('s.round', 'finals')
+                        ->where('pg.player_id',  $playerId)
+                        ->whereColumn('pg.season_id', 'player_game_stats.season_id')
+                        ->where(function ($q) {
+                            $q->where(function ($q) {
+                                $q->whereColumn('s.home_id', 'player_game_stats.team_id')
+                                    ->whereColumn('s.home_score', '>', 's.away_score');
+                            })
+                            ->orWhere(function ($q) {
+                                $q->whereColumn('s.away_id', 'player_game_stats.team_id')
+                                    ->whereColumn('s.away_score', '>', 's.home_score');
+                            });
+                        });
+                })
+                ->groupBy('seasons.id', 'teams.name', 'seasons.name') // Group by season_id, championship team and season name
+                ->get();
+
+                    // Convert the championships to a comma-separated string
+            $championshipsFormatted = $championships->map(function ($championship) {
+                return "{$championship->championship_season} ({$championship->championship_team})";
+            })->implode(', ');
+            // Assign the championship data to the transaction, if available
+            $transaction->championships = $championshipsFormatted;
+
+            // If the player is retired, set their status as 'retired'
             if ($transaction->is_retired) {
                 $transaction->status = 'retired';
             }
+
             // Remove the temporary 'is_retired' field from the response
             unset($transaction->is_retired);
         }
+
 
         // Return the data with total_items set to 0 (no pagination)
         return response()->json([

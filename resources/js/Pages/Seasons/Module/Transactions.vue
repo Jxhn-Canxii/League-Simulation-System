@@ -63,7 +63,24 @@
                                 {{ transaction.role }}
                             </span>
                         </td>
-                        <td class="px-2 py-1 whitespace-nowrap border text-wrap">{{ transaction.player_awards ?? '-' }}</td>
+                        <td class="px-2 py-1 whitespace-normal border text-wrap break-words">
+                            {{ transaction.player_awards }}
+
+                            <!-- Display Finals MVP -->
+                            <template v-if="transaction.finals_mvp">
+                                {{ transaction.player_awards ? ',' : '' }}{{ transaction.finals_mvp }}
+                            </template>
+
+                            <!-- Display Career Championships -->
+                            <template v-if="transaction.player_career_championships">
+                                {{ (transaction.player_awards || transaction.finals_mvp) ? ',' : '' }}{{ transaction.player_career_championships }}
+                            </template>
+
+                            <!-- Display Finals Winner Name -->
+                            <template v-if="transaction.finals_winner_name">
+                                {{ (transaction.player_awards || transaction.finals_mvp || transaction.player_career_championships) ? ',' : '' }}{{ transaction.finals_winner_name }}
+                            </template>
+                        </td>
                         <td class="px-2 py-1 whitespace-nowrap border">{{ transaction.from_team_name }}</td>
                         <td class="px-2 py-1 whitespace-nowrap border">{{ transaction.to_team_name }}</td>
                         <td class="px-2 py-1 whitespace-nowrap border">{{ transaction.status }}</td>
