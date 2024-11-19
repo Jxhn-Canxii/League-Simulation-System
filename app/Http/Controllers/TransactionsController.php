@@ -54,10 +54,16 @@ class TransactionsController extends Controller
                 ELSE 'normal'
                 END AS transaction_type"),
                 DB::raw("GROUP_CONCAT(DISTINCT CONCAT(sa.award_name, ' (Season: ', sa.season_id, ', Team: ', IFNULL(award_team.name, 'N/A'), ')') ORDER BY sa.season_id ASC) AS player_awards"),
-                DB::raw("(SELECT CONCAT('Finals MVP (Season ', s.id, ')')
-                    FROM seasons AS s
-                    WHERE s.finals_mvp_id = p.id
-                    LIMIT 1) AS finals_mvp"),
+                DB::raw("(SELECT CONCAT('Finals MVP (Season ', s.id, ', Team: ', t.name, ')')
+                FROM seasons AS s
+                LEFT JOIN teams AS t ON t.id = s.finals_winner_id
+                WHERE s.finals_mvp_id = p.id
+                LIMIT 1) AS finals_mvp"),
+                DB::raw("(SELECT CONCAT('Finals Winner (Season ', s.id, ', Team: ', winner_team.name, ')')
+                FROM seasons AS s
+                LEFT JOIN teams AS winner_team ON winner_team.id = s.finals_winner_id
+                WHERE s.finals_winner_id = p.id
+                LIMIT 1) AS player_finals_winner"),
                 DB::raw("CASE
                     WHEN s.finals_mvp_id = p.id THEN 1
                     ELSE 0

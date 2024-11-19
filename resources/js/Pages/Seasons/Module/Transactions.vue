@@ -30,8 +30,15 @@
             </button>
         </div>
 
+        <!-- Loader while fetching data -->
+        <div v-if="loading" class="flex justify-center items-center py-4">
+            <div class="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full border-blue-600 border-t-transparent" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+
         <!-- Transactions Table -->
-        <div v-if="data.data?.length > 0">
+        <div v-if="!loading && data.data?.length > 0">
             <table class="min-w-full divide-y divide-gray-200 text-xs">
                 <thead class="bg-gray-50 text-nowrap">
                     <tr>
@@ -91,10 +98,11 @@
         </div>
 
         <!-- No transactions message -->
-        <div v-else class="text-center py-4 text-gray-500">
+        <div v-else class="text-center py-4 text-gray-500" v-if="!loading">
             <p>No transactions available for this season.</p>
         </div>
     </div>
+
     <Modal :show="showPlayerProfileModal" :maxWidth="'6xl'">
         <button
             class="flex float-end bg-gray-100 p-3"
@@ -138,6 +146,7 @@ const search = ref({
     search: '',
     type: 'notable',
 });
+const loading = ref(false); // Add a loading state to track if data is being fetched
 
 // Change transaction type (normal or notable)
 const changeType = (type) => {
@@ -149,6 +158,7 @@ const changeType = (type) => {
 // Fetch the transactions data from Laravel API
 const fetchTransactions = async () => {
     try {
+        loading.value = true; // Set loading to true before making the API request
         search.value.type = selectedType.value;
         search.value.season_id = props.season_id;
         search.value.team_id = props.team_id;
@@ -156,6 +166,8 @@ const fetchTransactions = async () => {
         data.value = response.data; // Store the response data (includes pagination info)
     } catch (error) {
         console.error("Error fetching transactions:", error);
+    } finally {
+        loading.value = false; // Set loading to false after the request is completed
     }
 };
 
