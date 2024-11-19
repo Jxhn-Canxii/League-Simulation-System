@@ -314,8 +314,7 @@ class ScheduleController extends Controller
                 $playInTeams = DB::table('standings_view')
                     ->where('season_id', $seasonId)
                     ->where('conference_id', $conferenceId)
-                    ->whereIn('overall_rank', [7, 8, 9, 10])
-                    ->orderBy('overall_rank', 'asc')
+                    ->whereIn('conference_rank', [7, 8, 9, 10])
                     ->pluck('team_id')
                     ->toArray();
 
