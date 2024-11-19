@@ -273,6 +273,7 @@ class RatingsController extends Controller
                 \Log::info('Processing last update.');
 
                 ///lastly update all active players to non rookie
+                //free agent veteran players
                 DB::table('players')
                 ->where('team_id', 0)
                 ->where('is_active', 1)
@@ -284,6 +285,7 @@ class RatingsController extends Controller
                     'is_active' => DB::raw("CASE WHEN age + 1 >= retirement_age THEN 0 ELSE is_active END"), // Set is_active to 0 if age reaches retirement_age
                 ]);
 
+                ///active players with teams
                 DB::table('players')
                 ->where('team_id', '>',0)
                 ->where('is_active', 1)
@@ -291,6 +293,7 @@ class RatingsController extends Controller
                     'is_rookie' => 0,
                     'age' => DB::raw('age + 1'), // Increment age by 1
                     'contract_years' => DB::raw("CASE WHEN age + 1 >= retirement_age THEN 0 ELSE contract_years END"), // Set contract_years to 0 if age reaches retirement_age
+                    'team_id' => DB::raw("CASE WHEN age + 1 >= retirement_age THEN 0 ELSE team_id END"), // Set contract_years to 0 if age reaches retirement_age
                     'is_active' => DB::raw("CASE WHEN age + 1 >= retirement_age THEN 0 ELSE is_active END"), // Set is_active to 0 if age reaches retirement_age
                 ]);
 
