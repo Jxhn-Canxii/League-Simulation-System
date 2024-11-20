@@ -13,7 +13,7 @@ SELECT
     COUNT(DISTINCT CASE WHEN s.round = 'interconference_semi_finals' THEN s.game_id END) AS interconference_semi_finals_appearances,
     COUNT(DISTINCT CASE WHEN s.round = 'finals' THEN s.game_id END) AS finals_appearances,
     COUNT(DISTINCT s.game_id) AS total_playoff_appearances,
-    COUNT(DISTINCT CASE WHEN s.round IN ('round_of_32', 'round_of_16', 'quarter_finals', 'semi_finals', 'interconference_semi_finals', 'finals') THEN s.season_id END) AS seasons_played_in_playoffs,
+    COUNT(DISTINCT CASE WHEN s.round IN ('play_ins_elims_round_1','play_ins_elims_round_2','play_ins_finals','round_of_32', 'round_of_16', 'quarter_finals', 'semi_finals', 'interconference_semi_finals', 'finals') THEN s.season_id END) AS seasons_played_in_playoffs,
     COUNT(DISTINCT all_s.season_id) AS total_seasons_played,
     COUNT(DISTINCT CASE
         WHEN s.round = 'finals' AND
@@ -34,7 +34,7 @@ LEFT JOIN
 LEFT JOIN
     (SELECT DISTINCT player_id, season_id FROM player_game_stats) all_s ON all_s.player_id = p.id
 WHERE
-    s.round IN ('round_of_32', 'round_of_16', 'quarter_finals', 'semi_finals', 'interconference_semi_finals', 'finals')
+    s.round IN ('play_ins_elims_round_1','play_ins_elims_round_2','play_ins_finals','round_of_32', 'round_of_16', 'quarter_finals', 'semi_finals', 'interconference_semi_finals', 'finals')
 GROUP BY
     p.id, p.name, p.is_active
 ORDER BY
