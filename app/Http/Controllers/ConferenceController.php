@@ -58,11 +58,16 @@ class ConferenceController extends Controller
 
     public function seasonstandings(Request $request)
     {
-        // Retrieve the season_id from the request
+        // Retrieve the season_id and conference_id from the request
         $seasonId = $request->season_id;
         $conferenceId = $request->conference_id;
 
-        // Fetch standings filtered by season_id
+        // Fetch the conference name from the conferences table
+        $conference = DB::table('conferences')
+            ->where('id', $conferenceId)
+            ->first();
+
+        // Fetch standings filtered by season_id and conference_id
         $standings = DB::table('standings_view')
             ->where('season_id', $seasonId)
             ->where('conference_id', $conferenceId)
@@ -70,10 +75,13 @@ class ConferenceController extends Controller
             ->orderByDesc('score_difference') // If wins are tied, then order by score_difference in descending order
             ->get();
 
+        // Return the standings along with the conference name
         return response()->json([
             'standings' => $standings,
+            'conference_name' => $conference ? $conference->name : 'N/A', // Check if conference exists
         ]);
     }
+
     // Function to get power rankings
     public function powerrankings(Request $request)
     {

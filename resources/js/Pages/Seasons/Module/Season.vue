@@ -6,7 +6,7 @@
     >
         <div class="bg-white p-6 rounded-md shadow-lg w-screen min-h-full overflow-hidden">
             <h2 class="text-lg font-semibold text-gray-800 mb-2 text-left">
-                {{ season_info?.seasons[0].name ?? "" }} Standings
+                {{ season_info?.seasons[0].name ?? "" }} {{ season_standings?.conference_name ?? "" }} Standings
             </h2>
             <div class="grid grid-cols-3 gap-6">
                 <div class="block">
@@ -238,7 +238,7 @@
             <!-- Standings UI (Left Side) -->
             <div class="md:col-span-3 sm:col-span-1 overflow-y-auto">
                 <h2 class="text-lg font-semibold text-gray-800 mb-2">
-                    {{ season_info?.seasons[0].name ?? "" }} Standings
+                    {{ season_info?.seasons[0].name ?? "" }} {{ season_standings?.conference_name ?? "" }} Standings
                 </h2>
                 <table
                     class="min-w-full divide-y divide-gray-200"
