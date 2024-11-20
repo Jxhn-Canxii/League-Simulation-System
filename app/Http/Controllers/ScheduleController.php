@@ -313,10 +313,15 @@ class ScheduleController extends Controller
                 $playInTeams = DB::table('standings_view')
                     ->where('season_id', $seasonId)
                     ->where('conference_id', $conferenceId)
-                    ->whereIn('conference_rank', [7, 8]) // Filter for conference_rank 7 and 8
-                    ->orderBy('conference_rank', 'asc')  // Order by conference_rank in ascending order
-                    ->pluck('team_id') // Get the team_id of the matching teams
-                    ->toArray();
+                    ->orderBy('conference_rank', 'asc') // Primary sort by conference_rank
+                    ->orderBy('overall_rank', 'asc')   // Secondary sort to handle ties
+                    ->limit(10)                        // Limit to the top 10 teams
+                    ->get();                           // Retrieve the result for further filtering
+
+                // Filter to get only the 7th and 8th team after handling ties
+                $playInTeams = $playInTeams->filter(function ($team) {
+                    return $team->conference_rank == 7 || $team->conference_rank == 8;
+                })->pluck('team_id')->toArray();
 
 
                 // Ensure there are at least four teams for play-ins
@@ -341,11 +346,15 @@ class ScheduleController extends Controller
                 $playInTeams = DB::table('standings_view')
                     ->where('season_id', $seasonId)
                     ->where('conference_id', $conferenceId)
-                    ->whereIn('conference_rank', [9, 10]) // Filter for conference_rank 9 and 10
-                    ->orderBy('conference_rank', 'asc')  // Order by conference_rank in ascending order
-                    ->pluck('team_id') // Get the team_id of the matching teams
-                    ->toArray();
+                    ->orderBy('conference_rank', 'asc') // Primary sort by conference_rank
+                    ->orderBy('overall_rank', 'asc')   // Secondary sort to handle ties
+                    ->limit(10)                        // Limit to the top 10 teams
+                    ->get();                           // Retrieve the result for further filtering
 
+                // Filter to get only the 9th and 10th team after handling ties
+                $playInTeams = $playInTeams->filter(function ($team) {
+                    return $team->conference_rank == 9 || $team->conference_rank == 10;
+                })->pluck('team_id')->toArray();
 
 
                 // Ensure there are at least four teams for play-ins
