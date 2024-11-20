@@ -153,12 +153,12 @@ class AnalyticsController extends Controller
         ]);
     }
 
-    public function getSeasonLeaders(Request $request)
+    public function getSeasonLeadersV1(Request $request)
     {
         // Determine the type of leader to return based on the request
         $leaderType = $request->input('leader_type', 'mvp_leaders'); // Default to 'mvp_leaders'
         $seasonId =  $request->input('season_id', $this->getLatestSeasonId());
-        $excludedRounds = ['play_ins_elims_round_1','play_ins_elims_round_2','play_ins_finals','quarter_finals', 'round_of_16', 'round_of_32', 'semi_finals', 'interconference_semi_finals', 'finals'];
+        $excludedRounds = ['play_ins_elims_round_1', 'play_ins_elims_round_2', 'play_ins_finals', 'quarter_finals', 'round_of_16', 'round_of_32', 'semi_finals', 'interconference_semi_finals', 'finals'];
 
         // Fetch player stats for the given season and conference
         $playerStats = \DB::table('player_game_stats')
@@ -316,6 +316,164 @@ class AnalyticsController extends Controller
         };
 
         return response()->json(['leaders' => $response]);
+    }
+    public function getSeasonLeaders(Request $request)
+    {
+        // Determine the type of leader to return based on the request
+        $leaderType = $request->input('leader_type', 'mvp_leaders'); // Default to 'mvp_leaders'
+        $seasonId =  $request->input('season_id', $this->getLatestSeasonId());
+
+        // Ensure $seasonId is valid
+        if (empty($seasonId)) {
+            return response()->json(['error' => 'Invalid season ID.'], 400);
+        }
+
+        // Fetch player season stats for the given season
+        $playerStats = \DB::table('player_season_stats')
+            ->join('players', 'player_season_stats.player_id', '=', 'players.id')
+            ->join('teams', 'players.team_id', '=', 'teams.id')
+            ->where('player_season_stats.season_id', $seasonId)
+            ->select(
+                'players.id as player_id',
+                'players.name as player_name',
+                'players.draft_status as draft_status',
+                'players.team_id',
+                'teams.name as team_name',
+                'players.is_rookie',
+                'player_season_stats.total_points',
+                'player_season_stats.total_rebounds',
+                'player_season_stats.total_assists',
+                'player_season_stats.total_steals',
+                'player_season_stats.total_blocks',
+                'player_season_stats.total_turnovers',
+                'player_season_stats.total_fouls',
+                'player_season_stats.total_games_played',
+                'player_season_stats.avg_points_per_game',
+                'player_season_stats.avg_rebounds_per_game',
+                'player_season_stats.avg_assists_per_game',
+                'player_season_stats.avg_steals_per_game',
+                'player_season_stats.avg_blocks_per_game',
+                'player_season_stats.avg_turnovers_per_game',
+                'player_season_stats.avg_fouls_per_game'
+            )
+            ->get();
+
+        $formattedPlayerStats = [];
+
+        foreach ($playerStats as $stats) {
+            $gamesPlayed = $stats->total_games_played;
+
+            $formattedPlayerStats[] = [
+                'player_id' => $stats->player_id,
+                'player_name' => $stats->player_name,
+                'team_name' => $stats->team_name,
+                'is_rookie' => $stats->is_rookie, // Check if rookie
+                'draft_status' => $stats->draft_status, // Check if rookie
+                'games_played' => $gamesPlayed,
+                'points_per_game' => number_format($stats->avg_points_per_game, 2),
+                'rebounds_per_game' => number_format($stats->avg_rebounds_per_game, 2),
+                'assists_per_game' => number_format($stats->avg_assists_per_game, 2),
+                'blocks_per_game' => number_format($stats->avg_blocks_per_game, 2),
+                'steals_per_game' => number_format($stats->avg_steals_per_game, 2),
+                'turnovers_per_game' => number_format($stats->avg_turnovers_per_game, 2),
+                'fouls_per_game' => number_format($stats->avg_fouls_per_game, 2),
+            ];
+        }
+
+        // Define the limit of top leaders
+        $limit = 10;
+
+        // Fetch MVP leaders based on performance score from player_season_stats
+        $mvpLeaders = \DB::table('player_season_stats')
+            ->join('players', 'player_season_stats.player_id', '=', 'players.id')
+            ->join('teams', 'players.team_id', '=', 'teams.id')
+            ->where('player_season_stats.season_id', $seasonId)
+            ->select(
+                'players.id as player_id',
+                'players.name as player_name',
+                'players.draft_status as draft_status',
+                'players.team_id',
+                'teams.name as team_name',
+                'players.is_rookie',
+                'player_season_stats.total_games_played',
+                'player_season_stats.avg_points_per_game',
+                'player_season_stats.avg_rebounds_per_game',
+                'player_season_stats.avg_assists_per_game',
+                'player_season_stats.avg_steals_per_game',
+                'player_season_stats.avg_blocks_per_game',
+                'player_season_stats.avg_turnovers_per_game',
+                'player_season_stats.avg_fouls_per_game',
+                \DB::raw('(AVG(player_season_stats.total_points) +
+                    (AVG(player_season_stats.total_rebounds) * 1.2) +
+                    (AVG(player_season_stats.total_assists) * 1.5) +
+                    (AVG(player_season_stats.total_steals) * 2) +
+                    (AVG(player_season_stats.total_blocks) * 2) -
+                    (AVG(player_season_stats.total_turnovers) * 1) -
+                    (AVG(player_season_stats.total_fouls) * 0.5)) as performance_score')
+            )
+            ->groupBy('players.id', 'players.name', 'players.team_id', 'teams.name', 'players.is_rookie', 'players.draft_status')
+            ->orderByDesc('performance_score')
+            ->take($limit)
+            ->get();
+
+        // Fetch Rookie leaders based on performance score
+        $rookieLeaders = \DB::table('player_season_stats')
+            ->join('players', 'player_season_stats.player_id', '=', 'players.id')
+            ->join('teams', 'players.team_id', '=', 'teams.id')
+            ->where('player_season_stats.season_id', $seasonId)
+            ->where('players.is_rookie', true) // Use is_rookie flag for rookies
+            ->select(
+                'players.id as player_id',
+                'players.name as player_name',
+                'players.draft_status as draft_status',
+                'players.team_id',
+                'teams.name as team_name',
+                'players.is_rookie',
+                'player_season_stats.total_games_played',
+                'player_season_stats.avg_points_per_game',
+                'player_season_stats.avg_rebounds_per_game',
+                'player_season_stats.avg_assists_per_game',
+                'player_season_stats.avg_steals_per_game',
+                'player_season_stats.avg_blocks_per_game',
+                'player_season_stats.avg_turnovers_per_game',
+                'player_season_stats.avg_fouls_per_game',
+                \DB::raw('(AVG(player_season_stats.total_points) +
+                    (AVG(player_season_stats.total_rebounds) * 1.2) +
+                    (AVG(player_season_stats.total_assists) * 1.5) +
+                    (AVG(player_season_stats.total_steals) * 2) +
+                    (AVG(player_season_stats.total_blocks) * 2) -
+                    (AVG(player_season_stats.total_turnovers) * 1) -
+                    (AVG(player_season_stats.total_fouls) * 0.5)) as performance_score')
+            )
+            ->groupBy('players.id', 'players.name', 'players.team_id', 'teams.name', 'players.is_rookie', 'players.draft_status')
+            ->orderByDesc('performance_score')
+            ->take($limit)
+            ->get();
+
+        // Sort player stats by specific categories
+        $topPoints = collect($formattedPlayerStats)->sortByDesc('points_per_game')->take($limit)->values();
+        $topRebounds = collect($formattedPlayerStats)->sortByDesc('rebounds_per_game')->take($limit)->values();
+        $topAssists = collect($formattedPlayerStats)->sortByDesc('assists_per_game')->take($limit)->values();
+        $topBlocks = collect($formattedPlayerStats)->sortByDesc('blocks_per_game')->take($limit)->values();
+        $topSteals = collect($formattedPlayerStats)->sortByDesc('steals_per_game')->take($limit)->values();
+        $topTurnovers = collect($formattedPlayerStats)->sortByDesc('turnovers_per_game')->take($limit)->values();
+        $topFouls = collect($formattedPlayerStats)->sortByDesc('fouls_per_game')->take($limit)->values();
+
+        // Return all leaders under the 'data' key
+        $response = match ($leaderType) {
+            'top_point_leaders' => $topPoints,
+            'top_rebound_leaders' => $topRebounds,
+            'top_assist_leaders' => $topAssists,
+            'top_block_leaders' => $topBlocks,
+            'top_steals_leaders' => $topSteals,
+            'top_turnovers_leaders' => $topTurnovers,
+            'top_fouls_leaders' => $topFouls,
+            'mvp_leaders' => $mvpLeaders,
+            'rookie_leaders' => $rookieLeaders,
+            default => [],
+        };
+
+        return response()->json(['data' => $response]);
     }
 
     private function getLatestSeasonId()
