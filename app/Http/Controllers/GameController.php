@@ -265,7 +265,8 @@ class GameController extends Controller
             ];
         })->values()->toArray();
 
-
+        $homeTeamRatings = $this->getTeamRatingsPerSeason($game->season_id, $game->home_id);
+        $awayTeamRatings = $this->getTeamRatingsPerSeason($game->season_id, $game->away_id);
         // Format data for box score
         $boxScore = [
             'game_id' => $game->game_id,
@@ -277,6 +278,7 @@ class GameController extends Controller
                 'primary_color' => $game->home_primary_color, // Add primary color
                 'secondary_color' => $game->home_secondary_color, // Add secondary color
                 'streak' => $homeTeamStreak,
+                'ratings' => $homeTeamRatings,
             ],
             'away_team' => [
                 'team_id' => $game->away_id, // Use the correct field from your query
@@ -285,6 +287,7 @@ class GameController extends Controller
                 'primary_color' => $game->away_primary_color, // Add primary color
                 'secondary_color' => $game->away_secondary_color, // Add secondary color
                 'streak' => $awayTeamStreak,
+                'ratings' => $awayTeamRatings,
             ],
             'player_stats' => [
                 'home' => $homeTeamPlayersArray,
@@ -300,6 +303,36 @@ class GameController extends Controller
             'box_score' => $boxScore,
         ]);
     }
+
+    private function getTeamRatingsPerSeason($seasonId, $teamId)
+    {
+        // Get team ratings for the given season using the player_ratings table
+        $teamRatings = \DB::table('player_game_stats')
+            ->join('players as p', 'player_game_stats.player_id', '=', 'p.id')
+            ->join('player_ratings as pr', 'p.id', '=', 'pr.player_id')  // Join with player_ratings table
+            ->join('teams as t', 'player_game_stats.team_id', '=', 't.id')
+            ->select(
+                't.id as team_id',
+                't.name as team_name',
+                'player_game_stats.season_id',
+                \DB::raw('ROUND(AVG(pr.defense_rating)) as defense_rating'),
+                \DB::raw('ROUND(AVG(pr.shooting_rating)) as offense_rating'), // Assuming offense is shooting_rating
+                \DB::raw('ROUND(AVG(pr.passing_rating)) as passing_rating'),
+                \DB::raw('ROUND(AVG(pr.rebounding_rating)) as rebounding_rating')
+            )
+            ->where('player_game_stats.season_id', $seasonId)  // Filter by season
+            ->where('player_game_stats.team_id', $teamId)  // Filter by team_id (optional)
+            ->groupBy('t.id', 't.name', 'player_game_stats.season_id')
+            ->get();
+
+        if ($teamRatings->isEmpty()) {
+            return response()->json(['message' => 'No team ratings found for this season'], 404);
+        }
+
+        return $teamRatings[0];
+    }
+
+
     /**
      * Function to get team streak
      */
