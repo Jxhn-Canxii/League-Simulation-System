@@ -313,10 +313,9 @@ class ScheduleController extends Controller
                 $playInTeams = DB::table('standings_view')
                     ->where('season_id', $seasonId)
                     ->where('conference_id', $conferenceId)
-                    ->orderBy('overall_rank', 'asc')  // Order by overall_rank in ascending order (lowest rank first)
-                    ->skip(6)  // Skip the first 6 teams to get the 7th and 8th
-                    ->take(2)  // Limit the result to 2 teams (7th and 8th)
-                    ->pluck('team_id')
+                    ->whereIn('conference_rank', [7, 8]) // Filter for conference_rank 7 and 8
+                    ->orderBy('conference_rank', 'asc')  // Order by conference_rank in ascending order
+                    ->pluck('team_id') // Get the team_id of the matching teams
                     ->toArray();
 
 
@@ -342,11 +341,11 @@ class ScheduleController extends Controller
                 $playInTeams = DB::table('standings_view')
                     ->where('season_id', $seasonId)
                     ->where('conference_id', $conferenceId)
-                    ->orderBy('overall_rank', 'asc')  // Order by overall_rank in ascending order (lowest rank first)
-                    ->skip(8)  // Skip the first 8 teams to get the 9th and 10th
-                    ->take(2)  // Limit the result to 2 teams (9th and 10th)
-                    ->pluck('team_id')
+                    ->whereIn('conference_rank', [9, 10]) // Filter for conference_rank 9 and 10
+                    ->orderBy('conference_rank', 'asc')  // Order by conference_rank in ascending order
+                    ->pluck('team_id') // Get the team_id of the matching teams
                     ->toArray();
+
 
 
                 // Ensure there are at least four teams for play-ins
