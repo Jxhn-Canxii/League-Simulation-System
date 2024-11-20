@@ -28,6 +28,50 @@
                         gameDetails?.home_team.streak
                     }})
                 </p>
+                <div class="flex justify-center" v-if="!props.showBoxScore">
+                    <ul class="flex space-x-2 mt-2">
+                        <li class="flex flex-col items-center">
+                            <span
+                                class="flex-shrink-0 w-7 h-7 p-2 bg-blue-600 rounded-full flex items-center justify-center"
+                            >
+                                <span class="text-sm font-bold text-white">{{
+                                    gameDetails?.home_team.ratings.offense_rating
+                                }}</span>
+                            </span>
+                            <p class="text-xs text-gray-900 font-bold">OFF</p>
+                        </li>
+                        <li class="flex flex-col items-center">
+                            <span
+                            class="flex-shrink-0 w-7 h-7 p-2 bg-red-600 rounded-full flex items-center justify-center"
+                        >
+                            <span class="text-sm font-bold text-white">{{
+                                    gameDetails?.home_team.ratings.defense_rating
+                                }}</span>
+                            </span>
+                            <p class="text-xs text-gray-900 font-bold">DEF</p>
+                        </li>
+                        <li class="flex flex-col items-center">
+                            <span
+                            class="flex-shrink-0 w-7 h-7 p-2 bg-violet-600 rounded-full flex items-center justify-center"
+                        >
+                            <span class="text-sm font-bold text-white">{{
+                                    gameDetails?.home_team.ratings.passing_rating
+                                }}</span>
+                            </span>
+                            <p class="text-xs text-gray-900 font-bold">PASS</p>
+                        </li>
+                        <li class="flex flex-col items-center">
+                            <span
+                            class="flex-shrink-0 w-7 h-7 p-2 bg-yellow-600 rounded-full flex items-center justify-center"
+                        >
+                            <span class="text-sm font-bold text-white">{{
+                                    gameDetails?.home_team.ratings.rebounding_rating
+                                }}</span>
+                            </span>
+                            <p class="text-xs text-gray-900 font-bold">REB</p>
+                        </li>
+                    </ul>
+                </div>
             </div>
 
             <div class="flex-1 text-center mb-2 lg:mb-0 text-white">
@@ -90,6 +134,50 @@
                         gameDetails?.away_team.streak
                     }})
                 </p>
+                <div class="flex justify-center" v-if="!props.showBoxScore">
+                    <ul class="flex space-x-2 mt-2">
+                        <li class="flex flex-col items-center">
+                            <span
+                                class="flex-shrink-0 w-7 h-7 p-2 bg-blue-600 rounded-full flex items-center justify-center"
+                            >
+                                <span class="text-sm font-bold text-white">{{
+                                    gameDetails?.away_team.ratings.offense_rating
+                                }}</span>
+                            </span>
+                            <p class="text-xs text-gray-900 font-bold">OFF</p>
+                        </li>
+                        <li class="flex flex-col items-center">
+                            <span
+                            class="flex-shrink-0 w-7 h-7 p-2 bg-red-600 rounded-full flex items-center justify-center"
+                        >
+                            <span class="text-sm font-bold text-white">{{
+                                    gameDetails?.away_team.ratings.defense_rating
+                                }}</span>
+                            </span>
+                            <p class="text-xs text-gray-900 font-bold">DEF</p>
+                        </li>
+                        <li class="flex flex-col items-center">
+                            <span
+                            class="flex-shrink-0 w-7 h-7 p-2 bg-violet-600 rounded-full flex items-center justify-center"
+                        >
+                            <span class="text-sm font-bold text-white">{{
+                                    gameDetails?.away_team.ratings.passing_rating
+                                }}</span>
+                            </span>
+                            <p class="text-xs text-gray-900 font-bold">PASS</p>
+                        </li>
+                        <li class="flex flex-col items-center">
+                            <span
+                            class="flex-shrink-0 w-7 h-7 p-2 bg-yellow-600 rounded-full flex items-center justify-center"
+                        >
+                            <span class="text-sm font-bold text-white">{{
+                                    gameDetails?.away_team.ratings.rebounding_rating
+                                }}</span>
+                            </span>
+                            <p class="text-xs text-gray-900 font-bold">REB</p>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
 
