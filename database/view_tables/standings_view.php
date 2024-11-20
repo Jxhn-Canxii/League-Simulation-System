@@ -1,4 +1,4 @@
-CREATE VIEW standings_view AS
+CREATE OR REPLACE VIEW  standings_view AS
 WITH team_games AS (
     SELECT
         teams.id AS team_id,
