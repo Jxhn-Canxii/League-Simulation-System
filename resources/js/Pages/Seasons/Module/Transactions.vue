@@ -53,7 +53,7 @@
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     <!-- Loop through transactions -->
-                    <tr v-for="transaction in data.data" :key="transaction.id" @click.prevent="showPlayerProfileModal = transaction.player_id" :class="transaction.is_active ? 'bg-green-100' : 'bg-red-100'" class="hover:bg-gray-100 cursor-pointer">
+                    <tr v-for="transaction in data.data" :key="transaction.id" @click.prevent="showPlayerProfileModal = transaction.player_id" :class="transaction.is_active ? 'bg-white' : 'bg-red-100'" class="hover:bg-gray-100 cursor-pointer">
                         <td class="px-2 py-1 whitespace-nowrap border">
                             <span>
                                 {{ transaction.player_name }}
