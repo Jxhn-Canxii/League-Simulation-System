@@ -1,4 +1,4 @@
-CREATE VIEW player_playoff_appearances AS
+CREATE OR REPLACE VIEW player_playoff_appearances AS
 SELECT
     p.id AS player_id,
     p.name AS player_name,
@@ -6,6 +6,9 @@ SELECT
     COALESCE(GROUP_CONCAT(DISTINCT t.acronym ORDER BY t.acronym SEPARATOR ', '), 'N/A') AS team_acronyms,
     COALESCE(MAX(t2.name), 'Free Agent') AS current_team_name,
     p.is_active AS active_status,
+    COUNT(DISTINCT CASE WHEN s.round = 'play_ins_elims_round_1' THEN s.game_id END) AS play_ins_elims_round_1_appearances,
+    COUNT(DISTINCT CASE WHEN s.round = 'play_ins_elims_round_2' THEN s.game_id END) AS play_ins_elims_round_2_appearances,
+    COUNT(DISTINCT CASE WHEN s.round = 'play_ins_finals' THEN s.game_id END) AS play_ins_finals_appearances,
     COUNT(DISTINCT CASE WHEN s.round = 'round_of_32' THEN s.game_id END) AS round_of_32_appearances,
     COUNT(DISTINCT CASE WHEN s.round = 'round_of_16' THEN s.game_id END) AS round_of_16_appearances,
     COUNT(DISTINCT CASE WHEN s.round = 'quarter_finals' THEN s.game_id END) AS quarter_finals_appearances,
