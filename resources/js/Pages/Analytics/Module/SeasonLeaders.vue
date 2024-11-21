@@ -43,37 +43,37 @@
                     <div class="mt-2">
                         <!-- Highlighted Stat -->
                         <div class="text-2xl font-bold text-blue-600" v-if="selectedLeaderType === 'top_point_leaders'">
-                            {{ player.points_per_game }} <span class="text-sm">PPG</span>
+                            {{ player.avg_points_per_game }} <span class="text-sm">PPG</span>
                         </div>
                         <div class="text-2xl font-bold text-blue-600" v-if="selectedLeaderType === 'top_rebound_leaders'">
-                            {{ player.rebounds_per_game }} <span class="text-sm">RPG</span>
+                            {{ player.avg_rebounds_per_game }} <span class="text-sm">RPG</span>
                         </div>
                         <div class="text-2xl font-bold text-blue-600" v-if="selectedLeaderType === 'top_assist_leaders'">
-                            {{ player.assists_per_game }} <span class="text-sm">APG</span>
+                            {{ player.avg_assists_per_game }} <span class="text-sm">APG</span>
                         </div>
                         <div class="text-2xl font-bold text-blue-600" v-if="selectedLeaderType === 'top_steals_leaders'">
-                            {{ player.steals_per_game }} <span class="text-sm">SPG</span>
+                            {{ player.avg_steals_per_game }} <span class="text-sm">SPG</span>
                         </div>
                         <div class="text-2xl font-bold text-blue-600" v-if="selectedLeaderType === 'top_block_leaders'">
-                            {{ player.blocks_per_game }} <span class="text-sm">BPG</span>
+                            {{ player.avg_blocks_per_game }} <span class="text-sm">BPG</span>
                         </div>
                         <div class="text-2xl font-bold text-blue-600" v-if="selectedLeaderType === 'top_turnovers_leaders'">
-                            {{ player.turnovers_per_game }} <span class="text-sm">TOPG</span>
+                            {{ player.avg_turnovers_per_game }} <span class="text-sm">TOPG</span>
                         </div>
                         <div class="text-2xl font-bold text-blue-600" v-if="selectedLeaderType === 'top_fouls_leaders'">
-                            {{ player.fouls_per_game }} <span class="text-sm">FPG</span>
+                            {{ player.avg_fouls_per_game }} <span class="text-sm">FPG</span>
                         </div>
 
                         <!-- Other Stats -->
                         <div class="text-lg text-gray-600" v-if="selectedLeaderType !== 'top_point_leaders' && selectedLeaderType !== 'top_rebound_leaders' && selectedLeaderType !== 'top_assist_leaders' && selectedLeaderType !== 'top_steals_leaders' && selectedLeaderType !== 'top_block_leaders' && selectedLeaderType !== 'top_turnovers_leaders' && selectedLeaderType !== 'top_fouls_leaders'">
-                            GP: {{ player.games_played }}<br>
-                            PPG: {{ player.points_per_game }}<br>
-                            RPG: {{ player.rebounds_per_game }}<br>
-                            APG: {{ player.assists_per_game }}<br>
-                            SPG: {{ player.steals_per_game }}<br>
-                            BPG: {{ player.blocks_per_game }}<br>
-                            TOPG: {{ player.turnovers_per_game }}<br>
-                            FPG: {{ player.fouls_per_game }}
+                            GP: {{ player.total_games_played ?? player.games_played ?? 0 }}<br>
+                            PPG: {{ player.avg_points_per_game }}<br>
+                            RPG: {{ player.avg_rebounds_per_game }}<br>
+                            APG: {{ player.avg_assists_per_game }}<br>
+                            SPG: {{ player.avg_steals_per_game }}<br>
+                            BPG: {{ player.avg_blocks_per_game }}<br>
+                            TOPG: {{ player.avg_turnovers_per_game }}<br>
+                            FPG: {{ player.avg_fouls_per_game }}
                         </div>
                         <small class="text-gray-400" title="Performance Score">{{ player.performance_score }}</small>
                     </div>

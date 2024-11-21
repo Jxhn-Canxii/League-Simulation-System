@@ -243,7 +243,7 @@ import Transactions from "./Module/Transactions.vue";
 
 const props = defineProps({
     season_id: {
-        type: [Number, String],
+        type: Number,
         default: 0,
         required: true,
     },
