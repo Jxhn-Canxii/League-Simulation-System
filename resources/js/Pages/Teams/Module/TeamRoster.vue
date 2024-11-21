@@ -153,7 +153,7 @@
                             </span>
                         </td>
                         <td class="px-2 py-1 whitespace-nowrap border">
-                            {{ player.games_played }}
+                            {{ Math.round(player.games_played) }}
                         </td>
                         <td class="px-2 py-1 whitespace-nowrap border">
                             {{ player.average_points_per_game.toFixed(1) }}
