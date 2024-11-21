@@ -303,6 +303,7 @@ class PlayersController extends Controller
                         'retirement_age' => $player->retirement_age,
                         'drafted_team' => $player->drafted_team,
                         'draft_class' => $player->draft_class,
+                        'draft_status' => $player->draft_status,
                         'status' => $player->team_id == $teamId ? ($player->is_active ? 1 : 0) : 2,
                         'average_points_per_game' => (float)$stats->avg_points_per_game,
                         'average_rebounds_per_game' => (float)$stats->avg_rebounds_per_game,
