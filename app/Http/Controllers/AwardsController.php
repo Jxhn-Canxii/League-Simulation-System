@@ -274,7 +274,7 @@ class AwardsController extends Controller
                         DB::raw('SUM(CASE WHEN minutes > 0 THEN turnovers ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_turnovers_per_game'),
                         DB::raw('SUM(CASE WHEN minutes > 0 THEN fouls ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_fouls_per_game')
                     )
-                    ->groupBy('player_id')
+                    ->groupBy('player_id','player_game_stats.team_id')
                     ->first();
             } else {
                 // Set all stats to 0 if no stats are found
@@ -324,6 +324,7 @@ class AwardsController extends Controller
                     'avg_fouls_per_game' => $playerStats->avg_fouls_per_game,
 
                     // Total stats
+                    'total_games_played' => $playerStats->total_games_played,  // Add total_games_played here
                     'total_points' => $playerStats->total_points,
                     'total_rebounds' => $playerStats->total_rebounds,
                     'total_assists' => $playerStats->total_assists,
