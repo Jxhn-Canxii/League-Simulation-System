@@ -38,7 +38,7 @@
                 <i class="fas fa-user-circle text-blue-600 text-4xl mr-4"></i>
                 <div class="flex-1">
                     <h3 class="text-md text-nowrap font-semibold text-gray-800">{{ player.player_name }}</h3>
-                    <p class="text-sm text-gray-500">{{ player.is_rookie == 1 ? 'Rookie' : 'Veteran' }} - {{ player.team_name }}</p>
+                    <p class="text-sm text-gray-500">{{ player.draft_id == props.season_id ? 'Rookie' : 'Veteran' }} - {{ player.team_name }}</p>
                     <p class="text-xs text-gray-400">{{ player.draft_status }}</p>
                     <div class="mt-2">
                         <!-- Highlighted Stat -->
