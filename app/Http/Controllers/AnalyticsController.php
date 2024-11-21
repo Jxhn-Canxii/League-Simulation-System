@@ -377,28 +377,50 @@ class AnalyticsController extends Controller
         $limit = 10;
 
         // Fetch MVP leaders
-        $mvpLeaders = $playerStats->sortByDesc(function ($stats) {
-            return ($stats->avg_points_per_game * 1) +
+        // Calculate MVP Leaders
+        $mvpLeaders = $playerStats->map(function ($stats) {
+            // Calculate performance points
+            $performancePoints =
+                ($stats->avg_points_per_game * 1) +
                 ($stats->avg_rebounds_per_game * 1.2) +
                 ($stats->avg_assists_per_game * 1.5) +
                 ($stats->avg_steals_per_game * 2) +
                 ($stats->avg_blocks_per_game * 2) -
                 ($stats->avg_turnovers_per_game * 1) -
                 ($stats->avg_fouls_per_game * 0.5);
-        })->take($limit);
 
-        // Fetch Rookie leaders
-        $rookieLeaders = $playerStats->where('draft_id', $seasonId)
-            ->sortByDesc(function ($stats) {
-                return ($stats->avg_points_per_game * 1) +
+            // Store the raw performance score for sorting
+            $stats->performance_score = (float) $performancePoints;
+
+            return $stats;
+        })
+            ->sortByDesc('performance_score') // Sort numerically by performance score
+            ->take($limit);
+
+        // Calculate Rookie Leaders
+        $rookieLeaders = $playerStats
+            ->filter(function ($stats) use ($seasonId) {
+                // Filter rookies based on draft_id matching the current season ID
+                return $stats->draft_id === $seasonId;
+            })
+            ->map(function ($stats) {
+                // Calculate performance points
+                $performancePoints =
+                    ($stats->avg_points_per_game * 1) +
                     ($stats->avg_rebounds_per_game * 1.2) +
                     ($stats->avg_assists_per_game * 1.5) +
                     ($stats->avg_steals_per_game * 2) +
                     ($stats->avg_blocks_per_game * 2) -
                     ($stats->avg_turnovers_per_game * 1) -
                     ($stats->avg_fouls_per_game * 0.5);
-            })->take($limit);
 
+                // Store the raw performance score for sorting
+                $stats->performance_score = (float) $performancePoints;
+
+                return $stats;
+            })
+            ->sortByDesc('performance_score') // Sort numerically by performance score
+            ->take($limit);
         // Sort by specific categories
         $topPoints = $formattedPlayerStats->sortByDesc('points_per_game')->take($limit);
         $topRebounds = $formattedPlayerStats->sortByDesc('rebounds_per_game')->take($limit);

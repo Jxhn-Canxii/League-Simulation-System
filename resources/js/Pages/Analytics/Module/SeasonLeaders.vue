@@ -75,7 +75,7 @@
                             TOPG: {{ player.avg_turnovers_per_game }}<br>
                             FPG: {{ player.avg_fouls_per_game }}
                         </div>
-                        <small class="text-gray-400" title="Performance Score">{{ player.performance_score }}</small>
+                        <small class="text-gray-400" title="Performance Score">{{ moneyFormatter(player.performance_score) }}</small>
                     </div>
                 </div>
             </div>
@@ -86,6 +86,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import axios from "axios";
+import { moneyFormatter } from "@/Utility/Formatter";
 
 const data = ref({ leaders: [] });
 const selectedLeaderType = ref("mvp_leaders");
