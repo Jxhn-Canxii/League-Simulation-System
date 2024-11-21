@@ -27,7 +27,7 @@ class PlayersController extends Controller
             'status' => session('status'),
         ]);
     }
-    public function listplayers(Request $request)
+    public function listplayersV1(Request $request)
     {
         $request->validate([
             'team_id' => 'required|exists:teams,id',
@@ -207,6 +207,131 @@ class PlayersController extends Controller
             'stats_count' => count($playerStatsData),
         ]);
     }
+    public function listplayers(Request $request)
+    {
+        $request->validate([
+            'team_id' => 'required|exists:teams,id',
+            'season_id' => 'nullable|integer',
+        ]);
+
+        $teamId = $request->team_id;
+        $seasonId = $request->season_id;
+
+        // Initialize an array to hold player stats
+        $playerStats = [];
+        $latestSeasonId = DB::table('player_game_stats')->max('season_id');
+        if (is_null($seasonId) || $seasonId == 0) {
+            $seasonId = $latestSeasonId;
+        }
+
+        // Fetch the season status
+        $seasonStatus = DB::table('seasons')->where('id', $seasonId)->value('status');
+
+        // Fetch player stats for the given team_id and season_id
+        $playerStatsData = DB::table('player_season_stats')
+            ->where('team_id', $teamId)
+            ->where('season_id', $seasonId)
+            ->get();
+
+        if (count($playerStatsData) > 0) {
+            foreach ($playerStatsData as $stats) {
+                // Fetch the player
+                $player = DB::table('players')
+                    ->select('players.*', 'teams.acronym as drafted_team', 'seasons.name as draft_class')
+                    ->leftJoin('seasons', 'players.draft_id', '=', 'seasons.id')
+                    ->leftJoin('teams', 'players.drafted_team_id', '=', 'teams.id')
+                    ->where('players.id', $stats->player_id)->first();
+
+                if ($player) {
+                    // Count the number of games played for the player
+                    $gamesPlayed = DB::table('player_game_stats')
+                        ->where('player_id', $player->id)
+                        ->where('team_id', $teamId)
+                        ->where('season_id', $seasonId)
+                        ->where('minutes', '>', 0) // Only count games where minutes > 0
+                        ->count(); // Directly count the rows
+
+                    // If season status is 11 and the player has 0 games played, skip this player
+                    if ($seasonStatus == 11 && $gamesPlayed == 0) {
+                        continue; // Skip the rest of the logic for this player
+                    }
+
+                    // Calculate Per-Game Score
+                    $perGameScore = $stats->avg_points_per_game * 0.3 +
+                        $stats->avg_rebounds_per_game * 0.2 +
+                        $stats->avg_assists_per_game * 0.2 +
+                        $stats->avg_steals_per_game * 0.1 +
+                        $stats->avg_blocks_per_game * 0.1 -
+                        $stats->avg_turnovers_per_game * 0.1 -
+                        $stats->avg_fouls_per_game * 0.1;
+
+                    // Calculate Total Score (Overall contribution across the season)
+                    $totalScore = $stats->total_points * 0.2 +
+                        $stats->total_rebounds * 0.2 +
+                        $stats->total_assists * 0.2 +
+                        $stats->total_steals * 0.15 +
+                        $stats->total_blocks * 0.15 -
+                        $stats->total_turnovers * 0.1 -
+                        $stats->total_fouls * 0.1;
+
+                    // Adjust for player role
+                    $roleModifier = 1;
+                    if ($stats->role === 'star') {
+                        $roleModifier = 1.2;  // Star players get a boost
+                    } else if ($stats->role === 'starter') {
+                        $roleModifier = 1.1;  // Starters get a smaller boost
+                    } else if ($stats->role === 'role player') {
+                        $roleModifier = 1.05;  // Role players get a small bonus
+                    } else if ($stats->role === 'bench') {
+                        $roleModifier = 0.9;  // Bench players are slightly penalized in ranking
+                    }
+
+                    // Normalize score based on games played (log transformation to adjust scale)
+                    $gamesPlayedModifier = max(1, log($stats->total_games_played) * 0.1);  // log to adjust scale
+
+                    // Calculate combined score
+                    $combinedScore = ($perGameScore + $totalScore) * $gamesPlayedModifier * $roleModifier;
+
+                    // Add player stats to the array
+                    $playerStats[] = [
+                        'player_id' => $player->id,
+                        'name' => $player->name,
+                        'age' => $player->age,
+                        'role' => $stats->role,
+                        'is_active' => $player->is_active,
+                        'is_rookie' => $player->is_rookie,
+                        'retirement_age' => $player->retirement_age,
+                        'drafted_team' => $player->drafted_team,
+                        'draft_class' => $player->draft_class,
+                        'status' => $player->team_id == $teamId ? ($player->is_active ? 1 : 0) : 2,
+                        'average_points_per_game' => (float)$stats->avg_points_per_game,
+                        'average_rebounds_per_game' => (float)$stats->avg_rebounds_per_game,
+                        'average_assists_per_game' => (float)$stats->avg_assists_per_game,
+                        'average_steals_per_game' => (float)$stats->avg_steals_per_game,
+                        'average_blocks_per_game' => (float)$stats->avg_blocks_per_game,
+                        'average_turnovers_per_game' => (float)$stats->avg_turnovers_per_game,
+                        'average_fouls_per_game' => (float)$stats->avg_fouls_per_game,
+                        'games_played' => number_format($gamesPlayed,2),
+                        'per_game_score' => number_format($perGameScore,2),
+                        'total_score' => number_format($totalScore,2),
+                        'combined_score' => number_format($combinedScore,2),
+                    ];
+                }
+            }
+        }
+
+        // Sort players by the combined score in descending order
+        usort($playerStats, function ($a, $b) {
+            return $b['combined_score'] <=> $a['combined_score'];
+        });
+
+        return response()->json([
+            'players' => $playerStats,
+            'season_id' => $seasonId,
+            'team_id' => $teamId,
+            'stats_count' => count($playerStatsData),
+        ]);
+    }
 
     public function getfreeagents(Request $request)
     {
@@ -217,13 +342,13 @@ class PlayersController extends Controller
 
         // Build the query with optional search filter
         $query = Player::select(
-                'players.*',
-                'teams.acronym as drafted_team',
-                DB::raw("(SELECT GROUP_CONCAT(CONCAT(award_name, ' (Season ', season_id, ')') SEPARATOR ', ') FROM season_awards WHERE season_awards.player_id = players.id) as awards"),
-                DB::raw("(SELECT  CONCAT('Finals MVP (Season ', seasons.id, ')')  FROM seasons WHERE seasons.finals_mvp_id = players.id LIMIT 1) as finals_mvp"),
-                DB::raw("CASE WHEN players.id = (SELECT finals_mvp_id FROM seasons WHERE seasons.finals_mvp_id = players.id) THEN 1 ELSE 0 END as is_finals_mvp"),
-                DB::raw("(SELECT GROUP_CONCAT(seasons.name SEPARATOR ', ') FROM seasons WHERE seasons.finals_mvp_id = players.id) as finals_mvp_seasons")
-            )
+            'players.*',
+            'teams.acronym as drafted_team',
+            DB::raw("(SELECT GROUP_CONCAT(CONCAT(award_name, ' (Season ', season_id, ')') SEPARATOR ', ') FROM season_awards WHERE season_awards.player_id = players.id) as awards"),
+            DB::raw("(SELECT  CONCAT('Finals MVP (Season ', seasons.id, ')')  FROM seasons WHERE seasons.finals_mvp_id = players.id LIMIT 1) as finals_mvp"),
+            DB::raw("CASE WHEN players.id = (SELECT finals_mvp_id FROM seasons WHERE seasons.finals_mvp_id = players.id) THEN 1 ELSE 0 END as is_finals_mvp"),
+            DB::raw("(SELECT GROUP_CONCAT(seasons.name SEPARATOR ', ') FROM seasons WHERE seasons.finals_mvp_id = players.id) as finals_mvp_seasons")
+        )
             ->where('players.contract_years', 0)
             ->where('players.is_active', 1)
             ->leftJoin('teams', 'players.drafted_team_id', '=', 'teams.id'); // Join teams on players.drafted_team_id
@@ -319,7 +444,7 @@ class PlayersController extends Controller
 
         // Add sorting by is_active status, then by role priority
         $query->orderBy('players.is_active', 'desc') // Active players first
-              ->orderByRaw("FIELD(players.role, 'star player', 'starter', 'role player', 'bench')");
+            ->orderByRaw("FIELD(players.role, 'star player', 'starter', 'role player', 'bench')");
 
         // Get total number of records
         $total = $query->count();
