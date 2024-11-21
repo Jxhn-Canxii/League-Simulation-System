@@ -61,6 +61,7 @@ class SimulateController extends Controller
             'schedule_id' => 'required|exists:schedules,id',
         ]);
 
+        $storeStats = new AwardsController;
         // Fetch game data
         $gameData = Schedules::join('teams as home', 'schedules.home_id', '=', 'home.id')
             ->join('teams as away', 'schedules.away_id', '=', 'away.id')
@@ -434,6 +435,8 @@ class SimulateController extends Controller
                 ],
                 $stats
             );
+
+            $storeStats->storeallplayerseasonstatsperplayer($stats['team_id'],$stats['player_id']);
         }
 
         // Calculate scores based on player stats
@@ -510,6 +513,8 @@ class SimulateController extends Controller
         $request->validate([
             'schedule_id' => 'required|exists:schedules,id',
         ]);
+
+        $storeStats = new AwardsController;
 
         // Start a database transaction
         DB::beginTransaction();
@@ -888,6 +893,8 @@ class SimulateController extends Controller
                         ],
                         $stats
                     );
+
+                    $storeStats->storeallplayerseasonstatsperplayer( $stats['team_id'],$stats['player_id']);
                 } catch (\Exception $e) {
                     \Log::error('Error saving player game stats:', [
                         'stats' => $stats,
@@ -927,7 +934,7 @@ class SimulateController extends Controller
                         $playerGameStats = PlayerGameStats::where([
                             'player_id' => $player['id'],
                             'game_id' => $gameData->game_id,
-                            'team_id' => $gameData->away_id,
+                            'team_id' => $gameData->home_id,
                             'season_id' => $currentSeasonId,
                         ])->first();
 
@@ -941,6 +948,8 @@ class SimulateController extends Controller
                                 'blocks' => DB::raw('blocks + ' . max(0, $blocks)),       // Ensure non-negative blocks
                                 'updated_at' => now(),
                             ]);
+
+                            $storeStats->storeallplayerseasonstatsperplayer(  $gameData->home_id,$player['id']);
                         }
 
 
@@ -976,6 +985,8 @@ class SimulateController extends Controller
                                 'blocks' => DB::raw('blocks + ' . max(0, $blocks)),       // Ensure non-negative blocks
                                 'updated_at' => now(),
                             ]);
+
+                            $storeStats->storeallplayerseasonstatsperplayer( $gameData->away_id,$player['id']);
                         }
 
 

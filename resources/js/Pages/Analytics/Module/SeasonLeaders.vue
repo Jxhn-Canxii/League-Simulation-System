@@ -67,13 +67,13 @@
                         <!-- Other Stats -->
                         <div class="text-lg text-gray-600" v-if="selectedLeaderType !== 'top_point_leaders' && selectedLeaderType !== 'top_rebound_leaders' && selectedLeaderType !== 'top_assist_leaders' && selectedLeaderType !== 'top_steals_leaders' && selectedLeaderType !== 'top_block_leaders' && selectedLeaderType !== 'top_turnovers_leaders' && selectedLeaderType !== 'top_fouls_leaders'">
                             GP: {{ player.games_played }}<br>
-                            PPG: {{ player.points_per_game }}<br>
-                            RPG: {{ player.rebounds_per_game }}<br>
-                            APG: {{ player.assists_per_game }}<br>
-                            SPG: {{ player.steals_per_game }}<br>
-                            BPG: {{ player.blocks_per_game }}<br>
-                            TOPG: {{ player.turnovers_per_game }}<br>
-                            FPG: {{ player.fouls_per_game }}
+                            PPG: {{ player.avg_points_per_game }}<br>
+                            RPG: {{ player.avg_rebounds_per_game }}<br>
+                            APG: {{ player.avg_assists_per_game }}<br>
+                            SPG: {{ player.avg_steals_per_game }}<br>
+                            BPG: {{ player.avg_blocks_per_game }}<br>
+                            TOPG: {{ player.avg_turnovers_per_game }}<br>
+                            FPG: {{ player.avg_fouls_per_game }}
                         </div>
                         <small class="text-gray-400" title="Performance Score">{{ player.performance_score }}</small>
                     </div>
