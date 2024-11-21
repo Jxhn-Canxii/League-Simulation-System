@@ -401,7 +401,7 @@ class AnalyticsController extends Controller
         $rookieLeaders = $playerStats
             ->filter(function ($stats) use ($seasonId) {
                 // Filter rookies based on draft_id matching the current season ID
-                return $stats->draft_id === $seasonId;
+                return $stats->draft_id == $seasonId;
             })
             ->map(function ($stats) {
                 // Calculate performance points
