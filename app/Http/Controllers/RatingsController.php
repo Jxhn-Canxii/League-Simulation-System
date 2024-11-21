@@ -85,6 +85,8 @@ class RatingsController extends Controller
                         $stat->total_fouls * 0.1;
 
 
+                    $efficiencyFactor = 1 + ($stat->avg_minutes_per_game / 30);  // Assuming 30 minutes is the average threshold
+
                     // Adjust for role: Apply a modifier based on player role
                     $roleModifier = 1;
                     if ($stat->role === 'star') {
@@ -98,10 +100,10 @@ class RatingsController extends Controller
                     }
 
                     // Normalize score based on games played (to account for incomplete seasons)
-                    $gamesPlayedModifier = max(1, log($stat->total_games_played) * 0.1);  // log to adjust scale
+                    $gamesPlayedModifier = max(1, log($stat->total_games_played + 1) * 0.1);  // log to adjust scale
 
                     // Return a combined score
-                    return ($perGameScore + $totalScore) * $gamesPlayedModifier *  $roleModifier;
+                    return ($perGameScore + $totalScore) * $gamesPlayedModifier * $roleModifier * $efficiencyFactor;
                 });
 
             // Rank players and assign roles

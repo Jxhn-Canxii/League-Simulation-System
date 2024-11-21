@@ -274,7 +274,9 @@ class PlayersController extends Controller
                         $stats->total_turnovers * 0.1 -
                         $stats->total_fouls * 0.1;
 
-                    // Adjust for player role
+                    $efficiencyFactor = 1 + ($stats->avg_minutes_per_game / 30);  // Assuming 30 minutes is the average threshold
+
+                    // Adjust for role: Apply a modifier based on player role
                     $roleModifier = 1;
                     if ($stats->role === 'star') {
                         $roleModifier = 1.2;  // Star players get a boost
@@ -286,11 +288,12 @@ class PlayersController extends Controller
                         $roleModifier = 0.9;  // Bench players are slightly penalized in ranking
                     }
 
-                    // Normalize score based on games played (log transformation to adjust scale)
-                    $gamesPlayedModifier = max(1, log($stats->total_games_played) * 0.1);  // log to adjust scale
+                    // Normalize score based on games played (to account for incomplete seasons)
+                    $gamesPlayedModifier = max(1, log($stats->total_games_played + 1) * 0.1);  // log to adjust scale
 
-                    // Calculate combined score
-                    $combinedScore = ($perGameScore + $totalScore) * $gamesPlayedModifier * $roleModifier;
+                    // Return a combined score
+                    $combinedScore = ($perGameScore + $totalScore) * $gamesPlayedModifier * $roleModifier * $efficiencyFactor;
+
 
                     // Add player stats to the array
                     $playerStats[] = [
@@ -305,6 +308,7 @@ class PlayersController extends Controller
                         'draft_class' => $player->draft_class,
                         'draft_status' => $player->draft_status,
                         'status' => $player->team_id == $teamId ? ($player->is_active ? 1 : 0) : 2,
+                        'average_minutes_per_game' => (float)$stats->avg_minutes_per_game,
                         'average_points_per_game' => (float)$stats->avg_points_per_game,
                         'average_rebounds_per_game' => (float)$stats->avg_rebounds_per_game,
                         'average_assists_per_game' => (float)$stats->avg_assists_per_game,
@@ -334,6 +338,7 @@ class PlayersController extends Controller
                 ->select(
                     'player_id',
                     DB::raw('COUNT(CASE WHEN minutes > 0 THEN 1 END) as games_played'),
+                    DB::raw('SUM(CASE WHEN minutes > 0 THEN minutes ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_minutes'),
                     DB::raw('SUM(CASE WHEN minutes > 0 THEN points ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_points'),
                     DB::raw('SUM(CASE WHEN minutes > 0 THEN rebounds ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_rebounds'),
                     DB::raw('SUM(CASE WHEN minutes > 0 THEN assists ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_assists'),
@@ -353,6 +358,7 @@ class PlayersController extends Controller
 
                 // Default values in case there are no stats
                 $stats = [
+                    'average_minutes_per_game' => (float)0,
                     'average_points_per_game' => (float)0,
                     'average_rebounds_per_game' => (float)0,
                     'average_assists_per_game' => (float)0,
@@ -366,6 +372,7 @@ class PlayersController extends Controller
                 // If there are stats for this player, update values
                 if (isset($playerGameStats[$playerId])) {
                     $stats = [
+                        'average_minutes_per_game' => (float) $playerGameStats[$playerId]->avg_minutes,
                         'average_points_per_game' => (float) $playerGameStats[$playerId]->avg_points,
                         'average_rebounds_per_game' => (float) $playerGameStats[$playerId]->avg_rebounds,
                         'average_assists_per_game' => (float) $playerGameStats[$playerId]->avg_assists,
@@ -392,6 +399,7 @@ class PlayersController extends Controller
                         'draft_status' => $player->draft_status,
                         'draft_class' => $player->draft_class,
                         'status' => $player->team_id == $teamId ? ($player->is_active ? 1 : 0) : 2,
+                        'average_minutes_per_game' => $stats['average_minutes_per_game'],
                         'average_points_per_game' => $stats['average_points_per_game'],
                         'average_rebounds_per_game' => $stats['average_rebounds_per_game'],
                         'average_assists_per_game' => $stats['average_assists_per_game'],

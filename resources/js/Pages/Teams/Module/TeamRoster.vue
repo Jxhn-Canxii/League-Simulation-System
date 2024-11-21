@@ -60,9 +60,15 @@
                         </th>
                         <th
                             class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
-                            title="Points Per Game"
+                            title="Games Played"
                         >
                             GP
+                        </th>
+                        <th
+                            class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                            title="Minutes Per Game"
+                        >
+                            MPG
                         </th>
                         <th
                             class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
@@ -154,6 +160,9 @@
                         </td>
                         <td class="px-2 py-1 whitespace-nowrap border">
                             {{ Math.round(player.games_played) }}
+                        </td>
+                        <td class="px-2 py-1 whitespace-nowrap border">
+                            {{ player.average_minutes_per_game.toFixed(1) }}
                         </td>
                         <td class="px-2 py-1 whitespace-nowrap border">
                             {{ player.average_points_per_game.toFixed(1) }}
