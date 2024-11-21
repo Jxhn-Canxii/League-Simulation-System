@@ -316,14 +316,14 @@ class PlayersController extends Controller
                         'average_blocks_per_game' => (float)$stats->avg_blocks_per_game,
                         'average_turnovers_per_game' => (float)$stats->avg_turnovers_per_game,
                         'average_fouls_per_game' => (float)$stats->avg_fouls_per_game,
-                        'games_played' => number_format($gamesPlayed,2),
-                        'per_game_score' => number_format($perGameScore,2),
-                        'total_score' => number_format($totalScore,2),
-                        'combined_score' => number_format($combinedScore,2),
+                        'games_played' => number_format($gamesPlayed, 2),
+                        'per_game_score' => number_format($perGameScore, 2),
+                        'total_score' => number_format($totalScore, 2),
+                        'combined_score' => number_format($combinedScore, 2),
                     ];
                 }
             }
-        }else {
+        } else {
             // Fetch players from the players table and set all stats to zero
 
             $players = DB::table('players')
@@ -408,9 +408,9 @@ class PlayersController extends Controller
                         'average_turnovers_per_game' => $stats['average_turnovers_per_game'],
                         'average_fouls_per_game' => $stats['average_fouls_per_game'],
                         'games_played' => $stats['games_played'],
-                        'per_game_score' => number_format(0,2),
-                        'total_score' => number_format(0,2),
-                        'combined_score' => number_format(0,2),
+                        'per_game_score' => number_format(0, 2),
+                        'total_score' => number_format(0, 2),
+                        'combined_score' => number_format(0, 2),
                     ];
                 }
             }
@@ -742,6 +742,152 @@ class PlayersController extends Controller
      * @return array
      */
     private function getRandomArchetypeAndAttributes()
+    {
+        $seasonId = $this->getLatestSeasonId();  // Assuming this gets the current season ID
+
+        // Define archetypes and their attribute ranges
+        $archetypes = [
+            'playmaker' => [
+                'shooting' => [70, 85],
+                'defense' => [65, 80],
+                'passing' => [85, 99],
+                'rebounding' => [60, 75],
+            ],
+            'defender' => [
+                'shooting' => [60, 75],
+                'defense' => [85, 99],
+                'passing' => [60, 75],
+                'rebounding' => [70, 85],
+            ],
+            'scorer' => [
+                'shooting' => [85, 99],
+                'defense' => [60, 75],
+                'passing' => [65, 80],
+                'rebounding' => [60, 75],
+            ],
+            'all-rounder' => [
+                'shooting' => [75, 90],
+                'defense' => [75, 90],
+                'passing' => [75, 90],
+                'rebounding' => [75, 90],
+            ],
+            'hustler' => [
+                'shooting' => [60, 75],
+                'defense' => [70, 85],
+                'passing' => [60, 75],
+                'rebounding' => [65, 80],
+            ],
+            'underperformer' => [
+                'shooting' => [50, 65],
+                'defense' => [50, 65],
+                'passing' => [50, 65],
+                'rebounding' => [50, 65],
+            ],
+            'project' => [
+                'shooting' => [40, 60],
+                'defense' => [40, 60],
+                'passing' => [40, 60],
+                'rebounding' => [40, 60],
+            ],
+            'journeyman' => [
+                'shooting' => [55, 70],
+                'defense' => [55, 70],
+                'passing' => [55, 70],
+                'rebounding' => [55, 70],
+            ],
+            'benchwarmer' => [
+                'shooting' => [45, 60],
+                'defense' => [45, 60],
+                'passing' => [45, 60],
+                'rebounding' => [45, 60],
+            ],
+            'shooter' => [
+                'shooting' => [80, 95],
+                'defense' => [50, 65],
+                'passing' => [55, 70],
+                'rebounding' => [50, 65],
+            ],
+            'playoff-clutch' => [
+                'shooting' => [75, 90],
+                'defense' => [70, 85],
+                'passing' => [70, 85],
+                'rebounding' => [65, 80],
+            ],
+            'spot-up-shooter' => [
+                'shooting' => [85, 99],
+                'defense' => [50, 65],
+                'passing' => [50, 65],
+                'rebounding' => [50, 65],
+            ],
+            'energy-guy' => [
+                'shooting' => [60, 75],
+                'defense' => [65, 80],
+                'passing' => [55, 70],
+                'rebounding' => [60, 75],
+            ],
+            'weak-link' => [
+                'shooting' => [45, 60],
+                'defense' => [45, 60],
+                'passing' => [45, 60],
+                'rebounding' => [45, 60],
+            ],
+            'training-camp' => [
+                'shooting' => [40, 55],
+                'defense' => [40, 55],
+                'passing' => [40, 55],
+                'rebounding' => [40, 55],
+            ],
+            'specialist' => [
+                'shooting' => [70, 85],
+                'defense' => [50, 65],
+                'passing' => [50, 65],
+                'rebounding' => [50, 65],
+            ],
+            'generational' => [
+                'shooting' => [95, 99],
+                'defense' => [95, 99],
+                'passing' => [95, 99],
+                'rebounding' => [95, 99],
+            ],
+            'one-of-one' => [
+                'shooting' => [99, 99],
+                'defense' => [99, 99],
+                'passing' => [99, 99],
+                'rebounding' => [99, 99],
+            ],
+        ];
+
+        // Check if next season is divisible by 4
+        $nextSeasonId = $seasonId + 1;
+        if ($nextSeasonId % 4 === 0) {
+            // Add 'generational' and 'one-of-one' archetypes to the pool
+            $archetypesToChooseFrom = array_merge($archetypes, [
+                'generational' => $archetypes['generational'],
+                'one-of-one' => $archetypes['one-of-one']
+            ]);
+        } else {
+            // Use the regular archetypes (without 'generational' and 'one-of-one')
+            $archetypesToChooseFrom = $archetypes;
+        }
+
+        // Randomly select an archetype from the adjusted list
+        $archetypeKeys = array_keys($archetypesToChooseFrom);
+        $selectedArchetype = $archetypeKeys[array_rand($archetypeKeys)];
+        $archetypeAttributes = $archetypesToChooseFrom[$selectedArchetype];
+
+        // Generate random ratings based on the selected archetype
+        $attributes = [
+            'archetype' => $selectedArchetype,
+            'shooting_rating' => rand($archetypeAttributes['shooting'][0], $archetypeAttributes['shooting'][1]),
+            'defense_rating' => rand($archetypeAttributes['defense'][0], $archetypeAttributes['defense'][1]),
+            'passing_rating' => rand($archetypeAttributes['passing'][0], $archetypeAttributes['passing'][1]),
+            'rebounding_rating' => rand($archetypeAttributes['rebounding'][0], $archetypeAttributes['rebounding'][1]),
+        ];
+
+        return $attributes;
+    }
+
+    private function getRandomArchetypeAndAttributesV1()
     {
         // Define archetypes and their attribute ranges
         // Define archetypes and their attribute ranges
