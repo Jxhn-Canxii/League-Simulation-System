@@ -92,6 +92,7 @@ class RatingsController extends Controller
 
             foreach ($rankedPlayers->slice(9, 3) as $playerStat) {
                 // // Last 3 players become bench players
+                // Player::where('id', $playerStat->player_id)->update(['role' => 'bench']);
                 // Update the player's role to "bench" and set contract years and team ID
                 DB::table('players')
                 ->where('id', $playerStat->player_id)
