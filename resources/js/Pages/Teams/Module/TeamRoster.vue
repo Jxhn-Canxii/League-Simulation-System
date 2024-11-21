@@ -214,7 +214,7 @@
                         v-else
                         class="hover:bg-gray-100"
                     >
-                        <td class="px-2 py-1 whitespace-nowrap border text-center font-bold text-red-500" colspan="15">***No Players Found***</td>
+                        <td class="px-2 py-1 whitespace-nowrap border text-center font-bold text-red-500" colspan="16">***No Players Found***</td>
                     </tr>
                 </tbody>
             </table>
