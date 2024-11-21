@@ -74,36 +74,31 @@ class RatingsController extends Controller
 
             // Rank players and assign roles
             $rankedPlayers = $stats->values();
-            // Update player roles based on the new distribution: 3 star players, 2 starters, 4 role players, 3 bench players
+            // Assign the top 3 players as "star players"
             foreach ($rankedPlayers->take(3) as $playerStat) {
-                // Top 3 players become star players
                 Player::where('id', $playerStat->player_id)->update(['role' => 'star player']);
             }
 
+            // Assign the next 2 players as "starters"
             foreach ($rankedPlayers->slice(3, 2) as $playerStat) {
-                // Next 2 players become starters
                 Player::where('id', $playerStat->player_id)->update(['role' => 'starter']);
             }
 
-            foreach ($rankedPlayers->slice(5, 4) as $playerStat) {
-                // Next 4 players become role players
+            // Assign the next 5 players as "role players"
+            foreach ($rankedPlayers->slice(5, 5) as $playerStat) {
                 Player::where('id', $playerStat->player_id)->update(['role' => 'role player']);
             }
 
-            foreach ($rankedPlayers->slice(9, 3) as $playerStat) {
-                // // Last 3 players become bench players
-                // Player::where('id', $playerStat->player_id)->update(['role' => 'bench']);
-                // Update the player's role to "bench" and set contract years and team ID
-                DB::table('players')
-                ->where('id', $playerStat->player_id)
-                ->update([
-                    'role' => 'bench', // Assign the role
-                    'contract_years' => 0,
-                    'team_id' => 0,
-                ]);
+            // Assign the next 2 players as "bench players"
+            foreach ($rankedPlayers->slice(10, 2) as $playerStat) {
+                Player::where('id', $playerStat->player_id)->update(['role' => 'bench']);
+            }
 
-                 // Log the transaction for the waived player
-                 DB::table('transactions')->insert([
+            // Waive the last 3 players (remove them from the team)
+            foreach ($rankedPlayers->slice(12, 3) as $playerStat) {
+                Player::where('id', $playerStat->player_id)->update(['role' => 'waived']);
+                // Optionally log the waived player transaction if you want to track this
+                DB::table('transactions')->insert([
                     'player_id' => $playerStat->player_id,
                     'season_id' => $seasonId,
                     'details' => 'Waived by ' . ($teamName ?? 'Unknown Team'),
@@ -111,14 +106,13 @@ class RatingsController extends Controller
                     'to_team_id' => 0,
                     'status' => 'waived',
                 ]);
-
                 \Log::info('Player waived', [
                     'player_id' => $playerStat->player_id,
                     'team_name' => $teamName ?? 'Unknown Team',
                     'season_id' => $seasonId,
                 ]);
-
             }
+
 
             // Fetch updated players
             $players = $query->get();
@@ -151,12 +145,12 @@ class RatingsController extends Controller
                 $player->is_rookie = 0; // All players are no longer rookies
 
                 // Check for retirement
-                if($player->age >= $player->retirement_age){
+                if ($player->age >= $player->retirement_age) {
 
                     DB::table('transactions')->insert([
                         'player_id' => $player->id,
                         'season_id' => $seasonId,
-                        'details' => 'has retired from the league.[Last team: '.$teamName.']',
+                        'details' => 'has retired from the league.[Last team: ' . $teamName . ']',
                         'from_team_id' => $player->team_id,
                         'to_team_id' => 0,
                         'status' => 'retired',
@@ -265,7 +259,6 @@ class RatingsController extends Controller
 
                 // Log the updated ratings
                 $this->logPlayerRatings($player, $seasonId);
-
             }
 
 
@@ -276,36 +269,36 @@ class RatingsController extends Controller
                 ///lastly update all active players to non rookie
                 //free agent veteran players
                 DB::table('players')
-                ->where('team_id', 0)
-                ->where('is_active', 1)
-                ->update([
-                    'is_rookie' => 0,
-                    'age' => DB::raw('age + 1'), // Increment age by 1
-                    'contract_years' => DB::raw("CASE WHEN age + 1 >= retirement_age THEN 0 ELSE contract_years END"), // Set contract_years to 0 if age reaches retirement_age
-                    'team_id' => 0,
-                    'is_active' => DB::raw("CASE WHEN age + 1 >= retirement_age THEN 0 ELSE is_active END"), // Set is_active to 0 if age reaches retirement_age
-                ]);
+                    ->where('team_id', 0)
+                    ->where('is_active', 1)
+                    ->update([
+                        'is_rookie' => 0,
+                        'age' => DB::raw('age + 1'), // Increment age by 1
+                        'contract_years' => DB::raw("CASE WHEN age + 1 >= retirement_age THEN 0 ELSE contract_years END"), // Set contract_years to 0 if age reaches retirement_age
+                        'team_id' => 0,
+                        'is_active' => DB::raw("CASE WHEN age + 1 >= retirement_age THEN 0 ELSE is_active END"), // Set is_active to 0 if age reaches retirement_age
+                    ]);
 
                 ///active players with teams
                 DB::table('players')
-                ->where('team_id', '>',0)
-                ->where('is_active', 1)
-                ->update([
-                    'is_rookie' => 0,
-                    'age' => DB::raw('age + 1'), // Increment age by 1
-                    'contract_years' => DB::raw("CASE WHEN age + 1 >= retirement_age THEN 0 ELSE contract_years END"), // Set contract_years to 0 if age reaches retirement_age
-                    'team_id' => DB::raw("CASE WHEN age + 1 >= retirement_age THEN 0 ELSE team_id END"), // Set team_id to 0 if age reaches retirement_age
-                    'is_active' => DB::raw("CASE WHEN age + 1 >= retirement_age THEN 0 ELSE is_active END"), // Set is_active to 0 if age reaches retirement_age
-                ]);
+                    ->where('team_id', '>', 0)
+                    ->where('is_active', 1)
+                    ->update([
+                        'is_rookie' => 0,
+                        'age' => DB::raw('age + 1'), // Increment age by 1
+                        'contract_years' => DB::raw("CASE WHEN age + 1 >= retirement_age THEN 0 ELSE contract_years END"), // Set contract_years to 0 if age reaches retirement_age
+                        'team_id' => DB::raw("CASE WHEN age + 1 >= retirement_age THEN 0 ELSE team_id END"), // Set team_id to 0 if age reaches retirement_age
+                        'is_active' => DB::raw("CASE WHEN age + 1 >= retirement_age THEN 0 ELSE is_active END"), // Set is_active to 0 if age reaches retirement_age
+                    ]);
 
                 ///lastly update the age of non active players
                 DB::table('players')
-                ->where('is_active', 0)
-                ->update([
-                    'team_id' => 0,
-                    'contract_years' => 0,
-                    'age' => DB::raw('age + 1'), // Increment age by 1
-                ]);
+                    ->where('is_active', 0)
+                    ->update([
+                        'team_id' => 0,
+                        'contract_years' => 0,
+                        'age' => DB::raw('age + 1'), // Increment age by 1
+                    ]);
 
 
                 // Update season status
