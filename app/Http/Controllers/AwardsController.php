@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-ini_set('max_execution_time', 600); // 300 seconds = 5 minutes
+ini_set('max_execution_time', 1200); // 300 seconds = 5 minutes
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
