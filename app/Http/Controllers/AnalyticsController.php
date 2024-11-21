@@ -260,7 +260,6 @@ class AnalyticsController extends Controller
             ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id')
             ->where('player_game_stats.season_id', $seasonId)
             ->where('players.draft_id', $seasonId) // Assuming 'draft_id' represents the season in which the player was drafted
-            ->where('players.is_rookie', 1) // Assuming 'draft_id' represents the season in which the player was drafted
             ->whereNotIn('schedules.round', $excludedRounds)
             ->select(
                 'players.id as player_id',
