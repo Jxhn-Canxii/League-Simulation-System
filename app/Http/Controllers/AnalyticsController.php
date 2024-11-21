@@ -362,6 +362,7 @@ class AnalyticsController extends Controller
                 'team_name' => $stats->team_name,
                 'is_rookie' => $stats->is_rookie,
                 'draft_status' => $stats->draft_status,
+                'draft_id' => $stats->draft_id,
                 'games_played' => $stats->games_played,
                 'points_per_game' => number_format($stats->avg_points_per_game, 2),
                 'rebounds_per_game' => number_format($stats->avg_rebounds_per_game, 2),
