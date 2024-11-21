@@ -609,6 +609,18 @@ class PlayersController extends Controller
                 'passing' => [50, 65],
                 'rebounding' => [50, 65],
             ],
+            'generational' => [
+                'shooting' => [95, 99],
+                'defense' => [95, 99],
+                'passing' => [95, 99],
+                'rebounding' => [95, 99],
+            ],
+            'one-of-one' => [
+                'shooting' => [99, 99],
+                'defense' => [99, 99],
+                'passing' => [99, 99],
+                'rebounding' => [99, 99],
+            ],
         ];
 
 
