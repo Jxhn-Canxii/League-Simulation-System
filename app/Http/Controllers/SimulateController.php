@@ -436,7 +436,7 @@ class SimulateController extends Controller
                 $stats
             );
 
-            $storeStats->storeplayerseasonstats($stats['team_id'],$stats['player_id']);
+            $storeStats->storeplayerseasonstats($stats['team_id'], $stats['player_id']);
         }
 
         // Calculate scores based on player stats
@@ -477,6 +477,7 @@ class SimulateController extends Controller
         }
 
         $this->updateAllTeamStreaks();
+        $this->updateHeadToHeadResults($gameData->id);
         // Prepare the schedule response data
         $schedule = [
             'id' => $gameData->id,
@@ -894,7 +895,7 @@ class SimulateController extends Controller
                         $stats
                     );
 
-                    $storeStats->storeplayerseasonstats( $stats['team_id'],$stats['player_id']);
+                    $storeStats->storeplayerseasonstats($stats['team_id'], $stats['player_id']);
                 } catch (\Exception $e) {
                     \Log::error('Error saving player game stats:', [
                         'stats' => $stats,
@@ -949,7 +950,7 @@ class SimulateController extends Controller
                                 'updated_at' => now(),
                             ]);
 
-                            $storeStats->storeplayerseasonstats(  $gameData->home_id,$player['id']);
+                            $storeStats->storeplayerseasonstats($gameData->home_id, $player['id']);
                         }
 
 
@@ -986,7 +987,7 @@ class SimulateController extends Controller
                                 'updated_at' => now(),
                             ]);
 
-                            $storeStats->storeplayerseasonstats( $gameData->away_id,$player['id']);
+                            $storeStats->storeplayerseasonstats($gameData->away_id, $player['id']);
                         }
 
 
@@ -1009,7 +1010,7 @@ class SimulateController extends Controller
                 ->doesntExist();
 
             $this->updateAllTeamStreaks();
-
+            $this->updateHeadToHeadResults($gameData->id);
             if ($allRoundsSimulatedForSeason) {
                 // Update the season's status to 2
 
@@ -1693,6 +1694,68 @@ class SimulateController extends Controller
             $streak['is_winning_streak'] = false;
             $streak['best_losing_streak'] = max($streak['best_losing_streak'], $streak['current_streak']);
             $streak['best_losing_streak_end_id'] = $gameId; // Update end of losing streak
+        }
+    }
+
+    private function updateHeadToHeadResults($gameId)
+    {
+        // Fetch the game details from the schedules table
+        $game = DB::table('schedules')
+            ->where('id', $gameId)
+            ->where('status', 2) // Ensure the game is completed
+            ->first();
+
+        if (!$game) {
+            return false; // Game not found or not completed
+        }
+
+        // Determine the outcome of the game
+        $teamWins = $game->home_score > $game->away_score ? 1 : 0;
+        $opponentWins = $game->away_score > $game->home_score ? 1 : 0;
+        $draws = $game->home_score == $game->away_score ? 1 : 0;
+
+        // Update for the team's perspective (home vs away)
+        $this->updateHeadToHeadMatchup($game->home_id, $game->away_id, $teamWins, $opponentWins, $draws);
+
+        // Update for the opponent's perspective (away vs home)
+        $this->updateHeadToHeadMatchup($game->away_id, $game->home_id, $opponentWins, $teamWins, $draws);
+
+        return true; // Successfully updated the head-to-head matchups table
+    }
+
+    private function updateHeadToHeadMatchup($teamId, $opponentId, $teamWins, $opponentWins, $draws)
+    {
+        // Check if this matchup already exists in the head_to_head_matchups table
+        $matchup = DB::table('head_to_head')
+            ->where('team_id', $teamId)
+            ->where('opponent_id', $opponentId)
+            ->first();
+
+        if ($matchup) {
+            // If matchup exists, update the match count and win/loss records
+            DB::table('head_to_head')
+                ->where('team_id', $teamId)
+                ->where('opponent_id', $opponentId)
+                ->update([
+                    'match_count' => $matchup->match_count + 1,
+                    'team_wins' => $matchup->team_wins + $teamWins,
+                    'opponent_wins' => $matchup->opponent_wins + $opponentWins,
+                    'draws' => $matchup->draws + $draws,
+                    'updated_at' => now(),
+                ]);
+        } else {
+            // If matchup does not exist, insert a new record
+            DB::table('head_to_head')
+                ->insert([
+                    'team_id' => $teamId,
+                    'opponent_id' => $opponentId,
+                    'team_wins' => $teamWins,
+                    'opponent_wins' => $opponentWins,
+                    'draws' => $draws,
+                    'match_count' => 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
         }
     }
 }

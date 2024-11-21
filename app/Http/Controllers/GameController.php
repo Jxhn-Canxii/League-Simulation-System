@@ -387,33 +387,31 @@ class GameController extends Controller
      */
     private function getHeadToHeadRecord($homeTeamId, $awayTeamId)
     {
-        $headToHead = \DB::table('schedule_view')
-            ->where(function ($query) use ($homeTeamId, $awayTeamId) {
-                $query->where('home_id', $homeTeamId)
-                    ->where('away_id', $awayTeamId);
-            })
+        // Fetch the head-to-head matchup from the head_to_head_matchups table using homeTeamId as team_id
+        $headToHead = \DB::table('head_to_head')
+            ->where('team_id', $homeTeamId)
+            ->where('opponent_id', $awayTeamId)
             ->orWhere(function ($query) use ($homeTeamId, $awayTeamId) {
-                $query->where('home_id', $awayTeamId)
-                    ->where('away_id', $homeTeamId);
+                $query->where('team_id', $awayTeamId)
+                    ->where('opponent_id', $homeTeamId);
             })
-            ->get();
+            ->first(); // We expect at most one record, so using first()
 
-        $homeWins = 0;
-        $awayWins = 0;
-
-        foreach ($headToHead as $game) {
-            if ($game->home_id == $homeTeamId && $game->home_score > $game->away_score) {
-                $homeWins++;
-            } elseif ($game->away_id == $homeTeamId && $game->away_score > $game->home_score) {
-                $homeWins++;
-            } else {
-                $awayWins++;
-            }
+        if (!$headToHead) {
+            return [
+                'home_team_wins' => 0,
+                'away_team_wins' => 0,
+                'match_count' => 0,
+                'draws' => 0,
+            ];
         }
 
+        // Return the head-to-head record from the perspective of the home team
         return [
-            'home_team_wins' => $homeWins,
-            'away_team_wins' => $awayWins,
+            'home_team_wins' => $headToHead->wins,
+            'away_team_wins' => $headToHead->losses,
+            'match_count' => $headToHead->losses + $headToHead->wins,
+            'draws' => $headToHead->draws,
         ];
     }
 }
