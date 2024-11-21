@@ -66,10 +66,42 @@ class RatingsController extends Controller
                 ->get()
                 ->sortByDesc(function ($stat) {
                     // Define a composite score based on your performance metrics
-                    return $stat->avg_points_per_game * 0.4 +
-                        $stat->avg_rebounds_per_game * 0.3 +
+                    // Weigh per-game stats (efficiency and performance per minute)
+                    $perGameScore = $stat->avg_points_per_game * 0.3 +
+                        $stat->avg_rebounds_per_game * 0.2 +
                         $stat->avg_assists_per_game * 0.2 +
-                        $stat->avg_steals_per_game * 0.1;
+                        $stat->avg_steals_per_game * 0.1 +
+                        $stat->avg_blocks_per_game * 0.1 -
+                        $stat->avg_turnovers_per_game * 0.1 -
+                        $stat->avg_fouls_per_game * 0.1;
+
+                    // Weigh total stats (overall contribution across the season)
+                    $totalScore = $stat->total_points * 0.2 +
+                        $stat->total_rebounds * 0.2 +
+                        $stat->total_assists * 0.2 +
+                        $stat->total_steals * 0.15 +
+                        $stat->total_blocks * 0.15 -
+                        $stat->total_turnovers * 0.1 -
+                        $stat->total_fouls * 0.1;
+
+
+                    // Adjust for role: Apply a modifier based on player role
+                    $roleModifier = 1;
+                    if ($stat->role === 'star') {
+                        $roleModifier = 1.2;  // Star players get a boost
+                    } else if ($stat->role === 'starter') {
+                        $roleModifier = 1.1;  // Starters get a smaller boost
+                    } else if ($stat->role === 'role player') {
+                        $roleModifier = 1.05;  // Role players get a small bonus
+                    } else if ($stat->role === 'bench') {
+                        $roleModifier = 0.9;  // Bench players are slightly penalized in ranking
+                    }
+
+                    // Normalize score based on games played (to account for incomplete seasons)
+                    $gamesPlayedModifier = max(1, log($stat->total_games_played) * 0.1);  // log to adjust scale
+
+                    // Return a combined score
+                    return ($perGameScore + $totalScore) * $gamesPlayedModifier *  $roleModifier;
                 });
 
             // Rank players and assign roles
