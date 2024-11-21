@@ -153,7 +153,7 @@ class AnalyticsController extends Controller
         ]);
     }
 
-    public function getSeasonLeadersV1(Request $request)
+    public function getSeasonLeaders(Request $request)
     {
         // Determine the type of leader to return based on the request
         $leaderType = $request->input('leader_type', 'mvp_leaders'); // Default to 'mvp_leaders'
@@ -317,111 +317,6 @@ class AnalyticsController extends Controller
 
         return response()->json(['leaders' => $response]);
     }
-    public function getSeasonLeaders(Request $request)
-    {
-        // Determine the leader type and season ID
-        $leaderType = $request->input('leader_type', 'mvp_leaders');
-        $seasonId = $request->input('season_id', $this->getLatestSeasonId());
-
-        // Ensure season ID is valid
-        if (empty($seasonId)) {
-            return response()->json(['error' => 'Invalid season ID.'], 400);
-        }
-
-        // Fetch player stats
-        $playerStats = \DB::table('player_season_stats')
-            ->join('players', 'player_season_stats.player_id', '=', 'players.id')
-            ->join('teams', 'players.team_id', '=', 'teams.id')
-            ->where('player_season_stats.season_id', $seasonId)
-            ->select(
-                'players.id as player_id',
-                'players.name as player_name',
-                'players.draft_status',
-                'players.team_id',
-                'teams.name as team_name',
-                'players.is_rookie',
-                'player_season_stats.total_games_played',
-                'player_season_stats.avg_points_per_game',
-                'player_season_stats.avg_rebounds_per_game',
-                'player_season_stats.avg_assists_per_game',
-                'player_season_stats.avg_steals_per_game',
-                'player_season_stats.avg_blocks_per_game',
-                'player_season_stats.avg_turnovers_per_game',
-                'player_season_stats.avg_fouls_per_game'
-            )
-            ->get();
-
-        // Format player stats
-        $formattedPlayerStats = $playerStats->map(function ($stats) {
-            return [
-                'player_id' => $stats->player_id,
-                'player_name' => $stats->player_name,
-                'team_name' => $stats->team_name,
-                'is_rookie' => $stats->is_rookie,
-                'draft_status' => $stats->draft_status,
-                'games_played' => $stats->total_games_played,
-                'avg_points_per_game' => number_format($stats->avg_points_per_game, 2),
-                'avg_rebounds_per_game' => number_format($stats->avg_rebounds_per_game, 2),
-                'avg_assists_per_game' => number_format($stats->avg_assists_per_game, 2),
-                'avg_blocks_per_game' => number_format($stats->avg_blocks_per_game, 2),
-                'avg_steals_per_game' => number_format($stats->avg_steals_per_game, 2),
-                'avg_turnovers_per_game' => number_format($stats->avg_turnovers_per_game, 2),
-                'avg_fouls_per_game' => number_format($stats->avg_fouls_per_game, 2),
-            ];
-        });
-
-        // Define limit for top leaders
-        $limit = 10;
-
-        // Fetch MVP leaders
-        $mvpLeaders = $playerStats->sortByDesc(function ($stats) {
-            return ($stats->avg_points_per_game * 1) +
-                ($stats->avg_rebounds_per_game * 1.2) +
-                ($stats->avg_assists_per_game * 1.5) +
-                ($stats->avg_steals_per_game * 2) +
-                ($stats->avg_blocks_per_game * 2) -
-                ($stats->avg_turnovers_per_game * 1) -
-                ($stats->avg_fouls_per_game * 0.5);
-        })->take($limit);
-
-        // Fetch Rookie leaders
-        $rookieLeaders = $playerStats->where('is_rookie', true)
-            ->sortByDesc(function ($stats) {
-                return ($stats->avg_points_per_game * 1) +
-                    ($stats->avg_rebounds_per_game * 1.2) +
-                    ($stats->avg_assists_per_game * 1.5) +
-                    ($stats->avg_steals_per_game * 2) +
-                    ($stats->avg_blocks_per_game * 2) -
-                    ($stats->avg_turnovers_per_game * 1) -
-                    ($stats->avg_fouls_per_game * 0.5);
-            })->take($limit);
-
-        // Sort by specific categories
-        $topPoints = $formattedPlayerStats->sortByDesc('points_per_game')->take($limit);
-        $topRebounds = $formattedPlayerStats->sortByDesc('rebounds_per_game')->take($limit);
-        $topAssists = $formattedPlayerStats->sortByDesc('assists_per_game')->take($limit);
-        $topBlocks = $formattedPlayerStats->sortByDesc('blocks_per_game')->take($limit);
-        $topSteals = $formattedPlayerStats->sortByDesc('steals_per_game')->take($limit);
-        $topTurnovers = $formattedPlayerStats->sortByDesc('turnovers_per_game')->take($limit);
-        $topFouls = $formattedPlayerStats->sortByDesc('fouls_per_game')->take($limit);
-
-        // Match the leader type
-        $response = match ($leaderType) {
-            'top_point_leaders' => $topPoints,
-            'top_rebound_leaders' => $topRebounds,
-            'top_assist_leaders' => $topAssists,
-            'top_block_leaders' => $topBlocks,
-            'top_steals_leaders' => $topSteals,
-            'top_turnovers_leaders' => $topTurnovers,
-            'top_fouls_leaders' => $topFouls,
-            'mvp_leaders' => $mvpLeaders,
-            'rookie_leaders' => $rookieLeaders,
-            default => [],
-        };
-
-        return response()->json(['leaders' => $response]);
-    }
-
     private function getLatestSeasonId()
     {
         // Fetch the latest season ID based on descending order of IDs
