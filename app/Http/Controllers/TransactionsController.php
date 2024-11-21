@@ -318,7 +318,7 @@ class TransactionsController extends Controller
                 ->update(['status' => 15]);
 
             // Update player roles based on the last season's stats
-            $update = ($seasonId == 1) ? $this->updateTeamRolesBasedOnStatsByRating() : $this->updateTeamRolesBasedOnStats();
+            $update = $this->updateTeamRolesBasedOnStatsByRating();
             if ($update) {
                 // After drafting logic but before DB::commit()
                 if ($seasonId == 0) {
