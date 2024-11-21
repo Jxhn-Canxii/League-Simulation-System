@@ -741,6 +741,18 @@ class PlayersController extends Controller
      *
      * @return array
      */
+    private function getLatestSeasonId()
+    {
+        // Fetch the latest season ID based on descending order of IDs
+        $latestSeasonId = Seasons::orderBy('id', 'desc')->pluck('id')->first();
+
+        if ($latestSeasonId) {
+            return $latestSeasonId;
+        }
+
+        // Handle the case where no seasons are found
+        throw new \Exception('No seasons found.');
+    }
     private function getRandomArchetypeAndAttributes()
     {
         $seasonId = $this->getLatestSeasonId();  // Assuming this gets the current season ID
