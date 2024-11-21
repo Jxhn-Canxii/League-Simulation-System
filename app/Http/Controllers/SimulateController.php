@@ -1706,7 +1706,9 @@ class SimulateController extends Controller
             ->first();
 
         if (!$game) {
-            return false; // Game not found or not completed
+            return response()->json([
+                'error' => 'Game not found or not completed for game_id: ' . $gameId
+            ], 404); // Game not found or not completed
         }
 
         // Determine the outcome of the game
@@ -1720,40 +1722,55 @@ class SimulateController extends Controller
         // Update for the opponent's perspective (away vs home)
         $this->updateHeadToHeadMatchup($game->away_id, $game->home_id, $opponentWins, $teamWins, $draws);
 
-        return true; // Successfully updated the head-to-head matchups table
+        return response()->json([
+            'message' => 'Successfully updated head-to-head matchups for game_id: ' . $gameId
+        ], 200); // Success
     }
 
     private function updateHeadToHeadMatchup($teamId, $opponentId, $teamWins, $opponentWins, $draws)
     {
-        // Check if this matchup already exists in the head_to_head_matchups table
-        $matchup = DB::table('head_to_head')
-            ->where('team_id', $teamId)
-            ->where('opponent_id', $opponentId)
-            ->first();
-
-        if ($matchup) {
-            // If matchup exists, update the match count and win/loss records
-            DB::table('head_to_head')
+        try {
+            // Check if this matchup already exists in the head_to_head table
+            $matchup = DB::table('head_to_head')
                 ->where('team_id', $teamId)
                 ->where('opponent_id', $opponentId)
-                ->update([
-                    'wins' => $matchup->team_wins + $teamWins,
-                    'losses' => $matchup->opponent_wins + $opponentWins,
-                    'draws' => $matchup->draws + $draws,
-                    'updated_at' => now(),
-                ]);
-        } else {
-            // If matchup does not exist, insert a new record
-            DB::table('head_to_head')
-                ->insert([
-                    'team_id' => $teamId,
-                    'opponent_id' => $opponentId,
-                    'wins' => $teamWins,
-                    'losses' => $opponentWins,
-                    'draws' => $draws,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
+                ->first();
+
+            if ($matchup) {
+                // If matchup exists, update the match count and win/loss records
+                DB::table('head_to_head')
+                    ->where('team_id', $teamId)
+                    ->where('opponent_id', $opponentId)
+                    ->update([
+                        'wins' => $matchup->wins + $teamWins,
+                        'losses' => $matchup->losses + $opponentWins,
+                        'draws' => $matchup->draws + $draws,
+                        'updated_at' => now(),
+                    ]);
+            } else {
+                // If matchup does not exist, insert a new record
+                DB::table('head_to_head')
+                    ->insert([
+                        'team_id' => $teamId,
+                        'opponent_id' => $opponentId,
+                        'wins' => $teamWins,
+                        'losses' => $opponentWins,
+                        'draws' => $draws,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+            }
+
+            // Return true if successful
+            return true;
+        } catch (\Exception $e) {
+            // Log the error message
+            \Log::error('Error updating head-to-head matchup for team_id ' . $teamId . ' vs opponent_id ' . $opponentId . ': ' . $e->getMessage());
+
+            // Return a structured error response
+            return response()->json([
+                'error' => 'Error updating head-to-head matchup: ' . $e->getMessage()
+            ], 500); // Internal server error
         }
     }
 }
