@@ -1737,8 +1737,8 @@ class SimulateController extends Controller
                 ->where('team_id', $teamId)
                 ->where('opponent_id', $opponentId)
                 ->update([
-                    'team_wins' => $matchup->team_wins + $teamWins,
-                    'opponent_wins' => $matchup->opponent_wins + $opponentWins,
+                    'wins' => $matchup->team_wins + $teamWins,
+                    'losses' => $matchup->opponent_wins + $opponentWins,
                     'draws' => $matchup->draws + $draws,
                     'updated_at' => now(),
                 ]);
@@ -1748,8 +1748,8 @@ class SimulateController extends Controller
                 ->insert([
                     'team_id' => $teamId,
                     'opponent_id' => $opponentId,
-                    'team_wins' => $teamWins,
-                    'opponent_wins' => $opponentWins,
+                    'wins' => $teamWins,
+                    'losses' => $opponentWins,
                     'draws' => $draws,
                     'created_at' => now(),
                     'updated_at' => now(),
