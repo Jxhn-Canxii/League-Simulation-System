@@ -436,7 +436,7 @@ class SimulateController extends Controller
                 $stats
             );
 
-            $storeStats->storeallplayerseasonstatsperplayer($stats['team_id'],$stats['player_id']);
+            $storeStats->storeplayerseasonstats($stats['team_id'],$stats['player_id']);
         }
 
         // Calculate scores based on player stats
@@ -894,7 +894,7 @@ class SimulateController extends Controller
                         $stats
                     );
 
-                    $storeStats->storeallplayerseasonstatsperplayer( $stats['team_id'],$stats['player_id']);
+                    $storeStats->storeplayerseasonstats( $stats['team_id'],$stats['player_id']);
                 } catch (\Exception $e) {
                     \Log::error('Error saving player game stats:', [
                         'stats' => $stats,
@@ -949,7 +949,7 @@ class SimulateController extends Controller
                                 'updated_at' => now(),
                             ]);
 
-                            $storeStats->storeallplayerseasonstatsperplayer(  $gameData->home_id,$player['id']);
+                            $storeStats->storeplayerseasonstats(  $gameData->home_id,$player['id']);
                         }
 
 
@@ -986,7 +986,7 @@ class SimulateController extends Controller
                                 'updated_at' => now(),
                             ]);
 
-                            $storeStats->storeallplayerseasonstatsperplayer( $gameData->away_id,$player['id']);
+                            $storeStats->storeplayerseasonstats( $gameData->away_id,$player['id']);
                         }
 
 

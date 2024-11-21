@@ -6,13 +6,8 @@
         <hr class="my-4 border-t border-gray-200" />
 
         <!-- Update Button -->
-        <div class="mb-4 flex justify-center" v-if="!awards.length">
-            <button
-                @click="updatePlayerStatus"
-                class="px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
-                Update Player Status
-            </button>
+        <div class="mb-4 flex justify-center items-center" v-if="!awards.length">
+            <p class="text-red-500 font-bold text-2xl">***No data available***</p>
         </div>
 
         <!-- Awards Table -->
@@ -48,77 +43,77 @@ const props = defineProps({
     team_ids: Array,
 });
 
-const updatePlayerStatus = async () => {
-    try {
-        const team_ids = props.team_ids;
+// const updatePlayerStatus = async () => {
+//     try {
+//         const team_ids = props.team_ids;
 
-        for (let i = 0; i < team_ids.length; i++) {
-            const team_id = team_ids[i];
-            const is_last = i === team_ids.length - 1;
+//         for (let i = 0; i < team_ids.length; i++) {
+//             const team_id = team_ids[i];
+//             const is_last = i === team_ids.length - 1;
 
-            // Update player status for each team and get the response
-            await updatePlayerStatusPerTeam(i, team_id,team_ids.length);
-            if (is_last) {
-                await showSeasonAwards();
-            }
-        }
-    } catch (error) {
-        console.error(error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error!',
-            text: 'Failed to update player status for some or all teams. Please try again later.',
-        });
-    }
-};
+//             // Update player status for each team and get the response
+//             await updatePlayerStatusPerTeam(i, team_id,team_ids.length);
+//             if (is_last) {
+//                 await showSeasonAwards();
+//             }
+//         }
+//     } catch (error) {
+//         console.error(error);
+//         Swal.fire({
+//             icon: 'error',
+//             title: 'Error!',
+//             text: 'Failed to update player status for some or all teams. Please try again later.',
+//         });
+//     }
+// };
 
-const updatePlayerStatusPerTeam = async (index, team_id, team_count) => {
-    try {
-        // const total_teams = team_count + 1;
+// const updatePlayerStatusPerTeam = async (index, team_id, team_count) => {
+//     try {
+//         // const total_teams = team_count + 1;
 
-        // Show the initial Swal with a progress bar
-        Swal.fire({
-            title: 'Preparing Season Awards',
-            html: `<div id="progress-container">
-                    <p>Processing team ${team_id}/${team_count}</p>
-                    <div class="progress">
-                        <div id="progress-bar" class="progress-bar" role="progressbar" style="width: ${((index / team_count) * 100)}%;" aria-valuenow="${index}" aria-valuemin="0" aria-valuemax="${team_count}"></div>
-                    </div>
-                   </div>`,
-            showConfirmButton: true,
-            allowOutsideClick: false,
-            position: 'top',
-            willOpen: () => {
-                Swal.showLoading();
-            }
-        });
+//         // Show the initial Swal with a progress bar
+//         Swal.fire({
+//             title: 'Preparing Season Awards',
+//             html: `<div id="progress-container">
+//                     <p>Processing team ${team_id}/${team_count}</p>
+//                     <div class="progress">
+//                         <div id="progress-bar" class="progress-bar" role="progressbar" style="width: ${((index / team_count) * 100)}%;" aria-valuenow="${index}" aria-valuemin="0" aria-valuemax="${team_count}"></div>
+//                     </div>
+//                    </div>`,
+//             showConfirmButton: true,
+//             allowOutsideClick: false,
+//             position: 'top',
+//             willOpen: () => {
+//                 Swal.showLoading();
+//             }
+//         });
 
-        // Make the request
-        const response = await axios.post(route('store.player.stats'), { team_id: team_id });
+//         // Make the request
+//         const response = await axios.post(route('store.player.stats'), { team_id: team_id });
 
-        // Update progress bar after response
-        const progressPercentage = ((index / team_count) * 100);
-        document.getElementById('progress-bar').style.width = `${progressPercentage}%`;
+//         // Update progress bar after response
+//         const progressPercentage = ((index / team_count) * 100);
+//         document.getElementById('progress-bar').style.width = `${progressPercentage}%`;
 
-        // After completion of all teams, show a success message
-        if (index === team_count) {
-            Swal.fire({
-                title: 'Success!',
-                text: 'All player stats updated successfully.',
-                icon: 'success',
-                showConfirmButton: true,
-            });
-        }
+//         // After completion of all teams, show a success message
+//         if (index === team_count) {
+//             Swal.fire({
+//                 title: 'Success!',
+//                 text: 'All player stats updated successfully.',
+//                 icon: 'success',
+//                 showConfirmButton: true,
+//             });
+//         }
 
-    } catch (error) {
-        console.error(error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error!',
-            text: 'Failed to update player stats. Please try again later.',
-        });
-    }
-};
+//     } catch (error) {
+//         console.error(error);
+//         Swal.fire({
+//             icon: 'error',
+//             title: 'Error!',
+//             text: 'Failed to update player stats. Please try again later.',
+//         });
+//     }
+// };
 
 
 const showSeasonAwards = async () => {
@@ -137,6 +132,7 @@ const showSeasonAwards = async () => {
 
 onMounted(() => {
     // Initialize if needed
+    showSeasonAwards();
 });
 </script>
 <style scoped>

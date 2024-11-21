@@ -342,7 +342,7 @@ class AnalyticsController extends Controller
                 'players.team_id',
                 'teams.name as team_name',
                 'players.is_rookie',
-                'players.draft_id as draft_id',
+                'players.draft_id',
                 'player_season_stats.total_games_played as games_played',
                 'player_season_stats.avg_points_per_game',
                 'player_season_stats.avg_rebounds_per_game',
