@@ -96,7 +96,7 @@ class RatingsController extends Controller
 
             // Waive the last 3 players (remove them from the team)
             foreach ($rankedPlayers->slice(12, 3) as $playerStat) {
-                Player::where('id', $playerStat->player_id)->update(['role' => 'waived']);
+                Player::where('id', $playerStat->player_id)->update(['role' => 'bench']);
                 // Optionally log the waived player transaction if you want to track this
                 DB::table('transactions')->insert([
                     'player_id' => $playerStat->player_id,
