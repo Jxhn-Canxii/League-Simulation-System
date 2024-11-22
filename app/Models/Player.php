@@ -41,6 +41,7 @@ class Player extends Model
         'is_injured',
         'injury_status',
         'injury_history',
+        'injury_recovery_games',
     ];
 
     // The attributes that are hidden for arrays (optional)

@@ -3,3 +3,4 @@ ADD COLUMN is_injured BOOLEAN DEFAULT FALSE,
 ADD COLUMN injury_type VARCHAR(255) NULL,
 ADD COLUMN fatigue INT DEFAULT 0;
 ADD COLUMN injury_history INT DEFAULT 0;
+ADD COLUMN injury_recovery_games INT DEFAULT 0;

@@ -1655,41 +1655,7 @@ class SimulateController extends Controller
             }
 
             // Track and update fatigue for each player
-            $fatigueIncrease = round($minutes[$player['id']] * 0.5);
-            $player->fatigue += $fatigueIncrease;
-            $player->fatigue = min(100, $player->fatigue); // Ensure fatigue does not exceed 100%
-
-            // Adjust performance factor based on fatigue
-            $fatigueFactor = 1 - ($player->fatigue / 100);
-            $performanceFactor = rand(80, 120) / 100 * $fatigueFactor;
-
-            // Check for injuries
-            $injuryRisk = rand(0, 100);
-            $injuryChance = ($player->fatigue * 0.5) + ($player->injury_history * 10);
-            if ($injuryRisk < $injuryChance) {
-                $player->is_injured = true;
-                $player->injury_type = ['minor', 'moderate', 'severe'][rand(0, 2)];
-
-                // Increment injury history
-                $player->injury_history += 1;
-            }
-
-            // Apply injury impact on performance
-            if ($player->is_injured) {
-                switch ($player->injury_type) {
-                    case 'minor':
-                        $performanceFactor *= 0.75;
-                        break;
-                    case 'moderate':
-                        $performanceFactor *= 0.5;
-                        break;
-                    case 'severe':
-                        $performanceFactor *= 0.2;
-                        break;
-                }
-            }
-
-            $player->save(); // Save player after applying updates
+            $this->fatigueRate($player,$minutes[$player['id']]);
         }
 
         // Calculate remaining minutes to reach the target
@@ -1732,6 +1698,94 @@ class SimulateController extends Controller
 
         return $minutes;
     }
+    private function fatigueRate($player, $minutes) {
+        // Calculate fatigue increase based on minutes played
+        $fatigueIncrease = round($minutes * 0.5);
+        $player->fatigue += $fatigueIncrease;
+        $player->fatigue = min(100, $player->fatigue); // Ensure fatigue does not exceed 100%
+
+        // Adjust performance factor based on fatigue
+        $fatigueFactor = 1 - ($player->fatigue / 100);
+        $performanceFactor = rand(80, 120) / 100 * $fatigueFactor;
+
+        // Check for injuries if the player is not already injured
+        if (!$player->is_injured) {
+            $injuryRisk = rand(0, 100);
+            $injuryChance = ($player->fatigue * 0.5) + ($player->injury_history * 10);
+
+            if ($injuryRisk < $injuryChance) {
+                // Fetch all injury types from the config
+                $injuryTypes = config('injuries');
+
+                // Randomly select an injury type from the config
+                $injuryTypeName = array_rand($injuryTypes);
+
+                // Mark the player as injured and set the injury details
+                $player->is_injured = true;
+                $player->injury_type = $injuryTypeName; // Save the injury type name
+                $player->injury_history += 1; // Increment injury history
+
+                // Set recovery games based on injury type from the config
+                $player->injury_recovery_games = $injuryTypes[$injuryTypeName]['recovery_games'];
+
+                // Insert the injury record into the database using DB::table()
+                DB::table('injury_histories')->insert([
+                    'player_id' => $player->id,
+                    'injury_type' => $injuryTypeName,
+                    'recovery_games' => $injuryTypes[$injuryTypeName]['recovery_games'],
+                    'performance_impact' => $injuryTypes[$injuryTypeName]['performance_impact'],
+                    'injury_date' => now(), // Current timestamp for when the injury happened
+                    'recovery_date' => null, // Recovery date will be null until the player recovers
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
+
+        // Handle injury recovery logic based on the number of games
+        if ($player->is_injured) {
+            // Decrement recovery games as each game is played
+            $player->injury_recovery_games -= 1; // Decrease recovery games
+        }
+
+        // Check if the player has played enough games to recover
+        if ($player->injury_recovery_games <= 0) {
+            // Player is healed
+            $player->is_injured = false; // Mark player as recovered
+            $player->injury_type = 'none'; // Clear injury type
+            $player->injury_recovery_games = 0; // Reset the recovery game counter
+
+            // Update the injury record to set the recovery date in the injury history table
+            $lastInjury = DB::table('injury_histories')
+                ->where('player_id', $player->id)
+                ->whereNull('recovery_date') // Only update the most recent injury without recovery date
+                ->latest()
+                ->first();
+
+            if ($lastInjury) {
+                DB::table('injury_histories')
+                    ->where('id', $lastInjury->id)
+                    ->update([
+                        'recovery_date' => now(), // Set the recovery date
+                        'updated_at' => now(), // Update the timestamp
+                    ]);
+            }
+        }
+
+        // Apply injury impact on performance
+        if ($player->is_injured) {
+            $injuryType = config('injuries')[$player->injury_type];
+
+            if ($injuryType) {
+                $performanceFactor *= $injuryType['performance_impact'];
+            }
+        }
+
+        // Save player after applying updates
+        $player->save();
+    }
+
+
 
     // Method to handle semi-finals logic
     private function updateConferenceChampions($gameData, $winnerId)
