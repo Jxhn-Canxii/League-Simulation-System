@@ -1708,39 +1708,52 @@ class SimulateController extends Controller
 
             // Check for injuries if the player is not already injured
             if (!$player->is_injured) {
+                // Cast injury_prone_percentage to a float for accurate comparison
                 $injuryPercentage = (float) $player->injury_prone_percentage;
-                $injuryRisk = rand(0,  $injuryPercentage);
+
+                // Generate a random number between 0 and $injuryPercentage
+                $injuryRisk = rand(0, 100) / 100 * $injuryPercentage;
+
+                // Calculate injuryChance based on fatigue and injury history
                 $injuryChance = ($player->fatigue * 0.5) + ($player->injury_history * 10);
 
+                // Check if injury risk is less than the injury chance
                 if ($injuryRisk < $injuryChance) {
                     // Fetch all injury types from the config
                     $injuryTypes = config('injuries');
 
-                    // Randomly select an injury type from the config
-                    $injuryTypeName = array_rand($injuryTypes);
+                    // Ensure the injuryTypes config is not empty
+                    if (is_array($injuryTypes) && count($injuryTypes) > 0) {
+                        // Randomly select an injury type from the config
+                        $injuryTypeName = array_rand($injuryTypes);
 
-                    // Mark the player as injured and set the injury details
-                    $player->is_injured = true;
-                    $player->injury_type = $injuryTypeName; // Save the injury type name
-                    $player->injury_history += 1; // Increment injury history
+                        // Mark the player as injured and set the injury details
+                        $player->is_injured = true;
+                        $player->injury_type = $injuryTypeName; // Save the injury type name
+                        $player->injury_history += 1; // Increment injury history
 
-                    // Set recovery games based on injury type from the config
-                    $player->injury_recovery_games = $injuryTypes[$injuryTypeName]['recovery_games'];
+                        // Set recovery games based on injury type from the config
+                        $player->injury_recovery_games = $injuryTypes[$injuryTypeName]['recovery_games'];
 
-                    // Insert the injury record into the database using DB::table()
-                    DB::table('injury_histories')->insert([
-                        'player_id' => $player->id,
-                        'season_id' => $seasonId,
-                        'injury_type' => $injuryTypeName,
-                        'recovery_games' => $injuryTypes[$injuryTypeName]['recovery_games'],
-                        'performance_impact' => $injuryTypes[$injuryTypeName]['performance_impact'],
-                        'injury_date' => now(), // Current timestamp for when the injury happened
-                        'recovery_date' => null, // Recovery date will be null until the player recovers
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
+                        // Insert the injury record into the database using DB::table()
+                        DB::table('injury_histories')->insert([
+                            'player_id' => $player->id,
+                            'season_id' => $seasonId,
+                            'injury_type' => $injuryTypeName,
+                            'recovery_games' => $injuryTypes[$injuryTypeName]['recovery_games'],
+                            'performance_impact' => $injuryTypes[$injuryTypeName]['performance_impact'],
+                            'injury_date' => now(), // Use Carbon's now() for consistent timestamp
+                            'recovery_date' => null, // Recovery date will be null until the player recovers
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    } else {
+                        // Log error or handle case where injury types are not defined
+                        Log::error("Injury types are not configured correctly.");
+                    }
                 }
             }
+
 
             // Handle injury recovery logic based on the number of games
             if ($player->is_injured) {
