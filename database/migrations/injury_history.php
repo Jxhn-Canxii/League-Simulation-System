@@ -1,6 +1,7 @@
 CREATE TABLE `injury_histories` (
   `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `player_id` INT UNSIGNED NOT NULL,
+  `season_id` INT UNSIGNED NOT NULL,
   `injury_type` VARCHAR(255) NOT NULL,
   `recovery_games` INT NOT NULL,
   `performance_impact` DECIMAL(3,2) NOT NULL,

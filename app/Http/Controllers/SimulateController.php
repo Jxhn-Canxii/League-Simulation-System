@@ -1699,6 +1699,7 @@ class SimulateController extends Controller
         return $minutes;
     }
     private function fatigueRate($player, $minutes) {
+        $seasonId = DB::table('seasons')->orderBy('id', 'desc')->value('id') ?? 1;
         // Calculate fatigue increase based on minutes played
         $fatigueIncrease = round($minutes * 0.5);
         $player->fatigue += $fatigueIncrease;
@@ -1731,6 +1732,7 @@ class SimulateController extends Controller
                 // Insert the injury record into the database using DB::table()
                 DB::table('injury_histories')->insert([
                     'player_id' => $player->id,
+                    'season_id' =>  $seasonId,
                     'injury_type' => $injuryTypeName,
                     'recovery_games' => $injuryTypes[$injuryTypeName]['recovery_games'],
                     'performance_impact' => $injuryTypes[$injuryTypeName]['performance_impact'],
