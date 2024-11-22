@@ -425,6 +425,13 @@ class SimulateController extends Controller
 
         // Update or insert player game stats
         foreach ($playerGameStats as $stats) {
+
+             // Update the player's fatigue to 0
+            \Log::info('Updating player fatigue to 0 for player_id:', $stats['player_id']);
+
+            // Assuming you have a Player model
+            Player::where('id', $stats['player_id'])->update(['fatigue' => 0]);
+
             PlayerGameStats::updateOrCreate(
                 [
                     'player_id' => $stats['player_id'],
@@ -881,6 +888,13 @@ class SimulateController extends Controller
                 \Log::info('Saving player game stats:', $stats);
 
                 try {
+
+                     // Update the player's fatigue to 0
+                    \Log::info('Updating player fatigue to 0 for player_id:', $stats['player_id']);
+
+                    // Assuming you have a Player model
+                    Player::where('id', $stats['player_id'])->update(['fatigue' => 0]);
+
                     \Log::info('Saving player game stats:', $stats);
 
                     PlayerGameStats::updateOrCreate(
