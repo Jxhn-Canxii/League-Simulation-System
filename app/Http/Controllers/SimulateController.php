@@ -597,6 +597,37 @@ class SimulateController extends Controller
             foreach ($homeTeamPlayers as $player) {
                 $minutes = $homeMinutes[$player->id] ?? 0;
 
+                // Track and update fatigue
+                $fatigueIncrease = round($minutes * 0.5);
+                $player['fatigue'] += $fatigueIncrease;
+                $player['fatigue'] = min(100, $player['fatigue']);
+
+                // Adjust performance factor based on fatigue
+                $fatigueFactor = 1 - ($player['fatigue'] / 100);
+                $performanceFactor = rand(80, 120) / 100 * $fatigueFactor;
+
+                // Check for injuries
+                $injuryRisk = rand(0, 100);
+                $injuryChance = ($player['fatigue'] * 0.5) + ($player['injury_history'] * 10);
+                if ($injuryRisk < $injuryChance) {
+                    $player['is_injured'] = true;
+                    $player['injury_type'] = ['minor', 'moderate', 'severe'][rand(0, 2)];
+                }
+
+                // Apply injury impact on performance
+                if ($player['is_injured']) {
+                    switch ($player['injury_type']) {
+                        case 'minor':
+                            $performanceFactor *= 0.75;
+                            break;
+                        case 'moderate':
+                            $performanceFactor *= 0.5;
+                            break;
+                        case 'severe':
+                            $performanceFactor *= 0.2;
+                            break;
+                    }
+                }
 
                 // Calculate average defensive stats per game for the away team
                 $awayTeamDefensiveStats = [
@@ -608,7 +639,7 @@ class SimulateController extends Controller
                         ->avg('rebounding_rating') ?? 0,
                 ];
                 // If minutes is 0, player did not play
-                if ($minutes === 0) {
+                if ($minutes === 0 || $player['is_injured']) {
                     $playerGameStats[] = [
                         'player_id' => $player->id,
                         'game_id' => $gameData->game_id,
@@ -677,6 +708,37 @@ class SimulateController extends Controller
             foreach ($awayTeamPlayers as $player) {
                 $minutes = $awayMinutes[$player->id] ?? 0;;
 
+                // Track and update fatigue
+                $fatigueIncrease = round($minutes * 0.5);
+                $player['fatigue'] += $fatigueIncrease;
+                $player['fatigue'] = min(100, $player['fatigue']);
+
+                // Adjust performance factor based on fatigue
+                $fatigueFactor = 1 - ($player['fatigue'] / 100);
+                $performanceFactor = rand(80, 120) / 100 * $fatigueFactor;
+
+                // Check for injuries
+                $injuryRisk = rand(0, 100);
+                $injuryChance = ($player['fatigue'] * 0.5) + ($player['injury_history'] * 10);
+                if ($injuryRisk < $injuryChance) {
+                    $player['is_injured'] = true;
+                    $player['injury_type'] = ['minor', 'moderate', 'severe'][rand(0, 2)];
+                }
+
+                // Apply injury impact on performance
+                if ($player['is_injured']) {
+                    switch ($player['injury_type']) {
+                        case 'minor':
+                            $performanceFactor *= 0.75;
+                            break;
+                        case 'moderate':
+                            $performanceFactor *= 0.5;
+                            break;
+                        case 'severe':
+                            $performanceFactor *= 0.2;
+                            break;
+                    }
+                }
                 // Calculate average defensive stats per game for the home team
                 $homeTeamDefensiveStats = [
                     'defensive_rating' => Player::where('team_id', $gameData->home_team_id)
@@ -687,7 +749,7 @@ class SimulateController extends Controller
                         ->avg('rebounding_rating') ?? 0,
                 ];
                 // If minutes is 0, player did not play
-                if ($minutes === 0) {
+                if ($minutes === 0 || $player['is_injured']) {
                     $playerGameStats[] = [
                         'player_id' => $player->id,
                         'game_id' => $gameData->game_id,
