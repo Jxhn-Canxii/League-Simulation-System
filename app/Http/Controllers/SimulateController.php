@@ -1461,7 +1461,7 @@ class SimulateController extends Controller
         ]);
     }
 
-    private function distributeMinutes($playersArray, $totalMinutes)
+    private function distributeMinutesV1($playersArray, $totalMinutes)
     {
         // Define role-based priorities and their minute allocation limits
         $rolePriority = [
@@ -1551,7 +1551,7 @@ class SimulateController extends Controller
         }
 
         // Track and update fatigue
-        $fatigueIncrease = round( $minutes[$player['id']] * 0.5);
+        $fatigueIncrease = round($minutes[$player->id] * 0.5);
         $player->fatigue += $fatigueIncrease;
         $player->fatigue = min(100,  $player->fatigue);
 
@@ -1590,6 +1590,134 @@ class SimulateController extends Controller
         return $minutes;
     }
 
+    private function distributeMinutes($playersArray, $totalMinutes)
+    {
+        // Define role-based priorities and their minute allocation limits
+        $rolePriority = [
+            'star player' => 1,   // Highest priority
+            'starter' => 2,       // Second highest priority
+            'role player' => 3,   // Lower priority
+            'bench' => 4,         // Lowest priority
+        ];
+
+        // Convert Eloquent collection to array
+        // $playersArray = $players->toArray();
+
+        // Sort players based on their role priority (higher priority first)
+        $sortedPlayers = collect($playersArray)->sortBy(function ($player) use ($rolePriority) {
+            return $rolePriority[$player['role']] ?? 5; // Default to lowest priority if role not found
+        })->values();
+
+        $minutes = [];
+        $assignedMinutes = 0;
+
+        // Allocate minutes based on priority roles
+        foreach ($sortedPlayers as $player) {
+            if (rand(1, 100) >= $player['injury_prone_percentage']) {
+                // Player is injured and should get zero minutes
+                $minutes[$player['id']] = 0;
+            } else {
+                // Define initial minute ranges based on role priority
+                switch ($rolePriority[$player['role']] ?? 5) {
+                    case 1: // Star player
+                        $assignedMinutesForRole = rand(30, 35); // Star players get the most minutes
+                        break;
+                    case 2: // Starter
+                        $assignedMinutesForRole = rand(25, 30); // Starters get slightly fewer minutes
+                        break;
+                    case 3: // Role player
+                        $assignedMinutesForRole = rand(15, 20); // Role players get fewer minutes
+                        break;
+                    case 4: // Bench
+                        $assignedMinutesForRole = rand(5, 10);  // Bench players get the least minutes
+                        break;
+                    default:
+                        $assignedMinutesForRole = 0;
+                        break;
+                }
+
+                $minutes[$player['id']] = $assignedMinutesForRole;
+                $assignedMinutes += $assignedMinutesForRole;
+            }
+
+            // Track and update fatigue for each player
+            $fatigueIncrease = round($minutes[$player['id']] * 0.5);
+            $player->fatigue += $fatigueIncrease;
+            $player->fatigue = min(100, $player->fatigue); // Ensure fatigue does not exceed 100%
+
+            // Adjust performance factor based on fatigue
+            $fatigueFactor = 1 - ($player->fatigue / 100);
+            $performanceFactor = rand(80, 120) / 100 * $fatigueFactor;
+
+            // Check for injuries
+            $injuryRisk = rand(0, 100);
+            $injuryChance = ($player->fatigue * 0.5) + ($player->injury_history * 10);
+            if ($injuryRisk < $injuryChance) {
+                $player->is_injured = true;
+                $player->injury_type = ['minor', 'moderate', 'severe'][rand(0, 2)];
+
+                // Increment injury history
+                $player->injury_history += 1;
+            }
+
+            // Apply injury impact on performance
+            if ($player->is_injured) {
+                switch ($player->injury_type) {
+                    case 'minor':
+                        $performanceFactor *= 0.75;
+                        break;
+                    case 'moderate':
+                        $performanceFactor *= 0.5;
+                        break;
+                    case 'severe':
+                        $performanceFactor *= 0.2;
+                        break;
+                }
+            }
+
+            $player->save(); // Save player after applying updates
+        }
+
+        // Calculate remaining minutes to reach the target
+        $remainingMinutes = $totalMinutes - $assignedMinutes;
+
+        // Get players who were not assigned any minutes (injured or otherwise)
+        $availablePlayers = array_filter($sortedPlayers->toArray(), function ($player) use ($minutes) {
+            return !isset($minutes[$player['id']]) || $minutes[$player['id']] === 0;
+        });
+
+        // Count the number of available players
+        $numAvailablePlayers = count($availablePlayers);
+
+        // Distribute remaining minutes based on role priority (higher priority roles get more of the remaining minutes)
+        if ($numAvailablePlayers > 0) {
+            // First, calculate how much "weight" each player should get based on role priority
+            $totalWeight = array_sum(array_map(function ($player) use ($rolePriority) {
+                return 1 / $rolePriority[$player['role']] ?? 5;
+            }, $availablePlayers));
+
+            // Now, distribute the remaining minutes according to weight
+            foreach ($availablePlayers as $player) {
+                $playerWeight = 1 / ($rolePriority[$player['role']] ?? 5);  // Lower priority roles get more weight
+                $allocatedMinutes = ($playerWeight / $totalWeight) * $remainingMinutes;  // Proportional allocation
+                $minutes[$player['id']] += $allocatedMinutes;
+            }
+        }
+
+        // Ensure total minutes match the target (adjust if necessary)
+        $totalAssignedMinutes = array_sum($minutes);
+
+        if ($totalAssignedMinutes !== $totalMinutes) {
+            // If there is a discrepancy, adjust the last few players' minutes (either add or subtract)
+            $difference = $totalMinutes - $totalAssignedMinutes;
+            foreach ($minutes as $id => &$minute) {
+                // Add or subtract the difference proportionally
+                $minute += ($difference / count($minutes)); // Simple proportional adjustment
+            }
+        }
+
+        return $minutes;
+    }
 
     // Method to handle semi-finals logic
     private function updateConferenceChampions($gameData, $winnerId)
