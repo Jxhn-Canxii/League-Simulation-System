@@ -1119,6 +1119,38 @@ class SimulateController extends Controller
                 foreach ($homePlayers as $player) {
                     $minutes = $homeMinutes[$player['id']] ?? 0;
 
+                    // Track and update fatigue
+                    $fatigueIncrease = round($minutes * 0.5);
+                    $player['fatigue'] += $fatigueIncrease;
+                    $player['fatigue'] = min(100, $player['fatigue']);
+
+                    // Adjust performance factor based on fatigue
+                    $fatigueFactor = 1 - ($player['fatigue'] / 100);
+                    $performanceFactor = rand(80, 120) / 100 * $fatigueFactor;
+
+                    // Check for injuries
+                    $injuryRisk = rand(0, 100);
+                    $injuryChance = ($player['fatigue'] * 0.5) + ($player['injury_history'] * 10);
+                    if ($injuryRisk < $injuryChance) {
+                        $player['is_injured'] = true;
+                        $player['injury_type'] = ['minor', 'moderate', 'severe'][rand(0, 2)];
+                    }
+
+                    // Apply injury impact on performance
+                    if ($player['is_injured']) {
+                        switch ($player['injury_type']) {
+                            case 'minor':
+                                $performanceFactor *= 0.75;
+                                break;
+                            case 'moderate':
+                                $performanceFactor *= 0.5;
+                                break;
+                            case 'severe':
+                                $performanceFactor *= 0.2;
+                                break;
+                        }
+                    }
+
                     $playerGameStats = PlayerGameStats::where([
                         ['player_id', $player['id']],
                         ['game_id', $schedule->game_id],
@@ -1126,7 +1158,7 @@ class SimulateController extends Controller
                         ['season_id', $seasonId]
                     ])->first();
 
-                    if ($playerGameStats && $minutes === 0) {
+                    if (($playerGameStats && $minutes === 0) || $player['is_injured'])  {
                         $playerGameStats->update([
                             'points' => 0,
                             'assists' => 0,
@@ -1190,6 +1222,38 @@ class SimulateController extends Controller
                 foreach ($awayPlayers as $player) {
                     $minutes = $awayMinutes[$player['id']] ?? 0;
 
+                     // Track and update fatigue
+                     $fatigueIncrease = round($minutes * 0.5);
+                     $player['fatigue'] += $fatigueIncrease;
+                     $player['fatigue'] = min(100, $player['fatigue']);
+
+                     // Adjust performance factor based on fatigue
+                     $fatigueFactor = 1 - ($player['fatigue'] / 100);
+                     $performanceFactor = rand(80, 120) / 100 * $fatigueFactor;
+
+                     // Check for injuries
+                     $injuryRisk = rand(0, 100);
+                     $injuryChance = ($player['fatigue'] * 0.5) + ($player['injury_history'] * 10);
+                     if ($injuryRisk < $injuryChance) {
+                         $player['is_injured'] = true;
+                         $player['injury_type'] = ['minor', 'moderate', 'severe'][rand(0, 2)];
+                     }
+
+                     // Apply injury impact on performance
+                     if ($player['is_injured']) {
+                         switch ($player['injury_type']) {
+                             case 'minor':
+                                 $performanceFactor *= 0.75;
+                                 break;
+                             case 'moderate':
+                                 $performanceFactor *= 0.5;
+                                 break;
+                             case 'severe':
+                                 $performanceFactor *= 0.2;
+                                 break;
+                         }
+                     }
+
                     $playerGameStats = PlayerGameStats::where([
                         ['player_id', $player['id']],
                         ['game_id', $schedule->game_id],
@@ -1197,7 +1261,7 @@ class SimulateController extends Controller
                         ['season_id', $seasonId]
                     ])->first();
 
-                    if ($playerGameStats && $minutes === 0) {
+                    if (($playerGameStats && $minutes === 0) || $player['is_injured'])  {
                         $playerGameStats->update([
                             'points' => 0,
                             'assists' => 0,
@@ -1262,6 +1326,8 @@ class SimulateController extends Controller
                         $awayScore += $points;
                     }
                 }
+
+                //overtime
                 while ($homeScore === $awayScore) {
                     // Simulate an additional 6 minutes of play
                     $additionalMinutes = 6;
