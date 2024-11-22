@@ -1691,96 +1691,112 @@ class SimulateController extends Controller
 
         return $minutes;
     }
-    private function fatigueRate($player, $minutes) {
-        $seasonId = DB::table('seasons')->orderBy('id', 'desc')->value('id') ?? 1;
-        // Calculate fatigue increase based on minutes played
-        $fatigueIncrease = round($minutes * 0.5);
-        $player->fatigue += $fatigueIncrease;
-        $player->fatigue = min(100, $player->fatigue); // Ensure fatigue does not exceed 100%
+    private function fatigueRate($player, $minutes)
+    {
+        try {
+            // Fetch the most recent season id
+            $seasonId = DB::table('seasons')->orderBy('id', 'desc')->value('id') ?? 1;
 
-        // Adjust performance factor based on fatigue
-        $fatigueFactor = 1 - ($player->fatigue / 100);
-        $performanceFactor = rand(80, 120) / 100 * $fatigueFactor;
+            // Calculate fatigue increase based on minutes played
+            $fatigueIncrease = round($minutes * 0.5);
+            $player->fatigue += $fatigueIncrease;
+            $player->fatigue = min(100, $player->fatigue); // Ensure fatigue does not exceed 100%
 
-        // Check for injuries if the player is not already injured
-        if (!$player->is_injured) {
-            $injuryRisk = $player->injury_prone_percentage;
-            $injuryChance = ($player->fatigue * 0.5) + ($player->injury_history * 10);
+            // Adjust performance factor based on fatigue
+            $fatigueFactor = 1 - ($player->fatigue / 100);
+            $performanceFactor = rand(80, 120) / 100 * $fatigueFactor;
 
-            if ($injuryRisk < $injuryChance) {
-                // Fetch all injury types from the config
-                $injuryTypes = config('injuries');
+            // Check for injuries if the player is not already injured
+            if (!$player->is_injured) {
+                $injuryRisk = $player->injury_prone_percentage;
+                $injuryChance = ($player->fatigue * 0.5) + ($player->injury_history * 10);
 
-                // Randomly select an injury type from the config
-                $injuryTypeName = array_rand($injuryTypes);
+                if ($injuryRisk < $injuryChance) {
+                    // Fetch all injury types from the config
+                    $injuryTypes = config('injuries');
 
-                // Mark the player as injured and set the injury details
-                $player->is_injured = true;
-                $player->injury_type = $injuryTypeName; // Save the injury type name
-                $player->injury_history += 1; // Increment injury history
+                    // Randomly select an injury type from the config
+                    $injuryTypeName = array_rand($injuryTypes);
 
-                // Set recovery games based on injury type from the config
-                $player->injury_recovery_games = $injuryTypes[$injuryTypeName]['recovery_games'];
+                    // Mark the player as injured and set the injury details
+                    $player->is_injured = true;
+                    $player->injury_type = $injuryTypeName; // Save the injury type name
+                    $player->injury_history += 1; // Increment injury history
 
-                // Insert the injury record into the database using DB::table()
-                DB::table('injury_histories')->insert([
-                    'player_id' => $player->id,
-                    'season_id' =>  $seasonId,
-                    'injury_type' => $injuryTypeName,
-                    'recovery_games' => $injuryTypes[$injuryTypeName]['recovery_games'],
-                    'performance_impact' => $injuryTypes[$injuryTypeName]['performance_impact'],
-                    'injury_date' => now(), // Current timestamp for when the injury happened
-                    'recovery_date' => null, // Recovery date will be null until the player recovers
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            }
-        }
+                    // Set recovery games based on injury type from the config
+                    $player->injury_recovery_games = $injuryTypes[$injuryTypeName]['recovery_games'];
 
-        // Handle injury recovery logic based on the number of games
-        if ($player->is_injured) {
-            // Decrement recovery games as each game is played
-            $player->injury_recovery_games -= 1; // Decrease recovery games
-        }
-
-        // Check if the player has played enough games to recover
-        if ($player->injury_recovery_games <= 0) {
-            // Player is healed
-            $player->is_injured = false; // Mark player as recovered
-            $player->injury_type = 'none'; // Clear injury type
-            $player->injury_recovery_games = 0; // Reset the recovery game counter
-
-            // Update the injury record to set the recovery date in the injury history table
-            $lastInjury = DB::table('injury_histories')
-                ->where('player_id', $player->id)
-                ->whereNull('recovery_date') // Only update the most recent injury without recovery date
-                ->latest()
-                ->first();
-
-            if ($lastInjury) {
-                DB::table('injury_histories')
-                    ->where('id', $lastInjury->id)
-                    ->update([
-                        'recovery_date' => now(), // Set the recovery date
-                        'updated_at' => now(), // Update the timestamp
+                    // Insert the injury record into the database using DB::table()
+                    DB::table('injury_histories')->insert([
+                        'player_id' => $player->id,
+                        'season_id' => $seasonId,
+                        'injury_type' => $injuryTypeName,
+                        'recovery_games' => $injuryTypes[$injuryTypeName]['recovery_games'],
+                        'performance_impact' => $injuryTypes[$injuryTypeName]['performance_impact'],
+                        'injury_date' => now(), // Current timestamp for when the injury happened
+                        'recovery_date' => null, // Recovery date will be null until the player recovers
+                        'created_at' => now(),
+                        'updated_at' => now(),
                     ]);
+                }
             }
-        }
 
-        // Apply injury impact on performance
-        if ($player->is_injured) {
-            $injuryType = config('injuries')[$player->injury_type];
-
-            if ($injuryType) {
-                $performanceFactor *= $injuryType['performance_impact'];
+            // Handle injury recovery logic based on the number of games
+            if ($player->is_injured) {
+                // Decrement recovery games as each game is played
+                $player->injury_recovery_games -= 1; // Decrease recovery games
             }
-        }
 
-        // Save player after applying updates
-        $player->save();
+            // Check if the player has played enough games to recover
+            if ($player->injury_recovery_games <= 0) {
+                // Player is healed
+                $player->is_injured = false; // Mark player as recovered
+                $player->injury_type = 'none'; // Clear injury type
+                $player->injury_recovery_games = 0; // Reset the recovery game counter
+
+                // Update the injury record to set the recovery date in the injury history table
+                $lastInjury = DB::table('injury_histories')
+                    ->where('player_id', $player->id)
+                    ->whereNull('recovery_date') // Only update the most recent injury without recovery date
+                    ->latest()
+                    ->first();
+
+                if ($lastInjury) {
+                    DB::table('injury_histories')
+                        ->where('id', $lastInjury->id)
+                        ->update([
+                            'recovery_date' => now(), // Set the recovery date
+                            'updated_at' => now(), // Update the timestamp
+                        ]);
+                }
+            }
+
+            // Apply injury impact on performance
+            if ($player->is_injured) {
+                $injuryType = config('injuries')[$player->injury_type];
+
+                if ($injuryType) {
+                    $performanceFactor *= $injuryType['performance_impact'];
+                }
+            }
+
+            // Save player after applying updates
+            $player->save();
+
+            return response()->json([
+                'message' => 'Fatigue and injury update successful',
+                'player' => $player,
+            ], 200); // Successful response
+        } catch (\Exception $e) {
+            // Log the error message for debugging
+            \Log::error('Error updating fatigue and injury for player ' . $player->id . ': ' . $e->getMessage());
+
+            // Return a structured error response
+            return response()->json([
+                'error' => 'Error updating fatigue and injury data: ' . $e->getMessage()
+            ], 500); // Internal server error
+        }
     }
-
-
 
     // Method to handle semi-finals logic
     private function updateConferenceChampions($gameData, $winnerId)
