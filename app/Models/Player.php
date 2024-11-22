@@ -37,6 +37,10 @@ class Player extends Model
         'drafted_team_id',
         'is_drafted',
         'draft_status',
+        'fatigue',
+        'is_injured',
+        'injury_status',
+        'injury_history',
     ];
 
     // The attributes that are hidden for arrays (optional)
