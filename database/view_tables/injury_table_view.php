@@ -4,13 +4,12 @@ SELECT
     p.name AS player_name,
     t.name AS team_name,
     i.injury_type,
-    i.injury_date,
-    i.recovery_date,
     i.performance_impact,
     i.recovery_games,
     P.injury_history,
     p.fatigue,
-    p.injury_prone_percentage
+    p.injury_prone_percentage,
+ p.injury_recovery_games
 FROM
     players p
 JOIN
