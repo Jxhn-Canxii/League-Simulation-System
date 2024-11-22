@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\DB;
 class RatingsController extends Controller
 {
     //
-    public function updateactiveplayers(Request $request)
+    public function updateactiveplayersV1(Request $request)
     {
         DB::beginTransaction(); // Start transaction
 
@@ -378,6 +378,261 @@ class RatingsController extends Controller
             ], 500);
         }
     }
+    public function updateactiveplayers(Request $request)
+    {
+        DB::beginTransaction(); // Start transaction
+
+        try {
+            // Validate the request data
+            $request->validate([
+                'team_id' => 'required|integer|min:0',
+                'is_last' => 'required|boolean',
+            ]);
+
+            $teamId = $request->team_id;
+            $isLast = $request->is_last;
+
+            // Get the last (highest) team ID in the teams table
+            $lastTeamId = DB::table('teams')->max('id');
+
+            \Log::info('Received request:', ['team_id' => $teamId, 'is_last' => $isLast]);
+
+            // Fetch all active players, filtered by team_id if provided
+            $query = Player::where('is_active', 1);
+            if ($teamId) {
+                $query->where('team_id', $teamId);
+            }
+            $players = $query->get();
+
+            $seasonId = $this->getLatestSeasonId();
+
+            // Fetch the team name if team_id is provided
+            $teamName = '';
+            if ($teamId) {
+                $team = Teams::find($teamId);
+                if ($team) {
+                    $teamName = $team->name;
+                }
+            }
+
+            $improvedPlayers = [];
+            $declinedPlayers = [];
+            $reSignedPlayers = []; // Track re-signed players
+
+            // Fetch player statistics for the current season
+            $stats = DB::table('player_season_stats')
+                ->where('season_id', $seasonId)
+                ->where('team_id', $teamId)
+                ->get()
+                ->sortByDesc(function ($stat) {
+                    // Define a composite score based on your performance metrics
+                    $perGameScore = $stat->avg_points_per_game * 0.3 +
+                        $stat->avg_rebounds_per_game * 0.2 +
+                        $stat->avg_assists_per_game * 0.2 +
+                        $stat->avg_steals_per_game * 0.1 +
+                        $stat->avg_blocks_per_game * 0.1 -
+                        $stat->avg_turnovers_per_game * 0.1 -
+                        $stat->avg_fouls_per_game * 0.1;
+
+                    // Weigh total stats (overall contribution across the season)
+                    $totalScore = $stat->total_points * 0.2 +
+                        $stat->total_rebounds * 0.2 +
+                        $stat->total_assists * 0.2 +
+                        $stat->total_steals * 0.15 +
+                        $stat->total_blocks * 0.15 -
+                        $stat->total_turnovers * 0.1 -
+                        $stat->total_fouls * 0.1;
+
+                    $efficiencyFactor = 1 + ($stat->avg_minutes_per_game / 30);  // Assuming 30 minutes is the average threshold
+
+                    // Adjust for role: Apply a modifier based on player role
+                    $roleModifier = 1;
+                    if ($stat->role === 'star') {
+                        $roleModifier = 1.2;  // Star players get a boost
+                    } else if ($stat->role === 'starter') {
+                        $roleModifier = 1.1;  // Starters get a smaller boost
+                    } else if ($stat->role === 'role player') {
+                        $roleModifier = 1.05;  // Role players get a small bonus
+                    } else if ($stat->role === 'bench') {
+                        $roleModifier = 0.9;  // Bench players are slightly penalized in ranking
+                    }
+
+                    // Normalize score based on games played (to account for incomplete seasons)
+                    $gamesPlayedModifier = max(1, log($stat->total_games_played + 1) * 0.1);  // log to adjust scale
+
+                    // Return a combined score
+                    return ($perGameScore + $totalScore) * $gamesPlayedModifier * $roleModifier * $efficiencyFactor;
+                });
+
+            // Rank players and assign roles
+            $rankedPlayers = $stats->values();
+            // Assign the top 3 players as "star players"
+            foreach ($rankedPlayers->take(3) as $playerStat) {
+                Player::where('id', $playerStat->player_id)->update(['role' => 'star player']);
+            }
+
+            // Assign the next 2 players as "starters"
+            foreach ($rankedPlayers->slice(3, 2) as $playerStat) {
+                Player::where('id', $playerStat->player_id)->update(['role' => 'starter']);
+            }
+
+            // Assign the next 5 players as "role players"
+            foreach ($rankedPlayers->slice(5, 5) as $playerStat) {
+                Player::where('id', $playerStat->player_id)->update(['role' => 'role player']);
+            }
+
+            // Assign the next 2 players as "bench players"
+            foreach ($rankedPlayers->slice(10, 2) as $playerStat) {
+                Player::where('id', $playerStat->player_id)->update(['role' => 'bench']);
+            }
+
+            // Waive the last 3 players (remove them from the team)
+            foreach ($rankedPlayers->slice(12, 3) as $playerStat) {
+                Player::where('id', $playerStat->player_id)->update(['role' => 'bench']);
+                // Optionally log the waived player transaction if you want to track this
+                DB::table('transactions')->insert([
+                    'player_id' => $playerStat->player_id,
+                    'season_id' => $seasonId,
+                    'details' => 'Waived by ' . ($teamName ?? 'Unknown Team'),
+                    'from_team_id' => $teamId,
+                    'to_team_id' => 0,
+                    'status' => 'waived',
+                ]);
+                \Log::info('Player waived', [
+                    'player_id' => $playerStat->player_id,
+                    'team_name' => $teamName ?? 'Unknown Team',
+                    'season_id' => $seasonId,
+                ]);
+            }
+
+            // Fetch updated players
+            $players = $query->get();
+
+            foreach ($players as $player) {
+                // Check if the player's ratings have already been updated for the current season
+                $ratingExists = DB::table('player_ratings')
+                    ->where('player_id', $player->id)
+                    ->where('season_id', $seasonId)
+                    ->exists();
+
+                if ($ratingExists) {
+                    // Skip updating this player if already updated
+                    continue;
+                }
+
+                // Store old ratings and role for comparison
+                $oldRatings = [
+                    'shooting' => $player->shooting_rating,
+                    'defense' => $player->defense_rating,
+                    'passing' => $player->passing_rating,
+                    'rebounding' => $player->rebounding_rating,
+                    'overall' => $player->overall_rating,
+                ];
+                $oldRole = $player->role;
+
+                // Deduct contract_years by 1 and increment age by 1
+                $player->contract_years -= 1;
+                $player->age += 1;
+                $player->is_rookie = 0; // All players are no longer rookies
+
+                // Check for retirement
+                if ($player->age >= $player->retirement_age) {
+                    DB::table('transactions')->insert([
+                        'player_id' => $player->id,
+                        'season_id' => $seasonId,
+                        'details' => 'has retired from the league.[Last team: ' . $teamName . ']',
+                        'from_team_id' => $player->team_id,
+                        'to_team_id' => 0,
+                        'status' => 'retired',
+                    ]);
+
+                    $player->is_active = 0;
+                    $player->contract_years = 0;
+                    $player->team_id = 0;
+                }
+
+                // Check if the player was injured during the season
+                $injury = DB::table('injury_histories')
+                    ->where('player_id', $player->id)
+                    ->where('season_id', $seasonId)
+                    ->where('status', 'active') // Check if the injury is still ongoing
+                    ->first();
+
+                if ($injury) {
+                    // Apply a penalty to ratings based on the injury
+                    $penaltyFactor = 0.8;  // Example: Reduce by 20%
+                    $player->shooting_rating *= $penaltyFactor;
+                    $player->defense_rating *= $penaltyFactor;
+                    $player->passing_rating *= $penaltyFactor;
+                    $player->rebounding_rating *= $penaltyFactor;
+                    $player->overall_rating *= $penaltyFactor;
+
+                    \Log::info('Injury penalty applied', ['player_id' => $player->id]);
+                }
+
+                // Check if the player has recovered from injury for over 30 games, may be waived
+                if ($injury && $injury->injury_recovery_games > 30) {
+                    $waiveChance = rand(1, 100); // Random chance for waiving the player
+                    if ($waiveChance <= 50) { // 50% chance to waive
+                        DB::table('transactions')->insert([
+                            'player_id' => $player->id,
+                            'season_id' => $seasonId,
+                            'details' => 'Waived due to extended injury recovery period',
+                            'from_team_id' => $teamId,
+                            'to_team_id' => 0,
+                            'status' => 'waived',
+                        ]);
+
+                        $player->is_active = 0; // Mark player as waived
+                        $player->contract_years = 0; // Remove contract
+                        \Log::info('Player waived due to injury recovery period', ['player_id' => $player->id]);
+                    }
+                }
+
+                // Update player's ratings for the current season
+                DB::table('player_ratings')->insert([
+                    'player_id' => $player->id,
+                    'season_id' => $seasonId,
+                    'shooting_rating' => $player->shooting_rating,
+                    'defense_rating' => $player->defense_rating,
+                    'passing_rating' => $player->passing_rating,
+                    'rebounding_rating' => $player->rebounding_rating,
+                    'overall_rating' => $player->overall_rating,
+                    'role' => $player->role,
+                ]);
+
+                \Log::info('Updated player ratings', ['player_id' => $player->id]);
+
+                // Track improved or declined players
+                if ($player->overall_rating > $oldRatings['overall']) {
+                    $improvedPlayers[] = $player->id;
+                } elseif ($player->overall_rating < $oldRatings['overall']) {
+                    $declinedPlayers[] = $player->id;
+                }
+
+                // If no change in role, mark as re-signed player
+                if ($player->role == $oldRole) {
+                    $reSignedPlayers[] = $player->id;
+                }
+            }
+
+            DB::commit(); // Commit transaction
+            return response()->json([
+                'message' => 'Players updated successfully.',
+                'improved_players' => $improvedPlayers,
+                'declined_players' => $declinedPlayers,
+                're_signed_players' => $reSignedPlayers
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack(); // Rollback transaction if error occurs
+            \Log::error('Error updating players', ['error' => $e->getMessage()]);
+            return response()->json([
+                'message' => 'Error updating players.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     private function getContractYearsBasedOnRole($role)
     {
         switch ($role) {
