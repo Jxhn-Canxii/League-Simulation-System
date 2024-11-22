@@ -238,13 +238,13 @@ class RatingsController extends Controller
                 }
 
                 // Determine if the player should have an injury_prone_percentage of 0
-                if (rand(1, 100) <= 30) {
-                    // 40% chance to be injury-prone
-                    // Assign a random value between 10 and 100 in increments of 10
-                    $player->injury_prone_percentage = rand(50, 100);
-                } else {
-                    $player->injury_prone_percentage = 0;
-                }
+                // if (rand(1, 100) <= 30) {
+                //     // 40% chance to be injury-prone
+                //     // Assign a random value between 10 and 100 in increments of 10
+                //     $player->injury_prone_percentage = rand(50, 100);
+                // } else {
+                //     $player->injury_prone_percentage = 0;
+                // }
 
 
                 $performanceData = $this->comparePerformanceBetweenSeasons($player->id);
