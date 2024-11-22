@@ -1,7 +1,8 @@
-CREATE OR REPLACE VIEW injured_players_with_teams AS
+CREATE OR REPLACE VIEW injured_players_view AS
 SELECT
     p.id AS player_id,
     i.team_id AS team_id,
+    i.season_id as season_id,
     p.name AS player_name,
     p.role,
     COALESCE(t.name, 'Free Agent') AS team_name,  -- If no team, show 'Free Agent'
