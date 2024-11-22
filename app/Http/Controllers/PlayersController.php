@@ -702,6 +702,12 @@ class PlayersController extends Controller
 
         // Calculate contract expiration date
         $contractExpiresAt = Carbon::now()->addYears($contractYears);
+        $injuryPercentage = 0;
+        if (rand(1, 100) <= 30) {
+            // 40% chance to be injury-prone
+            // Assign a random value between 10 and 100 in increments of 10
+            $injuryPercentage = rand(50, 100);
+        }
 
         $player = Player::create([
             'name' => $request->name,
@@ -710,7 +716,7 @@ class PlayersController extends Controller
             'team_id' => 0,
             'age' => $age,
             'retirement_age' => $retirementAge,
-            'injury_prone_percentage' => 0,
+            'injury_prone_percentage' => $injuryPercentage,
             'contract_years' => 0,
             'contract_expires_at' => $contractExpiresAt,
             'is_active' => true,
