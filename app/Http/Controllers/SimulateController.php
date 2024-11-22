@@ -1708,7 +1708,8 @@ class SimulateController extends Controller
 
             // Check for injuries if the player is not already injured
             if (!$player->is_injured) {
-                $injuryRisk = $player->injury_prone_percentage;
+                $injuryPercentage = (float) $player->injury_prone_percentage;
+                $injuryRisk = rand(0,  $injuryPercentage);
                 $injuryChance = ($player->fatigue * 0.5) + ($player->injury_history * 10);
 
                 if ($injuryRisk < $injuryChance) {
