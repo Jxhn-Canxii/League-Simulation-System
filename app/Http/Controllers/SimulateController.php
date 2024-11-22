@@ -524,6 +524,7 @@ class SimulateController extends Controller
         $gameData->status = 2; // Marking the game as completed
 
         // Save the updated scores
+        $player->save();
         $gameData->save();
 
         // Determine the winner
@@ -1139,6 +1140,7 @@ class SimulateController extends Controller
             $gameData->status = 2;
 
             // Save the updated scores
+            $player->save();
             $gameData->save();
 
 
