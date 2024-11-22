@@ -1738,6 +1738,7 @@ class SimulateController extends Controller
                         // Insert the injury record into the database using DB::table()
                         DB::table('injury_histories')->insert([
                             'player_id' => $player->id,
+                            'team_id' => $player->team_id,
                             'season_id' => $seasonId,
                             'injury_type' => $injuryTypeName,
                             'recovery_games' => $injuryTypes[$injuryTypeName]['recovery_games'],

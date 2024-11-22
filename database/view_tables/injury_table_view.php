@@ -1,6 +1,7 @@
 CREATE OR REPLACE VIEW injured_players_with_teams AS
 SELECT
     p.id AS player_id,
+    i.team_id AS team_id,
     p.name AS player_name,
     p.role,
     COALESCE(t.name, 'Free Agent') AS team_name,  -- If no team, show 'Free Agent'
@@ -16,4 +17,4 @@ FROM
 JOIN
     injury_histories i ON p.id = i.player_id
 LEFT JOIN  -- Use LEFT JOIN to include players without a team
-    teams t ON p.team_id = t.id
+    teams t ON i.team_id = t.id
