@@ -1933,25 +1933,27 @@ class SimulateController extends Controller
                             'contract_years' => 0,
                             'team_id' => 0,
                             'is_active' => 1,  // They are still active in the free agent pool
-                            'is_injured' => 0, // Mark the player as no longer injured
+                            'is_injured' => 1, // Mark the player as no longer injured
                         ]);
 
                         // Add a transaction log for signing a new free agent
                         $randomPlayer = DB::table('players')->where('is_active', 1)->inRandomOrder()->first();
-                        DB::table('transactions')->insert([
-                            'player_id' => $randomPlayer->id,
-                            'season_id' => $seasonId,
-                            'details' => 'Signed as free agent to replace injured player',
-                            'from_team_id' => 0, // From free agent pool
-                            'to_team_id' => $player->team_id,
-                            'status' => 'signed',
-                        ]);
 
+                        $freeAgentStandardContract = $this->getContractYearsBasedOnRole($player->role);
                         // Update the new player with the appropriate contract role
                         DB::table('players')->where('id', $randomPlayer->id)->update([
                             'team_id' => $player->team_id,
-                            'contract_years' => rand(1, 5), // Assign a random contract length
-                            'role' => 'free agent',  // Assume role as free agent or adjust based on need
+                            'role' => $player->role,
+                            'contract_years' => $freeAgentStandardContract, // Assign a random contract length
+                        ]);
+
+                        DB::table('transactions')->insert([
+                            'player_id' => $randomPlayer->id,
+                            'season_id' => $seasonId,
+                            'details' => 'Signed as free agent to replace injured player. Contract Years: '. $freeAgentStandardContract,
+                            'from_team_id' => 0, // From free agent pool
+                            'to_team_id' => $player->team_id,
+                            'status' => 'signed',
                         ]);
                     } else {
                         // Optionally log or handle the case where the player is not waived
@@ -1990,7 +1992,20 @@ class SimulateController extends Controller
             ], 500); // Internal server error
         }
     }
-
+    private function getContractYearsBasedOnRole($role)
+    {
+        switch ($role) {
+            case 'star player':
+                return mt_rand(1, 7);
+            case 'starter':
+                return mt_rand(1, 5);
+            case 'role player':
+                return mt_rand(1, 4);
+            case 'bench':
+            default:
+                return mt_rand(1, 3);
+        }
+    }
     // Method to handle semi-finals logic
     private function updateConferenceChampions($gameData, $winnerId)
     {
