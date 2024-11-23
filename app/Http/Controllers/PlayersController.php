@@ -1687,7 +1687,7 @@ public function getplayertransactions(Request $request)
                             'players.name',   // Player's name
                             'players.role'    // Player's role
                         )
-                        ->orderByDesc('transactions.season_id')
+                        ->orderByDesc('transactions.id')
                         ->get();
 
     // Check if transactions are found
