@@ -1687,6 +1687,7 @@ public function getplayertransactions(Request $request)
                             'players.name',   // Player's name
                             'players.role'    // Player's role
                         )
+                        ->orderByDesc('transactions.season_id')
                         ->get();
 
     // Check if transactions are found
@@ -1713,6 +1714,7 @@ public function getplayerinjuryhistory(Request $request)
     // Query the injured_players_view for the player's injury history
     $injuryHistory = DB::table('injured_players_view')
                         ->where('player_id', $player_id)
+                        ->orderByDesc('season_id')
                         ->get();  // Retrieve the data from the view
 
     // Check if injury history is found
