@@ -267,18 +267,26 @@
                             <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
                                 Injury Details
                             </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                                # Games Missed
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                                Status
+                            </th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         <tr v-for="(injury, index) in injuries.data" v-if="injuries.data?.length > 0" :key="injury.id" @click.prevent="isViewModalOpen = injury.season_id" class="hover:bg-gray-100">
                             <td class="px-2 py-1 text-gray-700">Season {{ injury.season }}</td>
-                            <td class="px-2 py-1 text-gray-700">{{ injury.name }}</td>
+                            <td class="px-2 py-1 text-gray-700">{{ injury.player_name }}</td>
                             <td class="px-2 py-1 text-gray-700">{{ injury.role }}</td>
-                            <td class="px-2 py-1 text-gray-700">{{ injury.team }}</td>
-                            <td class="px-2 py-1 text-gray-700">{{ injury.details }}</td>
+                            <td class="px-2 py-1 text-gray-700">{{ injury.team_name }}</td>
+                            <td class="px-2 py-1 text-gray-700">{{ injury.injury_type }}</td>
+                            <td class="px-2 py-1 text-gray-700">{{ injury.recovery_games }}</td>
+                            <td class="px-2 py-1 text-gray-700">{{ injury.status }}</td>
                         </tr>
                         <tr class="hover:bg-gray-100" v-else>
-                            <td class="px-2 py-1 text-red-500 text-center font-semibold" colspan="5">No data available</td>
+                            <td class="px-2 py-1 text-red-500 text-center font-semibold" colspan="7">No data available</td>
                         </tr>
                     </tbody>
                 </table>
