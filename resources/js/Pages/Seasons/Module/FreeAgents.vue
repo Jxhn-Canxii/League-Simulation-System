@@ -147,6 +147,7 @@
                             <tr
                                 v-for="player in data.free_agents"
                                 :key="player.player_id"
+                                @click.prevent="showPlayerProfileModal = player.player_id"
                                 class="hover:bg-gray-100"
                             >
                                 <td class="px-2 py-1 whitespace-nowrap border">
@@ -299,6 +300,18 @@
                 </div>
             </div>
         </Modal>
+        <Modal :show="showPlayerProfileModal" :maxWidth="'6xl'">
+            <button
+                class="flex float-end bg-gray-100 p-3"
+                @click.prevent="showPlayerProfileModal = false"
+            >
+                <i class="fa fa-times text-black-600"></i>
+            </button>
+            <div class="p-6 block">
+                <!-- Image Section -->
+                <PlayerPerformance :key="showPlayerProfileModal.player_id" :player_id="showPlayerProfileModal.player_id" />
+            </div>
+        </Modal>
     </div>
 </template>
 
@@ -313,6 +326,7 @@ import Paginator from "@/Components/Paginator.vue";
 import { roleClasses } from "@/Utility/Formatter";
 import TopStatistics from "@/Pages/Analytics/Module/TopStatistics.vue";
 const showAddPlayerModal = ref(false);
+const showPlayerProfileModal = ref(false);
 const props = defineProps({
     showControls:{
         type: Boolean,
