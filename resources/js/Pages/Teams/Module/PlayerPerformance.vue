@@ -82,7 +82,7 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        <tr v-for="(player, index) in season_logs.player_stats" :key="player.player_id" @click.prevent="isViewModalOpen = player.season_id" class="hover:bg-gray-100">
+                        <tr v-for="(player, index) in season_logs.player_stats" v-if="season_logs.player_stats?.length > 0" :key="player.player_id" @click.prevent="isViewModalOpen = player.season_id" class="hover:bg-gray-100">
                             <td class="px-2 py-1 whitespace-nowrap border">{{ player.season_name }}</td>
                             <td class="px-2 py-1 whitespace-nowrap border">{{ player.team_name }}</td>
                             <td class="px-2 py-1 whitespace-nowrap border"><span :class="roleClasses(player.role)" class="inline-flex items-center capitalize px-2.5 py-0.5 rounded text-xs font-medium">{{ player.role }}</span></td>
@@ -95,6 +95,9 @@
                             <td class="px-2 py-1 whitespace-nowrap border">{{ player.average_turnovers_per_game.toFixed(1) }}</td>
                             <td class="px-2 py-1 whitespace-nowrap border">{{ player.average_fouls_per_game.toFixed(1) }}</td>
                             <td class="px-2 py-1 whitespace-nowrap border font-bold">{{ player.overall_rating ? player.overall_rating.toFixed(1) : 'Unrated' }}</td>
+                        </tr>
+                        <tr class="hover:bg-gray-100" v-else>
+                            <td class="px-2 py-1 text-red-500 text-center font-semibold" colspan="12">No data available</td>
                         </tr>
                     </tbody>
                 </table>
@@ -147,7 +150,7 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        <tr v-for="(player, index) in playoff_logs.player_stats" :key="player.player_id" @click.prevent="isViewModalOpen = player.season_id" class="hover:bg-gray-100">
+                        <tr v-for="(player, index) in playoff_logs.player_stats" v-if="playoff_logs.player_stats?.length > 0" :key="player.player_id" @click.prevent="isViewModalOpen = player.season_id" class="hover:bg-gray-100">
                             <td class="px-2 py-1 whitespace-nowrap border">
                                 {{ player.season_name }}
                             </td>
@@ -190,6 +193,9 @@
                                 {{ player.overall_rating ? player.overall_rating.toFixed(1) : 'Unrated' }}
                             </td>
                         </tr>
+                        <tr class="hover:bg-gray-100" v-else>
+                            <td class="px-2 py-1 text-red-500 text-center font-semibold" colspan="12">No data available</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -222,12 +228,15 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        <tr v-for="(transaction, index) in transactions.data" :key="transaction.id" @click.prevent="isViewModalOpen = transaction.season_id" class="hover:bg-gray-100">
+                        <tr v-for="(transaction, index) in transactions.data" v-if="transactions.data?.length > 0" :key="transaction.id" @click.prevent="isViewModalOpen = transaction.season_id" class="hover:bg-gray-100">
                             <td class="px-2 py-1 text-gray-700">Season {{ transaction.season_id }}</td>
                             <td class="px-2 py-1 text-gray-700">{{ transaction.name }}</td>
                             <td class="px-2 py-1 text-gray-700">{{ transaction.details }}</td>
                             <td class="px-2 py-1 text-gray-700">{{ transaction.role }}</td>
                             <td class="px-2 py-1 text-gray-700">{{ transaction.status }}</td>
+                        </tr>
+                        <tr class="hover:bg-gray-100" v-else>
+                            <td class="px-2 py-1 text-red-500 text-center font-semibold" colspan="5">No data available</td>
                         </tr>
                     </tbody>
                 </table>
@@ -261,12 +270,15 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        <tr v-for="(injury, index) in injuries" :key="injury.id" @click.prevent="isViewModalOpen = injury.season_id" class="hover:bg-gray-100">
+                        <tr v-for="(injury, index) in injuries.data" v-if="injuries.data?.length > 0" :key="injury.id" @click.prevent="isViewModalOpen = injury.season_id" class="hover:bg-gray-100">
                             <td class="px-2 py-1 text-gray-700">Season {{ injury.season }}</td>
                             <td class="px-2 py-1 text-gray-700">{{ injury.name }}</td>
                             <td class="px-2 py-1 text-gray-700">{{ injury.role }}</td>
                             <td class="px-2 py-1 text-gray-700">{{ injury.team }}</td>
                             <td class="px-2 py-1 text-gray-700">{{ injury.details }}</td>
+                        </tr>
+                        <tr class="hover:bg-gray-100" v-else>
+                            <td class="px-2 py-1 text-red-500 text-center font-semibold" colspan="5">No data available</td>
                         </tr>
                     </tbody>
                 </table>
