@@ -1,6 +1,8 @@
 CREATE OR REPLACE VIEW injured_players_view AS
 SELECT
+	i.id as injury_id,
     p.id AS player_id,
+    i.game_id AS game_id,
     i.team_id AS team_id,
     i.season_id as season_id,
     p.name AS player_name,
@@ -19,3 +21,4 @@ JOIN
     players p ON i.player_id = p.id
 LEFT JOIN  -- Use LEFT JOIN to include players without a team
     teams t ON i.team_id = t.id
+ORDER BY i.id DESC

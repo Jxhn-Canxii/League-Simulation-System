@@ -738,6 +738,28 @@
                             </div>
                         </li>
                     </ul>
+                    <div class="ml-3 flex-grow">
+                        <div class="flex justify-between items-start">
+                          <div v-if="injuredPlayers?.length > 0" class="overflow-x-auto">
+                            <table class="min-w-full text-xs text-left text-gray-500">
+                              <thead class="bg-gray-200">
+                                <tr>
+                                  <th scope="col" class="px-4 py-2 font-medium text-gray-900">Player Name</th>
+                                  <th scope="col" class="px-4 py-2 font-medium text-gray-900">Team</th>
+                                  <th scope="col" class="px-4 py-2 font-medium text-gray-900">Injury Type</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr v-for="injury in injuredPlayers" :key="injury.injury_id" class="border-t">
+                                  <td class="px-4 py-2">{{ injury.player_name }}</td>
+                                  <td class="px-4 py-2">{{ injury.team_name }}</td>
+                                  <td class="px-4 py-2">{{ injury.injury_type }}</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -798,7 +820,7 @@ const gameDetails = ref(null);
 const playerStats = ref({ home: [], away: [] });
 const bestPlayer = ref(null);
 const statLeaders = ref([]);
-
+const injuredPlayers =ref([]);
 // Fetch the box score data
 const fetchBoxScore = async () => {
     try {
@@ -812,6 +834,7 @@ const fetchBoxScore = async () => {
         playerStats.value.away = data.player_stats.away;
         bestPlayer.value = data.best_player;
         statLeaders.value = data.stat_leaders;
+        injuredPlayers.value = data.injury;
     } catch (error) {
         console.error("Error fetching box score:", error);
     }

@@ -267,10 +267,14 @@ class GameController extends Controller
 
         $homeTeamRatings = $this->getTeamRatingsPerSeason($game->season_id, $game->home_id);
         $awayTeamRatings = $this->getTeamRatingsPerSeason($game->season_id, $game->away_id);
+
+
+        $injury = $this->getIngameInjury($game->id);
         // Format data for box score
         $boxScore = [
             'game_id' => $game->game_id,
             'round' => $game->round,
+            'injury' => $injury,
             'home_team' => [
                 'team_id' => $game->home_id, // Use the correct field from your query
                 'name' => $game->home_team_name,
@@ -303,7 +307,11 @@ class GameController extends Controller
             'box_score' => $boxScore,
         ]);
     }
-
+    private function getIngameInjury($gameId) {
+        return DB::table('injured_players_view')
+            ->where('game_id', $gameId)
+            ->get();
+    }
     private function getTeamRatingsPerSeason($seasonId, $teamId)
     {
         // Get team ratings for the given season using the player_ratings table
