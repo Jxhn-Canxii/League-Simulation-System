@@ -222,10 +222,7 @@ class AnalyticsController extends Controller
                 ->count();
 
             // Calculate how many games the player has played
-            $gamesPlayed = DB::table('player_game_stats')  // Assuming this table tracks player participation
-                ->where('player_id', $stats->player_id)
-                ->where('season_id', $seasonId)
-                ->count();
+            $gamesPlayed = $stats->total_games_played;
 
             // Calculate the required 70% of total games
             $requiredGames = ceil($totalGames * 0.7); // Round up to the nearest whole number
@@ -269,10 +266,7 @@ class AnalyticsController extends Controller
                     ->count();
 
                 // Calculate how many games the player has played
-                $gamesPlayed = DB::table('player_game_stats')
-                    ->where('player_id', $stats->player_id)
-                    ->where('season_id', $seasonId)
-                    ->count();
+                $gamesPlayed = $stats->total_games_played;
 
                 // Calculate the required 70% of total games
                 $requiredGames = ceil($totalGames * 0.7); // Round up to the nearest whole number
