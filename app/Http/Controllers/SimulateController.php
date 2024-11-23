@@ -1937,7 +1937,12 @@ class SimulateController extends Controller
                         ]);
 
                         // Add a transaction log for signing a new free agent
-                        $randomPlayer = DB::table('players')->where('is_active', 1)->inRandomOrder()->first();
+                        $randomPlayer = DB::table('players')
+                        ->where('is_active', 1)
+                        ->where('is_injured', 0)   // Make sure the player is not injured
+                        ->where('team_id', 0)       // Ensure the player has no team
+                        ->inRandomOrder()
+                        ->first();
 
                         $freeAgentStandardContract = $this->getContractYearsBasedOnRole($player->role);
                         // Update the new player with the appropriate contract role
