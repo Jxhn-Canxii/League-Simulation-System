@@ -1,5 +1,35 @@
 <template>
-    <div class="p-4 bg-gray-900 shadow-md rounded-lg max-w-7xl mx-auto">
+    <div class="p-4 bg-gray-900 shadow-md min-h-screen flex justify-center items-center rounded-lg max-w-7xl mx-auto" v-if="!gameDetails">
+        <!-- Skeleton Loader -->
+        <div class="flex justify-center items-center h-full">
+            <!-- Centered Loader -->
+            <div class="flex flex-col items-center space-y-6">
+                <!-- Placeholder for Home Team Name -->
+                <div class="w-32 h-6 bg-gray-700 rounded-md animate-pulse"></div>
+
+                <!-- Placeholder for Home Team Score -->
+                <div class="w-24 h-8 bg-gray-700 rounded-md animate-pulse"></div>
+
+                <!-- Placeholder for "VS" Text -->
+                <div class="text-white text-xl font-semibold">
+                    <span class="animate-pulse">VS</span>
+                </div>
+
+                <!-- Placeholder for Away Team Score -->
+                <div class="w-24 h-8 bg-gray-700 rounded-md animate-pulse"></div>
+
+                <!-- Placeholder for Away Team Name -->
+                <div class="w-32 h-6 bg-gray-700 rounded-md animate-pulse"></div>
+
+                <!-- Placeholder for Round or Game Status -->
+                <div class="w-48 h-6 bg-gray-700 rounded-md animate-pulse mt-4"></div>
+
+                <!-- Placeholder for Matchup Record -->
+                <div class="w-32 h-6 bg-gray-700 rounded-md animate-pulse mt-4"></div>
+            </div>
+        </div>
+    </div>
+    <div class="p-4 bg-gray-900 shadow-md rounded-lg max-w-7xl mx-auto" v-else>
         <!-- Game Summary -->
         <div
             class="flex flex-col lg:flex-row justify-between mb-4 border-b-2 border-gray-700 pb-4"
@@ -746,36 +776,36 @@
                 </div>
             </div>
         </div>
-        <Modal :show="isTeamRosterModalOpen" :maxWidth="'fullscreen'">
-            <button
-                class="flex float-end bg-gray-100 p-3"
-                @click.prevent="isTeamRosterModalOpen = false"
-            >
-                <i class="fa fa-times text-black-600"></i>
-            </button>
-            <div class="mt-4">
-                <TeamRoster
-                    v-if="isTeamRosterModalOpen"
-                    :team_id="isTeamRosterModalOpen"
-                />
-            </div>
-        </Modal>
-
-        <Modal :show="showPlayerProfileModal" :maxWidth="'6xl'">
-            <button
-                class="flex float-end bg-gray-100 p-3"
-                @click.prevent="showPlayerProfileModal = false"
-            >
-                <i class="fa fa-times text-black-600"></i>
-            </button>
-            <div class="p-6 block">
-                <PlayerPerformance
-                    :key="showPlayerProfileModal.player_id"
-                    :player_id="showPlayerProfileModal.player_id"
-                />
-            </div>
-        </Modal>
     </div>
+    <Modal :show="isTeamRosterModalOpen" :maxWidth="'fullscreen'">
+        <button
+            class="flex float-end bg-gray-100 p-3"
+            @click.prevent="isTeamRosterModalOpen = false"
+        >
+            <i class="fa fa-times text-black-600"></i>
+        </button>
+        <div class="mt-4">
+            <TeamRoster
+                v-if="isTeamRosterModalOpen"
+                :team_id="isTeamRosterModalOpen"
+            />
+        </div>
+    </Modal>
+
+    <Modal :show="showPlayerProfileModal" :maxWidth="'6xl'">
+        <button
+            class="flex float-end bg-gray-100 p-3"
+            @click.prevent="showPlayerProfileModal = false"
+        >
+            <i class="fa fa-times text-black-600"></i>
+        </button>
+        <div class="p-6 block">
+            <PlayerPerformance
+                :key="showPlayerProfileModal.player_id"
+                :player_id="showPlayerProfileModal.player_id"
+            />
+        </div>
+    </Modal>
 </template>
 
 <script setup>
@@ -799,7 +829,7 @@ const props = defineProps({
 });
 const showPlayerProfileModal = ref(false);
 const isTeamRosterModalOpen = ref(false);
-const gameDetails = ref(null);
+const gameDetails = ref(false);
 const playerStats = ref({ home: [], away: [] });
 const bestPlayer = ref(null);
 const statLeaders = ref([]);
@@ -807,6 +837,7 @@ const injuredPlayers =ref([]);
 // Fetch the box score data
 const fetchBoxScore = async () => {
     try {
+        gameDetails.value = false;
         const response = await axios.post(route("game.boxscore"), {
             game_id: props.game_id,
         });
