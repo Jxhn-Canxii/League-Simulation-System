@@ -13,7 +13,7 @@
                 class="bg-white inline-block min-w-full overflow-hidden rounded shadow p-2"
             >
                 <h3 class="text-md font-semibold text-gray-800">
-                    Free Agents List
+                    Free Agents List {{ showPlayerProfileModal }}
                 </h3>
                 <input
                     v-if="false"
@@ -146,8 +146,8 @@
                         <tbody class="bg-white divide-y divide-gray-200">
                             <tr
                                 v-for="player in data.free_agents"
-                                :key="player.player_id"
-                                @click.prevent="showPlayerProfileModal = player.player_id"
+                                :key="player.id"
+                                @click.prevent="showPlayerProfileModal = player.id"
                                 class="hover:bg-gray-100"
                             >
                                 <td class="px-2 py-1 whitespace-nowrap border">
