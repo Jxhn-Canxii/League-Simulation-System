@@ -730,10 +730,10 @@
                             </div>
                         </li>
                     </ul>
-                    <div class="p-0 flex-grow mt-2">
+                    <div class="p-0 flex-grow mt-2" v-if="injuredPlayers?.length > 0">
+                        <small>Injury List</small>
                         <div class="flex justify-between items-start">
-                            <div v-if="injuredPlayers?.length > 0" class="block text-nowrap overflow-x-auto">
-                            <small>Injury List</small>
+                            <div class="block text-nowrap overflow-x-auto">
                             <marquee class="text-red-600 font-semibold">
                                 <!-- Comma separated list of player names and their team names -->
                                 {{ formatInjuredPlayers(injuredPlayers) }}
