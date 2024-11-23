@@ -1681,10 +1681,8 @@ public function getplayertransactions(Request $request)
                             'transactions.details',
                             'transactions.from_team_id',
                             'from_team.name as from_team_name',   // Get the name of the "from" team
-                            'from_team.city as from_team_city',   // Get the city of the "from" team (optional)
                             'transactions.to_team_id',
                             'to_team.name as to_team_name',       // Get the name of the "to" team
-                            'to_team.city as to_team_city',       // Get the city of the "to" team (optional)
                             'transactions.status',
                             'players.name',   // Player's name
                             'players.role'    // Player's role

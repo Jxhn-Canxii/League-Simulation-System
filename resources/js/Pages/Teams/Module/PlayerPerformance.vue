@@ -202,6 +202,66 @@
                 </tbody>
             </table>
         </div>
+        <h2 class="text-sm font-semibold text-gray-800 mt-4">
+           Injury History
+        </h2>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-xs">
+                <thead class="bg-gray-50 text-nowrap">
+                    <tr>
+                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                            Season
+                        </th>
+                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                            Player Name
+                        </th>
+                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                            Role
+                        </th>
+                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                            Team
+                        </th>
+                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                            Injury Type
+                        </th>
+                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                            Recovery Games
+                        </th>
+                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <!-- Loop through injury data to create table rows -->
+                    <tr v-for="(player, index) in injury.data" :key="player.player_id" @click.prevent="isViewModalOpen = player.season_id" class="hover:bg-gray-100">
+                        <td class="px-2 py-1 text-gray-700">
+                            {{ player.season_id }}
+                        </td>
+                        <td class="px-2 py-1 text-gray-700">
+                            {{ player.player_name }}
+                        </td>
+                        <td class="px-2 py-1 text-gray-700">
+                            {{ player.role }}
+                        </td>
+                        <td class="px-2 py-1 text-gray-700">
+                            {{ player.team_name }}
+                        </td>
+                        <td class="px-2 py-1 text-gray-700">
+                            {{ player.injury_type }}
+                        </td>
+                        <td class="px-2 py-1 text-gray-700">
+                            {{ player.recovery_games }}
+                        </td>
+                        <td class="px-2 py-1 text-gray-700">
+                            {{ player.status }}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
         <Modal :show="isViewModalOpen" :maxWidth="'6xl'">
             <button
                 class="flex float-end bg-gray-100 p-3"
