@@ -127,8 +127,8 @@ class SimulateController extends Controller
         $playerGameStats = [];
 
         // Distribute minutes to players considering injury status
-        $homeMinutes = $this->distributeMinutes($homeTeamPlayers, $totalMinutes,$request->schedule_id);
-        $awayMinutes = $this->distributeMinutes($awayTeamPlayers, $totalMinutes,$request->schedule_id);
+        $homeMinutes = $this->distributeMinutes($homeTeamPlayers, $totalMinutes, $request->schedule_id);
+        $awayMinutes = $this->distributeMinutes($awayTeamPlayers, $totalMinutes, $request->schedule_id);
 
         // Simulate player game stats for home team
         foreach ($homeTeamPlayers as $player) {
@@ -594,8 +594,8 @@ class SimulateController extends Controller
             $playerGameStats = [];
 
             // Distribute minutes to players considering injury status
-            $homeMinutes = $this->distributeMinutes($homeTeamPlayers, $totalMinutes,$request->schedule_id);
-            $awayMinutes = $this->distributeMinutes($awayTeamPlayers, $totalMinutes,$request->schedule_id);
+            $homeMinutes = $this->distributeMinutes($homeTeamPlayers, $totalMinutes, $request->schedule_id);
+            $awayMinutes = $this->distributeMinutes($awayTeamPlayers, $totalMinutes, $request->schedule_id);
             // Simulate player game stats for home team
             foreach ($homeTeamPlayers as $player) {
                 $minutes = $homeMinutes[$player->id] ?? 0;
@@ -923,8 +923,8 @@ class SimulateController extends Controller
                 // Simulate an additional 6 minutes of play
                 $additionalMinutes = 6;
 
-                $homeMinutes = $this->distributeMinutes($homeTeamPlayers, $additionalMinutes,$request->schedule_id);
-                $awayMinutes = $this->distributeMinutes($awayTeamPlayers, $additionalMinutes,$request->schedule_id);
+                $homeMinutes = $this->distributeMinutes($homeTeamPlayers, $additionalMinutes, $request->schedule_id);
+                $awayMinutes = $this->distributeMinutes($awayTeamPlayers, $additionalMinutes, $request->schedule_id);
 
                 foreach ($homeTeamPlayers as $player) {
                     if (isset($homeMinutes[$player['id']])) {
@@ -1114,8 +1114,8 @@ class SimulateController extends Controller
                     return $rolePriority[$player['role']] ?? 5;
                 })->values();
 
-                $homeMinutes = $this->distributeMinutes($homePlayers, $totalMinutes,$request->schedule_id);
-                $awayMinutes = $this->distributeMinutes($awayPlayers, $totalMinutes,$request->schedule_id);
+                $homeMinutes = $this->distributeMinutes($homePlayers, $totalMinutes, $request->schedule_id);
+                $awayMinutes = $this->distributeMinutes($awayPlayers, $totalMinutes, $request->schedule_id);
 
                 $homeScore = 0;
                 $awayScore = 0;
@@ -1337,8 +1337,8 @@ class SimulateController extends Controller
                     // Simulate an additional 6 minutes of play
                     $additionalMinutes = 6;
 
-                    $homeMinutes = $this->distributeMinutes($homePlayers, $additionalMinutes,$request->schedule_id);
-                    $awayMinutes = $this->distributeMinutes($awayPlayers, $additionalMinutes,$request->schedule_id);
+                    $homeMinutes = $this->distributeMinutes($homePlayers, $additionalMinutes, $request->schedule_id);
+                    $awayMinutes = $this->distributeMinutes($awayPlayers, $additionalMinutes, $request->schedule_id);
 
                     foreach ($homePlayers as $player) {
                         if (isset($homeMinutes[$player['id']])) {
@@ -1597,7 +1597,7 @@ class SimulateController extends Controller
         return $minutes;
     }
 
-    private function distributeMinutes($playersArray, $totalMinutes,$gameId)
+    private function distributeMinutes($playersArray, $totalMinutes, $gameId)
     {
         // Define role-based priorities and their minute allocation limits
         $rolePriority = [
@@ -1648,7 +1648,7 @@ class SimulateController extends Controller
             }
 
             // Track and update fatigue for each player
-            $this->fatigueRate($player,$minutes[$player['id']],$gameId);
+            $this->fatigueRate($player, $minutes[$player['id']], $gameId);
         }
 
         // Calculate remaining minutes to reach the target
@@ -1691,7 +1691,7 @@ class SimulateController extends Controller
 
         return $minutes;
     }
-    private function fatigueRate($player, $minutes,$gameId)
+    private function fatigueRateV1($player, $minutes, $gameId)
     {
         try {
             // Fetch the most recent season id
@@ -1786,6 +1786,183 @@ class SimulateController extends Controller
                         ]);
                 }
             }
+
+            // Apply injury impact on performance
+            if ($player->is_injured) {
+                $injuryType = config('injuries')[$player->injury_type];
+
+                if ($injuryType) {
+                    $performanceFactor *= $injuryType['performance_impact'];
+                }
+            }
+
+            // Save player after applying updates
+            $player->save();
+
+            return response()->json([
+                'message' => 'Fatigue and injury update successful',
+                'player' => $player,
+            ], 200); // Successful response
+        } catch (\Exception $e) {
+            // Log the error message for debugging
+            \Log::error('Error updating fatigue and injury for player ' . $player->id . ': ' . $e->getMessage());
+
+            // Return a structured error response
+            return response()->json([
+                'error' => 'Error updating fatigue and injury data: ' . $e->getMessage()
+            ], 500); // Internal server error
+        }
+    }
+    private function fatigueRate($player, $minutes, $gameId)
+    {
+        try {
+            // Fetch the most recent season id
+            $seasonId = DB::table('seasons')->orderBy('id', 'desc')->value('id') ?? 1;
+
+            // Calculate fatigue increase based on minutes played
+            $fatigueIncrease = round($minutes * 0.5);
+            $player->fatigue += $fatigueIncrease;
+            $player->fatigue = min(100, $player->fatigue); // Ensure fatigue does not exceed 100%
+
+            // Adjust performance factor based on fatigue
+            $fatigueFactor = 1 - ($player->fatigue / 100);
+            $performanceFactor = rand(80, 120) / 100 * $fatigueFactor;
+
+            // Check for injuries if the player is not already injured
+            if (!$player->is_injured) {
+                // Cast injury_prone_percentage to a float for accurate comparison
+                $injuryPercentage = (float) $player->injury_prone_percentage;
+
+                // Generate a random number between 0 and $injuryPercentage
+                $injuryRisk = rand(0, 100) / 100 * $injuryPercentage;
+
+                // Calculate injuryChance based on fatigue and injury history
+                $injuryChance = ($player->fatigue * 0.5) + ($player->injury_history * 10);
+
+                // Check if injury risk is less than the injury chance
+                if ($injuryRisk < $injuryChance) {
+                    // Fetch all injury types from the config
+                    $injuryTypes = config('injuries');
+
+                    // Ensure the injuryTypes config is not empty
+                    if (is_array($injuryTypes) && count($injuryTypes) > 0) {
+                        // Randomly select an injury type from the config
+                        $injuryTypeName = array_rand($injuryTypes);
+
+                        // Mark the player as injured and set the injury details
+                        $player->is_injured = true;
+                        $player->injury_type = $injuryTypeName; // Save the injury type name
+                        $player->injury_history += 1; // Increment injury history
+
+                        // Set recovery games based on injury type from the config
+                        $player->injury_recovery_games = $injuryTypes[$injuryTypeName]['recovery_games'];
+
+                        // Insert the injury record into the database using DB::table()
+                        DB::table('injury_histories')->insert([
+                            'player_id' => $player->id,
+                            'game_id' => $gameId,
+                            'team_id' => $player->team_id,
+                            'season_id' => $seasonId,
+                            'injury_type' => $injuryTypeName,
+                            'recovery_games' => $injuryTypes[$injuryTypeName]['recovery_games'],
+                            'performance_impact' => $injuryTypes[$injuryTypeName]['performance_impact'],
+                            'injury_date' => now(), // Use Carbon's now() for consistent timestamp
+                            'recovery_date' => null, // Recovery date will be null until the player recovers
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    } else {
+                        // Log error or handle case where injury types are not defined
+                        Log::error("Injury types are not configured correctly.");
+                    }
+                }
+            }
+
+            // Handle injury recovery logic based on the number of games
+            if ($player->is_injured) {
+                // Decrement recovery games as each game is played
+                $player->injury_recovery_games -= 1; // Decrease recovery games
+            }
+
+            // Check if the player has played enough games to recover
+            if ($player->injury_recovery_games <= 0) {
+                // Player is healed
+                $player->is_injured = false; // Mark player as recovered
+                $player->injury_type = 'none'; // Clear injury type
+                $player->injury_recovery_games = 0; // Reset the recovery game counter
+
+                // Update the injury record to set the recovery date in the injury history table
+                $lastInjury = DB::table('injury_histories')
+                    ->where('player_id', $player->id)
+                    ->whereNull('recovery_date') // Only update the most recent injury without recovery date
+                    ->latest()
+                    ->first();
+
+                if ($lastInjury) {
+                    DB::table('injury_histories')
+                        ->where('id', $lastInjury->id)
+                        ->update([
+                            'recovery_date' => now(), // Set the recovery date
+                            'updated_at' => now(), // Update the timestamp
+                        ]);
+                }
+            }
+
+            // If the player is injured for 15 or more games, they may be waived
+            // Check if the player is injured for 15 or more games
+            if ($player->is_injured && $player->injury_recovery_games >= 15) {
+                // Fetch the current season's status (assuming you want the most recent season)
+                $seasonStatus = DB::table('seasons')->where('id', $seasonId)->value('status');
+
+                // Ensure the season is active (status = 1) before proceeding
+                if ($seasonStatus == 1) {
+                    // Add 50% chance for the player to be waived
+                    if (rand(0, 1) == 1) {
+                        // Insert transaction for waiving the player
+                        DB::table('transactions')->insert([
+                            'player_id' => $player->id,
+                            'season_id' => $seasonId,
+                            'details' => 'Waived due to extended injury recovery period',
+                            'from_team_id' => $player->team_id,
+                            'to_team_id' => 0, // 0 for free agent pool
+                            'status' => 'waived',
+                        ]);
+
+                        // Update player's contract and team details to reflect they are waived
+                        DB::table('players')->where('id', $player->id)->update([
+                            'contract_years' => 0,
+                            'team_id' => 0,
+                            'is_active' => 1,  // They are still active in the free agent pool
+                            'is_injured' => 0, // Mark the player as no longer injured
+                        ]);
+
+                        // Add a transaction log for signing a new free agent
+                        $randomPlayer = DB::table('players')->where('is_active', 1)->inRandomOrder()->first();
+                        DB::table('transactions')->insert([
+                            'player_id' => $randomPlayer->id,
+                            'season_id' => $seasonId,
+                            'details' => 'Signed as free agent to replace injured player',
+                            'from_team_id' => 0, // From free agent pool
+                            'to_team_id' => $player->team_id,
+                            'status' => 'signed',
+                        ]);
+
+                        // Update the new player with the appropriate contract role
+                        DB::table('players')->where('id', $randomPlayer->id)->update([
+                            'team_id' => $player->team_id,
+                            'contract_years' => rand(1, 5), // Assign a random contract length
+                            'role' => 'free agent',  // Assume role as free agent or adjust based on need
+                        ]);
+                    } else {
+                        // Optionally log or handle the case where the player is not waived
+                        \Log::info("Player " . $player->id . " was not waived due to 50% chance.");
+                    }
+                } else {
+                    // Optionally log or handle the case where the season status is not 1
+                    \Log::info("Player " . $player->id . " could not be waived because the season is not active.");
+                }
+            }
+
 
             // Apply injury impact on performance
             if ($player->is_injured) {
