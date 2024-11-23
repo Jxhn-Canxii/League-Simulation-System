@@ -5,7 +5,7 @@
             class="flex flex-col lg:flex-row justify-between mb-4 border-b-2 border-gray-700 pb-4"
         >
             <div
-                class="flex-1 text-center mb-2 lg:mb-0 team-card rounded"
+                class="flex-1 text-center mb-2 lg:mb-0 team-card rounded relative"
                 @click.prevent="
                     isTeamRosterModalOpen = gameDetails?.home_team.team_id
                 "
@@ -72,6 +72,7 @@
                         </li>
                     </ul>
                 </div>
+                <small class="absolute top-0 right-0 font-bold text-gray-200"># {{ gameDetails?.home_team.team_id }}</small>
             </div>
 
             <div class="flex-1 text-center mb-2 lg:mb-0 text-white">
@@ -111,7 +112,7 @@
             </div>
 
             <div
-                class="flex-1 text-center mb-2 lg:mb-0 team-card rounded"
+                class="flex-1 text-center mb-2 lg:mb-0 team-card rounded relative"
                 @click.prevent="
                     isTeamRosterModalOpen = gameDetails?.away_team.team_id
                 "
@@ -177,6 +178,7 @@
                             <p class="text-xs text-gray-900 font-bold">REB</p>
                         </li>
                     </ul>
+                    <small class="absolute top-0 right-0 font-bold text-gray-200"># {{ gameDetails?.away_team.team_id }}</small>
                 </div>
             </div>
         </div>
