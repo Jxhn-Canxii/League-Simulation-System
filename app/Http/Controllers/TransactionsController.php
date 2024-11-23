@@ -395,6 +395,15 @@ class TransactionsController extends Controller
                     'status' => 'transfer',
                 ]);
 
+                DB::table('transactions')->insert([
+                  'player_id' => $agent->id,
+                    'season_id' => $currentseasonId,
+                    'details' => 'Signed with ' . $toTeamName.' For contract of '. $agent->contract_years .' years',
+                    'from_team_id' => $fromTeamId,
+                    'to_team_id' => $team->id,
+                    'status' => 'signed',
+                ]);
+
                 if ($seasonId == 0) {
                     DB::table('players')->where('id', $agent->id)->update([
                         'draft_id' => 1,
