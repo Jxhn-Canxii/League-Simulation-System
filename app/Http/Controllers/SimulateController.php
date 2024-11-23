@@ -77,6 +77,7 @@ class SimulateController extends Controller
                 'schedules.id',
                 'schedules.round',
                 'schedules.season_id',
+                'schedules.conference_id',
                 'schedules.game_id',
                 'home.id as home_team_id',
                 'home.name as home_team_name',
@@ -480,6 +481,7 @@ class SimulateController extends Controller
         }
 
         $this->updateAllTeamStreaks();
+        $this->updateInjuryFreeAgents($gameData->conference_id,1);
         $this->updateHeadToHeadResults($gameData->id);
         // Prepare the schedule response data
         $schedule = [
@@ -538,6 +540,7 @@ class SimulateController extends Controller
                 ->select(
                     'schedules.id',
                     'schedules.round',
+                    'schedules.conference_id',
                     'schedules.season_id',
                     'schedules.game_id',
                     'home.id as home_team_id',
@@ -1015,6 +1018,7 @@ class SimulateController extends Controller
                 ->doesntExist();
 
             $this->updateAllTeamStreaks();
+            $this->updateInjuryFreeAgents($gameData->conference_id,0);
             $this->updateHeadToHeadResults($gameData->id);
             if ($allRoundsSimulatedForSeason) {
                 // Update the season's status to 2
@@ -1997,6 +2001,25 @@ class SimulateController extends Controller
             ], 500); // Internal server error
         }
     }
+    private function updateInjuryFreeAgents($conferenceId, $isPlayoff) {
+        // Determine if the condition is met for Playoffs or Conference
+        $condition = $isPlayoff == 1 || $conferenceId;
+
+        // Update injury recovery games for free agents and mark them as not injured if recovery games reach 0
+        DB::table('players')
+            ->where('team_id', 0) // Only for free agents
+            ->where('is_injured', 1) // Only for free agents
+            ->where('is_active', 1) // Only for free agents
+            ->where('injury_recovery_games', '>', 0) // Only consider players with recovery games greater than 0
+            ->when($condition, function ($query) {
+                $query->decrement('injury_recovery_games', 1); // Decrease recovery games by 1
+            })
+            ->where('injury_recovery_games', 0) // After decrement, check if recovery games are 0
+            ->update([
+                'is_injured' => 0, // Set is_injured to 0 for players with no injury recovery games left
+            ]);
+    }
+
     private function getContractYearsBasedOnRole($role)
     {
         switch ($role) {
