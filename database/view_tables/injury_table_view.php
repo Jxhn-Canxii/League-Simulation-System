@@ -7,7 +7,8 @@ SELECT
     i.season_id as season_id,
     p.name AS player_name,
     p.role,
-    COALESCE(t.name, 'Free Agent') AS team_name,  -- If no team, show 'Free Agent'
+    COALESCE(ct.name, 'Free Agent') AS current_team_name,  -- If no team, show 'Free Agent'
+    COALESCE(t.name, 'Free Agent') AS team_when_injured,  -- If no team, show 'Free Agent'
     i.injury_type,
     i.recovery_games,
     p.injury_recovery_games,
@@ -21,4 +22,6 @@ JOIN
     players p ON i.player_id = p.id
 LEFT JOIN  -- Use LEFT JOIN to include players without a team
     teams t ON i.team_id = t.id
+LEFT JOIN  -- Use LEFT JOIN to include players without a team
+    teams ct ON ct.id = p.team_id
 ORDER BY i.id DESC
