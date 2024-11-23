@@ -223,7 +223,7 @@ class AnalyticsController extends Controller
 
             // Calculate how many games the player has played
             $gamesPlayed = DB::table('player_game_stats')  // Assuming this table tracks player participation
-                ->where('player_id', $stats->id)
+                ->where('player_id', $stats->player_id)
                 ->where('season_id', $seasonId)
                 ->count();
 
@@ -270,7 +270,7 @@ class AnalyticsController extends Controller
 
                 // Calculate how many games the player has played
                 $gamesPlayed = DB::table('player_game_stats')
-                    ->where('player_id', $stats->id)
+                    ->where('player_id', $stats->player_id)
                     ->where('season_id', $seasonId)
                     ->count();
 
