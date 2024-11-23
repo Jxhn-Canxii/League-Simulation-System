@@ -14,8 +14,8 @@ SELECT
         ELSE 'Injured'
     END AS status  -- Add a column that shows 'Recovered' if injury_recovery_games is 0, else 'Injured'
 FROM
-    players p
+    injury_histories i
 JOIN
-    injury_histories i ON p.id = i.player_id
+    players p ON i.player_id = p.id
 LEFT JOIN  -- Use LEFT JOIN to include players without a team
     teams t ON i.team_id = t.id
