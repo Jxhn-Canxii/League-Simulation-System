@@ -82,7 +82,7 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        <tr v-for="(player, index) in season_logs.player_stats" v-if="season_logs.player_stats?.length > 0" :key="player.player_id" @click.prevent="isViewModalOpen = player.season_id" class="hover:bg-gray-100">
+                        <tr v-for="(player, index) in season_logs.player_stats" v-if="season_logs.player_stats?.length > 0" :key="player.player_id" @click.prevent="isGameLogsModalOpen = player.season_id" class="hover:bg-gray-100">
                             <td class="px-2 py-1 whitespace-nowrap border">{{ player.season_name }}</td>
                             <td class="px-2 py-1 whitespace-nowrap border">{{ player.team_name }}</td>
                             <td class="px-2 py-1 whitespace-nowrap border"><span :class="roleClasses(player.role)" class="inline-flex items-center capitalize px-2.5 py-0.5 rounded text-xs font-medium">{{ player.role }}</span></td>
@@ -150,7 +150,7 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        <tr v-for="(player, index) in playoff_logs.player_stats" v-if="playoff_logs.player_stats?.length > 0" :key="player.player_id" @click.prevent="isViewModalOpen = player.season_id" class="hover:bg-gray-100">
+                        <tr v-for="(player, index) in playoff_logs.player_stats" v-if="playoff_logs.player_stats?.length > 0" :key="player.player_id" @click.prevent="isGameLogsModalOpen = player.season_id" class="hover:bg-gray-100">
                             <td class="px-2 py-1 whitespace-nowrap border">
                                 {{ player.season_name }}
                             </td>
@@ -293,6 +293,21 @@
             </div>
         </div>
     </div>
+    <Modal :show="isGameLogsModalOpen" :maxWidth="'6xl'">
+        <button
+            class="flex float-end bg-gray-100 p-3"
+            @click.prevent="isGameLogsModalOpen = false"
+        >
+            <i class="fa fa-times text-black-600"></i>
+        </button>
+        <div class="mt-4 p-3 block">
+            <PlayerGameLogs
+                :key="props.player_id"
+                :player_id="props.player_id"
+                :season_id="isGameLogsModalOpen"
+            />
+        </div>
+    </Modal>
 </template>
 <script setup>
 import { ref, onMounted, watch } from "vue";
@@ -307,6 +322,7 @@ const props = defineProps({
     },
 });
 const isViewModalOpen = ref(false);
+const isGameLogsModalOpen = ref(false);
 const activeTab = ref('profile');
 const season_logs = ref([]);
 const playoff_logs = ref({});

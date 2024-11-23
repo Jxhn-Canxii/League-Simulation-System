@@ -1671,9 +1671,9 @@ public function getplayertransactions(Request $request)
                         // Join with the players table to get player's name and role
                         ->join('players', 'transactions.player_id', '=', 'players.id')
                         // Join with the teams table to get the "from" team details
-                        ->join('teams as from_team', 'transactions.from_team_id', '=', 'from_team.id')
+                        ->join('teams as from_team', 'transactions.from_team_id', '=', 'from_team.id','left')
                         // Join with the teams table to get the "to" team details
-                        ->join('teams as to_team', 'transactions.to_team_id', '=', 'to_team.id')
+                        ->join('teams as to_team', 'transactions.to_team_id', '=', 'to_team.id','left')
                         ->where('transactions.player_id', $player_id)
                         ->select(
                             'transactions.id',
