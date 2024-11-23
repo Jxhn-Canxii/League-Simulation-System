@@ -1820,7 +1820,7 @@ class SimulateController extends Controller
             $seasonId = DB::table('seasons')->orderBy('id', 'desc')->value('id') ?? 1;
 
             // Calculate fatigue increase based on minutes played
-            $fatigueIncrease = round($minutes * 0.5);
+            $fatigueIncrease = $minutes > 0 ? round($minutes * 0.5) : 0;
             $player->fatigue += $fatigueIncrease;
             $player->fatigue = min(100, $player->fatigue); // Ensure fatigue does not exceed 100%
 
