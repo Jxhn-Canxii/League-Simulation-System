@@ -213,32 +213,25 @@ class AnalyticsController extends Controller
 
         // Fetch MVP leaders
         // Calculate MVP Leaders
-        $mvpLeaders = $playerStats->map(function ($stats) {
-            // Calculate performance points
-            $performancePoints =
-                ($stats->avg_points_per_game * 1) +
-                ($stats->avg_rebounds_per_game * 1.2) +
-                ($stats->avg_assists_per_game * 1.5) +
-                ($stats->avg_steals_per_game * 2) +
-                ($stats->avg_blocks_per_game * 2) -
-                ($stats->avg_turnovers_per_game * 1) -
-                ($stats->avg_fouls_per_game * 0.5);
+        $mvpLeaders = $playerStats->map(function ($stats) use ($seasonId) {
+            // Get the total number of games played by the team
+            $totalGames = DB::table('schedules')
+                ->where('home_id', $stats->team_id)
+                ->orWhere('away_id', $stats->team_id)
+                ->where('season_id', $seasonId)
+                ->count();
 
-            // Store the raw performance score for sorting
-            $stats->performance_score = (float) $performancePoints;
+            // Calculate how many games the player has played
+            $gamesPlayed = DB::table('player_game_stats')  // Assuming this table tracks player participation
+                ->where('player_id', $stats->id)
+                ->where('season_id', $seasonId)
+                ->count();
 
-            return $stats;
-        })
-            ->sortByDesc('performance_score') // Sort numerically by performance score
-            ->take($limit);
+            // Calculate the required 70% of total games
+            $requiredGames = ceil($totalGames * 0.7); // Round up to the nearest whole number
 
-        // Calculate Rookie Leaders
-        $rookieLeaders = $playerStats
-            ->filter(function ($stats) use ($seasonId) {
-                // Filter rookies based on draft_id matching the current season ID
-                return $stats->draft_id == $seasonId;
-            })
-            ->map(function ($stats) {
+            // Check if player has played at least 70% of team's games
+            if ($gamesPlayed >= $requiredGames) {
                 // Calculate performance points
                 $performancePoints =
                     ($stats->avg_points_per_game * 1) +
@@ -251,11 +244,63 @@ class AnalyticsController extends Controller
 
                 // Store the raw performance score for sorting
                 $stats->performance_score = (float) $performancePoints;
+            } else {
+                // If the player doesn't meet the 70% threshold, set a very low performance score to exclude them
+                $stats->performance_score = -1;
+            }
+
+            return $stats;
+        })
+            ->sortByDesc('performance_score') // Sort numerically by performance score
+            ->take($limit);
+
+        // Calculate Rookie Leaders (same logic as MVP, but for rookies)
+        $rookieLeaders = $playerStats
+            ->filter(function ($stats) use ($seasonId) {
+                // Filter rookies based on draft_id matching the current season ID
+                return $stats->draft_id == $seasonId;
+            })
+            ->map(function ($stats) use ($seasonId) {
+                // Get the total number of games played by the team
+                $totalGames = DB::table('schedules')
+                    ->where('home_id', $stats->team_id)
+                    ->orWhere('away_id', $stats->team_id)
+                    ->where('season_id', $seasonId)
+                    ->count();
+
+                // Calculate how many games the player has played
+                $gamesPlayed = DB::table('player_game_stats')
+                    ->where('player_id', $stats->id)
+                    ->where('season_id', $seasonId)
+                    ->count();
+
+                // Calculate the required 70% of total games
+                $requiredGames = ceil($totalGames * 0.7); // Round up to the nearest whole number
+
+                // Check if player has played at least 70% of team's games
+                if ($gamesPlayed >= $requiredGames) {
+                    // Calculate performance points
+                    $performancePoints =
+                        ($stats->avg_points_per_game * 1) +
+                        ($stats->avg_rebounds_per_game * 1.2) +
+                        ($stats->avg_assists_per_game * 1.5) +
+                        ($stats->avg_steals_per_game * 2) +
+                        ($stats->avg_blocks_per_game * 2) -
+                        ($stats->avg_turnovers_per_game * 1) -
+                        ($stats->avg_fouls_per_game * 0.5);
+
+                    // Store the raw performance score for sorting
+                    $stats->performance_score = (float) $performancePoints;
+                } else {
+                    // If the player doesn't meet the 70% threshold, set a very low performance score to exclude them
+                    $stats->performance_score = -1;
+                }
 
                 return $stats;
             })
             ->sortByDesc('performance_score') // Sort numerically by performance score
             ->take($limit);
+
         // Sort by specific categories
         $topPoints = $formattedPlayerStats->sortByDesc('points_per_game')->take($limit);
         $topRebounds = $formattedPlayerStats->sortByDesc('rebounds_per_game')->take($limit);
