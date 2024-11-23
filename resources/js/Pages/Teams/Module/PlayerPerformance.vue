@@ -231,12 +231,16 @@ const props = defineProps({
 const isViewModalOpen = ref(false);
 const season_logs = ref([]);
 const playoff_logs = ref({});
+const transactions = ref([]);
+const injury = ref([]);
 const player_id = ref(props.player_id);
 // Watch for changes in player_id
 // Fetch data on component mount
 onMounted(() => {
     fetchPlayerSeasonPerformance();
     fetchPlayerPlayoffPerformance();
+    fetchPlayerTransactions();
+    fetchPlayerInjuryHistory();
 });
 
 const fetchPlayerPlayoffPerformance = async () => {
@@ -256,6 +260,26 @@ const fetchPlayerSeasonPerformance = async () => {
             player_id:  player_id.value,
         });
         season_logs.value = response.data;
+    } catch (error) {
+        console.error("Error fetching player season performance:", error);
+    }
+};
+const fetchPlayerTransactions = async () => {
+    try {
+        const response = await axios.post(route("players.season.transactions"), {
+            player_id:  player_id.value,
+        });
+        transactions.value = response.data;
+    } catch (error) {
+        console.error("Error fetching player season performance:", error);
+    }
+};
+const fetchPlayerInjuryHistory = async () => {
+    try {
+        const response = await axios.post(route("players.season.injury"), {
+            player_id:  player_id.value,
+        });
+        injury.value = response.data;
     } catch (error) {
         console.error("Error fetching player season performance:", error);
     }

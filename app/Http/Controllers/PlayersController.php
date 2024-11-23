@@ -1654,4 +1654,77 @@ class PlayersController extends Controller
         $top10PlayersByTeam = DB::table('top_10_players_by_team_all_time')->where('team_id', $request->team_id)->get();
         return response()->json($top10PlayersByTeam);
     }
+
+public function getplayertransactions(Request $request)
+{
+    // Retrieve the player_id from the request
+    $player_id = $request->input('player_id'); // or $request->player_id if it's passed as a query parameter
+
+    // Check if player_id is provided
+    if (!$player_id) {
+        return response()->json(['error' => 'Player ID is required'], 400);
+    }
+
+    // Retrieve transactions for the given player_id with player details (name, role)
+    // and team details (from_team and to_team)
+    $transactions = DB::table('transactions')
+                        // Join with the players table to get player's name and role
+                        ->join('players', 'transactions.player_id', '=', 'players.id')
+                        // Join with the teams table to get the "from" team details
+                        ->join('teams as from_team', 'transactions.from_team_id', '=', 'from_team.id')
+                        // Join with the teams table to get the "to" team details
+                        ->join('teams as to_team', 'transactions.to_team_id', '=', 'to_team.id')
+                        ->where('transactions.player_id', $player_id)
+                        ->select(
+                            'transactions.id',
+                            'transactions.season_id',
+                            'transactions.details',
+                            'transactions.from_team_id',
+                            'from_team.name as from_team_name',   // Get the name of the "from" team
+                            'from_team.city as from_team_city',   // Get the city of the "from" team (optional)
+                            'transactions.to_team_id',
+                            'to_team.name as to_team_name',       // Get the name of the "to" team
+                            'to_team.city as to_team_city',       // Get the city of the "to" team (optional)
+                            'transactions.status',
+                            'players.name',   // Player's name
+                            'players.role'    // Player's role
+                        )
+                        ->get();
+
+    // Check if transactions are found
+    if ($transactions->isEmpty()) {
+        return response()->json(['message' => 'No transactions found for this player.'], 404);
+    }
+
+    // Return the transactions with player and team details as JSON response
+    return response()->jsontran([
+        'data' => $transactions,
+    ]);
+}
+
+public function getplayerinjuryhistory(Request $request)
+{
+    // Retrieve the player_id from the request
+    $player_id = $request->input('player_id');
+
+    // Check if player_id is provided
+    if (!$player_id) {
+        return response()->json(['error' => 'Player ID is required'], 400);
+    }
+
+    // Query the injured_players_view for the player's injury history
+    $injuryHistory = DB::table('injured_players_view')
+                        ->where('player_id', $player_id)
+                        ->get();  // Retrieve the data from the view
+
+    // Check if injury history is found
+    if ($injuryHistory->isEmpty()) {
+        return response()->json(['message' => 'No injury history found for this player.'], 404);
+    }
+
+    // Return the injury history as a JSON response
+    return response()->json([
+        'data' => $injuryHistory
+    ]);
+}
 }
