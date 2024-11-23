@@ -309,7 +309,7 @@
             </button>
             <div class="p-6 block">
                 <!-- Image Section -->
-                <PlayerPerformance :key="showPlayerProfileModal.player_id" :player_id="showPlayerProfileModal.player_id" />
+                <PlayerPerformance :key="showPlayerProfileModal" :player_id="showPlayerProfileModal" />
             </div>
         </Modal>
     </div>
