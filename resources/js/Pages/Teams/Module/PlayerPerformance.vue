@@ -303,7 +303,7 @@ const activeTab = ref('profile');
 const season_logs = ref([]);
 const playoff_logs = ref({});
 const transactions = ref([]);
-const injury = ref([]);
+const injuries = ref([]);
 const player_id = ref(props.player_id);
 // Watch for changes in player_id
 // Fetch data on component mount
@@ -350,7 +350,7 @@ const fetchPlayerInjuryHistory = async () => {
         const response = await axios.post(route("players.season.injury"), {
             player_id:  player_id.value,
         });
-        injury.value = response.data;
+        injuries.value = response.data;
     } catch (error) {
         console.error("Error fetching player season performance:", error);
     }
