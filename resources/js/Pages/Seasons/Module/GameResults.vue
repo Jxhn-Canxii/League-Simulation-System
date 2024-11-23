@@ -208,8 +208,8 @@
                             <p class="text-xs text-gray-900 font-bold">REB</p>
                         </li>
                     </ul>
-                    <small class="absolute top-0 right-0 font-bold text-gray-200"># {{ gameDetails?.away_team.team_id }}</small>
                 </div>
+                <small class="absolute top-0 right-0 font-bold text-gray-200"># {{ gameDetails?.away_team.team_id }}</small>
             </div>
         </div>
 
