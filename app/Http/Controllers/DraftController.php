@@ -161,6 +161,14 @@ class DraftController extends Controller
                         'status' => 'draft',
                     ]);
 
+                    DB::table('transactions')->insert([
+                        'player_id' => $selectedPlayer->id,
+                        'season_id' => $currentSeasonId,
+                        'details' => 'Signed by ' . $team->team_name.' For rookie contract of '. ($spotAvailable ? $contract : 0) .' years',
+                        'from_team_id' => 0,
+                        'to_team_id' => $team->team_id,
+                        'status' => 'signed',
+                    ]);
                     // Save to the drafts table
                     $draftInsert = DB::table('drafts')->insert([
                         'team_id' => $team->team_id,
@@ -236,6 +244,24 @@ class DraftController extends Controller
                         'contract_years' => $spotAvailable ? $contract : 0,
                     ]);
 
+                    // Log the transaction
+                    DB::table('transactions')->insert([
+                        'player_id' => $selectedPlayer->id,
+                        'season_id' => $currentSeasonId,
+                        'details' => "Drafted by {$team->team_name} in round {$round}, pick {$pickNumber}",
+                        'from_team_id' => 0, // No previous team for drafted players
+                        'to_team_id' => $team->team_id,
+                        'status' => 'draft',
+                    ]);
+
+                    DB::table('transactions')->insert([
+                        'player_id' => $selectedPlayer->id,
+                        'season_id' => $currentSeasonId,
+                        'details' => 'Signed by ' . $team->team_name.' For rookie contract of '. ($spotAvailable ? $contract : 0) .' years',
+                        'from_team_id' => 0,
+                        'to_team_id' => $team->team_id,
+                        'status' => 'signed',
+                    ]);
                     // Save to the drafts table
                     $draftInsert = DB::table('drafts')->insert([
                         'team_id' => $team->team_id,
