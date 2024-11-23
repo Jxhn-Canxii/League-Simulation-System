@@ -466,7 +466,6 @@ class PlayersController extends Controller
         if ($search) {
             $query->where('players.name', 'like', "%{$search}%")
             ->where('players.type', 'like', "%{$search}%")
-            ->where('awards', 'like', "%{$search}%")
             ->where('players.role', 'like', "%{$search}%")
             ->where('players.age', 'like', "%{$search}%");
         }
@@ -554,7 +553,6 @@ class PlayersController extends Controller
         if ($search) {
             $query->where('players.name', 'like', "%{$search}%")
             ->where('players.type', 'like', "%{$search}%")
-            ->where('awards', 'like', "%{$search}%")
             ->where('players.role', 'like', "%{$search}%")
             ->where('players.age', 'like', "%{$search}%");
         }
