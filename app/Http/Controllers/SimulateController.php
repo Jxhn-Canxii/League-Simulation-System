@@ -481,7 +481,7 @@ class SimulateController extends Controller
         }
 
         $this->updateAllTeamStreaks();
-        $this->updateInjuryFreeAgents($gameData->conference_id,1);
+        $this->updateInjuryFreeAgents($gameData->conference_id, 1);
         $this->updateHeadToHeadResults($gameData->id);
         // Prepare the schedule response data
         $schedule = [
@@ -1018,7 +1018,7 @@ class SimulateController extends Controller
                 ->doesntExist();
 
             $this->updateAllTeamStreaks();
-            $this->updateInjuryFreeAgents($gameData->conference_id,0);
+            $this->updateInjuryFreeAgents($gameData->conference_id, 0);
             $this->updateHeadToHeadResults($gameData->id);
             if ($allRoundsSimulatedForSeason) {
                 // Update the season's status to 2
@@ -1695,128 +1695,6 @@ class SimulateController extends Controller
 
         return $minutes;
     }
-    private function fatigueRateV1($player, $minutes, $gameId)
-    {
-        try {
-            // Fetch the most recent season id
-            $seasonId = DB::table('seasons')->orderBy('id', 'desc')->value('id') ?? 1;
-
-            // Calculate fatigue increase based on minutes played
-            $fatigueIncrease = round($minutes * 0.5);
-            $player->fatigue += $fatigueIncrease;
-            $player->fatigue = min(100, $player->fatigue); // Ensure fatigue does not exceed 100%
-
-            // Adjust performance factor based on fatigue
-            $fatigueFactor = 1 - ($player->fatigue / 100);
-            $performanceFactor = rand(80, 120) / 100 * $fatigueFactor;
-
-            // Check for injuries if the player is not already injured
-            if (!$player->is_injured) {
-                // Cast injury_prone_percentage to a float for accurate comparison
-                $injuryPercentage = (float) $player->injury_prone_percentage;
-
-                // Generate a random number between 0 and $injuryPercentage
-                $injuryRisk = rand(0, 100) / 100 * $injuryPercentage;
-
-                // Calculate injuryChance based on fatigue and injury history
-                $injuryChance = ($player->fatigue * 0.5) + ($player->injury_history * 10);
-
-                // Check if injury risk is less than the injury chance
-                if ($injuryRisk < $injuryChance) {
-                    // Fetch all injury types from the config
-                    $injuryTypes = config('injuries');
-
-                    // Ensure the injuryTypes config is not empty
-                    if (is_array($injuryTypes) && count($injuryTypes) > 0) {
-                        // Randomly select an injury type from the config
-                        $injuryTypeName = array_rand($injuryTypes);
-
-                        // Mark the player as injured and set the injury details
-                        $player->is_injured = true;
-                        $player->injury_type = $injuryTypeName; // Save the injury type name
-                        $player->injury_history += 1; // Increment injury history
-
-                        // Set recovery games based on injury type from the config
-                        $player->injury_recovery_games = $injuryTypes[$injuryTypeName]['recovery_games'];
-
-                        // Insert the injury record into the database using DB::table()
-                        DB::table('injury_histories')->insert([
-                            'player_id' => $player->id,
-                            'game_id' => $gameId,
-                            'team_id' => $player->team_id,
-                            'season_id' => $seasonId,
-                            'injury_type' => $injuryTypeName,
-                            'recovery_games' => $injuryTypes[$injuryTypeName]['recovery_games'],
-                            'performance_impact' => $injuryTypes[$injuryTypeName]['performance_impact'],
-                            'injury_date' => now(), // Use Carbon's now() for consistent timestamp
-                            'recovery_date' => null, // Recovery date will be null until the player recovers
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ]);
-                    } else {
-                        // Log error or handle case where injury types are not defined
-                        Log::error("Injury types are not configured correctly.");
-                    }
-                }
-            }
-
-
-            // Handle injury recovery logic based on the number of games
-            if ($player->is_injured) {
-                // Decrement recovery games as each game is played
-                $player->injury_recovery_games -= 1; // Decrease recovery games
-            }
-
-            // Check if the player has played enough games to recover
-            if ($player->injury_recovery_games <= 0) {
-                // Player is healed
-                $player->is_injured = false; // Mark player as recovered
-                $player->injury_type = 'none'; // Clear injury type
-                $player->injury_recovery_games = 0; // Reset the recovery game counter
-
-                // Update the injury record to set the recovery date in the injury history table
-                $lastInjury = DB::table('injury_histories')
-                    ->where('player_id', $player->id)
-                    ->whereNull('recovery_date') // Only update the most recent injury without recovery date
-                    ->latest()
-                    ->first();
-
-                if ($lastInjury) {
-                    DB::table('injury_histories')
-                        ->where('id', $lastInjury->id)
-                        ->update([
-                            'recovery_date' => now(), // Set the recovery date
-                            'updated_at' => now(), // Update the timestamp
-                        ]);
-                }
-            }
-
-            // Apply injury impact on performance
-            if ($player->is_injured) {
-                $injuryType = config('injuries')[$player->injury_type];
-
-                if ($injuryType) {
-                    $performanceFactor *= $injuryType['performance_impact'];
-                }
-            }
-
-            // Save player after applying updates
-            $player->save();
-
-            return response()->json([
-                'message' => 'Fatigue and injury update successful',
-                'player' => $player,
-            ], 200); // Successful response
-        } catch (\Exception $e) {
-            // Log the error message for debugging
-            \Log::error('Error updating fatigue and injury for player ' . $player->id . ': ' . $e->getMessage());
-
-            // Return a structured error response
-            return response()->json([
-                'error' => 'Error updating fatigue and injury data: ' . $e->getMessage()
-            ], 500); // Internal server error
-        }
-    }
     private function fatigueRate($player, $minutes, $gameId)
     {
         try {
@@ -1940,14 +1818,24 @@ class SimulateController extends Controller
                             'is_injured' => 1, // Mark the player as no longer injured
                         ]);
 
-                        // Add a transaction log for signing a new free agent
+                        // Try to find a random player with the same role
                         $randomPlayer = DB::table('players')
-                        ->where('is_active', 1)
-                        ->where('is_injured', 0)   // Make sure the player is not injured
-                        ->where('team_id', 0)       // Ensure the player has no team
-                        ->where('role', $player->role)       // Ensure the player has no team
-                        ->inRandomOrder()
-                        ->first();
+                            ->where('is_active', 1)
+                            ->where('is_injured', 0)   // Make sure the player is not injured
+                            ->where('team_id', 0)       // Ensure the player has no team
+                            ->where('role', $player->role) // Ensure the player has the same role
+                            ->inRandomOrder()
+                            ->first();
+
+                        // If no player with the same role is found, fallback to any free agent
+                        if (!$randomPlayer) {
+                            $randomPlayer = DB::table('players')
+                                ->where('is_active', 1)
+                                ->where('is_injured', 0)
+                                ->where('team_id', 0)
+                                ->inRandomOrder()
+                                ->first();
+                        }
 
                         $freeAgentStandardContract = $this->getContractYearsBasedOnRole($player->role);
                         // Update the new player with the appropriate contract role
@@ -1959,7 +1847,7 @@ class SimulateController extends Controller
                         DB::table('transactions')->insert([
                             'player_id' => $randomPlayer->id,
                             'season_id' => $seasonId,
-                            'details' => 'Signed as free agent to replace injured player. Contract Years: '. $freeAgentStandardContract,
+                            'details' => 'Signed as free agent to replace injured player. Contract Years: ' . $freeAgentStandardContract,
                             'from_team_id' => 0, // From free agent pool
                             'to_team_id' => $player->team_id,
                             'status' => 'signed',
@@ -2001,7 +1889,8 @@ class SimulateController extends Controller
             ], 500); // Internal server error
         }
     }
-    private function updateInjuryFreeAgents($conferenceId, $isPlayoff) {
+    private function updateInjuryFreeAgents($conferenceId, $isPlayoff)
+    {
         // Update injury recovery games for free agents and mark them as not injured if recovery games reach 0
         DB::table('players')
             ->where('team_id', 0) // Only for free agents (team_id = 0)
