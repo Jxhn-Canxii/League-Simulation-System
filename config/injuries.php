@@ -11,7 +11,7 @@ return [
 
     // Other injury types
     'sick' => ['recovery_games' => 1, 'performance_impact' => 0.75],
-    'thumb pain' => ['recovery_games' => 2, 'performance_impact' => 0.75],
+    'thumb_pain' => ['recovery_games' => 2, 'performance_impact' => 0.75],
     'headache' => ['recovery_games' => 2, 'performance_impact' => 0.75],
     'toothache' => ['recovery_games' => 2, 'performance_impact' => 0.75],
     'colds' => ['recovery_games' => 3, 'performance_impact' => 0.75],
