@@ -1836,22 +1836,23 @@ class SimulateController extends Controller
                                 ->inRandomOrder()
                                 ->first();
                         }
+                        if ($randomPlayer) {
+                            $freeAgentStandardContract = $this->getContractYearsBasedOnRole($player->role);
+                            // Update the new player with the appropriate contract role
+                            DB::table('players')->where('id', $randomPlayer->id)->update([
+                                'team_id' => $player->team_id,
+                                'contract_years' => $freeAgentStandardContract, // Assign a random contract length
+                            ]);
 
-                        $freeAgentStandardContract = $this->getContractYearsBasedOnRole($player->role);
-                        // Update the new player with the appropriate contract role
-                        DB::table('players')->where('id', $randomPlayer->id)->update([
-                            'team_id' => $player->team_id,
-                            'contract_years' => $freeAgentStandardContract, // Assign a random contract length
-                        ]);
-
-                        DB::table('transactions')->insert([
-                            'player_id' => $randomPlayer->id,
-                            'season_id' => $seasonId,
-                            'details' => 'Signed as free agent to replace injured player. Contract Years: ' . $freeAgentStandardContract,
-                            'from_team_id' => 0, // From free agent pool
-                            'to_team_id' => $player->team_id,
-                            'status' => 'signed',
-                        ]);
+                            DB::table('transactions')->insert([
+                                'player_id' => $randomPlayer->id,
+                                'season_id' => $seasonId,
+                                'details' => 'Signed as free agent to replace injured player. Contract Years: ' . $freeAgentStandardContract,
+                                'from_team_id' => 0, // From free agent pool
+                                'to_team_id' => $player->team_id,
+                                'status' => 'signed',
+                            ]);
+                        }
                     } else {
                         // Optionally log or handle the case where the player is not waived
                         \Log::info("Player " . $player->id . " was not waived due to 50% chance.");
