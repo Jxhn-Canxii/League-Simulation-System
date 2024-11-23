@@ -303,6 +303,7 @@ class PlayersController extends Controller
                         'role' => $stats->role,
                         'is_active' => $player->is_active,
                         'is_rookie' => $player->is_rookie,
+                        'is_injured' => $player->is_injured,
                         'retirement_age' => $player->retirement_age,
                         'drafted_team' => $player->drafted_team,
                         'draft_class' => $player->draft_class,
@@ -463,7 +464,11 @@ class PlayersController extends Controller
 
         // Apply search filter if provided
         if ($search) {
-            $query->where('players.name', 'like', "%{$search}%");
+            $query->where('players.name', 'like', "%{$search}%")
+            ->where('players.type', 'like', "%{$search}%")
+            ->where('awards', 'like', "%{$search}%")
+            ->where('players.role', 'like', "%{$search}%")
+            ->where('players.age', 'like', "%{$search}%");
         }
 
         // Add ordering for awards, finals MVP status, and role priority
@@ -547,7 +552,11 @@ class PlayersController extends Controller
 
         // Apply search filter if provided
         if ($search) {
-            $query->where('players.name', 'like', "%{$search}%");
+            $query->where('players.name', 'like', "%{$search}%")
+            ->where('players.type', 'like', "%{$search}%")
+            ->where('awards', 'like', "%{$search}%")
+            ->where('players.role', 'like', "%{$search}%")
+            ->where('players.age', 'like', "%{$search}%");
         }
 
         // Add sorting by is_active status, then by role priority
@@ -1668,27 +1677,32 @@ public function getplayertransactions(Request $request)
     // Retrieve transactions for the given player_id with player details (name, role)
     // and team details (from_team and to_team)
     $transactions = DB::table('transactions')
-                        // Join with the players table to get player's name and role
-                        ->join('players', 'transactions.player_id', '=', 'players.id')
-                        // Join with the teams table to get the "from" team details
-                        ->join('teams as from_team', 'transactions.from_team_id', '=', 'from_team.id','left')
-                        // Join with the teams table to get the "to" team details
-                        ->join('teams as to_team', 'transactions.to_team_id', '=', 'to_team.id','left')
-                        ->where('transactions.player_id', $player_id)
-                        ->select(
-                            'transactions.id',
-                            'transactions.season_id',
-                            'transactions.details',
-                            'transactions.from_team_id',
-                            'from_team.name as from_team_name',   // Get the name of the "from" team
-                            'transactions.to_team_id',
-                            'to_team.name as to_team_name',       // Get the name of the "to" team
-                            'transactions.status',
-                            'players.name',   // Player's name
-                            'players.role'    // Player's role
-                        )
-                        ->orderByDesc('transactions.id')
-                        ->get();
+    // Join with the players table to get player's name
+    ->join('players', 'transactions.player_id', '=', 'players.id')
+    // Join with the teams table to get the "from" team details
+    ->join('teams as from_team', 'transactions.from_team_id', '=', 'from_team.id', 'left')
+    // Join with the teams table to get the "to" team details
+    ->join('teams as to_team', 'transactions.to_team_id', '=', 'to_team.id', 'left')
+    // Join with the player_season_stats table to get the player's role for the specific season
+    ->join('player_season_stats', function ($join) use ($player_id) {
+        $join->on('transactions.player_id', '=', 'player_season_stats.player_id')
+             ->on('transactions.season_id', '=', 'player_season_stats.season_id');
+    })
+    ->where('transactions.player_id', $player_id)
+    ->select(
+        'transactions.id',
+        'transactions.season_id',
+        'transactions.details',
+        'transactions.from_team_id',
+        'from_team.name as from_team_name',   // Get the name of the "from" team
+        'transactions.to_team_id',
+        'to_team.name as to_team_name',       // Get the name of the "to" team
+        'transactions.status',
+        'players.name',   // Player's name
+        'player_season_stats.role'   // Player's role from player_season_stats table
+    )
+    ->orderByDesc('transactions.id')
+    ->get();
 
     // Check if transactions are found
     if ($transactions->isEmpty()) {

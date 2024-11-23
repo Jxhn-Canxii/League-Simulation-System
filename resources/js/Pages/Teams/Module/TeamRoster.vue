@@ -191,6 +191,7 @@
 
                         <td class="px-2 py-1 whitespace-nowrap border">
                             <!-- Display "Retired" if player is not active and retirement age is greater than or equal to their age -->
+                            <span v-if="player.is_injured == 1" class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Injured</span>
                             <span v-if="player.status == 1" class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Active</span>
                             <span v-if="player.status == 2" class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">Transferred</span>
                             <span v-if="player.status == 0" class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Retired/Free Agent</span>

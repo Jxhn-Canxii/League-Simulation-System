@@ -1885,7 +1885,7 @@ class SimulateController extends Controller
             }
 
             // Check if the player has played enough games to recover
-            if ($player->injury_recovery_games <= 0) {
+            if ($player->is_injured && $player->injury_recovery_games <= 0) {
                 // Player is healed
                 $player->is_injured = false; // Mark player as recovered
                 $player->injury_type = 'none'; // Clear injury type

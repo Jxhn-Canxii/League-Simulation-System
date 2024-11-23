@@ -217,10 +217,16 @@
                                 Player Name
                             </th>
                             <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                                Role
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
                                 Transfer Details
                             </th>
                             <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
-                                Role
+                               Old Team
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                               New Team
                             </th>
                             <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
                                 Status
@@ -231,12 +237,14 @@
                         <tr v-for="(transaction, index) in transactions.data" v-if="transactions.data?.length > 0" :key="transaction.id" @click.prevent="isViewModalOpen = transaction.season_id" class="hover:bg-gray-100">
                             <td class="px-2 py-1 text-gray-700">Season {{ transaction.season_id }}</td>
                             <td class="px-2 py-1 text-gray-700">{{ transaction.name }}</td>
-                            <td class="px-2 py-1 text-gray-700">{{ transaction.details }}</td>
                             <td class="px-2 py-1 text-gray-700">{{ transaction.role }}</td>
+                            <td class="px-2 py-1 text-gray-700">{{ transaction.details }}</td>
+                            <td class="px-2 py-1 text-gray-700">{{ transaction.from_team_name ?? 'Free Agent' }}</td>
+                            <td class="px-2 py-1 text-gray-700">{{ transaction.to_team_name ?? 'Free Agent' }}</td>
                             <td class="px-2 py-1 text-gray-700">{{ transaction.status }}</td>
                         </tr>
                         <tr class="hover:bg-gray-100" v-else>
-                            <td class="px-2 py-1 text-red-500 text-center font-semibold" colspan="5">No data available</td>
+                            <td class="px-2 py-1 text-red-500 text-center font-semibold" colspan="7">No data available</td>
                         </tr>
                     </tbody>
                 </table>
@@ -277,7 +285,7 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         <tr v-for="(injury, index) in injuries.data" v-if="injuries.data?.length > 0" :key="injury.id" @click.prevent="isViewModalOpen = injury.season_id" class="hover:bg-gray-100">
-                            <td class="px-2 py-1 text-gray-700">Season {{ injury.season }}</td>
+                            <td class="px-2 py-1 text-gray-700">Season {{ injury.season_id }}</td>
                             <td class="px-2 py-1 text-gray-700">{{ injury.player_name }}</td>
                             <td class="px-2 py-1 text-gray-700">{{ injury.role }}</td>
                             <td class="px-2 py-1 text-gray-700">{{ injury.team_name }}</td>
