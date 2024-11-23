@@ -127,8 +127,8 @@ class SimulateController extends Controller
         $playerGameStats = [];
 
         // Distribute minutes to players considering injury status
-        $homeMinutes = $this->distributeMinutes($homeTeamPlayers, $totalMinutes);
-        $awayMinutes = $this->distributeMinutes($awayTeamPlayers, $totalMinutes);
+        $homeMinutes = $this->distributeMinutes($homeTeamPlayers, $totalMinutes,$request->schedule_id);
+        $awayMinutes = $this->distributeMinutes($awayTeamPlayers, $totalMinutes,$request->schedule_id);
 
         // Simulate player game stats for home team
         foreach ($homeTeamPlayers as $player) {
@@ -594,8 +594,8 @@ class SimulateController extends Controller
             $playerGameStats = [];
 
             // Distribute minutes to players considering injury status
-            $homeMinutes = $this->distributeMinutes($homeTeamPlayers, $totalMinutes);
-            $awayMinutes = $this->distributeMinutes($awayTeamPlayers, $totalMinutes);
+            $homeMinutes = $this->distributeMinutes($homeTeamPlayers, $totalMinutes,$request->schedule_id);
+            $awayMinutes = $this->distributeMinutes($awayTeamPlayers, $totalMinutes,$request->schedule_id);
             // Simulate player game stats for home team
             foreach ($homeTeamPlayers as $player) {
                 $minutes = $homeMinutes[$player->id] ?? 0;
@@ -923,8 +923,8 @@ class SimulateController extends Controller
                 // Simulate an additional 6 minutes of play
                 $additionalMinutes = 6;
 
-                $homeMinutes = $this->distributeMinutes($homeTeamPlayers, $additionalMinutes);
-                $awayMinutes = $this->distributeMinutes($awayTeamPlayers, $additionalMinutes);
+                $homeMinutes = $this->distributeMinutes($homeTeamPlayers, $additionalMinutes,$request->schedule_id);
+                $awayMinutes = $this->distributeMinutes($awayTeamPlayers, $additionalMinutes,$request->schedule_id);
 
                 foreach ($homeTeamPlayers as $player) {
                     if (isset($homeMinutes[$player['id']])) {
@@ -1114,8 +1114,8 @@ class SimulateController extends Controller
                     return $rolePriority[$player['role']] ?? 5;
                 })->values();
 
-                $homeMinutes = $this->distributeMinutes($homePlayers, $totalMinutes);
-                $awayMinutes = $this->distributeMinutes($awayPlayers, $totalMinutes);
+                $homeMinutes = $this->distributeMinutes($homePlayers, $totalMinutes,$request->schedule_id);
+                $awayMinutes = $this->distributeMinutes($awayPlayers, $totalMinutes,$request->schedule_id);
 
                 $homeScore = 0;
                 $awayScore = 0;
@@ -1337,8 +1337,8 @@ class SimulateController extends Controller
                     // Simulate an additional 6 minutes of play
                     $additionalMinutes = 6;
 
-                    $homeMinutes = $this->distributeMinutes($homePlayers, $additionalMinutes);
-                    $awayMinutes = $this->distributeMinutes($awayPlayers, $additionalMinutes);
+                    $homeMinutes = $this->distributeMinutes($homePlayers, $additionalMinutes,$request->schedule_id);
+                    $awayMinutes = $this->distributeMinutes($awayPlayers, $additionalMinutes,$request->schedule_id);
 
                     foreach ($homePlayers as $player) {
                         if (isset($homeMinutes[$player['id']])) {
@@ -1597,7 +1597,7 @@ class SimulateController extends Controller
         return $minutes;
     }
 
-    private function distributeMinutes($playersArray, $totalMinutes)
+    private function distributeMinutes($playersArray, $totalMinutes,$gameId)
     {
         // Define role-based priorities and their minute allocation limits
         $rolePriority = [
@@ -1648,7 +1648,7 @@ class SimulateController extends Controller
             }
 
             // Track and update fatigue for each player
-            $this->fatigueRate($player,$minutes[$player['id']]);
+            $this->fatigueRate($player,$minutes[$player['id']],$gameId);
         }
 
         // Calculate remaining minutes to reach the target
@@ -1691,7 +1691,7 @@ class SimulateController extends Controller
 
         return $minutes;
     }
-    private function fatigueRate($player, $minutes)
+    private function fatigueRate($player, $minutes,$gameId)
     {
         try {
             // Fetch the most recent season id
@@ -1738,6 +1738,7 @@ class SimulateController extends Controller
                         // Insert the injury record into the database using DB::table()
                         DB::table('injury_histories')->insert([
                             'player_id' => $player->id,
+                            'game_id' => $gameId,
                             'team_id' => $player->team_id,
                             'season_id' => $seasonId,
                             'injury_type' => $injuryTypeName,

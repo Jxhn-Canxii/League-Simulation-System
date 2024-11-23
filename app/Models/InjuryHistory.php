@@ -11,6 +11,9 @@ class InjuryHistory extends Model
 
     protected $fillable = [
         'player_id',
+        'team_id',
+        'game_id',
+        'season_id',
         'injury_type',
         'recovery_games',
         'performance_impact',
