@@ -622,9 +622,7 @@
                             <span
                                 class="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center"
                             >
-                                <i
-                                    class="fas fa-basketball-ball text-gray-600"
-                                ></i>
+                                <i class="fas fa-hand-point-right text-gray-600" title="Assist"></i>
                             </span>
                             <div class="ml-3 flex-grow">
                                 <div class="flex justify-between items-start">
@@ -654,9 +652,7 @@
                             <span
                                 class="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center"
                             >
-                                <i
-                                    class="fas fa-basketball-ball text-gray-600"
-                                ></i>
+                                <i class="fas fa-arrow-alt-circle-up text-gray-600" title="Rebounds"></i>
                             </span>
                             <div class="ml-3 flex-grow">
                                 <div class="flex justify-between items-start">
@@ -686,9 +682,7 @@
                             <span
                                 class="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center"
                             >
-                                <i
-                                    class="fas fa-basketball-ball text-gray-600"
-                                ></i>
+                            <i class="fas fa-user-shield text-gray-600" title="Steals"></i>
                             </span>
                             <div class="ml-3 flex-grow">
                                 <div class="flex justify-between items-start">
@@ -715,9 +709,7 @@
                             <span
                                 class="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center"
                             >
-                                <i
-                                    class="fas fa-basketball-ball text-gray-600"
-                                ></i>
+                                <i class="fas fa-stop-circle text-gray-600" title="Blocks"></i>
                             </span>
                             <div class="ml-3 flex-grow">
                                 <div class="flex justify-between items-start">
@@ -738,26 +730,15 @@
                             </div>
                         </li>
                     </ul>
-                    <div class="ml-3 flex-grow">
+                    <div class="p-0 flex-grow mt-2">
                         <div class="flex justify-between items-start">
-                          <div v-if="injuredPlayers?.length > 0" class="overflow-x-auto">
-                            <table class="min-w-full text-xs text-left text-gray-500">
-                              <thead class="bg-gray-200">
-                                <tr>
-                                  <th scope="col" class="px-4 py-2 font-medium text-gray-900">Player Name</th>
-                                  <th scope="col" class="px-4 py-2 font-medium text-gray-900">Team</th>
-                                  <th scope="col" class="px-4 py-2 font-medium text-gray-900">Injury Type</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                <tr v-for="injury in injuredPlayers" :key="injury.injury_id" class="border-t">
-                                  <td class="px-4 py-2">{{ injury.player_name }}</td>
-                                  <td class="px-4 py-2">{{ injury.team_name }}</td>
-                                  <td class="px-4 py-2">{{ injury.injury_type }}</td>
-                                </tr>
-                              </tbody>
-                            </table>
-                          </div>
+                            <div v-if="injuredPlayers?.length > 0" class="block text-nowrap overflow-x-auto">
+                            <small>Injury List</small>
+                            <marquee class="text-red-600 font-semibold">
+                                <!-- Comma separated list of player names and their team names -->
+                                {{ formatInjuredPlayers(injuredPlayers) }}
+                            </marquee>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -874,6 +855,13 @@ const top5AwayPlayers = computed(() => {
     return sortedAwayPlayers.value.slice(0, 5).map((player) => player.name);
 });
 
+const formatInjuredPlayers = (players) => {
+  return players
+    .map((player) => {
+      return `${player.player_name} from ${player.team_name} suffered from ${player.injury_type.replace('_', ' ')} and is out for ${player.recovery_games} games.`;
+    })
+    .join(' ');
+};
 onMounted(() => {
     fetchBoxScore();
 });
