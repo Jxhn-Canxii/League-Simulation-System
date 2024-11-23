@@ -731,7 +731,7 @@
                         </li>
                     </ul>
                     <div class="p-0 flex-grow mt-2" v-if="injuredPlayers?.length > 0">
-                        <small>Injury List</small>
+                        <small>Injury Report</small>
                         <div class="flex justify-between items-start">
                             <div class="block text-nowrap overflow-x-auto">
                             <marquee class="text-red-600 font-semibold">
@@ -856,9 +856,20 @@ const top5AwayPlayers = computed(() => {
 });
 
 const formatInjuredPlayers = (players) => {
+  const injuryMessages = [
+    (player) => `${player.player_name} from ${player.team_name} has suffered a ${player.injury_type.replace('_', ' ')} and will miss ${player.recovery_games} games.`,
+    (player) => `${player.team_name}'s ${player.player_name} is sidelined with a ${player.injury_type.replace('_', ' ')} for the next ${player.recovery_games} games.`,
+    (player) => `${player.player_name} from ${player.team_name} is dealing with a ${player.injury_type.replace('_', ' ')} and will be out for ${player.recovery_games} games.`,
+    (player) => `${player.player_name} from ${player.team_name} is out due to ${player.injury_type.replace('_', ' ')} and will miss ${player.recovery_games} games.`,
+    (player) => `Injury alert: ${player.player_name} of the ${player.team_name} has a ${player.injury_type.replace('_', ' ')} and will be unavailable for the next ${player.recovery_games} games.`,
+    (player) => `${player.player_name} of ${player.team_name} will be out for ${player.recovery_games} games after suffering a ${player.injury_type.replace('_', ' ')}.`
+  ];
+
   return players
     .map((player) => {
-      return `${player.player_name} from ${player.team_name} suffered from ${player.injury_type.replace('_', ' ')} and is out for ${player.recovery_games} games.`;
+      // Randomly pick one of the injury messages
+      const randomMessage = injuryMessages[Math.floor(Math.random() * injuryMessages.length)];
+      return randomMessage(player);
     })
     .join(' ');
 };
