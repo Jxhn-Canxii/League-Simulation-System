@@ -1695,7 +1695,7 @@ public function getplayertransactions(Request $request)
     }
 
     // Return the transactions with player and team details as JSON response
-    return response()->jsontran([
+    return response()->json([
         'data' => $transactions,
     ]);
 }

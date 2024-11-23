@@ -1,281 +1,279 @@
 <template>
     <div class="team-roster p-3">
-        <h2 class="text-sm font-semibold text-gray-800">
-            Player Profile
-        </h2>
-
-        <!-- Divider -->
-        <hr class="my-4 border-t border-gray-200" />
-
-        <!-- Player Profile and Playoff Performance in One Row -->
-
-        <ProfileHeader v-if="playoff_logs" :key="player_id" :player_id="player_id" />
-
-
-        <!-- Divider -->
-        <hr class="my-4 border-t border-gray-200" />
-
-        <!-- Season Performance Table -->
-        <h2 class="text-sm font-semibold text-gray-800">
-            Regular Season Logs {{season_logs.player_stats?.length  > 0 ? '('+season_logs.player_stats?.length+')' : '' }}
-        </h2>
-
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 text-xs">
-                <thead class="bg-gray-50 text-nowrap">
-                    <tr>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
-                            Season
-                        </th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
-                            Team
-                        </th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
-                            Role
-                        </th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
-                            GP
-                        </th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Points Per Game">
-                            PPG
-                        </th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Rebounds Per Game">
-                            RPG
-                        </th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Assist Per Game">
-                            APG
-                        </th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Steals Per Game">
-                            SPG
-                        </th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Blocks Per Game">
-                            BPG
-                        </th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Turnover Per Game">
-                            TOPG
-                        </th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Fouls Per Game">
-                            FPG
-                        </th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
-                            Ratings
-                        </th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    <tr v-for="(player, index) in season_logs.player_stats" :key="player.player_id" @click.prevent="isViewModalOpen = player.season_id" class="hover:bg-gray-100">
-                        <td class="px-2 py-1 whitespace-nowrap border">
-                            {{ player.season_name }}
-                        </td>
-                        <td class="px-2 py-1 whitespace-nowrap border">
-                            {{ player.team_name }}
-                        </td>
-                        <td class="px-2 py-1 whitespace-nowrap border">
-                            <span
-                                :class="roleClasses(player.role)"
-                                class="inline-flex items-center capitalize px-2.5 py-0.5 rounded text-xs font-medium"
-                            >
-                                {{ player.role }}
-                            </span>
-                        </td>
-                        <td class="px-2 py-1 whitespace-nowrap border">
-                            {{ player.games_played }}
-                        </td>
-                        <td class="px-2 py-1 whitespace-nowrap border">
-                            {{ player.average_points_per_game.toFixed(1) }}
-                        </td>
-                        <td class="px-2 py-1 whitespace-nowrap border">
-                            {{ player.average_rebounds_per_game.toFixed(1) }}
-                        </td>
-                        <td class="px-2 py-1 whitespace-nowrap border">
-                            {{ player.average_assists_per_game.toFixed(1) }}
-                        </td>
-                        <td class="px-2 py-1 whitespace-nowrap border">
-                            {{ player.average_steals_per_game.toFixed(1) }}
-                        </td>
-                        <td class="px-2 py-1 whitespace-nowrap border">
-                            {{ player.average_blocks_per_game.toFixed(1) }}
-                        </td>
-                        <td class="px-2 py-1 whitespace-nowrap border">
-                            {{ player.average_turnovers_per_game.toFixed(1) }}
-                        </td>
-                        <td class="px-2 py-1 whitespace-nowrap border">
-                            {{ player.average_fouls_per_game.toFixed(1) }}
-                        </td>
-                        <td class="px-2 py-1 whitespace-nowrap border font-bold">
-                            {{ player.overall_rating ? player.overall_rating.toFixed(1) : 'Unrated' }}
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <h2 class="text-sm font-semibold text-gray-800 mt-4">
-            Playoffs Logs {{playoff_logs.player_stats?.length  > 0 ? '('+playoff_logs.player_stats?.length+')' : '' }}
-        </h2>
-
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 text-xs">
-                <thead class="bg-gray-50 text-nowrap">
-                    <tr>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
-                            Season
-                        </th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
-                            Team
-                        </th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
-                            Role
-                        </th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
-                            GP
-                        </th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Points Per Game">
-                            PPG
-                        </th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Rebounds Per Game">
-                            RPG
-                        </th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Assist Per Game">
-                            APG
-                        </th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Steals Per Game">
-                            SPG
-                        </th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Blocks Per Game">
-                            BPG
-                        </th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Turnover Per Game">
-                            TOPG
-                        </th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Fouls Per Game">
-                            FPG
-                        </th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
-                            Ratings
-                        </th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    <tr v-for="(player, index) in playoff_logs.player_stats" :key="player.player_id" @click.prevent="isViewModalOpen = player.season_id" class="hover:bg-gray-100">
-                        <td class="px-2 py-1 whitespace-nowrap border">
-                            {{ player.season_name }}
-                        </td>
-                        <td class="px-2 py-1 whitespace-nowrap border">
-                            {{ player.team_name }}
-                        </td>
-                        <td class="px-2 py-1 whitespace-nowrap border">
-                            <span
-                                :class="roleClasses(player.role)"
-                                class="inline-flex items-center capitalize px-2.5 py-0.5 rounded text-xs font-medium"
-                            >
-                                {{ player.role }}
-                            </span>
-                        </td>
-                        <td class="px-2 py-1 whitespace-nowrap border">
-                            {{ player.games_played }}
-                        </td>
-                        <td class="px-2 py-1 whitespace-nowrap border">
-                            {{ player.average_points_per_game.toFixed(1) }}
-                        </td>
-                        <td class="px-2 py-1 whitespace-nowrap border">
-                            {{ player.average_rebounds_per_game.toFixed(1) }}
-                        </td>
-                        <td class="px-2 py-1 whitespace-nowrap border">
-                            {{ player.average_assists_per_game.toFixed(1) }}
-                        </td>
-                        <td class="px-2 py-1 whitespace-nowrap border">
-                            {{ player.average_steals_per_game.toFixed(1) }}
-                        </td>
-                        <td class="px-2 py-1 whitespace-nowrap border">
-                            {{ player.average_blocks_per_game.toFixed(1) }}
-                        </td>
-                        <td class="px-2 py-1 whitespace-nowrap border">
-                            {{ player.average_turnovers_per_game.toFixed(1) }}
-                        </td>
-                        <td class="px-2 py-1 whitespace-nowrap border">
-                            {{ player.average_fouls_per_game.toFixed(1) }}
-                        </td>
-                        <td class="px-2 py-1 whitespace-nowrap border font-bold">
-                            {{ player.overall_rating ? player.overall_rating.toFixed(1) : 'Unrated' }}
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <h2 class="text-sm font-semibold text-gray-800 mt-4">
-           Injury History
-        </h2>
-
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 text-xs">
-                <thead class="bg-gray-50 text-nowrap">
-                    <tr>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
-                            Season
-                        </th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
-                            Player Name
-                        </th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
-                            Role
-                        </th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
-                            Team
-                        </th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
-                            Injury Type
-                        </th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
-                            Recovery Games
-                        </th>
-                        <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
-                            Status
-                        </th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    <!-- Loop through injury data to create table rows -->
-                    <tr v-for="(player, index) in injury.data" :key="player.player_id" @click.prevent="isViewModalOpen = player.season_id" class="hover:bg-gray-100">
-                        <td class="px-2 py-1 text-gray-700">
-                            {{ player.season_id }}
-                        </td>
-                        <td class="px-2 py-1 text-gray-700">
-                            {{ player.player_name }}
-                        </td>
-                        <td class="px-2 py-1 text-gray-700">
-                            {{ player.role }}
-                        </td>
-                        <td class="px-2 py-1 text-gray-700">
-                            {{ player.team_name }}
-                        </td>
-                        <td class="px-2 py-1 text-gray-700">
-                            {{ player.injury_type }}
-                        </td>
-                        <td class="px-2 py-1 text-gray-700">
-                            {{ player.recovery_games }}
-                        </td>
-                        <td class="px-2 py-1 text-gray-700">
-                            {{ player.status }}
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <Modal :show="isViewModalOpen" :maxWidth="'6xl'">
+        <!-- Tab Navigation -->
+        <div class="flex space-x-4">
             <button
-                class="flex float-end bg-gray-100 p-3"
-                @click.prevent="isViewModalOpen = false"
+                class="text-sm font-medium text-gray-600 border-b-2 border-transparent hover:border-blue-600"
+                :class="{ 'border-blue-600': activeTab === 'profile', 'text-blue-600': activeTab === 'profile' }"
+                @click="activeTab = 'profile'"
             >
-                <i class="fa fa-times text-black-600"></i>
+                Player Profile
             </button>
-            <div class="mt-4">
-                <PlayerGameLogs v-if="player_id" :key="player_id" :season_id="isViewModalOpen" :player_id="player_id"/>
+            <button
+                class="text-sm font-medium text-gray-600 border-b-2 border-transparent hover:border-blue-600"
+                :class="{ 'border-blue-600': activeTab === 'transactions', 'text-blue-600': activeTab === 'transactions' }"
+                @click="activeTab = 'transactions'"
+            >
+                Player Transactions
+            </button>
+            <button
+                class="text-sm font-medium text-gray-600 border-b-2 border-transparent hover:border-blue-600"
+                :class="{ 'border-blue-600': activeTab === 'injury', 'text-blue-600': activeTab === 'injury' }"
+                @click="activeTab = 'injury'"
+            >
+                Injury History
+            </button>
+        </div>
+
+
+        <!-- Divider -->
+        <hr class="my-4 border-t border-gray-200" />
+
+        <!-- Tab Content -->
+        <div v-if="activeTab === 'profile'">
+            <ProfileHeader v-if="playoff_logs" :key="player_id" :player_id="player_id" />
+
+            <hr class="my-4 border-t border-gray-200" />
+
+            <h2 class="text-sm font-semibold text-gray-800">
+                Regular Season Logs {{ season_logs.player_stats?.length  > 0 ? '('+season_logs.player_stats?.length+')' : '' }}
+            </h2>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 text-xs">
+                    <thead class="bg-gray-50 text-nowrap">
+                        <tr>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                                Season
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                                Team
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                                Role
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                                GP
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Points Per Game">
+                                PPG
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Rebounds Per Game">
+                                RPG
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Assist Per Game">
+                                APG
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Steals Per Game">
+                                SPG
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Blocks Per Game">
+                                BPG
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Turnover Per Game">
+                                TOPG
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Fouls Per Game">
+                                FPG
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                                Ratings
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr v-for="(player, index) in season_logs.player_stats" :key="player.player_id" @click.prevent="isViewModalOpen = player.season_id" class="hover:bg-gray-100">
+                            <td class="px-2 py-1 whitespace-nowrap border">{{ player.season_name }}</td>
+                            <td class="px-2 py-1 whitespace-nowrap border">{{ player.team_name }}</td>
+                            <td class="px-2 py-1 whitespace-nowrap border"><span :class="roleClasses(player.role)" class="inline-flex items-center capitalize px-2.5 py-0.5 rounded text-xs font-medium">{{ player.role }}</span></td>
+                            <td class="px-2 py-1 whitespace-nowrap border">{{ player.games_played }}</td>
+                            <td class="px-2 py-1 whitespace-nowrap border">{{ player.average_points_per_game.toFixed(1) }}</td>
+                            <td class="px-2 py-1 whitespace-nowrap border">{{ player.average_rebounds_per_game.toFixed(1) }}</td>
+                            <td class="px-2 py-1 whitespace-nowrap border">{{ player.average_assists_per_game.toFixed(1) }}</td>
+                            <td class="px-2 py-1 whitespace-nowrap border">{{ player.average_steals_per_game.toFixed(1) }}</td>
+                            <td class="px-2 py-1 whitespace-nowrap border">{{ player.average_blocks_per_game.toFixed(1) }}</td>
+                            <td class="px-2 py-1 whitespace-nowrap border">{{ player.average_turnovers_per_game.toFixed(1) }}</td>
+                            <td class="px-2 py-1 whitespace-nowrap border">{{ player.average_fouls_per_game.toFixed(1) }}</td>
+                            <td class="px-2 py-1 whitespace-nowrap border font-bold">{{ player.overall_rating ? player.overall_rating.toFixed(1) : 'Unrated' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-        </Modal>
+
+            <h2 class="text-sm font-semibold text-gray-800 mt-4">
+                Playoffs Logs {{playoff_logs.player_stats?.length  > 0 ? '('+playoff_logs.player_stats?.length+')' : '' }}
+            </h2>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 text-xs">
+                    <thead class="bg-gray-50 text-nowrap">
+                        <tr>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                                Season
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                                Team
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                                Role
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                                GP
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Points Per Game">
+                                PPG
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Rebounds Per Game">
+                                RPG
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Assist Per Game">
+                                APG
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Steals Per Game">
+                                SPG
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Blocks Per Game">
+                                BPG
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Turnover Per Game">
+                                TOPG
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider" title="Fouls Per Game">
+                                FPG
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                                Ratings
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr v-for="(player, index) in playoff_logs.player_stats" :key="player.player_id" @click.prevent="isViewModalOpen = player.season_id" class="hover:bg-gray-100">
+                            <td class="px-2 py-1 whitespace-nowrap border">
+                                {{ player.season_name }}
+                            </td>
+                            <td class="px-2 py-1 whitespace-nowrap border">
+                                {{ player.team_name }}
+                            </td>
+                            <td class="px-2 py-1 whitespace-nowrap border">
+                                <span
+                                    :class="roleClasses(player.role)"
+                                    class="inline-flex items-center capitalize px-2.5 py-0.5 rounded text-xs font-medium"
+                                >
+                                    {{ player.role }}
+                                </span>
+                            </td>
+                            <td class="px-2 py-1 whitespace-nowrap border">
+                                {{ player.games_played }}
+                            </td>
+                            <td class="px-2 py-1 whitespace-nowrap border">
+                                {{ player.average_points_per_game.toFixed(1) }}
+                            </td>
+                            <td class="px-2 py-1 whitespace-nowrap border">
+                                {{ player.average_rebounds_per_game.toFixed(1) }}
+                            </td>
+                            <td class="px-2 py-1 whitespace-nowrap border">
+                                {{ player.average_assists_per_game.toFixed(1) }}
+                            </td>
+                            <td class="px-2 py-1 whitespace-nowrap border">
+                                {{ player.average_steals_per_game.toFixed(1) }}
+                            </td>
+                            <td class="px-2 py-1 whitespace-nowrap border">
+                                {{ player.average_blocks_per_game.toFixed(1) }}
+                            </td>
+                            <td class="px-2 py-1 whitespace-nowrap border">
+                                {{ player.average_turnovers_per_game.toFixed(1) }}
+                            </td>
+                            <td class="px-2 py-1 whitespace-nowrap border">
+                                {{ player.average_fouls_per_game.toFixed(1) }}
+                            </td>
+                            <td class="px-2 py-1 whitespace-nowrap border font-bold">
+                                {{ player.overall_rating ? player.overall_rating.toFixed(1) : 'Unrated' }}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div v-if="activeTab === 'transactions'">
+            <h2 class="text-sm font-semibold text-gray-800 mt-4">
+                Player Transactions
+            </h2>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 text-xs">
+                    <thead class="bg-gray-50 text-nowrap">
+                        <tr>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                                Season
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                                Player Name
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                                Transfer Details
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                                Role
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                                Status
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr v-for="(transaction, index) in transactions.data" :key="transaction.id" @click.prevent="isViewModalOpen = transaction.season_id" class="hover:bg-gray-100">
+                            <td class="px-2 py-1 text-gray-700">Season {{ transaction.season_id }}</td>
+                            <td class="px-2 py-1 text-gray-700">{{ transaction.name }}</td>
+                            <td class="px-2 py-1 text-gray-700">{{ transaction.details }}</td>
+                            <td class="px-2 py-1 text-gray-700">{{ transaction.role }}</td>
+                            <td class="px-2 py-1 text-gray-700">{{ transaction.status }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div v-if="activeTab === 'injury'">
+            <h2 class="text-sm font-semibold text-gray-800 mt-4">
+                Injury History
+            </h2>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 text-xs">
+                    <thead class="bg-gray-50 text-nowrap">
+                        <tr>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                                Season
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                                Player Name
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                                Role
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                                Team
+                            </th>
+                            <th class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider">
+                                Injury Details
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr v-for="(injury, index) in injuries" :key="injury.id" @click.prevent="isViewModalOpen = injury.season_id" class="hover:bg-gray-100">
+                            <td class="px-2 py-1 text-gray-700">Season {{ injury.season }}</td>
+                            <td class="px-2 py-1 text-gray-700">{{ injury.name }}</td>
+                            <td class="px-2 py-1 text-gray-700">{{ injury.role }}</td>
+                            <td class="px-2 py-1 text-gray-700">{{ injury.team }}</td>
+                            <td class="px-2 py-1 text-gray-700">{{ injury.details }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </template>
-
 <script setup>
 import { ref, onMounted, watch } from "vue";
 import axios from "axios";
@@ -289,6 +287,7 @@ const props = defineProps({
     },
 });
 const isViewModalOpen = ref(false);
+const activeTab = ref('profile');
 const season_logs = ref([]);
 const playoff_logs = ref({});
 const transactions = ref([]);
