@@ -1941,6 +1941,7 @@ class SimulateController extends Controller
                         ->where('is_active', 1)
                         ->where('is_injured', 0)   // Make sure the player is not injured
                         ->where('team_id', 0)       // Ensure the player has no team
+                        ->where('role', $player->role)       // Ensure the player has no team
                         ->inRandomOrder()
                         ->first();
 
@@ -1948,7 +1949,6 @@ class SimulateController extends Controller
                         // Update the new player with the appropriate contract role
                         DB::table('players')->where('id', $randomPlayer->id)->update([
                             'team_id' => $player->team_id,
-                            'role' => $player->role,
                             'contract_years' => $freeAgentStandardContract, // Assign a random contract length
                         ]);
 
