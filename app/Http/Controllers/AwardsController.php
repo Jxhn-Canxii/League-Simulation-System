@@ -161,6 +161,11 @@ class AwardsController extends Controller
                 ->where('player_id', $player->id)
                 ->where('season_id', $latestSeasonId)
                 ->exists();
+            // Query to count the total games played for a team in a given season
+            $gamesPlayedCount = DB::table('standings_view')
+                ->where('team_id', $player->team_id)  // Filter by the team ID
+                ->where('season_id', $latestSeasonId)  // Filter by the season ID
+                ->sum(DB::raw('wins + losses'));  // Directly sum wins and losses to get total games played
 
             if ($hasStats) {
                 // Calculate stats if stats are found for the player
@@ -187,12 +192,13 @@ class AwardsController extends Controller
                         DB::raw('SUM(CASE WHEN minutes > 0 THEN turnovers ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_turnovers_per_game'),
                         DB::raw('SUM(CASE WHEN minutes > 0 THEN fouls ELSE 0 END) / NULLIF(COUNT(CASE WHEN minutes > 0 THEN 1 END), 0) as avg_fouls_per_game')
                     )
-                    ->groupBy('player_id','player_game_stats.team_id')
+                    ->groupBy('player_id', 'player_game_stats.team_id')
                     ->first();
             } else {
                 // Set all stats to 0 if no stats are found
                 $playerStats = (object) [
                     'player_id' => $player->id,
+                    'total_games' => $gamesPlayedCount,
                     'total_games_played' => 0,
                     'total_points' => 0,
                     'total_rebounds' => 0,
@@ -237,6 +243,7 @@ class AwardsController extends Controller
                     'avg_fouls_per_game' => $playerStats->avg_fouls_per_game,
 
                     // Total stats
+                    'total_games' => $gamesPlayedCount,
                     'total_games_played' => $playerStats->total_games_played,  // Add total_games_played here
                     'total_points' => $playerStats->total_points,
                     'total_rebounds' => $playerStats->total_rebounds,
@@ -265,6 +272,13 @@ class AwardsController extends Controller
             ->where('id', $playerId)
             ->where('is_active', true)
             ->first();
+
+        // Query to count the total games played for a team in a given season
+        $gamesPlayedCount = DB::table('standings_view')
+            ->where('team_id', $teamId)  // Filter by the team ID
+            ->where('season_id', $latestSeasonId)  // Filter by the season ID
+            ->sum(DB::raw('wins + losses'));  // Directly sum wins and losses to get total games played
+
 
         // If no player found, return an error
         if (!$player) {
@@ -308,6 +322,7 @@ class AwardsController extends Controller
             // Set default stats if no game stats exist
             $playerStats = (object) [
                 'player_id' => $player->id,
+                'total_games' => $gamesPlayedCount,
                 'total_games_played' => 0,
                 'total_points' => 0,
                 'total_rebounds' => 0,
@@ -350,6 +365,7 @@ class AwardsController extends Controller
                 'avg_blocks_per_game' => $playerStats->avg_blocks_per_game,
                 'avg_turnovers_per_game' => $playerStats->avg_turnovers_per_game,
                 'avg_fouls_per_game' => $playerStats->avg_fouls_per_game,
+                'total_games' => $gamesPlayedCount,  // Add total_games_played here
                 'total_games_played' => $playerStats->total_games_played,  // Add total_games_played here
                 'total_points' => $playerStats->total_points,
                 'total_rebounds' => $playerStats->total_rebounds,
@@ -487,7 +503,7 @@ class AwardsController extends Controller
             // Check if the player has played at least 75% of the total games
             $totalGamesInSeason = DB::table('schedules')
                 ->where('season_id', $latestSeasonId)
-                ->where(function($query) use ($stats) {
+                ->where(function ($query) use ($stats) {
                     $query->where('home_id', $stats->team_id)
                         ->orWhere('away_id', $stats->team_id);
                 })
@@ -660,7 +676,7 @@ class AwardsController extends Controller
                 // Check if the player has played at least 75% of the total games
                 $totalGamesInSeason = DB::table('schedules')
                     ->where('season_id', $latestSeasonId)
-                    ->where(function($query) use ($stats) {
+                    ->where(function ($query) use ($stats) {
                         $query->where('home_id', $stats->team_id)
                             ->orWhere('away_id', $stats->team_id);
                     })

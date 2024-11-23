@@ -177,6 +177,7 @@ class AnalyticsController extends Controller
                 'teams.name as team_name',
                 'players.is_rookie',
                 'players.draft_id',
+                'player_season_stats.total_games',
                 'player_season_stats.total_games_played as games_played',
                 'player_season_stats.avg_points_per_game',
                 'player_season_stats.avg_rebounds_per_game',
@@ -215,14 +216,10 @@ class AnalyticsController extends Controller
         // Calculate MVP Leaders
         $mvpLeaders = $playerStats->map(function ($stats) use ($seasonId) {
             // Get the total number of games played by the team
-            $totalGames = DB::table('schedules')
-                ->where('home_id', $stats->team_id)
-                ->orWhere('away_id', $stats->team_id)
-                ->where('season_id', $seasonId)
-                ->count();
+            $totalGames = $stats->total_games ?? 0;
 
             // Calculate how many games the player has played
-            $gamesPlayed = $stats->total_games_played;
+            $gamesPlayed = $stats->games_played;
 
             // Calculate the required 70% of total games
             $requiredGames = ceil($totalGames * 0.7); // Round up to the nearest whole number
@@ -259,14 +256,11 @@ class AnalyticsController extends Controller
             })
             ->map(function ($stats) use ($seasonId) {
                 // Get the total number of games played by the team
-                $totalGames = DB::table('schedules')
-                    ->where('home_id', $stats->team_id)
-                    ->orWhere('away_id', $stats->team_id)
-                    ->where('season_id', $seasonId)
-                    ->count();
+                 // Get the total number of games played by the team
+                $totalGames = $stats->total_games ?? 0;
 
                 // Calculate how many games the player has played
-                $gamesPlayed = $stats->total_games_played;
+                $gamesPlayed = $stats->games_played;
 
                 // Calculate the required 70% of total games
                 $requiredGames = ceil($totalGames * 0.7); // Round up to the nearest whole number
