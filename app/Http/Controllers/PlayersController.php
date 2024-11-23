@@ -464,10 +464,7 @@ class PlayersController extends Controller
 
         // Apply search filter if provided
         if ($search) {
-            $query->where('players.name', 'like', "%{$search}%")
-            ->where('players.type', 'like', "%{$search}%")
-            ->where('players.role', 'like', "%{$search}%")
-            ->where('players.age', 'like', "%{$search}%");
+            $query->where('players.name', 'like', "%{$search}%");
         }
 
         // Add ordering for awards, finals MVP status, and role priority
@@ -551,10 +548,7 @@ class PlayersController extends Controller
 
         // Apply search filter if provided
         if ($search) {
-            $query->where('players.name', 'like', "%{$search}%")
-            ->where('players.type', 'like', "%{$search}%")
-            ->where('players.role', 'like', "%{$search}%")
-            ->where('players.age', 'like', "%{$search}%");
+            $query->where('players.name', 'like', "%{$search}%");
         }
 
         // Add sorting by is_active status, then by role priority
