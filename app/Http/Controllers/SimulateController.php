@@ -2002,23 +2002,24 @@ class SimulateController extends Controller
         }
     }
     private function updateInjuryFreeAgents($conferenceId, $isPlayoff) {
-        // Determine if the condition is met for Playoffs or Conference
-        $condition = $isPlayoff == 1 || $conferenceId;
-
         // Update injury recovery games for free agents and mark them as not injured if recovery games reach 0
         DB::table('players')
+            ->where('team_id', 0) // Only for free agents (team_id = 0)
+            ->where('is_injured', 1) // Only consider injured players
+            ->where('is_active', 1) // Only consider active players
+            ->where('injury_recovery_games', '>', 0) // Only consider players with recovery games left
+            ->decrement('injury_recovery_games', 1); // Decrease recovery games by 1
+
+        // After decrementing, check if recovery games is 0, and mark player as not injured
+        DB::table('players')
             ->where('team_id', 0) // Only for free agents
-            ->where('is_injured', 1) // Only for free agents
-            ->where('is_active', 1) // Only for free agents
-            ->where('injury_recovery_games', '>', 0) // Only consider players with recovery games greater than 0
-            ->when($condition, function ($query) {
-                $query->decrement('injury_recovery_games', 1); // Decrease recovery games by 1
-            })
-            ->where('injury_recovery_games', 0) // After decrement, check if recovery games are 0
+            ->where('is_injured', 1) // Only for injured players
+            ->where('injury_recovery_games', 0) // Check if recovery games are 0 after decrement
             ->update([
                 'is_injured' => 0, // Set is_injured to 0 for players with no injury recovery games left
             ]);
     }
+
 
     private function getContractYearsBasedOnRole($role)
     {
