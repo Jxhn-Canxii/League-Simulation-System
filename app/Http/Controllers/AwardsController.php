@@ -501,14 +501,7 @@ class AwardsController extends Controller
         // Filter player stats to only include those who have played at least 90% of the games
         $eligiblePlayerStats = $playerStats->filter(function ($stats) use ($latestSeasonId) {
             // Check if the player has played at least 75% of the total games
-            $totalGamesInSeason = DB::table('schedules')
-                ->where('season_id', $latestSeasonId)
-                ->where(function ($query) use ($stats) {
-                    $query->where('home_id', $stats->team_id)
-                        ->orWhere('away_id', $stats->team_id);
-                })
-                ->count();
-
+            $totalGamesInSeason = $stats->total_games;
 
             return $stats->total_games_played >= 0.75 * $totalGamesInSeason;
         });
@@ -674,13 +667,7 @@ class AwardsController extends Controller
             // Filter player stats to only include those who have played at least 90% of the games
             $eligiblePlayerStats = $playerStats->filter(function ($stats) use ($latestSeasonId) {
                 // Check if the player has played at least 75% of the total games
-                $totalGamesInSeason = DB::table('schedules')
-                    ->where('season_id', $latestSeasonId)
-                    ->where(function ($query) use ($stats) {
-                        $query->where('home_id', $stats->team_id)
-                            ->orWhere('away_id', $stats->team_id);
-                    })
-                    ->count();
+                $totalGamesInSeason = $stats->total_games;
 
 
                 return $stats->total_games_played >= 0.75 * $totalGamesInSeason;
