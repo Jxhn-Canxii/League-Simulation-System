@@ -430,7 +430,7 @@ class ScheduleController extends Controller
                 $schedulePlayInFinals = self::createSchedule($playInFinalsTeams, $seasonId, 'play_ins_finals', $conferenceId);
                 $allSchedules = array_merge($allSchedules, $schedulePlayInFinals);
             }
-        } else if ($round == 'interconference_semi_finals' || $round == 'finals') {
+        } else if ($round == 'finals') {
             $pairings = self::generatePairings16($seasonId, 0, $round);
             $allSchedules = self::createSchedule($pairings, $seasonId, $round, 0);
         } else {
