@@ -284,6 +284,9 @@ class TeamsController extends Controller
     {
         $teamId = $request->team_id;
 
+        $lastPlayInsRound1Season = self::getLastSeasonOfRound($teamId, 'play_ins_elims_round_1');
+        $lastPlayInsRound2Season = self::getLastSeasonOfRound($teamId, 'play_ins_elims_round_2');
+        $lastPlayInsFinalsSeason = self::getLastSeasonOfRound($teamId, 'play_ins_finals');
         $lastQuarterFinalSeason = self::getLastSeasonOfRound($teamId, 'quarter_finals');
         $lastSemiFinalSeason = self::getLastSeasonOfRound($teamId, 'semi_finals');
         $lastFinalSeason = self::getLastSeasonOfRound($teamId, 'finals');
@@ -291,6 +294,9 @@ class TeamsController extends Controller
         $lastRoundOf32Season = self::getLastSeasonOfRound($teamId, 'round_of_32');
 
         return response()->json([
+            'lastPlayInsRound1Season' =>  $lastPlayInsRound1Season,
+            'lastPlayInsRound2Season' =>  $lastPlayInsRound2Season,
+            'lastPlayInsFinalsSeason' =>  $lastPlayInsFinalsSeason,
             'lastRoundOf32Season' =>  $lastRoundOf32Season,
             'lastRoundOf16Season' =>  $lastRoundOf16Season,
             'lastQuarterFinalSeason' => $lastQuarterFinalSeason,
@@ -578,10 +584,13 @@ class TeamsController extends Controller
                 $query->where('away_id', $teamId)
                     ->orWhere('home_id', $teamId);
             })
-            ->selectRaw('COUNT(CASE WHEN round = "semi_finals" THEN 1 END) AS semi_final_appearances,
-                        COUNT(CASE WHEN round = "quarter_finals" THEN 1 END) AS quarter_final_appearances,
-                        COUNT(CASE WHEN round = "round_of_16" THEN 1 END) AS round_of_16_appearances,
-                        COUNT(CASE WHEN round = "round_of_32" THEN 1 END) AS round_of_32_appearances')
+            ->selectRaw('
+                COUNT(CASE WHEN round = "semi_finals" THEN 1 END) AS semi_final_appearances,
+                COUNT(CASE WHEN round = "quarter_finals" THEN 1 END) AS quarter_final_appearances,
+                COUNT(CASE WHEN round = "round_of_16" THEN 1 END) AS round_of_16_appearances,
+                COUNT(CASE WHEN round = "round_of_32" THEN 1 END) AS round_of_32_appearances,
+                COUNT(CASE WHEN round IN ("play_ins_elims_round_1", "play_ins_elims_round_2","play_ins_finals") THEN 1 END) AS play_in_appearances
+            ')
             ->first();
     }
 
@@ -592,13 +601,25 @@ class TeamsController extends Controller
                 $query->where('away_id', $teamId)
                     ->orWhere('home_id', $teamId);
             })
-            ->whereIn('round', ['finals', 'semi_finals', 'quarter_finals', 'round_of_16', 'round_of_32'])
+            ->whereIn('round', [
+                'play_ins_elims_round_1',
+                'play_ins_elims_round_2',
+                'play_ins_finals',
+                'round_of_16',
+                'quarter_finals',
+                'semi_finals',
+                'interconference_semi_finals',
+                'finals'
+            ])
             ->join('seasons', 'schedules.season_id', '=', 'seasons.id')
             ->selectRaw('SUM(CASE WHEN (round = "finals" OR round = "semi_finals" OR round = "quarter_finals" OR round = "round_of_16" OR round = "round_of_32") AND (away_id = ? AND away_score > home_score OR home_id = ? AND home_score > away_score) THEN 1 ELSE 0 END) AS playoff_wins', [$teamId, $teamId])
             ->selectRaw('SUM(CASE WHEN (round = "finals" OR round = "semi_finals" OR round = "quarter_finals" OR round = "round_of_16" OR round = "round_of_32") AND (away_id = ? AND away_score < home_score OR home_id = ? AND home_score < away_score) THEN 1 ELSE 0 END) AS playoff_losses', [$teamId, $teamId])
             ->selectRaw('COUNT(CASE WHEN (round = "round_of_16" AND seasons.start_playoffs = 16) OR (round = "round_of_32" AND seasons.start_playoffs = 32) THEN 1 END) AS playoff_appearances')
+            // Add condition for play-in rounds (teams ranked 7th-10th)
+            ->selectRaw('COUNT(CASE WHEN round IN ("play_ins_elims_round_1", "play_ins_elims_round_2") THEN 1 END) AS play_in_appearances')
             ->first();
     }
+
 
     private function getLastTenGames($teamId)
     {
@@ -658,8 +679,7 @@ class TeamsController extends Controller
             ->where('weakest_id', $teamId) // Filter for champion_id == teamId
             ->orderByDesc('id') // Order by season ID in descending order
             ->pluck('name'); // Retrieve the season names
-    }
-    private function getPlayoffAppearance($teamId)
+    }private function getPlayoffAppearance($teamId)
     {
         return DB::table('schedules')
             ->where(function ($query) use ($teamId) {
@@ -668,17 +688,26 @@ class TeamsController extends Controller
             })
             ->join('seasons', 'schedules.season_id', '=', 'seasons.id')
             ->where(function ($query) {
+                // Check for rounds 16 and 32 for playoffs based on season start playoffs
                 $query->where(function ($subQuery) {
-                    $subQuery->where('seasons.start_playoffs', '=', 16)
-                        ->where('schedules.round', '=', 'round_of_16');
-                })->orWhere(function ($subQuery) {
-                    $subQuery->where('seasons.start_playoffs', '=', 32)
-                        ->where('schedules.round', '=', 'round_of_32');
-                });
+                        $subQuery->where('seasons.start_playoffs', '=', 16)
+                            ->where('schedules.round', '=', 'round_of_16');
+                    })
+                    ->orWhere(function ($subQuery) {
+                        $subQuery->where('seasons.start_playoffs', '=', 32)
+                            ->where('schedules.round', '=', 'round_of_32');
+                    })
+                    // Add check for play-in rounds
+                    ->orWhere(function ($subQuery) {
+                        $subQuery->whereIn('schedules.round', [
+                            'play_ins_elims_round_1', 'play_ins_elims_round_2'
+                        ]);
+                    });
             })
-            ->orderByDesc('seasons.id')
-            ->pluck('seasons.name');
+            ->orderByDesc('seasons.id')  // Get the most recent season
+            ->pluck('seasons.name');  // Return the season names where the team played in the playoffs
     }
+
     private function getFinalsSeasons($teamId)
     {
         return DB::table('schedules')
@@ -752,7 +781,7 @@ class TeamsController extends Controller
                 $query->where('schedules.home_id', $teamId)
                     ->orWhere('schedules.away_id', $teamId);
             })
-            ->whereIn('schedules.round', ['round_of_32', 'round_of_16', 'quarter_finals', 'semi_finals', 'finals'])
+            ->whereIn('schedules.round', config('playoffs'))
             ->groupBy('opponent_name')
             ->orderBy('total_games', 'desc')
             ->limit(5)

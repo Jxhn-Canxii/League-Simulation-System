@@ -1088,7 +1088,7 @@ class PlayersController extends Controller
                 \DB::raw('COALESCE(player_ratings.role, players.role) as role') // Use COALESCE to handle NULL roles
             )
             ->where('player_game_stats.player_id', $playerId)
-            ->whereIn('schedules.round', ['round_of_16', 'quarter_finals', 'semi_finals', 'interconference_semi_finals', 'finals']) // Filter by playoff rounds
+            ->whereIn('schedules.round', config('playoffs')) // Filter by playoff rounds
             ->groupBy('players.id', 'players.name', 'players.team_id', 'players.role', 'player_ratings.overall_rating', 'teams.name', 'teams.conference_id', 'player_game_stats.season_id', 'seasons.name', 'player_ratings.role')
             ->orderBy('player_game_stats.season_id', 'desc') // Sort by season_id in descending order
             ->get();
@@ -1184,7 +1184,7 @@ class PlayersController extends Controller
                 \DB::raw('COALESCE(player_ratings.role, players.role) as role') // Use COALESCE to handle NULL roles
             )
             ->where('player_game_stats.player_id', $playerId)
-            ->whereNotIn('schedules.round', ['round_of_16', 'quarter_finals', 'semi_finals', 'interconference_semi_finals', 'finals']) // Exclude specific playoff rounds
+            ->whereNotIn('schedules.round', config('playoffs')) // Exclude specific playoff rounds
             ->groupBy('players.id', 'players.name', 'players.team_id', 'players.role', 'player_ratings.overall_rating', 'teams.name', 'teams.conference_id', 'player_game_stats.season_id', 'seasons.name', 'player_ratings.role')
             ->orderBy('player_game_stats.season_id', 'desc') // Sort by season_id in descending order
             ->get();
@@ -1269,17 +1269,21 @@ class PlayersController extends Controller
 
         // Fetch playoff performance
         $playoffPerformance = \DB::table('player_game_stats')
-            ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id')
-            ->join('seasons', 'player_game_stats.season_id', '=', 'seasons.id')
-            ->select(
-                \DB::raw('SUM(CASE WHEN schedules.round = "round_of_16" THEN 1 ELSE 0 END) as round_of_16'),
-                \DB::raw('SUM(CASE WHEN schedules.round = "quarter_finals" THEN 1 ELSE 0 END) as quarter_finals'),
-                \DB::raw('SUM(CASE WHEN schedules.round = "semi_finals" THEN 1 ELSE 0 END) as semi_finals'),
-                \DB::raw('SUM(CASE WHEN schedules.round = "interconference_semi_finals" THEN 1 ELSE 0 END) as interconference_semi_finals'),
-                \DB::raw('SUM(CASE WHEN schedules.round = "finals" THEN 1 ELSE 0 END) as finals')
-            )
-            ->where('player_game_stats.player_id', $playerId)
-            ->first();
+        ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id')
+        ->join('seasons', 'player_game_stats.season_id', '=', 'seasons.id')
+        ->select(
+            \DB::raw('SUM(CASE WHEN schedules.round = "round_of_16" THEN 1 ELSE 0 END) as round_of_16'),
+            \DB::raw('SUM(CASE WHEN schedules.round = "quarter_finals" THEN 1 ELSE 0 END) as quarter_finals'),
+            \DB::raw('SUM(CASE WHEN schedules.round = "semi_finals" THEN 1 ELSE 0 END) as semi_finals'),
+            \DB::raw('SUM(CASE WHEN schedules.round = "interconference_semi_finals" THEN 1 ELSE 0 END) as interconference_semi_finals'),
+            \DB::raw('SUM(CASE WHEN schedules.round = "finals" THEN 1 ELSE 0 END) as finals'),
+            \DB::raw('SUM(CASE WHEN schedules.round = "play_ins_finals" THEN 1 ELSE 0 END) as play_ins_finals')
+            \DB::raw('SUM(CASE WHEN schedules.round = "play_ins_elims_round_1" THEN 1 ELSE 0 END) as play_ins_round_1'),
+            \DB::raw('SUM(CASE WHEN schedules.round = "play_ins_elims_round_2" THEN 1 ELSE 0 END) as play_ins_round_2')
+        )
+        ->where('player_game_stats.player_id', $playerId)
+        ->first();
+
 
         // Set default values if no performance data
         $playoffPerformance = $playoffPerformance ?: (object)[

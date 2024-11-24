@@ -297,7 +297,7 @@ class SeasonsController extends Controller
 
         $schedules = DB::table('schedule_view')
             ->where('season_id', $seasonId)
-            ->whereNotIn('round', ['round_of_16', 'quarter_finals', 'semi_finals','interconference_semi_finals', 'finals'])
+            ->whereNotIn('round', config('playoffs'))
             ->get();
 
         return response()->json([

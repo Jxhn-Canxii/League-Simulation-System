@@ -133,7 +133,7 @@ class ConferenceController extends Controller
         // Retrieve the season_id and conference_id from the request
         $seasonId = $request->season_id;
         $conferenceId = $request->conference_id;
-        $excludedRounds = ['play_ins_elims_round_1','play_ins_elims_round_2','play_ins_finals','round_of_16', 'quarter_finals', 'semi_finals', 'finals'];
+        $excludedRounds = config('playoffs');
         // Retrieve schedules excluding certain rounds
         $schedules = DB::table('schedule_view')
             ->where('season_id', $seasonId)

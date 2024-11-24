@@ -93,7 +93,7 @@ class RecordsController extends Controller
             )
             ->join('teams as home_team', 'schedules.home_id', '=', 'home_team.id')
             ->join('teams as away_team', 'schedules.away_id', '=', 'away_team.id')
-            ->whereIn('schedules.round', ['round_of_32', 'round_of_16', 'quarter_finals', 'semi_finals', 'finals'])
+            ->whereIn('schedules.round', config('playoffs'))
             ->groupBy('team1', 'team2')
             ->having(DB::raw('COUNT(*)'), '>=', 2)  // Only include teams that have faced each other at least 2 times
             ->orderBy('total_games', 'desc')
@@ -117,7 +117,7 @@ class RecordsController extends Controller
                     ->orOn('schedules.away_id', '=', 'teams.id');
             })
             ->join('conferences', 'teams.conference_id', '=', 'conferences.id')
-            ->whereIn('schedules.round', ['round_of_32', 'round_of_16', 'quarter_finals', 'semi_finals', 'finals'])
+            ->whereIn('schedules.round', config('playoffs'))
             ->groupBy('teams.name', 'conferences.name')
             ->orderBy('playoff_appearances', 'desc')
             ->limit(16)

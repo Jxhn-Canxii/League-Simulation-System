@@ -98,7 +98,7 @@
             </p>
             <p>
                 Appearances:
-                {{ team_info.playoffStats.playoff_appearances }}
+                {{ team_info.playoffStats.playoff_appearances + team_info.playoffStats.play_in_appearances }}
             </p>
         </div>
         <div >
@@ -118,6 +118,10 @@
             <h3 class="text-md font-semibold text-gray-800">
                 Playoff Round Appearance
             </h3>
+            <p>
+                Play-ins:
+                {{ team_info.roundStats.play_in_appearances ?? 0 }}
+            </p>
             <p>
                 Round of 16:
                 {{ team_info.roundStats.round_of_16_appearances ?? 0 }}
@@ -139,14 +143,47 @@
     <hr class="my-4 border-t border-gray-200" />
 
     <div
-        class="mt-4 grid grid-cols-4 gap-4"
+        class="mt-4 grid grid-cols-7 gap-4"
         v-if="team_last_season"
     >
+    <div>
+        <h3 class="text-xs text-nowrap font-semibold text-gray-800">
+            Last Play-ins Round 1
+        </h3>
+        <p class="text-sm">
+            {{
+                team_last_season.lastPlayInsRound1Season ??
+                "n/a"
+            }}
+        </p>
+    </div>
+    <div>
+        <h3 class="text-xs text-nowrap font-semibold text-gray-800">
+            Last Play-ins Round 2
+        </h3>
+        <p class="text-sm">
+            {{
+                team_last_season.lastPlayInsRound2Season ??
+                "n/a"
+            }}
+        </p>
+    </div>
+    <div>
+        <h3 class="text-xs text-nowrap font-semibold text-gray-800">
+            Last Play-ins Round Finals
+        </h3>
+        <p class="text-sm">
+            {{
+                team_last_season.lastPlayInsFinalsSeason ??
+                "n/a"
+            }}
+        </p>
+    </div>
         <div>
-            <h3 class="text-md font-semibold text-gray-800">
-                Last Round of 16 Season
+            <h3 class="text-xs text-nowrap font-semibold text-gray-800">
+                Last Round of 16
             </h3>
-            <p>
+            <p class="text-sm">
                 {{
                     team_last_season.lastRoundOf16Season ??
                     "n/a"
@@ -154,10 +191,10 @@
             </p>
         </div>
         <div>
-            <h3 class="text-md font-semibold text-gray-800">
-                Last Quarter Final Season
+            <h3 class="text-xs text-nowrap font-semibold text-gray-800">
+                Last Quarter Final
             </h3>
-            <p>
+            <p class="text-sm">
                 {{
                     team_last_season.lastQuarterFinalSeason ??
                     "n/a"
@@ -165,10 +202,10 @@
             </p>
         </div>
         <div>
-            <h3 class="text-md font-semibold text-gray-800">
-                Last Semi Final Season
+            <h3 class="text-xs text-nowrap font-semibold text-gray-800">
+                Last Semi Final
             </h3>
-            <p>
+            <p class="text-sm">
                 {{
                     team_last_season.lastSemiFinalSeason ??
                     "n/a"
@@ -176,10 +213,10 @@
             </p>
         </div>
         <div>
-            <h3 class="text-md font-semibold text-gray-800">
-                Last Final Season
+            <h3 class="text-xs text-nowrap font-semibold text-gray-800">
+                Last Final
             </h3>
-            <p>
+            <p class="text-sm">
                 {{ team_last_season.lastFinalSeason ?? "n/a" }}
             </p>
         </div>
