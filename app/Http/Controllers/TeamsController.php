@@ -679,33 +679,39 @@ class TeamsController extends Controller
             ->where('weakest_id', $teamId) // Filter for champion_id == teamId
             ->orderByDesc('id') // Order by season ID in descending order
             ->pluck('name'); // Retrieve the season names
-    }private function getPlayoffAppearance($teamId)
+    }
+    private function getPlayoffAppearance($teamId)
     {
         return DB::table('schedules')
             ->where(function ($query) use ($teamId) {
+                // Check if the team is involved in any game (either as home or away)
                 $query->where('away_id', $teamId)
                     ->orWhere('home_id', $teamId);
             })
             ->join('seasons', 'schedules.season_id', '=', 'seasons.id')
             ->where(function ($query) {
-                // Check for rounds 16 and 32 for playoffs based on season start playoffs
+                // Check for playoff rounds based on the season's start playoffs
                 $query->where(function ($subQuery) {
+                        // Playoff round of 16 if start playoffs is 16
                         $subQuery->where('seasons.start_playoffs', '=', 16)
                             ->where('schedules.round', '=', 'round_of_16');
                     })
                     ->orWhere(function ($subQuery) {
+                        // Playoff round of 32 if start playoffs is 32
                         $subQuery->where('seasons.start_playoffs', '=', 32)
                             ->where('schedules.round', '=', 'round_of_32');
                     })
-                    // Add check for play-in rounds
+                    // Add condition to check for the play-in rounds
                     ->orWhere(function ($subQuery) {
+                        // Check if the team is part of play-in rounds 1 or 2
                         $subQuery->whereIn('schedules.round', [
                             'play_ins_elims_round_1', 'play_ins_elims_round_2'
                         ]);
                     });
             })
-            ->orderByDesc('seasons.id')  // Get the most recent season
-            ->pluck('seasons.name');  // Return the season names where the team played in the playoffs
+            ->orderByDesc('seasons.id')  // Ensure to get the most recent season first
+            ->distinct()  // Ensure that we only get unique season names
+            ->pluck('seasons.name');  // Return the unique season names where the team participated in the playoffs
     }
 
     private function getFinalsSeasons($teamId)

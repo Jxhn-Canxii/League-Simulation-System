@@ -1277,7 +1277,7 @@ class PlayersController extends Controller
             \DB::raw('SUM(CASE WHEN schedules.round = "semi_finals" THEN 1 ELSE 0 END) as semi_finals'),
             \DB::raw('SUM(CASE WHEN schedules.round = "interconference_semi_finals" THEN 1 ELSE 0 END) as interconference_semi_finals'),
             \DB::raw('SUM(CASE WHEN schedules.round = "finals" THEN 1 ELSE 0 END) as finals'),
-            \DB::raw('SUM(CASE WHEN schedules.round = "play_ins_finals" THEN 1 ELSE 0 END) as play_ins_finals')
+            \DB::raw('SUM(CASE WHEN schedules.round = "play_ins_finals" THEN 1 ELSE 0 END) as play_ins_finals'),
             \DB::raw('SUM(CASE WHEN schedules.round = "play_ins_elims_round_1" THEN 1 ELSE 0 END) as play_ins_round_1'),
             \DB::raw('SUM(CASE WHEN schedules.round = "play_ins_elims_round_2" THEN 1 ELSE 0 END) as play_ins_round_2')
         )
