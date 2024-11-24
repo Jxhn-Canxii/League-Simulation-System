@@ -715,7 +715,7 @@ const simulateAll = async () => {
     const rounds = season_schedules.value.rounds;
     const lastRoundIndex = rounds.length - 1; // Get the index of the last round
 
-    for (let mode = 1; mode <= 4; mode++) {
+    for (let mode = 1; mode <= 2; mode++) {
         for (const [index, round] of rounds.entries()) {
             // Check if it's the last round
             const isLastRound = index === lastRoundIndex;
