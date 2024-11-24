@@ -136,7 +136,7 @@
                             >
                                 East
                             </th>
-                            <th
+                            <!-- <th
                                 class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
                             >
                                 North
@@ -145,7 +145,7 @@
                                 class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
                             >
                                 South
-                            </th>
+                            </th> -->
                             <th
                                 class="border-b-2 border-gray-200 bg-gray-100 px-1 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
                             >
@@ -252,7 +252,7 @@
                                     {{ season.east_champion_name ?? "TBD" }}
                                 </p>
                             </td>
-                            <td
+                            <!-- <td
                                 class="border border-gray-200 px-1 py-1 text-xs text-nowrap bg-green-100"
                             >
                                 <p
@@ -279,7 +279,7 @@
                                 >
                                     {{ season.south_champion_name ?? "TBD" }}
                                 </p>
-                            </td>
+                            </td> -->
                             <td
                                 class="border border-gray-200 px-1 py-1 text-xs text-nowrap"
                             >
