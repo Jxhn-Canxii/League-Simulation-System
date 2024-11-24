@@ -13,7 +13,7 @@
                 class="bg-white inline-block min-w-full overflow-hidden rounded shadow p-2"
             >
                 <h3 class="text-md font-semibold text-gray-800">
-                    Free Agents List {{ showPlayerProfileModal }}
+                    Free Agents List
                 </h3>
                 <input
                     v-if="false"
