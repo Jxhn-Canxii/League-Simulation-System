@@ -441,6 +441,7 @@ class SimulateController extends Controller
             );
 
             $storeStats->storeplayerseasonstats($stats['team_id'], $stats['player_id']);
+            $this->fatigueRate($stats, $stats['minutes'], $stats['game_id']);
         }
 
         // Calculate scores based on player stats
@@ -904,6 +905,8 @@ class SimulateController extends Controller
                     );
 
                     $storeStats->storeplayerseasonstats($stats['team_id'], $stats['player_id']);
+                     // Track and update fatigue for each player
+                    $this->fatigueRate($stats, $stats['minutes'], $stats['game_id']);
                 } catch (\Exception $e) {
                     \Log::error('Error saving player game stats:', [
                         'stats' => $stats,
@@ -1651,8 +1654,6 @@ class SimulateController extends Controller
                 $assignedMinutes += $assignedMinutesForRole;
             }
 
-            // Track and update fatigue for each player
-            $this->fatigueRate($player, $minutes[$player['id']], $gameId);
         }
 
         // Calculate remaining minutes to reach the target
@@ -1698,11 +1699,21 @@ class SimulateController extends Controller
     private function fatigueRate($player, $minutes, $gameId)
     {
         try {
+            if (is_array($player)) {
+                // Convert array to object
+                $player = json_decode(json_encode($player));
+            }
             // Fetch the most recent season id
             $seasonId = DB::table('seasons')->orderBy('id', 'desc')->value('id') ?? 1;
 
             // Calculate fatigue increase based on minutes played
             $fatigueIncrease = $minutes > 0 ? round($minutes * 0.5) : 0;
+
+            // If fatigue doesn't exist on the player object, initialize it to 0
+            if (!isset($player->fatigue)) {
+                $player->fatigue = 0; // Initialize fatigue if it's not set
+            }
+
             $player->fatigue += $fatigueIncrease;
             $player->fatigue = min(100, $player->fatigue); // Ensure fatigue does not exceed 100%
 
