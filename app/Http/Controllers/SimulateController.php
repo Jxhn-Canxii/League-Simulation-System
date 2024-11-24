@@ -1564,10 +1564,10 @@ class SimulateController extends Controller
         // Track and update fatigue
         $fatigueIncrease = round($minutes[$player->id] * 0.5);
         $player->fatigue += $fatigueIncrease;
-        $player->fatigue = min(100,  $player->fatigue);
+        $player->fatigue = min(100,  $player->fatigue ?? 0);
 
         // Adjust performance factor based on fatigue
-        $fatigueFactor = 1 - ($player->fatigue / 100);
+        $fatigueFactor = 1 - ($player->fatigue ?? 1 / 100);
         $performanceFactor = rand(80, 120) / 100 * $fatigueFactor;
 
         // Check for injuries
@@ -1797,129 +1797,75 @@ class SimulateController extends Controller
                 $seasonStatus = DB::table('seasons')->where('id', $seasonId)->value('status');
 
                 // Ensure the season is active (status = 1) before proceeding
-                // Check if the player is a "player" or "bench" role and waive them immediately
-                if (in_array($player->role, ['player', 'bench'])) {
-                    // Insert transaction for waiving the player immediately
-                    DB::table('transactions')->insert([
-                        'player_id' => $player->id,
-                        'season_id' => $seasonId,
-                        'details' => 'Waived due to role (Player or Bench)',
-                        'from_team_id' => $player->team_id,
-                        'to_team_id' => 0, // 0 for free agent pool
-                        'status' => 'waived',
-                    ]);
+                if ($seasonStatus == 1) {
+                    // Use the injury_prone_percentage to determine the chance of waiving the player
+                    $waiverChance = $player->injury_prone_percentage; // Assume this is a value between 0 and 100
 
-                    // Update player's contract and team details to reflect they are waived
-                    DB::table('players')->where('id', $player->id)->update([
-                        'contract_years' => 0,
-                        'team_id' => 0,
-                        'is_active' => 1,  // They are still active in the free agent pool
-                        'is_injured' => 1, // Mark the player as no longer injured
-                    ]);
+                    // Generate a random number between 1 and 100, and compare it with injury_prone_percentage
+                    if (rand(1, 100) <= $waiverChance) {
+                        // Insert transaction for waiving the player
+                        DB::table('transactions')->insert([
+                            'player_id' => $player->id,
+                            'season_id' => $seasonId,
+                            'details' => 'Waived due to extended injury recovery period',
+                            'from_team_id' => $player->team_id,
+                            'to_team_id' => 0, // 0 for free agent pool
+                            'status' => 'waived',
+                        ]);
 
-                    // Try to find a random player with the same role
-                    $randomPlayer = DB::table('players')
-                        ->where('is_active', 1)
-                        ->where('is_injured', 0)   // Make sure the player is not injured
-                        ->where('team_id', 0)       // Ensure the player has no team
-                        ->where('role', $player->role) // Ensure the player has the same role
-                        ->inRandomOrder()
-                        ->first();
+                        // Update player's contract and team details to reflect they are waived
+                        DB::table('players')->where('id', $player->id)->update([
+                            'contract_years' => 0,
+                            'team_id' => 0,
+                            'is_active' => 1,  // They are still active in the free agent pool
+                            'is_injured' => 1, // Mark the player as no longer injured
+                        ]);
 
-                    // If no player with the same role is found, fallback to any free agent
-                    if (!$randomPlayer) {
+                        // Try to find a random player with the same role
                         $randomPlayer = DB::table('players')
                             ->where('is_active', 1)
-                            ->where('is_injured', 0)
-                            ->where('team_id', 0)
+                            ->where('is_injured', 0)   // Make sure the player is not injured
+                            ->where('team_id', 0)       // Ensure the player has no team
+                            ->where('role', $player->role) // Ensure the player has the same role
                             ->inRandomOrder()
                             ->first();
-                    }
-                    if ($randomPlayer) {
-                        $freeAgentStandardContract = $this->getContractYearsBasedOnRole($player->role);
-                        // Update the new player with the appropriate contract role
-                        DB::table('players')->where('id', $randomPlayer->id)->update([
-                            'team_id' => $player->team_id,
-                            'contract_years' => $freeAgentStandardContract, // Assign a random contract length
-                        ]);
 
-                        DB::table('transactions')->insert([
-                            'player_id' => $randomPlayer->id,
-                            'season_id' => $seasonId,
-                            'details' => 'Signed as free agent to replace waived player. Contract Years: ' . $freeAgentStandardContract,
-                            'from_team_id' => 0, // From free agent pool
-                            'to_team_id' => $player->team_id,
-                            'status' => 'signed',
-                        ]);
-                    }
-                } else {
-                    // Only proceed with the 50% chance logic if the player is not "player" or "bench" role
-                    if ($seasonStatus == 1) {
-                        // Add 50% chance for the player to be waived
-                        if (rand(0, 1) == 1) {
-                            // Insert transaction for waiving the player
-                            DB::table('transactions')->insert([
-                                'player_id' => $player->id,
-                                'season_id' => $seasonId,
-                                'details' => 'Waived due to extended injury recovery period',
-                                'from_team_id' => $player->team_id,
-                                'to_team_id' => 0, // 0 for free agent pool
-                                'status' => 'waived',
-                            ]);
-
-                            // Update player's contract and team details to reflect they are waived
-                            DB::table('players')->where('id', $player->id)->update([
-                                'contract_years' => 0,
-                                'team_id' => 0,
-                                'is_active' => 1,  // They are still active in the free agent pool
-                                'is_injured' => 1, // Mark the player as no longer injured
-                            ]);
-
-                            // Try to find a random player with the same role
+                        // If no player with the same role is found, fallback to any free agent
+                        if (!$randomPlayer) {
                             $randomPlayer = DB::table('players')
                                 ->where('is_active', 1)
-                                ->where('is_injured', 0)   // Make sure the player is not injured
-                                ->where('team_id', 0)       // Ensure the player has no team
-                                ->where('role', $player->role) // Ensure the player has the same role
+                                ->where('is_injured', 0)
+                                ->where('team_id', 0)
                                 ->inRandomOrder()
                                 ->first();
+                        }
+                        if ($randomPlayer) {
+                            $freeAgentStandardContract = $this->getContractYearsBasedOnRole($player->role);
+                            // Update the new player with the appropriate contract role
+                            DB::table('players')->where('id', $randomPlayer->id)->update([
+                                'team_id' => $player->team_id,
+                                'contract_years' => $freeAgentStandardContract, // Assign a random contract length
+                            ]);
 
-                            // If no player with the same role is found, fallback to any free agent
-                            if (!$randomPlayer) {
-                                $randomPlayer = DB::table('players')
-                                    ->where('is_active', 1)
-                                    ->where('is_injured', 0)
-                                    ->where('team_id', 0)
-                                    ->inRandomOrder()
-                                    ->first();
-                            }
-                            if ($randomPlayer) {
-                                $freeAgentStandardContract = $this->getContractYearsBasedOnRole($player->role);
-                                // Update the new player with the appropriate contract role
-                                DB::table('players')->where('id', $randomPlayer->id)->update([
-                                    'team_id' => $player->team_id,
-                                    'contract_years' => $freeAgentStandardContract, // Assign a random contract length
-                                ]);
-
-                                DB::table('transactions')->insert([
-                                    'player_id' => $randomPlayer->id,
-                                    'season_id' => $seasonId,
-                                    'details' => 'Signed as free agent to replace injured player. Contract Years: ' . $freeAgentStandardContract,
-                                    'from_team_id' => 0, // From free agent pool
-                                    'to_team_id' => $player->team_id,
-                                    'status' => 'signed',
-                                ]);
-                            }
-                        } else {
-                            // Optionally log or handle the case where the player is not waived
-                            \Log::info("Player " . $player->id . " was not waived due to 50% chance.");
+                            DB::table('transactions')->insert([
+                                'player_id' => $randomPlayer->id,
+                                'season_id' => $seasonId,
+                                'details' => 'Signed as free agent to replace injured player. Contract Years: ' . $freeAgentStandardContract,
+                                'from_team_id' => 0, // From free agent pool
+                                'to_team_id' => $player->team_id,
+                                'status' => 'signed',
+                            ]);
                         }
                     } else {
-                        // Optionally log or handle the case where the season status is not 1
-                        \Log::info("Player " . $player->id . " could not be waived because the season is not active.");
+                        // Optionally log or handle the case where the player is not waived
+                        \Log::info("Player " . $player->id . " was not waived due to injury_prone_percentage.");
                     }
+                } else {
+                    // Optionally log or handle the case where the season status is not 1
+                    \Log::info("Player " . $player->id . " could not be waived because the season is not active.");
                 }
             }
+
 
 
             // Apply injury impact on performance
