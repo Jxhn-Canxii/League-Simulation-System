@@ -2041,10 +2041,10 @@ class SimulateController extends Controller
             }
 
             // Update the player's performance factor in the database
-            DB::table('players')->where('id', $player->player_id)->update([
-                'performance_factor' => $performanceFactor,
-                'updated_at' => now(),
-            ]);
+            // DB::table('players')->where('id', $player->player_id)->update([
+            //     'performance_factor' => $performanceFactor,
+            //     'updated_at' => now(),
+            // ]);
 
             // Return a success response with updated player data
             return response()->json([
