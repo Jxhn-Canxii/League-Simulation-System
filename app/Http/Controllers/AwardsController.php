@@ -162,10 +162,14 @@ class AwardsController extends Controller
                 ->where('season_id', $latestSeasonId)
                 ->exists();
             // Query to count the total games played for a team in a given season
-            $gamesPlayedCount = DB::table('standings_view')
-                ->where('team_id', $player->team_id)  // Filter by the team ID
+            $gamesPlayedCount = DB::table('schedules')
+                ->where(function($query) use ($player, $latestSeasonId) {
+                    // Check if the player’s team is either the home team or the away team
+                    $query->where('home_id', $player->team_id)
+                        ->orWhere('away_id', $player->team_id);
+                })
                 ->where('season_id', $latestSeasonId)  // Filter by the season ID
-                ->sum(DB::raw('wins + losses'));  // Directly sum wins and losses to get total games played
+                ->count();  // Count the total number of games played (home or away)
 
             if ($hasStats) {
                 // Calculate stats if stats are found for the player
@@ -497,12 +501,11 @@ class AwardsController extends Controller
             ->where('season_id', $latestSeasonId)
             ->get();
 
-        // Get total number of games played in the season
-        $eligiblePlayerStats = $playerStats->filter(function ($stats) use ($latestSeasonId) {
-            // Check if the player has played at least 75% of the total games
-            $totalGamesInSeason = $stats->total_games;
-            return $stats->total_games_played >= 0.75 * $totalGamesInSeason;
+        // Filter eligible players (must have played at least 75% of the total games)
+        $eligiblePlayerStats = $playerStats->filter(function ($stats) {
+            return (int)$stats->total_games_played >= 0.75 * (int)$stats->total_games;
         });
+
 
         // Determine the top performers based on different metrics
         $topScorer = $eligiblePlayerStats->sortByDesc('avg_points_per_game')->first();
@@ -514,10 +517,10 @@ class AwardsController extends Controller
             return $stats->avg_steals_per_game + $stats->avg_blocks_per_game;
         })->first();
 
-        // Top 5 Offensive Players
+        // Top 5 Offensive Players (Top 5 players based on avg points per game)
         $topOffensivePlayers = $eligiblePlayerStats->sortByDesc('avg_points_per_game')->take(5);
 
-        // Top 5 Defensive Players
+        // Top 5 Defensive Players (Top 5 players based on combined avg steals and blocks per game)
         $topDefensivePlayers = $eligiblePlayerStats->sortByDesc(function ($stats) {
             return $stats->avg_steals_per_game + $stats->avg_blocks_per_game;
         })->take(5);
@@ -539,9 +542,7 @@ class AwardsController extends Controller
             ->first();
 
         // Calculate MVP by sorting the players based on the weighted stats and returning the top player
-        $mvp = $eligiblePlayerStats->filter(function ($stats) {
-            return $stats->total_games_played >= 0.75 * $stats->total_games; // Ensure MVP has played 75% of games
-        })->sort(function ($a, $b) {
+        $mvp = $eligiblePlayerStats->sort(function ($a, $b) {
             $aStats = $a->avg_points_per_game * 1.0 + $a->avg_rebounds_per_game * 1.2 +
                 $a->avg_assists_per_game * 1.5 + $a->avg_steals_per_game * 2.0 +
                 $a->avg_blocks_per_game * 2.0 - $a->avg_turnovers_per_game * 1.5;
@@ -555,11 +556,10 @@ class AwardsController extends Controller
 
         // Filter out rookies and determine the Rookie of the Year award
         $rookies = $eligiblePlayerStats->filter(function ($stats) {
-            // Check if the player is a rookie by comparing the draft_id and season_id
             return DB::table('players')
-                ->where('id', $stats->player_id)          // Match the player_id
-                ->where('draft_id', $stats->season_id)    // Check if draft_id matches season_id
-                ->exists();  // Return true if a record is found (i.e., player is a rookie)
+                ->where('id', $stats->player_id)
+                ->where('draft_id', $stats->season_id)
+                ->exists();
         });
 
         // Filter rookies who have played at least 75% of games for Rookie of the Year
@@ -607,15 +607,14 @@ class AwardsController extends Controller
             $this->insertAward($rookieOfTheYear, 'Rookie of the Season', 'Best rookie player of the season', $latestSeasonId);
         }
 
-        // Insert the 6th Man of the Year award
+        // Insert the Sixth Man award
         if ($sixthManOfTheYear) {
-            $this->insertAward($sixthManOfTheYear, '6th Man of the Year', 'Best player coming off the bench', $latestSeasonId);
+            $this->insertAward($sixthManOfTheYear, 'Sixth Man of the Year', 'Best player coming off the bench', $latestSeasonId);
         }
 
         // Insert Top 5 Offensive Players awards
         $counter = 1;
         foreach ($topOffensivePlayers as $player) {
-            if ($counter > 5) break;
             $this->insertAward($player, 'Top ' . $counter . ' Offensive Player', 'Player ranked ' . $counter . ' in average points per game', $latestSeasonId);
             $counter++;
         }
@@ -623,7 +622,6 @@ class AwardsController extends Controller
         // Insert Top 5 Defensive Players awards
         $counter = 1;
         foreach ($topDefensivePlayers as $player) {
-            if ($counter > 5) break;
             $this->insertAward($player, 'Top ' . $counter . ' Defensive Player', 'Player ranked ' . $counter . ' in combined average steals and blocks per game', $latestSeasonId);
             $counter++;
         }
@@ -640,7 +638,7 @@ class AwardsController extends Controller
                 'season_awards.*',
                 'players.name as player_name',
                 'teams.name as team_name',
-                'teams.id as team_id' // Include team_id in the select clause
+                'teams.id as team_id'
             )
             ->get();
 
@@ -656,160 +654,160 @@ class AwardsController extends Controller
             // Get the latest season ID
             $latestSeasonId = $request->season_id;
 
-           // Clear existing awards for the latest season
-        DB::table('season_awards')->where('season_id', $latestSeasonId)->delete();
+            // Clear existing awards for the latest season
+            DB::table('season_awards')->where('season_id', $latestSeasonId)->delete();
 
-        // Get player stats from player_season_stats for the latest season
-        $playerStats = DB::table('player_season_stats')
-            ->where('season_id', $latestSeasonId)
-            ->get();
+            // Get player stats from player_season_stats for the latest season
+            $playerStats = DB::table('player_season_stats')
+                ->where('season_id', $latestSeasonId)
+                ->get();
 
-        // Get total number of games played in the season
-        $eligiblePlayerStats = $playerStats->filter(function ($stats) use ($latestSeasonId) {
-            // Check if the player has played at least 75% of the total games
-            $totalGamesInSeason = $stats->total_games;
-            return $stats->total_games_played >= 0.75 * $totalGamesInSeason;
-        });
+            // Get total number of games played in the season
+            $eligiblePlayerStats = $playerStats->filter(function ($stats) use ($latestSeasonId) {
+                // Check if the player has played at least 75% of the total games
+                $totalGamesInSeason = $stats->total_games;
+                return $stats->total_games_played >= 0.75 * $totalGamesInSeason;
+            });
 
-        // Determine the top performers based on different metrics
-        $topScorer = $eligiblePlayerStats->sortByDesc('avg_points_per_game')->first();
-        $topRebounder = $eligiblePlayerStats->sortByDesc('avg_rebounds_per_game')->first();
-        $topPlaymaker = $eligiblePlayerStats->sortByDesc('avg_assists_per_game')->first();
-        $topStealer = $eligiblePlayerStats->sortByDesc('avg_steals_per_game')->first();
-        $topBlocker = $eligiblePlayerStats->sortByDesc('avg_blocks_per_game')->first();
-        $bestDefender = $eligiblePlayerStats->sortByDesc(function ($stats) {
-            return $stats->avg_steals_per_game + $stats->avg_blocks_per_game;
-        })->first();
+            // Determine the top performers based on different metrics
+            $topScorer = $eligiblePlayerStats->sortByDesc('avg_points_per_game')->first();
+            $topRebounder = $eligiblePlayerStats->sortByDesc('avg_rebounds_per_game')->first();
+            $topPlaymaker = $eligiblePlayerStats->sortByDesc('avg_assists_per_game')->first();
+            $topStealer = $eligiblePlayerStats->sortByDesc('avg_steals_per_game')->first();
+            $topBlocker = $eligiblePlayerStats->sortByDesc('avg_blocks_per_game')->first();
+            $bestDefender = $eligiblePlayerStats->sortByDesc(function ($stats) {
+                return $stats->avg_steals_per_game + $stats->avg_blocks_per_game;
+            })->first();
 
-        // Top 5 Offensive Players
-        $topOffensivePlayers = $eligiblePlayerStats->sortByDesc('avg_points_per_game')->take(5);
+            // Top 5 Offensive Players
+            $topOffensivePlayers = $eligiblePlayerStats->sortByDesc('avg_points_per_game')->take(5);
 
-        // Top 5 Defensive Players
-        $topDefensivePlayers = $eligiblePlayerStats->sortByDesc(function ($stats) {
-            return $stats->avg_steals_per_game + $stats->avg_blocks_per_game;
-        })->take(5);
+            // Top 5 Defensive Players
+            $topDefensivePlayers = $eligiblePlayerStats->sortByDesc(function ($stats) {
+                return $stats->avg_steals_per_game + $stats->avg_blocks_per_game;
+            })->take(5);
 
-        // Get previous season's stats for comparison
-        $previousSeasonId = DB::table('seasons')->where('id', '<', $latestSeasonId)->orderBy('id', 'desc')->value('id');
-        $previousSeasonStats = DB::table('player_season_stats')->where('season_id', $previousSeasonId)->pluck('avg_points_per_game', 'player_id');
+            // Get previous season's stats for comparison
+            $previousSeasonId = DB::table('seasons')->where('id', '<', $latestSeasonId)->orderBy('id', 'desc')->value('id');
+            $previousSeasonStats = DB::table('player_season_stats')->where('season_id', $previousSeasonId)->pluck('avg_points_per_game', 'player_id');
 
-        // Exclude rookies from the Most Improved Player award
-        $nonRookies = DB::table('players')->where('is_rookie', false)->pluck('id');
+            // Exclude rookies from the Most Improved Player award
+            $nonRookies = DB::table('players')->where('is_rookie', false)->pluck('id');
 
-        $mostImprovedPlayer = $eligiblePlayerStats->filter(function ($stats) use ($nonRookies) {
-            return $nonRookies->contains($stats->player_id);
-        })
-            ->sortByDesc(function ($stats) use ($previousSeasonStats) {
-                $previousPoints = $previousSeasonStats[$stats->player_id] ?? 0;
-                return ($stats->avg_points_per_game - $previousPoints);
+            $mostImprovedPlayer = $eligiblePlayerStats->filter(function ($stats) use ($nonRookies) {
+                return $nonRookies->contains($stats->player_id);
             })
-            ->first();
+                ->sortByDesc(function ($stats) use ($previousSeasonStats) {
+                    $previousPoints = $previousSeasonStats[$stats->player_id] ?? 0;
+                    return ($stats->avg_points_per_game - $previousPoints);
+                })
+                ->first();
 
-        // Calculate MVP by sorting the players based on the weighted stats and returning the top player
-        $mvp = $eligiblePlayerStats->filter(function ($stats) {
-            return $stats->total_games_played >= 0.75 * $stats->total_games; // Ensure MVP has played 75% of games
-        })->sort(function ($a, $b) {
-            $aStats = $a->avg_points_per_game * 1.0 + $a->avg_rebounds_per_game * 1.2 +
-                $a->avg_assists_per_game * 1.5 + $a->avg_steals_per_game * 2.0 +
-                $a->avg_blocks_per_game * 2.0 - $a->avg_turnovers_per_game * 1.5;
+            // Calculate MVP by sorting the players based on the weighted stats and returning the top player
+            $mvp = $eligiblePlayerStats->filter(function ($stats) {
+                return $stats->total_games_played >= 0.75 * $stats->total_games; // Ensure MVP has played 75% of games
+            })->sort(function ($a, $b) {
+                $aStats = $a->avg_points_per_game * 1.0 + $a->avg_rebounds_per_game * 1.2 +
+                    $a->avg_assists_per_game * 1.5 + $a->avg_steals_per_game * 2.0 +
+                    $a->avg_blocks_per_game * 2.0 - $a->avg_turnovers_per_game * 1.5;
 
-            $bStats = $b->avg_points_per_game * 1.0 + $b->avg_rebounds_per_game * 1.2 +
-                $b->avg_assists_per_game * 1.5 + $b->avg_steals_per_game * 2.0 +
-                $b->avg_blocks_per_game * 2.0 - $b->avg_turnovers_per_game * 1.5;
+                $bStats = $b->avg_points_per_game * 1.0 + $b->avg_rebounds_per_game * 1.2 +
+                    $b->avg_assists_per_game * 1.5 + $b->avg_steals_per_game * 2.0 +
+                    $b->avg_blocks_per_game * 2.0 - $b->avg_turnovers_per_game * 1.5;
 
-            return $bStats <=> $aStats;
-        })->first();
+                return $bStats <=> $aStats;
+            })->first();
 
-        // Filter out rookies and determine the Rookie of the Year award
-        $rookies = $eligiblePlayerStats->filter(function ($stats) {
-            // Check if the player is a rookie by comparing the draft_id and season_id
-            return DB::table('players')
-                ->where('id', $stats->player_id)          // Match the player_id
-                ->where('draft_id', $stats->season_id)    // Check if draft_id matches season_id
-                ->exists();  // Return true if a record is found (i.e., player is a rookie)
-        });
+            // Filter out rookies and determine the Rookie of the Year award
+            $rookies = $eligiblePlayerStats->filter(function ($stats) {
+                // Check if the player is a rookie by comparing the draft_id and season_id
+                return DB::table('players')
+                    ->where('id', $stats->player_id)          // Match the player_id
+                    ->where('draft_id', $stats->season_id)    // Check if draft_id matches season_id
+                    ->exists();  // Return true if a record is found (i.e., player is a rookie)
+            });
 
-        // Filter rookies who have played at least 75% of games for Rookie of the Year
-        $rookieOfTheYear = $rookies->filter(function ($stats) {
-            return $stats->total_games_played >= 0.75 * $stats->total_games;
-        })->sort(function ($a, $b) {
-            $aStats = $a->avg_points_per_game * 1.0 + $a->avg_rebounds_per_game * 1.2 +
-                $a->avg_assists_per_game * 1.5 + $a->avg_steals_per_game * 2.0 +
-                $a->avg_blocks_per_game * 2.0 - $a->avg_turnovers_per_game * 1.5;
+            // Filter rookies who have played at least 75% of games for Rookie of the Year
+            $rookieOfTheYear = $rookies->filter(function ($stats) {
+                return $stats->total_games_played >= 0.75 * $stats->total_games;
+            })->sort(function ($a, $b) {
+                $aStats = $a->avg_points_per_game * 1.0 + $a->avg_rebounds_per_game * 1.2 +
+                    $a->avg_assists_per_game * 1.5 + $a->avg_steals_per_game * 2.0 +
+                    $a->avg_blocks_per_game * 2.0 - $a->avg_turnovers_per_game * 1.5;
 
-            $bStats = $b->avg_points_per_game * 1.0 + $b->avg_rebounds_per_game * 1.2 +
-                $b->avg_assists_per_game * 1.5 + $b->avg_steals_per_game * 2.0 +
-                $b->avg_blocks_per_game * 2.0 - $b->avg_turnovers_per_game * 1.5;
+                $bStats = $b->avg_points_per_game * 1.0 + $b->avg_rebounds_per_game * 1.2 +
+                    $b->avg_assists_per_game * 1.5 + $b->avg_steals_per_game * 2.0 +
+                    $b->avg_blocks_per_game * 2.0 - $b->avg_turnovers_per_game * 1.5;
 
-            return $bStats <=> $aStats;
-        })->first();
+                return $bStats <=> $aStats;
+            })->first();
 
-        // Determine the 6th Man of the Year award
-        $rolePlayers = $eligiblePlayerStats->filter(function ($stats) {
-            return $stats->role !== 'star player' && $stats->role !== 'starter';
-        });
+            // Determine the 6th Man of the Year award
+            $rolePlayers = $eligiblePlayerStats->filter(function ($stats) {
+                return $stats->role !== 'star player' && $stats->role !== 'starter';
+            });
 
-        $sixthManOfTheYear = $rolePlayers->sort(function ($a, $b) {
-            $aStats = $a->avg_points_per_game * 1.0 + $a->avg_rebounds_per_game * 1.2 +
-                $a->avg_assists_per_game * 1.5 + $a->avg_steals_per_game * 2.0 +
-                $a->avg_blocks_per_game * 2.0 - $a->avg_turnovers_per_game * 1.5;
-            $bStats = $b->avg_points_per_game * 1.0 + $b->avg_rebounds_per_game * 1.2 +
-                $b->avg_assists_per_game * 1.5 + $b->avg_steals_per_game * 2.0 +
-                $b->avg_blocks_per_game * 2.0 - $b->avg_turnovers_per_game * 1.5;
-            return $bStats <=> $aStats;
-        })->first();
+            $sixthManOfTheYear = $rolePlayers->sort(function ($a, $b) {
+                $aStats = $a->avg_points_per_game * 1.0 + $a->avg_rebounds_per_game * 1.2 +
+                    $a->avg_assists_per_game * 1.5 + $a->avg_steals_per_game * 2.0 +
+                    $a->avg_blocks_per_game * 2.0 - $a->avg_turnovers_per_game * 1.5;
+                $bStats = $b->avg_points_per_game * 1.0 + $b->avg_rebounds_per_game * 1.2 +
+                    $b->avg_assists_per_game * 1.5 + $b->avg_steals_per_game * 2.0 +
+                    $b->avg_blocks_per_game * 2.0 - $b->avg_turnovers_per_game * 1.5;
+                return $bStats <=> $aStats;
+            })->first();
 
-        // Insert awards into season_awards table if not already present
-        $this->insertAward($topScorer, 'Top Scorer', 'Player with the highest average points per game', $latestSeasonId);
-        $this->insertAward($topRebounder, 'Top Rebounder', 'Player with the highest average rebounds per game', $latestSeasonId);
-        $this->insertAward($topPlaymaker, 'Top Playmaker', 'Player with the highest average assists per game', $latestSeasonId);
-        $this->insertAward($topStealer, 'Top Stealer', 'Player with the highest average steals per game', $latestSeasonId);
-        $this->insertAward($topBlocker, 'Top Blocker', 'Player with the highest average blocks per game', $latestSeasonId);
-        $this->insertAward($bestDefender, 'Best Defensive Player', 'Player with the highest combined average steals and blocks per game', $latestSeasonId);
-        $this->insertAward($mvp, 'Best Overall Player', 'Player with the best overall performance score', $latestSeasonId);
-        $this->insertAward($mostImprovedPlayer, 'Most Improved Player', 'Player with the highest increase in average points per game from the previous season', $latestSeasonId);
+            // Insert awards into season_awards table if not already present
+            $this->insertAward($topScorer, 'Top Scorer', 'Player with the highest average points per game', $latestSeasonId);
+            $this->insertAward($topRebounder, 'Top Rebounder', 'Player with the highest average rebounds per game', $latestSeasonId);
+            $this->insertAward($topPlaymaker, 'Top Playmaker', 'Player with the highest average assists per game', $latestSeasonId);
+            $this->insertAward($topStealer, 'Top Stealer', 'Player with the highest average steals per game', $latestSeasonId);
+            $this->insertAward($topBlocker, 'Top Blocker', 'Player with the highest average blocks per game', $latestSeasonId);
+            $this->insertAward($bestDefender, 'Best Defensive Player', 'Player with the highest combined average steals and blocks per game', $latestSeasonId);
+            $this->insertAward($mvp, 'Best Overall Player', 'Player with the best overall performance score', $latestSeasonId);
+            $this->insertAward($mostImprovedPlayer, 'Most Improved Player', 'Player with the highest increase in average points per game from the previous season', $latestSeasonId);
 
-        // Insert the Rookie of the Season award
-        if ($rookieOfTheYear) {
-            $this->insertAward($rookieOfTheYear, 'Rookie of the Season', 'Best rookie player of the season', $latestSeasonId);
-        }
+            // Insert the Rookie of the Season award
+            if ($rookieOfTheYear) {
+                $this->insertAward($rookieOfTheYear, 'Rookie of the Season', 'Best rookie player of the season', $latestSeasonId);
+            }
 
-        // Insert the 6th Man of the Year award
-        if ($sixthManOfTheYear) {
-            $this->insertAward($sixthManOfTheYear, '6th Man of the Year', 'Best player coming off the bench', $latestSeasonId);
-        }
+            // Insert the 6th Man of the Year award
+            if ($sixthManOfTheYear) {
+                $this->insertAward($sixthManOfTheYear, '6th Man of the Year', 'Best player coming off the bench', $latestSeasonId);
+            }
 
-        // Insert Top 5 Offensive Players awards
-        $counter = 1;
-        foreach ($topOffensivePlayers as $player) {
-            if ($counter > 5) break;
-            $this->insertAward($player, 'Top ' . $counter . ' Offensive Player', 'Player ranked ' . $counter . ' in average points per game', $latestSeasonId);
-            $counter++;
-        }
+            // Insert Top 5 Offensive Players awards
+            $counter = 1;
+            foreach ($topOffensivePlayers as $player) {
+                if ($counter > 5) break;
+                $this->insertAward($player, 'Top ' . $counter . ' Offensive Player', 'Player ranked ' . $counter . ' in average points per game', $latestSeasonId);
+                $counter++;
+            }
 
-        // Insert Top 5 Defensive Players awards
-        $counter = 1;
-        foreach ($topDefensivePlayers as $player) {
-            if ($counter > 5) break;
-            $this->insertAward($player, 'Top ' . $counter . ' Defensive Player', 'Player ranked ' . $counter . ' in combined average steals and blocks per game', $latestSeasonId);
-            $counter++;
-        }
+            // Insert Top 5 Defensive Players awards
+            $counter = 1;
+            foreach ($topDefensivePlayers as $player) {
+                if ($counter > 5) break;
+                $this->insertAward($player, 'Top ' . $counter . ' Defensive Player', 'Player ranked ' . $counter . ' in combined average steals and blocks per game', $latestSeasonId);
+                $counter++;
+            }
 
-        // Update season status
-        DB::table('seasons')->where('id', $latestSeasonId)->update(['status' => 12]);
+            // Update season status
+            DB::table('seasons')->where('id', $latestSeasonId)->update(['status' => 12]);
 
-        // Fetch awards along with player, team names, and team_id for the latest season
-        $awards = DB::table('season_awards')
-            ->leftJoin('players', 'season_awards.player_id', '=', 'players.id')
-            ->leftJoin('teams', 'players.team_id', '=', 'teams.id')
-            ->where('season_awards.season_id', $latestSeasonId)
-            ->select(
-                'season_awards.*',
-                'players.name as player_name',
-                'teams.name as team_name',
-                'teams.id as team_id' // Include team_id in the select clause
-            )
-            ->get();
+            // Fetch awards along with player, team names, and team_id for the latest season
+            $awards = DB::table('season_awards')
+                ->leftJoin('players', 'season_awards.player_id', '=', 'players.id')
+                ->leftJoin('teams', 'players.team_id', '=', 'teams.id')
+                ->where('season_awards.season_id', $latestSeasonId)
+                ->select(
+                    'season_awards.*',
+                    'players.name as player_name',
+                    'teams.name as team_name',
+                    'teams.id as team_id' // Include team_id in the select clause
+                )
+                ->get();
 
             return response()->json([
                 'message' => 'Season awards stored successfully.',
