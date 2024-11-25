@@ -60,6 +60,17 @@
                         </th>
                         <th
                             class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                            Contract Left
+                        </th>
+                        <th
+                            class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                            title="Total Team Games"
+                        >
+                            GT
+                        </th>
+                        <th
+                            class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
                             title="Games Played"
                         >
                             GP
@@ -158,6 +169,12 @@
                             >
                                 {{ player.role }}
                             </span>
+                        </td>
+                        <td class="px-2 py-1 whitespace-nowrap border">
+                            {{ player.contract_years ?? '-' }} yrs.
+                        </td>
+                        <td class="px-2 py-1 whitespace-nowrap border">
+                            {{ Math.round(player.team_total_games) }}
                         </td>
                         <td class="px-2 py-1 whitespace-nowrap border">
                             {{ Math.round(player.games_played) }}

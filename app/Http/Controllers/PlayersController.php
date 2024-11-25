@@ -304,6 +304,7 @@ class PlayersController extends Controller
                         'is_active' => $player->is_active,
                         'is_rookie' => $player->is_rookie,
                         'is_injured' => $player->is_injured,
+                        'contract_years' => $player->contract_years,
                         'retirement_age' => $player->retirement_age,
                         'drafted_team' => $player->drafted_team,
                         'draft_class' => $player->draft_class,
@@ -317,7 +318,8 @@ class PlayersController extends Controller
                         'average_blocks_per_game' => (float)$stats->avg_blocks_per_game,
                         'average_turnovers_per_game' => (float)$stats->avg_turnovers_per_game,
                         'average_fouls_per_game' => (float)$stats->avg_fouls_per_game,
-                        'games_played' => number_format($gamesPlayed, 2),
+                        'team_total_games' => (float)$stats->total_games,
+                        'games_played' => (float)$stats->total_games_played,
                         'per_game_score' => number_format($perGameScore, 2),
                         'total_score' => number_format($totalScore, 2),
                         'combined_score' => number_format($combinedScore, 2),
@@ -395,6 +397,7 @@ class PlayersController extends Controller
                         'role' => $player->role,
                         'is_active' => $player->is_active,
                         'is_rookie' => $player->is_rookie,
+                        'contract_years' => $player->contract_years,
                         'retirement_age' => $player->retirement_age,
                         'drafted_team' => $player->drafted_team,
                         'draft_status' => $player->draft_status,
@@ -656,10 +659,10 @@ class PlayersController extends Controller
             'country' => 'required|string',
         ]);
 
-        $latestSeasonId = DB::table('standings_view')->max('season_id');
+        $latestSeasonId = DB::table('seasons')->max('id') ?? 1;
 
         // Start at 1 if no records are found, otherwise increment the latest season ID
-        $currentSeasonId = $latestSeasonId ? (int) $latestSeasonId : 1;
+        $currentSeasonId = $latestSeasonId ? (int) $latestSeasonId + 1 : 1;
 
         // Check if a player with the same name already exists in any team
         $existingPlayer = Player::where('name', $request->name)->first();
@@ -756,7 +759,7 @@ class PlayersController extends Controller
         if ($latestSeasonId) {
             return $latestSeasonId;
         }
-        return 1;
+
         // Handle the case where no seasons are found
     }
     private function getRandomArchetypeAndAttributes()

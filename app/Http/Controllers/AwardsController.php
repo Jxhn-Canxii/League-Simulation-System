@@ -162,14 +162,7 @@ class AwardsController extends Controller
                 ->where('season_id', $latestSeasonId)
                 ->exists();
             // Query to count the total games played for a team in a given season
-            $gamesPlayedCount = DB::table('schedules')
-                ->where(function($query) use ($player, $latestSeasonId) {
-                    // Check if the player’s team is either the home team or the away team
-                    $query->where('home_id', $player->team_id)
-                        ->orWhere('away_id', $player->team_id);
-                })
-                ->where('season_id', $latestSeasonId)  // Filter by the season ID
-                ->count();  // Count the total number of games played (home or away)
+            $gamesPlayedCount = config('games');
 
             if ($hasStats) {
                 // Calculate stats if stats are found for the player
@@ -278,12 +271,7 @@ class AwardsController extends Controller
             ->first();
 
         // Query to count the total games played for a team in a given season
-        $gamesPlayedCount = DB::table('standings_view')
-            ->where('team_id', $teamId)  // Filter by the team ID
-            ->where('season_id', $latestSeasonId)  // Filter by the season ID
-            ->sum(DB::raw('wins + losses'));  // Directly sum wins and losses to get total games played
-
-
+        $gamesPlayedCount = config('games');
         // If no player found, return an error
         if (!$player) {
             return response()->json(['error' => 'Player not found or inactive'], 404);
