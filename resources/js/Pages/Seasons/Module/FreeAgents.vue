@@ -42,7 +42,7 @@
                             <i class="fa fa-user"></i> Add Rookie Player
                         </button> -->
                         <button
-                            @click.prevent="addMultiplePlayers(100)"
+                            @click.prevent="addMultiplePlayers(1200)"
                             class="px-4 py-2 bg-green-700 text-white rounded mb-4 text-sm"
                         >
                             <i class="fa fa-user"></i> Add Undrafted Rookie

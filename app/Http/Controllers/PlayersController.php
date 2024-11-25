@@ -656,7 +656,7 @@ class PlayersController extends Controller
             'country' => 'required|string',
         ]);
 
-        $latestSeasonId = DB::table('standings_view')->max('season_id');
+        $latestSeasonId = DB::table('standings_view')->max('season_id') ?? 1;
 
         // Start at 1 if no records are found, otherwise increment the latest season ID
         $currentSeasonId = $latestSeasonId ? (int) $latestSeasonId + 1 : 1;
@@ -756,9 +756,8 @@ class PlayersController extends Controller
         if ($latestSeasonId) {
             return $latestSeasonId;
         }
-
+        return 1;
         // Handle the case where no seasons are found
-        throw new \Exception('No seasons found.');
     }
     private function getRandomArchetypeAndAttributes()
     {
