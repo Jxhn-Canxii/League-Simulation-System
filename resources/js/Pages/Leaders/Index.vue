@@ -159,6 +159,7 @@
                                         <div class="flex items-center space-x-3">
                                             <span :class="{'text-md font-bold text-yellow-600': index < 3, 'text-md': index >= 3}" class="text-gray-800">{{ index + 1 }}.</span>
                                             <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">{{ player.player_name }}</span>
+                                            <sup>{{ player.draft_id }}</sup>
                                         </div>
                                         <div class="text-xs text-gray-600">
                                             <span>{{ player.team_name ?? 'Free Agent' }}</span>
@@ -185,6 +186,7 @@
                                         <div class="flex items-center space-x-3">
                                             <span :class="{'text-md font-bold text-yellow-600': index < 3, 'text-md': index >= 3}" class="text-gray-800">{{ index + 1 }}.</span>
                                             <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">{{ player.player_name }}</span>
+                                            <sup>{{ player.draft_id }}</sup>
                                         </div>
                                         <div class="text-xs text-gray-600">
                                             <span>{{ player.team_name ?? 'Free Agent' }}</span>
@@ -211,6 +213,7 @@
                                         <div class="flex items-center space-x-3">
                                             <span :class="{'text-md font-bold text-yellow-600': index < 3, 'text-md': index >= 3}" class="text-gray-800">{{ index + 1 }}.</span>
                                             <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">{{ player.player_name }}</span>
+                                            <sup>{{ player.draft_id }}</sup>
                                         </div>
                                         <div class="text-xs text-gray-600">
                                             <span>{{ player.team_name ?? 'Free Agent' }}</span>
@@ -237,6 +240,7 @@
                                         <div class="flex items-center space-x-3">
                                             <span :class="{'text-md font-bold text-yellow-600': index < 3, 'text-md': index >= 3}" class="text-gray-800">{{ index + 1 }}.</span>
                                             <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">{{ player.player_name }}</span>
+                                            <sup>{{ player.draft_id }}</sup>
                                         </div>
                                         <div class="text-xs text-gray-600">
                                             <span>{{ player.team_name ?? 'Free Agent' }}</span>
@@ -263,6 +267,7 @@
                                         <div class="flex items-center space-x-3">
                                             <span :class="{'text-md font-bold text-yellow-600': index < 3, 'text-md': index >= 3}" class="text-gray-800">{{ index + 1 }}.</span>
                                             <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">{{ player.player_name }}</span>
+                                            <sup>{{ player.draft_id }}</sup>
                                         </div>
                                         <div class="text-xs text-gray-600">
                                             <span>{{ player.team_name ?? 'Free Agent' }}</span>

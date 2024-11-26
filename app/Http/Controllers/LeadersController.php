@@ -33,6 +33,7 @@ class LeadersController extends Controller
             ->join('players', 'player_season_stats.player_id', '=', 'players.id')
             ->join('teams', 'player_season_stats.team_id', '=', 'teams.id')
             ->select(
+                'players.draft_id as draft_id',
                 'players.name as player_name',
                 'teams.name as team_name',
                 'player_season_stats.avg_points_per_game',
@@ -47,6 +48,7 @@ class LeadersController extends Controller
             ->join('players', 'player_season_stats.player_id', '=', 'players.id')
             ->join('teams', 'player_season_stats.team_id', '=', 'teams.id')
             ->select(
+                'players.draft_id as draft_id',
                 'players.name as player_name',
                 'teams.name as team_name',
                 'player_season_stats.avg_rebounds_per_game',
@@ -61,6 +63,7 @@ class LeadersController extends Controller
             ->join('players', 'player_season_stats.player_id', '=', 'players.id')
             ->join('teams', 'player_season_stats.team_id', '=', 'teams.id')
             ->select(
+                'players.draft_id as draft_id',
                 'players.name as player_name',
                 'teams.name as team_name',
                 'player_season_stats.avg_assists_per_game',
@@ -75,6 +78,7 @@ class LeadersController extends Controller
             ->join('players', 'player_season_stats.player_id', '=', 'players.id')
             ->join('teams', 'player_season_stats.team_id', '=', 'teams.id')
             ->select(
+                'players.draft_id as draft_id',
                 'players.name as player_name',
                 'teams.name as team_name',
                 'player_season_stats.avg_steals_per_game',
@@ -89,6 +93,7 @@ class LeadersController extends Controller
             ->join('players', 'player_season_stats.player_id', '=', 'players.id')
             ->join('teams', 'player_season_stats.team_id', '=', 'teams.id')
             ->select(
+                'players.draft_id as draft_id',
                 'players.name as player_name',
                 'teams.name as team_name',
                 'player_season_stats.avg_blocks_per_game',
@@ -115,12 +120,13 @@ class LeadersController extends Controller
             ->join('players', 'player_season_stats.player_id', '=', 'players.id')
             ->leftJoin('teams', 'players.team_id', '=', 'teams.id')
             ->select(
+                'players.draft_id as draft_id',
                 'players.name as player_name',
                 'teams.name as team_name',
                 DB::raw('SUM(player_season_stats.total_points) as total_points'), // Sum total points across all seasons
                 'players.id as player_id'
             )
-            ->groupBy('player_season_stats.player_id', 'players.name', 'teams.name', 'players.id')
+            ->groupBy('player_season_stats.player_id', 'players.name', 'teams.name', 'players.id','players.draft_id')
             ->orderByDesc('total_points')
             ->limit(10)
             ->get();
@@ -130,12 +136,13 @@ class LeadersController extends Controller
             ->join('players', 'player_season_stats.player_id', '=', 'players.id')
             ->leftJoin('teams', 'players.team_id', '=', 'teams.id')
             ->select(
+                'players.draft_id as draft_id',
                 'players.name as player_name',
                 'teams.name as team_name',
                 DB::raw('SUM(player_season_stats.total_rebounds) as total_rebounds'), // Sum total rebounds across all seasons
                 'players.id as player_id'
             )
-            ->groupBy('player_season_stats.player_id', 'players.name', 'teams.name', 'players.id')
+            ->groupBy('player_season_stats.player_id', 'players.name', 'teams.name', 'players.id','players.draft_id')
             ->orderByDesc('total_rebounds')
             ->limit(10)
             ->get();
@@ -145,12 +152,13 @@ class LeadersController extends Controller
             ->join('players', 'player_season_stats.player_id', '=', 'players.id')
             ->leftJoin('teams', 'players.team_id', '=', 'teams.id')
             ->select(
+                'players.draft_id as draft_id',
                 'players.name as player_name',
                 'teams.name as team_name',
                 DB::raw('SUM(player_season_stats.total_assists) as total_assists'), // Sum total assists across all seasons
                 'players.id as player_id'
             )
-            ->groupBy('player_season_stats.player_id', 'players.name', 'teams.name', 'players.id')
+            ->groupBy('player_season_stats.player_id', 'players.name', 'teams.name', 'players.id','players.draft_id')
             ->orderByDesc('total_assists')
             ->limit(10)
             ->get();
@@ -160,12 +168,13 @@ class LeadersController extends Controller
             ->join('players', 'player_season_stats.player_id', '=', 'players.id')
             ->leftJoin('teams', 'players.team_id', '=', 'teams.id')
             ->select(
+                'players.draft_id as draft_id',
                 'players.name as player_name',
                 'teams.name as team_name',
                 DB::raw('SUM(player_season_stats.total_steals) as total_steals'), // Sum total steals across all seasons
                 'players.id as player_id'
             )
-            ->groupBy('player_season_stats.player_id', 'players.name', 'teams.name', 'players.id')
+            ->groupBy('player_season_stats.player_id', 'players.name', 'teams.name', 'players.id','players.draft_id')
             ->orderByDesc('total_steals')
             ->limit(10)
             ->get();
@@ -175,12 +184,13 @@ class LeadersController extends Controller
             ->join('players', 'player_season_stats.player_id', '=', 'players.id')
             ->leftJoin('teams', 'players.team_id', '=', 'teams.id')
             ->select(
+                'players.draft_id as draft_id',
                 'players.name as player_name',
                 'teams.name as team_name',
                 DB::raw('SUM(player_season_stats.total_blocks) as total_blocks'), // Sum total blocks across all seasons
                 'players.id as player_id'
             )
-            ->groupBy('player_season_stats.player_id', 'players.name', 'teams.name', 'players.id')
+            ->groupBy('player_season_stats.player_id', 'players.name', 'teams.name', 'players.id','players.draft_id')
             ->orderByDesc('total_blocks')
             ->limit(10)
             ->get();
