@@ -27,7 +27,8 @@
                                     <div class="flex flex-col items-start space-y-1">
                                         <div class="flex items-center space-x-3">
                                             <span :class="{'text-md font-bold text-yellow-600': index < 3, 'text-md': index >= 3}" class="text-gray-800">{{ index + 1 }}.</span>
-                                            <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">{{ player.player_name }}</span>
+                                            <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">  {{ playerFormatter(player.player_name) }}<sup>{{ player.draft_id }}</sup></span>
+
                                         </div>
                                         <div class="text-xs text-gray-600">
                                             <span>{{ player.team_name }} (Season {{ player.season_id }})</span>
@@ -53,7 +54,8 @@
                                     <div class="flex flex-col items-start space-y-1">
                                         <div class="flex items-center space-x-3">
                                             <span :class="{'text-md font-bold text-yellow-600': index < 3, 'text-md': index >= 3}" class="text-gray-800">{{ index + 1 }}.</span>
-                                            <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">{{ player.player_name }}</span>
+                                            <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">  {{ playerFormatter(player.player_name) }}<sup>{{ player.draft_id }}</sup></span>
+
                                         </div>
                                         <div class="text-xs text-gray-600">
                                             <span>{{ player.team_name }} (Season {{ player.season_id }})</span>
@@ -79,7 +81,8 @@
                                     <div class="flex flex-col items-start space-y-1">
                                         <div class="flex items-center space-x-3">
                                             <span :class="{'text-md font-bold text-yellow-600': index < 3, 'text-md': index >= 3}" class="text-gray-800">{{ index + 1 }}.</span>
-                                            <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">{{ player.player_name }}</span>
+                                            <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">  {{ playerFormatter(player.player_name) }}<sup>{{ player.draft_id }}</sup></span>
+
                                         </div>
                                         <div class="text-xs text-gray-600">
                                             <span>{{ player.team_name }} (Season {{ player.season_id }})</span>
@@ -105,7 +108,8 @@
                                     <div class="flex flex-col items-start space-y-1">
                                         <div class="flex items-center space-x-3">
                                             <span :class="{'text-md font-bold text-yellow-600': index < 3, 'text-md': index >= 3}" class="text-gray-800">{{ index + 1 }}.</span>
-                                            <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">{{ player.player_name }}</span>
+                                            <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">  {{ playerFormatter(player.player_name) }}<sup>{{ player.draft_id }}</sup></span>
+
                                         </div>
                                         <div class="text-xs text-gray-600">
                                             <span>{{ player.team_name }} (Season {{ player.season_id }})</span>
@@ -131,7 +135,8 @@
                                     <div class="flex flex-col items-start space-y-1">
                                         <div class="flex items-center space-x-3">
                                             <span :class="{'text-md font-bold text-yellow-600': index < 3, 'text-md': index >= 3}" class="text-gray-800">{{ index + 1 }}.</span>
-                                            <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">{{ player.player_name }}</span>
+                                            <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">  {{ playerFormatter(player.player_name) }}<sup>{{ player.draft_id }}</sup></span>
+
                                         </div>
                                         <div class="text-xs text-gray-600">
                                             <span>{{ player.team_name }} (Season {{ player.season_id }})</span>
@@ -158,8 +163,9 @@
                                     <div class="flex flex-col items-start space-y-1">
                                         <div class="flex items-center space-x-3">
                                             <span :class="{'text-md font-bold text-yellow-600': index < 3, 'text-md': index >= 3}" class="text-gray-800">{{ index + 1 }}.</span>
-                                            <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">{{ player.player_name }}</span>
-                                            <sup>{{ player.draft_id }}</sup>
+                                            <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">  {{ playerFormatter(player.player_name) }}<sup>{{ player.draft_id }}</sup></span>
+
+
                                         </div>
                                         <div class="text-xs text-gray-600">
                                             <span>{{ player.team_name ?? 'Free Agent' }}</span>
@@ -185,8 +191,9 @@
                                     <div class="flex flex-col items-start space-y-1">
                                         <div class="flex items-center space-x-3">
                                             <span :class="{'text-md font-bold text-yellow-600': index < 3, 'text-md': index >= 3}" class="text-gray-800">{{ index + 1 }}.</span>
-                                            <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">{{ player.player_name }}</span>
-                                            <sup>{{ player.draft_id }}</sup>
+                                            <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">  {{ playerFormatter(player.player_name) }}<sup>{{ player.draft_id }}</sup></span>
+
+
                                         </div>
                                         <div class="text-xs text-gray-600">
                                             <span>{{ player.team_name ?? 'Free Agent' }}</span>
@@ -212,8 +219,9 @@
                                     <div class="flex flex-col items-start space-y-1">
                                         <div class="flex items-center space-x-3">
                                             <span :class="{'text-md font-bold text-yellow-600': index < 3, 'text-md': index >= 3}" class="text-gray-800">{{ index + 1 }}.</span>
-                                            <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">{{ player.player_name }}</span>
-                                            <sup>{{ player.draft_id }}</sup>
+                                            <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">  {{ playerFormatter(player.player_name) }}<sup>{{ player.draft_id }}</sup></span>
+
+
                                         </div>
                                         <div class="text-xs text-gray-600">
                                             <span>{{ player.team_name ?? 'Free Agent' }}</span>
@@ -239,8 +247,9 @@
                                     <div class="flex flex-col items-start space-y-1">
                                         <div class="flex items-center space-x-3">
                                             <span :class="{'text-md font-bold text-yellow-600': index < 3, 'text-md': index >= 3}" class="text-gray-800">{{ index + 1 }}.</span>
-                                            <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">{{ player.player_name }}</span>
-                                            <sup>{{ player.draft_id }}</sup>
+                                            <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">  {{ playerFormatter(player.player_name) }}<sup>{{ player.draft_id }}</sup></span>
+
+
                                         </div>
                                         <div class="text-xs text-gray-600">
                                             <span>{{ player.team_name ?? 'Free Agent' }}</span>
@@ -266,8 +275,7 @@
                                     <div class="flex flex-col items-start space-y-1">
                                         <div class="flex items-center space-x-3">
                                             <span :class="{'text-md font-bold text-yellow-600': index < 3, 'text-md': index >= 3}" class="text-gray-800">{{ index + 1 }}.</span>
-                                            <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">{{ player.player_name }}</span>
-                                            <sup>{{ player.draft_id }}</sup>
+                                            <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">  {{ playerFormatter(player.player_name) }}<sup>{{ player.draft_id }}</sup></span>
                                         </div>
                                         <div class="text-xs text-gray-600">
                                             <span>{{ player.team_name ?? 'Free Agent' }}</span>
@@ -294,7 +302,8 @@
                                     <div class="flex flex-col items-start space-y-1">
                                         <div class="flex items-center space-x-3">
                                             <span :class="{'text-md font-bold text-yellow-600': index < 3, 'text-md': index >= 3}" class="text-gray-800">{{ index + 1 }}.</span>
-                                            <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">{{ player.player_name }}</span>
+                                            <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">  {{ playerFormatter(player.player_name) }}<sup>{{ player.draft_id }}</sup></span>
+
                                         </div>
                                         <div class="text-xs text-gray-600">
                                             <span>{{ player.team_name }} vs {{ player.opponent_team_name }} <sup>{{ player.season_id }}</sup></span>
@@ -320,7 +329,8 @@
                                     <div class="flex flex-col items-start space-y-1">
                                         <div class="flex items-center space-x-3">
                                             <span :class="{'text-md font-bold text-yellow-600': index < 3, 'text-md': index >= 3}" class="text-gray-800">{{ index + 1 }}.</span>
-                                            <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">{{ player.player_name }}</span>
+                                            <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">  {{ playerFormatter(player.player_name) }}<sup>{{ player.draft_id }}</sup></span>
+
                                         </div>
                                         <div class="text-xs text-gray-600">
                                             <span>{{ player.team_name }} vs {{ player.opponent_team_name }} <sup>{{ player.season_id }}</sup></span>
@@ -346,7 +356,8 @@
                                     <div class="flex flex-col items-start space-y-1">
                                         <div class="flex items-center space-x-3">
                                             <span :class="{'text-md font-bold text-yellow-600': index < 3, 'text-md': index >= 3}" class="text-gray-800">{{ index + 1 }}.</span>
-                                            <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">{{ player.player_name }}</span>
+                                            <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">  {{ playerFormatter(player.player_name) }}<sup>{{ player.draft_id }}</sup></span>
+
                                         </div>
                                         <div class="text-xs text-gray-600">
                                             <span>{{ player.team_name }} vs {{ player.opponent_team_name }} <sup>{{ player.season_id }}</sup></span>
@@ -372,7 +383,8 @@
                                     <div class="flex flex-col items-start space-y-1">
                                         <div class="flex items-center space-x-3">
                                             <span :class="{'text-md font-bold text-yellow-600': index < 3, 'text-md': index >= 3}" class="text-gray-800">{{ index + 1 }}.</span>
-                                            <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">{{ player.player_name }}</span>
+                                            <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">  {{ playerFormatter(player.player_name) }}<sup>{{ player.draft_id }}</sup></span>
+
                                         </div>
                                         <div class="text-xs text-gray-600">
                                             <span>{{ player.team_name }} vs {{ player.opponent_team_name }} <sup>{{ player.season_id }}</sup></span>
@@ -398,7 +410,8 @@
                                     <div class="flex flex-col items-start space-y-1">
                                         <div class="flex items-center space-x-3">
                                             <span :class="{'text-md font-bold text-yellow-600': index < 3, 'text-md': index >= 3}" class="text-gray-800">{{ index + 1 }}.</span>
-                                            <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">{{ player.player_name }}</span>
+                                            <span :class="{'font-semibold text-yellow-600': index < 3, 'text-gray-800': index >= 3}" class="text-gray-800">  {{ playerFormatter(player.player_name) }}<sup>{{ player.draft_id }}</sup></span>
+
                                         </div>
                                         <div class="text-xs text-gray-600">
                                             <span>{{ player.team_name }} vs {{ player.opponent_team_name }} <sup>{{ player.season_id }}</sup></span>
@@ -425,8 +438,7 @@ import { Head } from '@inertiajs/vue3';
 import { ref, onMounted } from "vue";
 import axios from 'axios'; // Ensure axios is imported
 import Swal from "sweetalert2";
-import Modal from "@/Components/Modal.vue";
-import Paginator from "@/Components/Paginator.vue";
+import { roundNameFormatter, roleBadgeClass, playerFormatter } from "@/Utility/Formatter";
 
 import PlayerPerformance from '../Teams/Module/PlayerPerformance.vue';
 

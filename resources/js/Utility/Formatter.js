@@ -303,4 +303,20 @@ export const roleBadgeClass = (role) => {
         return 'bg-gray-300 text-gray-800 rounded-full px-2 py-1 text-xs';
     }
   };
+export const playerFormatter = (name) => {
+    const nameParts = name.split(" "); // Split the name into parts
 
+    // Assume the last part is the surname
+    const firstName = nameParts[0];
+    const surName = nameParts[nameParts.length - 1];
+
+    // Define a maximum length for the surname
+    const maxnameLength = 13; // You can adjust this value as needed
+
+    // Check if the name is too long
+    if (name.length > maxnameLength) {
+        return `${firstName[0]}. ${surName}`; // Format as "F. Surname"
+    } else {
+        return name; // Return the name as is if the surname is not too long
+    }
+};

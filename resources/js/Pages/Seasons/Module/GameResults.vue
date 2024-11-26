@@ -811,7 +811,7 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import axios from "axios";
-import { roundNameFormatter, roleBadgeClass } from "@/Utility/Formatter";
+import { roundNameFormatter, roleBadgeClass, playerFormatter } from "@/Utility/Formatter";
 import Modal from "@/Components/Modal.vue";
 
 import TeamRoster from "@/Pages/Teams/Module/TeamRoster.vue";
@@ -854,23 +854,7 @@ const fetchBoxScore = async () => {
     }
 };
 
-const playerFormatter = (name) => {
-    const nameParts = name.split(" "); // Split the name into parts
 
-    // Assume the last part is the surname
-    const firstName = nameParts[0];
-    const surName = nameParts[nameParts.length - 1];
-
-    // Define a maximum length for the surname
-    const maxnameLength = 13; // You can adjust this value as needed
-
-    // Check if the name is too long
-    if (name.length > maxnameLength) {
-        return `${firstName[0]}. ${surName}`; // Format as "F. Surname"
-    } else {
-        return name; // Return the name as is if the surname is not too long
-    }
-};
 // Sort players by points and get top 5 players
 const sortedHomePlayers = computed(() => {
     return playerStats.value.home.slice().sort((a, b) => b.points - a.points);
