@@ -161,14 +161,6 @@ class DraftController extends Controller
                         'status' => 'draft',
                     ]);
 
-                    DB::table('transactions')->insert([
-                        'player_id' => $selectedPlayer->id,
-                        'season_id' => $currentSeasonId,
-                        'details' => 'Signed by ' . $team->team_name.' For rookie contract of '. ($spotAvailable ? $contract : 0) .' years',
-                        'from_team_id' => 0,
-                        'to_team_id' => $team->team_id,
-                        'status' => 'signed',
-                    ]);
                     // Save to the drafts table
                     $draftInsert = DB::table('drafts')->insert([
                         'team_id' => $team->team_id,
@@ -185,6 +177,17 @@ class DraftController extends Controller
                         'insert_success' => $draftInsert,
                     ]);
 
+                    if($spotAvailable){
+                        //if rookie is drafted and theres a spot in the roster
+                        DB::table('transactions')->insert([
+                            'player_id' => $selectedPlayer->id,
+                            'season_id' => $currentSeasonId,
+                            'details' => 'Signed by ' . $team->team_name.' For rookie contract of '. $contract .' years',
+                            'from_team_id' => 0,
+                            'to_team_id' => $team->team_id,
+                            'status' => 'signed',
+                        ]);
+                    }
                     // Store the draft result
                     $draftResults[] = [
                         'team_id' => $team->team_id,
