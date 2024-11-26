@@ -1726,7 +1726,7 @@ public function getplayerinjuryhistory(Request $request)
     // Query the injured_players_view for the player's injury history
     $injuryHistory = DB::table('injured_players_view')
                         ->where('player_id', $player_id)
-                        ->orderByDesc('season_id')
+                        ->orderByDesc('game_id')
                         ->get();  // Retrieve the data from the view
 
     // Check if injury history is found
