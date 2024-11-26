@@ -132,6 +132,7 @@ class RatingsController extends Controller
             foreach ($rankedPlayers->slice(12, 3) as $playerStat) {
                 Player::where('id', $playerStat->player_id)->update(['role' => 'bench']);
                 // Optionally log the waived player transaction if you want to track this
+
                 DB::table('transactions')->insert([
                     'player_id' => $playerStat->player_id,
                     'season_id' => $seasonId,
@@ -140,6 +141,12 @@ class RatingsController extends Controller
                     'to_team_id' => 0,
                     'status' => 'waived',
                 ]);
+
+                DB::table('players')->where('id', $playerStat->player_id)->update([
+                    'contract_years' => 0,
+                    'team_id' => 0,
+                ]);
+
                 \Log::info('Player waived', [
                     'player_id' => $playerStat->player_id,
                     'team_name' => $teamName ?? 'Unknown Team',
