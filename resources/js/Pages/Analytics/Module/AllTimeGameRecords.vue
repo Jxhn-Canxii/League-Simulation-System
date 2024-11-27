@@ -12,12 +12,12 @@
                 {{ item.score }}
             </div>
             <div class="text-center mt-3">
-                <p class="text-lg font-semibold text-gray-600">{{ item.home_team }} vs {{ item.away_team }}</p>
-                <p class="text-sm text-gray-500">Season ID: {{ item.season_id }}</p>
-                <p class="text-sm text-gray-500">Game ID: {{ item.game_id }}</p>
+                <p class="text-lg font-semibold text-nowrap text-gray-600">{{ item.home_team }} vs {{ item.away_team }} <sup>S{{ item.season_id }}</sup></p>
+                <p class="text-sm text-gray-500"></p>
             </div>
             <div class="text-center mt-4">
                 <p class="text-lg text-nowrap font-bold">{{ item.title }}</p>
+                <sup class="text-sm text-gray-500">{{ item.game_id }}</sup>
             </div>
         </div>
 
