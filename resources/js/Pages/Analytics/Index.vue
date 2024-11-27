@@ -6,6 +6,7 @@
 
         <div class="overflow-hidden shadow-sm sm:rounded-lg min-h-screen p-3 space-y-3">
           <TopStatistics />
+          <AllTimeGameRecords />
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <ChampionshipShares />
             <ScoringShares />
@@ -31,6 +32,7 @@ import SeasonTimeLine from "./Module/SeasonTimeLine.vue";
 import ChampionshipShares from "./Module/ChampionshipShares.vue";
 import ScoringShares from "./Module/ScoringShares.vue";
 import SeasonLeaders from "./Module/SeasonLeaders.vue";
+import AllTimeGameRecords from "./Module/AllTimeGameRecords.vue";
 
 onMounted(() => {});
 </script>

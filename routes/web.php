@@ -153,6 +153,7 @@ Route::middleware('auth')->group(function () {
     });
     Route::prefix('games/')->group(function(){
         Route::post('box-score', [GameController::class, 'getboxscore'])->name('game.boxscore');
+        Route::get('alltime-game-records', [GameController::class, 'getAllStatistics'])->name('alltime.game.records');
     });
     Route::prefix('players/')->group(function(){
         Route::get('', [PlayersController::class, 'index'])->name('players.index');
