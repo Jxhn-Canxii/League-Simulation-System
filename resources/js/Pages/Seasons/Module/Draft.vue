@@ -304,21 +304,25 @@ const fetchRandomFullName1 = async () => {
 };
 const fetchRandomFullName2 = async () => {
     try {
-        // Fetch a random user from the Random Data API and specify the gender as male
-        const response = await axios.get('https://random-data-api.com/api/v2/users?size=1&gender=male');
+        // Fetch a random user from the Faker API and specify the gender as male
+        const response = await axios.get('https://fakerapi.it/api/v1/persons?_quantity=1&gender=male');
 
-        // Extract the first name, last name, and country information
-        const { first_name, last_name, address } = response.data[0];
-        const country = address.country;
+        // Extract the first name, last name, city, and country information
+        const person = response.data[0];
+        const first_name = person.first_name;
+        const last_name = person.last_name;
+        const city = person.address.city;
+        const country = person.address.country;
 
-        // Format the full name and country information
+        // Format the full name, city, and country information
         const fullName = `${first_name} ${last_name}`;
-        const countryFormatted = `${country}`;
+        const addressFormatted = `${city}, ${country}`;
 
         const data = {
             name: fullName,
-            country: countryFormatted,
-            address: country,
+            city: city,
+            country: country,
+            address: addressFormatted,  // Combined city and country in address
         };
 
         // Function to check if both first and last names contain only English alphabet letters
@@ -334,6 +338,9 @@ const fetchRandomFullName2 = async () => {
         return null; // Return null on error
     }
 };
+
+
+
 const addMultiplePlayers = async (count) => {
     try {
         const promises = [];
@@ -342,7 +349,7 @@ const addMultiplePlayers = async (count) => {
             // Randomly choose between fetchRandomFullName1 or fetchRandomFullName2
             const fetchRandomFullName = Math.random() < 0.5 ? fetchRandomFullName1 : fetchRandomFullName2; // 50% chance for each
 
-            const randomFullName = await fetchRandomFullName1(); // Fetch random full name
+            const randomFullName = await fetchRandomFullName(); // Fetch random full name
             if (randomFullName != null) {
                 promises.push(addPlayer(randomFullName)); // Add the promise to the array
                 key.value = i;
