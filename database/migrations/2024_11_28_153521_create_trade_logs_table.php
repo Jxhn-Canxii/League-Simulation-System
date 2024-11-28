@@ -1,0 +1,11 @@
+CREATE TABLE trade_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    team_from_id INT NOT NULL,
+    team_to_id INT NOT NULL,
+    player_id INT NOT NULL,
+    player_name VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL,
+    trade_reason TEXT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);

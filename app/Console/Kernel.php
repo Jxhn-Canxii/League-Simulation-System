@@ -4,6 +4,7 @@ namespace App\Console;
 
 use App\Http\Controllers\AwardsController;
 use App\Http\Controllers\LeadersController;
+use App\Http\Controllers\TradeController;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,7 @@ class Kernel extends ConsoleKernel
                 // Check if the latest season status is 12
                 app(AwardsController::class)->storeallplayerseasonstats();
                 app(LeadersController::class)->updateAllTimeTopStats();
+                // app(TradeController::class)->autoMultiTeamTrade();
 
                 Log::info('Scheduler ran successfully!');
             } catch (\Exception $e) {
