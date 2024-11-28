@@ -1147,7 +1147,7 @@ class PlayersController extends Controller
             'player_stats' => $formattedPlayerStats,
         ]);
     }
-    public function getplayerseasonperformance(Request $request)
+    public function getplayerseasonperformanceV1(Request $request)
     {
         // Validate the request data
         $request->validate([
@@ -1244,6 +1244,99 @@ class PlayersController extends Controller
             'player_stats' => $formattedPlayerStats,
         ]);
     }
+    public function getplayerseasonperformance(Request $request)
+{
+    // Validate the request data
+    $request->validate([
+        'player_id' => 'required|exists:players,id',
+    ]);
+
+    $playerId = $request->player_id;
+
+    // Fetch player stats for the given player excluding the specified playoff rounds
+    $playerStats = \DB::table('player_game_stats')
+        ->join('players', 'player_game_stats.player_id', '=', 'players.id')
+        ->join('teams', 'player_game_stats.team_id', '=', 'teams.id')
+        ->join('seasons', 'player_game_stats.season_id', '=', 'seasons.id') // Join with seasons table
+        ->join('schedules', 'player_game_stats.game_id', '=', 'schedules.game_id') // Join with schedules table
+        ->leftJoin('player_ratings', function ($join) {
+            $join->on('player_game_stats.player_id', '=', 'player_ratings.player_id')
+                ->on('player_game_stats.season_id', '=', 'player_ratings.season_id');
+        }) // Left join with player_ratings table
+        ->select(
+            'players.id as player_id',
+            'players.name as player_name',
+            'player_game_stats.season_id',
+            'player_ratings.overall_rating',
+            'seasons.name as season_name', // Select season name
+            \DB::raw('GROUP_CONCAT(DISTINCT teams.name ORDER BY teams.name ASC SEPARATOR ", ") as team_names'), // Comma-separated teams
+            \DB::raw('SUM(player_game_stats.points) as total_points'),
+            \DB::raw('SUM(player_game_stats.rebounds) as total_rebounds'),
+            \DB::raw('SUM(player_game_stats.assists) as total_assists'),
+            \DB::raw('SUM(player_game_stats.steals) as total_steals'),
+            \DB::raw('SUM(player_game_stats.blocks) as total_blocks'),
+            \DB::raw('SUM(player_game_stats.turnovers) as total_turnovers'),
+            \DB::raw('SUM(player_game_stats.fouls) as total_fouls'),
+            \DB::raw('COUNT(DISTINCT CASE WHEN player_game_stats.minutes > 0 THEN player_game_stats.game_id END) as games_played'), // Exclude DNP games
+            \DB::raw('COALESCE(player_ratings.role, players.role) as role') // Use COALESCE to handle NULL roles
+        )
+        ->where('player_game_stats.player_id', $playerId)
+        ->whereNotIn('schedules.round', config('playoffs')) // Exclude specific playoff rounds
+        ->groupBy('players.id','players.role', 'players.name', 'player_game_stats.season_id', 'player_ratings.overall_rating', 'seasons.name', 'player_ratings.role')
+        ->orderBy('player_game_stats.season_id', 'desc') // Sort by season_id in descending order
+        ->get();
+
+    if ($playerStats->isEmpty()) {
+        return response()->json([
+            'error' => 'No stats found for the given player.',
+            'player_stats' => [],
+        ], 404);
+    }
+
+    // Initialize an array to hold formatted player stats
+    $formattedPlayerStats = [];
+
+    foreach ($playerStats as $stats) {
+        // Calculate averages
+        $averagePointsPerGame = $stats->games_played > 0 ? $stats->total_points / $stats->games_played : 0;
+        $averageReboundsPerGame = $stats->games_played > 0 ? $stats->total_rebounds / $stats->games_played : 0;
+        $averageAssistsPerGame = $stats->games_played > 0 ? $stats->total_assists / $stats->games_played : 0;
+        $averageStealsPerGame = $stats->games_played > 0 ? $stats->total_steals / $stats->games_played : 0;
+        $averageBlocksPerGame = $stats->games_played > 0 ? $stats->total_blocks / $stats->games_played : 0;
+        $averageTurnoversPerGame = $stats->games_played > 0 ? $stats->total_turnovers / $stats->games_played : 0;
+        $averageFoulsPerGame = $stats->games_played > 0 ? $stats->total_fouls / $stats->games_played : 0;
+
+        // Append player with stats, team names, and role
+        $formattedPlayerStats[] = [
+            'player_id' => $stats->player_id,
+            'player_name' => $stats->player_name,
+            'team_names' => $stats->team_names, // Comma-separated teams
+            'season_id' => $stats->season_id,
+            'overall_rating' => $stats->overall_rating,
+            'season_name' => $stats->season_name, // Add season name
+            'role' => $stats->role, // Add player role
+            'total_points' => $stats->total_points,
+            'total_rebounds' => $stats->total_rebounds,
+            'total_assists' => $stats->total_assists,
+            'total_steals' => $stats->total_steals,
+            'total_blocks' => $stats->total_blocks,
+            'total_turnovers' => $stats->total_turnovers,
+            'total_fouls' => $stats->total_fouls,
+            'games_played' => $stats->games_played,
+            'average_points_per_game' => $averagePointsPerGame,
+            'average_rebounds_per_game' => $averageReboundsPerGame,
+            'average_assists_per_game' => $averageAssistsPerGame,
+            'average_steals_per_game' => $averageStealsPerGame,
+            'average_blocks_per_game' => $averageBlocksPerGame,
+            'average_turnovers_per_game' => $averageTurnoversPerGame,
+            'average_fouls_per_game' => $averageFoulsPerGame,
+        ];
+    }
+
+    return response()->json([
+        'player_stats' => $formattedPlayerStats,
+    ]);
+}
 
     public function getplayermainperformance(Request $request)
     {
