@@ -1790,9 +1790,11 @@ class SimulateController extends Controller
                 }
             }
 
-            // If the player is injured for 15 or more games, they may be waived
-            // Check if the player is injured for 15 or more games
-            if ($player->role != 'star player' && $player->is_injured && $player->injury_recovery_games >= 15) {
+             // Check if the player is a star player or not and adjust recovery games threshold accordingly
+            $requiredRecoveryGames = ($player->role == 'star player') ? 40 : 15;
+
+            // Check if the player's recovery games are greater than or equal to the required threshold
+            if ($player->injury_recovery_games >= $requiredRecoveryGames) {
                 // Fetch the current season's status (assuming you want the most recent season)
                 $seasonStatus = DB::table('seasons')->where('id', $seasonId)->value('status');
 
