@@ -1794,7 +1794,7 @@ class SimulateController extends Controller
             $requiredRecoveryGames = ($player->role == 'star player') ? 40 : 15;
 
             // Check if the player's recovery games are greater than or equal to the required threshold
-            if ($player->injury_recovery_games >= $requiredRecoveryGames) {
+            if ($player->is_injured && $player->injury_recovery_games >= $requiredRecoveryGames) {
                 // Fetch the current season's status (assuming you want the most recent season)
                 $seasonStatus = DB::table('seasons')->where('id', $seasonId)->value('status');
 
