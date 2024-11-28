@@ -174,10 +174,10 @@
                             {{ player.contract_years ?? '-' }} yrs.
                         </td>
                         <td class="px-2 py-1 whitespace-nowrap border">
-                            {{ Math.round(player.team_total_games) }}
+                            {{ Math.round(player.team_total_games ?? 0) }}
                         </td>
                         <td class="px-2 py-1 whitespace-nowrap border">
-                            {{ Math.round(player.games_played) }}
+                            {{ Math.round(player.games_played ?? 0) }}
                         </td>
                         <td class="px-2 py-1 whitespace-nowrap border">
                             {{ player.average_minutes_per_game.toFixed(1) }}
