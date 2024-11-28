@@ -109,7 +109,7 @@ class DraftController extends Controller
                 ->orderBy('overall_rating', 'desc')
                 ->get();
 
-            if (count($availablePlayers) < 140) {
+            if (count($availablePlayers) < 160) {
                 return response()->json([
                     'error' => true,
                     'message' => 'Rookies not enough for teams!',
