@@ -1,6 +1,7 @@
 CREATE OR REPLACE VIEW players_multiple_teams AS
 SELECT
     p.name AS player_name,
+    p.role,
     pg.player_id,
     pg.season_id,
     GROUP_CONCAT(DISTINCT t.name ORDER BY t.name ASC) AS teams_played,
