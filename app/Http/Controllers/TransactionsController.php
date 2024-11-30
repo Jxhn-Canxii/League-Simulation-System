@@ -318,7 +318,7 @@ class TransactionsController extends Controller
                 ->update(['status' => 15]);
 
             // Update player roles based on the last season's stats
-            $update = $this->updateTeamRolesBasedOnStatsByRating();
+            $update = $this->updateTeamRolesBasedOnStats();
             // $update = true;
             if ($update) {
                 // After drafting logic but before DB::commit()
@@ -342,6 +342,7 @@ class TransactionsController extends Controller
             } else {
                 return response()->json([
                     'message' => 'Role assigning error!',
+                    'update' => $update,
                 ], 400);
             }
         } else {
@@ -456,79 +457,6 @@ class TransactionsController extends Controller
         }
     }
 
-    private function updateTeamRolesBasedOnStatsV1()
-    {
-        $seasonId = $this->getLatestSeasonId();
-        $teams = DB::table('teams')->pluck('id');
-
-        foreach ($teams as $teamId) {
-            DB::beginTransaction();
-
-            try {
-                // Fetch veteran players' stats for the team
-                $playerStats = DB::table('player_season_stats')
-                    ->join('players', 'player_season_stats.player_id', '=', 'players.id')
-                    ->where('player_season_stats.season_id', $seasonId)
-                    ->where('player_season_stats.team_id', $teamId)
-                    ->orderByDesc(DB::raw('(avg_points_per_game + avg_rebounds_per_game + avg_assists_per_game + avg_steals_per_game + avg_blocks_per_game)'))
-                    ->get();
-
-                // Fetch rookies separately
-                $rookies = DB::table('players')
-                    ->where('team_id', $teamId)
-                    ->where('is_rookie', 1)
-                    ->orderByDesc('overall_rating')
-                    ->get();
-
-                // Initialize arrays for assigning roles
-                $starPlayers = [];
-                $starters = [];
-                $rolePlayers = [];
-                $benchPlayers = [];
-
-                // Add top rookies (overall_rating >= 90) to star players
-                foreach ($rookies as $rookie) {
-                    if (count($starPlayers) < 3 && $rookie->overall_rating >= 85) {
-                        $starPlayers[] = $rookie->id;
-                    } elseif (count($rolePlayers) < 5) {
-                        $rolePlayers[] = $rookie->id;
-                    } else {
-                        $benchPlayers[] = $rookie->id;
-                    }
-                }
-
-                // Assign roles to veteran players, keeping team structure balanced
-                foreach ($playerStats as $index => $playerStat) {
-                    if (count($starPlayers) < 3) {
-                        $starPlayers[] = $playerStat->player_id;
-                    } elseif (count($starters) < 2) {
-                        $starters[] = $playerStat->player_id;
-                    } elseif (count($rolePlayers) < 5) {
-                        $rolePlayers[] = $playerStat->player_id;
-                    } else {
-                        $benchPlayers[] = $playerStat->player_id;
-                    }
-                }
-
-                // Update each player's role in the database
-                DB::table('players')->whereIn('id', $starPlayers)->update(['role' => 'star player']);
-                DB::table('players')->whereIn('id', $starters)->update(['role' => 'starter']);
-                DB::table('players')->whereIn('id', $rolePlayers)->update(['role' => 'role player']);
-                DB::table('players')->whereIn('id', $benchPlayers)->update(['role' => 'bench']);
-
-                DB::commit();
-            } catch (\Exception $e) {
-                DB::rollBack();
-
-                // Log the error message and stack trace for debugging
-                \Log::error('Error assigning role for ' . $teamId . ' ' . $e->getMessage());
-
-                return false; // Return false if an error occurs during the update
-            }
-        }
-
-        return true; // Return true if all updates succeed
-    }
     private function updateTeamRolesBasedOnStatsByRating()
     {
         $seasonId = $this->getLatestSeasonId();
@@ -582,7 +510,7 @@ class TransactionsController extends Controller
 
         return true; // Return true if all updates succeed
     }
-    private function updateTeamRolesBasedOnStats()
+    private function updateTeamRolesBasedOnStatsV1()
     {
         $seasonId = $this->getLatestSeasonId();
         $teams = DB::table('teams')->pluck('id');
@@ -705,6 +633,112 @@ class TransactionsController extends Controller
 
         return true; // Return true if all updates succeed
     }
+    private function updateTeamRolesBasedOnStats()
+    {
+        $seasonId = $this->getLatestSeasonId();
+        $teams = DB::table('teams')->pluck('id');
+
+        foreach ($teams as $teamId) {
+            DB::beginTransaction();
+
+            try {
+                // Fetch player stats for the previous season
+                $stats = DB::table('player_season_stats')
+                    ->join('players', 'player_season_stats.player_id', '=', 'players.id')
+                    ->where('player_season_stats.season_id', $seasonId)
+                    ->where('players.team_id', $teamId)
+                    ->get();
+
+                // Fetch rookies or players with no stats
+                $playersWithoutStats = DB::table('players')
+                    ->where('team_id', $teamId)
+                    ->whereNotIn('id', $stats->pluck('player_id'))
+                    ->get();
+
+                // Merge all players
+                $allPlayersStats = $stats->merge($playersWithoutStats->map(function ($player) {
+                    return (object)[
+                        'player_id' => $player->id,
+                        'role' => 'bench',  // Default role
+                        'avg_points_per_game' => 0,
+                        'avg_rebounds_per_game' => 0,
+                        'avg_assists_per_game' => 0,
+                        'avg_steals_per_game' => 0,
+                        'avg_blocks_per_game' => 0,
+                        'avg_turnovers_per_game' => 0,
+                        'avg_fouls_per_game' => 0,
+                        'total_points' => 0,
+                        'total_rebounds' => 0,
+                        'total_assists' => 0,
+                        'total_steals' => 0,
+                        'total_blocks' => 0,
+                        'total_turnovers' => 0,
+                        'total_fouls' => 0,
+                        'total_games_played' => 0,
+                        'overall_rating' => $player->overall_rating ?? 50, // Default low rating if missing
+                        'injury_prone_percentage' => $player->injury_prone_percentage ?? 50,
+                        'is_rookie' => $player->is_rookie ?? 0, // Identify rookies
+                    ];
+                }));
+
+                // Sort players based on the composite score
+                $rankedPlayers = $allPlayersStats->sortByDesc(function ($stat) {
+                    // Composite score for non-rookies
+                    $perGameScore = $stat->avg_points_per_game * 0.3 +
+                        $stat->avg_rebounds_per_game * 0.2 +
+                        $stat->avg_assists_per_game * 0.2 +
+                        $stat->avg_steals_per_game * 0.1 +
+                        $stat->avg_blocks_per_game * 0.1 -
+                        $stat->avg_turnovers_per_game * 0.1 -
+                        $stat->avg_fouls_per_game * 0.1;
+
+                    $totalScore = $stat->total_points * 0.2 +
+                        $stat->total_rebounds * 0.2 +
+                        $stat->total_assists * 0.2 +
+                        $stat->total_steals * 0.15 +
+                        $stat->total_blocks * 0.15 -
+                        $stat->total_turnovers * 0.1 -
+                        $stat->total_fouls * 0.1;
+
+                    $injuryFactor = 1 - ($stat->injury_prone_percentage / 100);
+
+                    // Handle rookies
+                    if ($stat->is_rookie) {
+                        return $stat->overall_rating * 1.5; // Weight rookie's rating higher
+                    }
+
+                    return ($perGameScore + $totalScore) * $injuryFactor;
+                });
+
+                // Assign roles based on thresholds
+                foreach ($rankedPlayers as $playerStat) {
+                    $score = $playerStat->is_rookie
+                        ? $playerStat->overall_rating // Use rating for rookies
+                        : $playerStat->composite_score; // Use composite score for veterans
+
+                    $role = 'bench'; // Default role
+                    if ($score >= 85) {
+                        $role = 'star player';
+                    } elseif ($score >= 70) {
+                        $role = 'starter';
+                    } elseif ($score >= 55) {
+                        $role = 'role player';
+                    }
+
+                    Player::where('id', $playerStat->player_id)->update(['role' => $role]);
+                }
+
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                \Log::error('Error assigning role for team ' . $teamId . ': ' . $e->getMessage());
+                return $e->getMessage();
+            }
+        }
+
+        return true;
+    }
+
     private function determineContractYears($role)
     {
         switch ($role) {
