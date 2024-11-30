@@ -2,6 +2,7 @@ CREATE OR REPLACE VIEW injured_players_view AS
 SELECT
 	i.id as injury_id,
     p.id AS player_id,
+    p.overall_rating AS overall_rating,
     i.game_id AS game_id,
     i.team_id AS team_id,
     i.season_id as season_id,

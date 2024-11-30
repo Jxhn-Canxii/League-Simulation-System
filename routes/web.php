@@ -107,6 +107,8 @@ Route::middleware('auth')->group(function () {
         Route::post('get-all-standings', [AnalyticsController::class, 'get_all_standings'])->name('analytics.standings');
         Route::get('player-stats', [AnalyticsController::class, 'count_players'])->name('analytics.player.count');
         Route::post('current-season-leaders', [AnalyticsController::class, 'getseasonleaders'])->name('players.season.leaders');
+        Route::get('draft-statistics', [AnalyticsController::class, 'getDraftPlayerStatistics'])->name('draft.statistics');
+        Route::get('alltime-game-records', [AnalyticsController::class, 'getAllStatistics'])->name('alltime.game.records');
     });
 
     Route::prefix('draft/')->group(function(){
@@ -153,7 +155,6 @@ Route::middleware('auth')->group(function () {
     });
     Route::prefix('games/')->group(function(){
         Route::post('box-score', [GameController::class, 'getboxscore'])->name('game.boxscore');
-        Route::get('alltime-game-records', [GameController::class, 'getAllStatistics'])->name('alltime.game.records');
     });
     Route::prefix('players/')->group(function(){
         Route::get('', [PlayersController::class, 'index'])->name('players.index');

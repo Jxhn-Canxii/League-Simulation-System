@@ -314,7 +314,29 @@ class AnalyticsController extends Controller
 
         return response()->json(['leaders' => $response]);
     }
+    public function getAllStatistics()
+    {
+        // Use the DB query builder to get the first row from the table
+        $statistics = DB::table('game_statistics_combined')->first();
 
+        // Return the data as JSON
+        return response()->json($statistics); // Or return view('game_statistics', compact('statistics'));
+    }
+    public function getDraftPlayerStatistics()
+    {
+        // Query the draft_player_statistics view using raw SQL
+        $statistics = DB::select('
+            SELECT draft_id,
+                total_players,
+                active_players_with_team,
+                inactive_players,
+                active_percentage
+            FROM draft_player_statistics
+        ');
+
+        // Return the result as JSON
+        return response()->json($statistics);
+    }
     private function getLatestSeasonId()
     {
         // Fetch the latest season ID based on descending order of IDs

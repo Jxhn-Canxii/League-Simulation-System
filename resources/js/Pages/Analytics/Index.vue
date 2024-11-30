@@ -5,15 +5,77 @@
         <template #header> Analytics </template>
 
         <div class="overflow-hidden shadow-sm sm:rounded-lg min-h-screen p-3 space-y-3">
-          <TopStatistics />
-          <AllTimeGameRecords />
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <ChampionshipShares />
-            <ScoringShares />
-          </div>
-          <WinShares />
-          <SeasonTimeLine />
-          <!-- <SeasonLeaders /> -->
+            <Suspense>
+                <template #default>
+                    <TopStatistics />
+                </template>
+                <template #fallback>
+                    <div class="text-center py-10 text-gray-500">Loading Top Statistics...</div>
+                </template>
+            </Suspense>
+            <Suspense>
+                <template #default>
+                    <DraftSummary />
+                </template>
+                <template #fallback>
+                    <div class="text-center py-10 text-gray-500">Loading Draft Summary...</div>
+                </template>
+            </Suspense>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Suspense>
+                    <template #default>
+                        <ChampionshipShares />
+                    </template>
+                    <template #fallback>
+                        <div class="text-center py-10 text-gray-500">Loading Championship Shares...</div>
+                    </template>
+                </Suspense>
+
+                <Suspense>
+                    <template #default>
+                        <ScoringShares />
+                    </template>
+                    <template #fallback>
+                        <div class="text-center py-10 text-gray-500">Loading Scoring Shares...</div>
+                    </template>
+                </Suspense>
+            </div>
+
+            <Suspense>
+                <template #default>
+                    <WinShares />
+                </template>
+                <template #fallback>
+                    <div class="text-center py-10 text-gray-500">Loading Win Shares...</div>
+                </template>
+            </Suspense>
+
+            <Suspense>
+                <template #default>
+                    <AllTimeGameRecords />
+                </template>
+                <template #fallback>
+                    <div class="text-center py-10 text-gray-500">Loading All Time Game Records...</div>
+                </template>
+            </Suspense>
+
+            <Suspense>
+                <template #default>
+                    <SeasonTimeLine />
+                </template>
+                <template #fallback>
+                    <div class="text-center py-10 text-gray-500">Loading Season Timeline...</div>
+                </template>
+            </Suspense>
+
+            <!-- <Suspense>
+                <template #default>
+                    <SeasonLeaders />
+                </template>
+                <template #fallback>
+                    <div class="text-center py-10 text-gray-500">Loading Season Leaders...</div>
+                </template>
+            </Suspense> -->
         </div>
     </AuthenticatedLayout>
 </template>
@@ -33,6 +95,7 @@ import ChampionshipShares from "./Module/ChampionshipShares.vue";
 import ScoringShares from "./Module/ScoringShares.vue";
 import SeasonLeaders from "./Module/SeasonLeaders.vue";
 import AllTimeGameRecords from "./Module/AllTimeGameRecords.vue";
+import DraftSummary from "./Module/DraftSummary.vue";
 
 onMounted(() => {});
 </script>

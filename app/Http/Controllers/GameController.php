@@ -422,13 +422,5 @@ class GameController extends Controller
             'draws' => $headToHead->draws,
         ];
     }
-    public function getAllStatistics()
-    {
-        // Use the DB query builder to get the first row from the table
-        $statistics = DB::table('game_statistics_combined')->first();
-
-        // Return the data as JSON
-        return response()->json($statistics); // Or return view('game_statistics', compact('statistics'));
-    }
 
 }
