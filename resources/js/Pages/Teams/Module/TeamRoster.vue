@@ -60,8 +60,15 @@
                         </th>
                         <th
                             class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                            title="Contract Years Left"
                         >
-                            Contract Left
+                            Yrs. Left
+                        </th>
+                        <th
+                            class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                            title="Overall Ratings"
+                        >
+                            OVR
                         </th>
                         <th
                             class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
@@ -172,6 +179,9 @@
                         </td>
                         <td class="px-2 py-1 whitespace-nowrap border">
                             {{ player.contract_years ?? '-' }} yrs.
+                        </td>
+                        <td class="px-2 py-1 whitespace-nowrap border">
+                            {{ player.overall_rating ?? '-' }}
                         </td>
                         <td class="px-2 py-1 whitespace-nowrap border">
                             {{ Math.round(player.team_total_games ?? 0) }}

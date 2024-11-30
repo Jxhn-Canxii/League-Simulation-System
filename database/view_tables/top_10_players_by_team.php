@@ -3,36 +3,39 @@ WITH player_achievements AS (
     SELECT
         p.id AS player_id,
         p.name AS player_name,
-        t.id AS team_id, -- Added team_id
+        ps.team_id,
         t.name AS team_name,
-        SUM(pg.points) AS total_points,
-        SUM(pg.assists) AS total_assists,
-        SUM(pg.rebounds) AS total_rebounds,
-        SUM(pg.steals) AS total_steals,
-        SUM(pg.blocks) AS total_blocks,
-        SUM(pg.turnovers) AS total_turnovers,
+        SUM(ps.total_points) AS total_points,
+        SUM(ps.total_assists) AS total_assists,
+        SUM(ps.total_rebounds) AS total_rebounds,
+        SUM(ps.total_steals) AS total_steals,
+        SUM(ps.total_blocks) AS total_blocks,
+        SUM(ps.total_turnovers) AS total_turnovers,
         COUNT(DISTINCT CASE WHEN s.round = 'finals' AND
-                            ((s.home_id = t.id AND s.home_score > s.away_score) OR
-                             (s.away_id = t.id AND s.away_score > s.home_score)) THEN s.id END) AS championships_won,
-        COUNT(DISTINCT CASE WHEN se.finals_mvp_id = p.id THEN se.id END) AS finals_mvp_count
+                            ((s.home_id = ps.team_id AND s.home_score > s.away_score) OR
+                             (s.away_id = ps.team_id AND s.away_score > s.home_score)) THEN s.id END) AS championships_won,
+        COUNT(DISTINCT CASE WHEN se.finals_mvp_id = p.id THEN se.id END) AS finals_mvp_count,
+        COUNT(DISTINCT sa.id) AS awards_won -- Aggregate awards from season_awards
     FROM
-        player_game_stats pg
+        player_season_stats ps
     LEFT JOIN
-        players p ON pg.player_id = p.id
+        players p ON ps.player_id = p.id
     LEFT JOIN
-        teams t ON pg.team_id = t.id
+        teams t ON ps.team_id = t.id
     LEFT JOIN
-        schedules s ON pg.game_id = s.game_id
+        schedules s ON ps.season_id = s.season_id
     LEFT JOIN
         seasons se ON s.season_id = se.id
+    LEFT JOIN
+        season_awards sa ON sa.player_id = p.id -- Join with season_awards table
     GROUP BY
-        p.id, p.name, t.id, t.name -- Include t.id for team_id
+        p.id, p.name, ps.team_id, t.name
 ),
 ranked_players AS (
     SELECT
         pa.player_id,
         pa.player_name,
-        pa.team_id, -- Added team_id
+        pa.team_id,
         pa.team_name,
         pa.total_points,
         pa.total_assists,
@@ -42,10 +45,12 @@ ranked_players AS (
         pa.total_turnovers,
         pa.championships_won,
         pa.finals_mvp_count,
-        ROW_NUMBER() OVER (PARTITION BY pa.team_id ORDER BY -- Use team_id for partitioning
+        pa.awards_won,
+        ROW_NUMBER() OVER (PARTITION BY pa.team_id ORDER BY
             (pa.total_points * 1.0 + pa.total_assists * 0.75 + pa.total_rebounds * 0.5 + pa.total_steals * 0.5 + pa.total_blocks * 0.5 - pa.total_turnovers * 0.25) DESC,
             pa.championships_won DESC,
-            pa.finals_mvp_count DESC
+            pa.finals_mvp_count DESC,
+            pa.awards_won DESC -- Include awards in ranking
         ) AS rank_in_team
     FROM
         player_achievements pa
@@ -53,7 +58,7 @@ ranked_players AS (
 SELECT
     player_id,
     player_name,
-    team_id, -- Added team_id
+    team_id,
     team_name,
     total_points,
     total_assists,
@@ -62,7 +67,8 @@ SELECT
     total_blocks,
     total_turnovers,
     championships_won,
-    finals_mvp_count
+    finals_mvp_count,
+    awards_won
 FROM
     ranked_players
 WHERE

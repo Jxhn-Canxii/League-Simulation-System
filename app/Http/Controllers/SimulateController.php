@@ -903,7 +903,7 @@ class SimulateController extends Controller
                         $stats
                     );
 
-                    $storeStats = $storeStats->storeplayerseasonstats($stats['team_id'], $stats['player_id']);
+                   $storeStats->storeplayerseasonstats($stats['team_id'], $stats['player_id']);
                 } catch (\Exception $e) {
                     \Log::error('Error saving player game stats:', [
                         'stats' => $stats,

@@ -3,53 +3,54 @@ WITH player_stats AS (
     SELECT
         p.id AS player_id,
         p.name AS player_name,
+        ps.team_id,
         t.name AS team_name,
-        SUM(pg.points) AS total_points,
-        SUM(pg.assists) AS total_assists,
-        SUM(pg.rebounds) AS total_rebounds,
-        SUM(pg.steals) AS total_steals,
-        SUM(pg.blocks) AS total_blocks,
-        SUM(pg.turnovers) AS total_turnovers
+        SUM(ps.total_points) AS total_points,
+        SUM(ps.total_assists) AS total_assists,
+        SUM(ps.total_rebounds) AS total_rebounds,
+        SUM(ps.total_steals) AS total_steals,
+        SUM(ps.total_blocks) AS total_blocks,
+        SUM(ps.total_turnovers) AS total_turnovers
     FROM
-        player_game_stats pg
+        player_season_stats ps
     LEFT JOIN
-        players p ON pg.player_id = p.id
+        players p ON ps.player_id = p.id
     LEFT JOIN
-        teams t ON pg.team_id = t.id
+        teams t ON ps.team_id = t.id
     GROUP BY
-        p.id, p.name, t.name
+        p.id, p.name, ps.team_id, t.name
 ),
 player_achievements AS (
     SELECT
         p.id AS player_id,
-        p.name AS player_name,
         COUNT(DISTINCT CASE WHEN se.finals_mvp_id = p.id THEN se.id END) AS finals_mvp_count,
         COUNT(DISTINCT CASE WHEN s.round = 'finals' AND
-                            ((s.home_id = t.id AND s.home_score > s.away_score) OR
-                             (s.away_id = t.id AND s.away_score > s.home_score)) THEN s.id END) AS championships_won
+                            ((s.home_id = ps.team_id AND s.home_score > s.away_score) OR
+                             (s.away_id = ps.team_id AND s.away_score > s.home_score)) THEN s.id END) AS championships_won,
+        COUNT(DISTINCT sa.id) AS awards_won -- Include awards from season_awards
     FROM
-        player_game_stats pg
+        player_season_stats ps
     LEFT JOIN
-        players p ON pg.player_id = p.id
+        players p ON ps.player_id = p.id
     LEFT JOIN
-        schedules s ON pg.game_id = s.game_id
+        schedules s ON ps.season_id = s.season_id
     LEFT JOIN
         seasons se ON s.season_id = se.id
     LEFT JOIN
-        teams t ON pg.team_id = t.id
+        season_awards sa ON sa.player_id = p.id -- Join with season_awards table
     GROUP BY
-        p.id, p.name
+        p.id
 ),
 player_teams AS (
     SELECT
         p.id AS player_id,
         GROUP_CONCAT(DISTINCT t.name ORDER BY t.name SEPARATOR ', ') AS teams_played
     FROM
-        player_game_stats pg
+        player_season_stats ps
     LEFT JOIN
-        players p ON pg.player_id = p.id
+        players p ON ps.player_id = p.id
     LEFT JOIN
-        teams t ON pg.team_id = t.id
+        teams t ON ps.team_id = t.id
     GROUP BY
         p.id
 ),
@@ -64,7 +65,7 @@ merged_player_data AS (
     SELECT
         ps.player_id,
         ps.player_name,
-        MAX(ps.team_name) AS team_name,  -- Choose the team_name, adjust if needed
+        MAX(ps.team_name) AS team_name,
         MAX(pt.teams_played) AS teams_played,
         SUM(ps.total_points) AS total_points,
         SUM(ps.total_assists) AS total_assists,
@@ -74,6 +75,7 @@ merged_player_data AS (
         SUM(ps.total_turnovers) AS total_turnovers,
         MAX(pa.finals_mvp_count) AS finals_mvp_count,
         MAX(pa.championships_won) AS championships_won,
+        MAX(pa.awards_won) AS awards_won, -- Include awards won
         MAX(pas.is_active) AS is_active
     FROM
         player_stats ps
@@ -100,6 +102,7 @@ ranked_players AS (
         total_turnovers,
         finals_mvp_count,
         championships_won,
+        awards_won,
         is_active,
         RANK() OVER (
             ORDER BY
@@ -107,7 +110,7 @@ ranked_players AS (
         ) AS stat_rank,
         RANK() OVER (
             ORDER BY
-                (finals_mvp_count * 1.5 + championships_won * 1.0) DESC
+                (finals_mvp_count * 1.5 + championships_won * 1.0 + awards_won * 0.5) DESC
         ) AS achievement_rank
     FROM
         merged_player_data
@@ -126,6 +129,7 @@ combined_ranks AS (
         total_turnovers,
         finals_mvp_count,
         championships_won,
+        awards_won,
         is_active,
         (stat_rank * 0.5 + achievement_rank * 0.5) AS combined_rank
     FROM
@@ -144,6 +148,7 @@ SELECT
     total_turnovers,
     finals_mvp_count,
     championships_won,
+    awards_won,
     is_active
 FROM
     combined_ranks
