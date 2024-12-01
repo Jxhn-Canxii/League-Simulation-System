@@ -58,7 +58,7 @@ class Kernel extends ConsoleKernel
                 Log::error('Error running every-minute tasks: ' . $e->getMessage());
                 logger('Error running tasks: ' . $e->getMessage());
             }
-        })->everyMinute();
+        })->hourly();
 
     }
 
