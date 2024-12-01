@@ -21,14 +21,14 @@ class Kernel extends ConsoleKernel
         $schedule->call(function () {
             try {
                 // Log and execute storeallplayerseasonstats
-                try {
-                    app(AwardsController::class)->storeallplayerseasonstats();
-                    Log::info('storeallplayerseasonstats executed successfully!');
-                    logger('storeallplayerseasonstats executed successfully at: ' . now());
-                } catch (\Exception $e) {
-                    Log::error('Error in storeallplayerseasonstats: ' . $e->getMessage());
-                    logger('Error in storeallplayerseasonstats: ' . $e->getMessage());
-                }
+                // try {
+                //     app(AwardsController::class)->storeallplayerseasonstats();
+                //     Log::info('storeallplayerseasonstats executed successfully!');
+                //     logger('storeallplayerseasonstats executed successfully at: ' . now());
+                // } catch (\Exception $e) {
+                //     Log::error('Error in storeallplayerseasonstats: ' . $e->getMessage());
+                //     logger('Error in storeallplayerseasonstats: ' . $e->getMessage());
+                // }
 
                 // Log and execute updateAllTimeTopStats
                 try {
