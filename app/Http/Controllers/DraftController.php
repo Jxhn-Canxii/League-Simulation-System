@@ -105,9 +105,11 @@ class DraftController extends Controller
             $availablePlayers = DB::table('players')
                 ->where('is_rookie', 1)
                 ->where('team_id', 0) // Only include players not yet assigned to a team
-                ->where('draft_id', $currentSeasonId) // Only include players that has the same draft_id
-                ->orderBy('overall_rating', 'desc')
+                ->where('draft_id', $currentSeasonId) // Only include players that have the same draft_id
+                ->orderBy('overall_rating', 'desc') // Order by overall rating (highest first)
+                ->orderBy('injury_prone_percentage', 'asc') // Then by injury-prone percentage (lowest first)
                 ->get();
+
 
             if (count($availablePlayers) < 160) {
                 return response()->json([
