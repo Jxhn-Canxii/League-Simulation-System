@@ -424,20 +424,11 @@ class PlayersController extends Controller
 
         // Sort players by the combined score in descending order
         // Define role-based priority
-        $rolePriority = [
-            'star player' => 1,
-            'starter' => 2,
-            'role player' => 3,
-            'bench' => 4,
-        ];
-
-        // Sort players by role and then by points (if available)
-        usort($playerStats, function ($a, $b) use ($rolePriority) {
-            if ($rolePriority[$a['role']] === $rolePriority[$b['role']]) {
-                return $b['average_points_per_game'] <=> $a['average_points_per_game'];
-            }
-            return $rolePriority[$a['role']] <=> $rolePriority[$b['role']];
-        });
+        if (!empty($playerStats)) {
+            usort($playerStats, function ($a, $b) {
+                return $b['combined_score'] <=> $a['combined_score']; // Sort descending by combined_score
+            });
+        }
 
         return response()->json([
             'players' => $playerStats,
