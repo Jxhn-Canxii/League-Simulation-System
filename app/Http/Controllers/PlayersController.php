@@ -728,7 +728,7 @@ class PlayersController extends Controller
             'draft_order' => 0,
             'drafted_team_id' => 0,
             'is_drafted' => 0,
-            'draft_status' => 'Rookie',
+            'draft_status' => 'Undrafted',
             'is_rookie' => true,
         ]);
 
