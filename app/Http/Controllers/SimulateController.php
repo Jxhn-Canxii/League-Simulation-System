@@ -903,7 +903,7 @@ class SimulateController extends Controller
                         $stats
                     );
 
-                   $storeStats->storeplayerseasonstats($stats['team_id'], $stats['player_id']);
+                    $storeStats->storeplayerseasonstats($stats['team_id'], $stats['player_id']);
                 } catch (\Exception $e) {
                     \Log::error('Error saving player game stats:', [
                         'stats' => $stats,
@@ -1017,8 +1017,8 @@ class SimulateController extends Controller
                 ->where('status', 1)
                 ->doesntExist();
 
-            $this->updateTeamRolesBasedOnStats($gameData->home_id,$gameData->round);
-            $this->updateTeamRolesBasedOnStats($gameData->away_id,$gameData->round);
+            $this->updateTeamRolesBasedOnStats($gameData->home_id, $gameData->round);
+            $this->updateTeamRolesBasedOnStats($gameData->away_id, $gameData->round);
             $this->updateAllTeamStreaks();
             $this->updateInjuryFreeAgents($gameData->conference_id, 0);
             // $this->updateHeadToHeadResults($gameData->id);
@@ -1790,7 +1790,7 @@ class SimulateController extends Controller
                 }
             }
 
-             // Check if the player is a star player or not and adjust recovery games threshold accordingly
+            // Check if the player is a star player or not and adjust recovery games threshold accordingly
             $requiredRecoveryGames = ($player->role == 'star player') ? 30 : 15;
 
             // Check if the player's recovery games are greater than or equal to the required threshold
@@ -1800,8 +1800,8 @@ class SimulateController extends Controller
 
                 // Ensure the season is active (status = 1) before proceeding
                 if ($seasonStatus == 1) {
-                    // Add 50% chance for the player to be waived
-                    if (rand(0, 1) == 1) {
+                    // Add 20% chance for the player to be waived
+                    if (rand(1, 100) <= 20) {
                         // Insert transaction for waiving the player
                         DB::table('transactions')->insert([
                             'player_id' => $player->id,
@@ -1855,8 +1855,7 @@ class SimulateController extends Controller
                                 'status' => 'signed',
                             ]);
                         }
-                    }
-                    else {
+                    } else {
                         // Optionally log or handle the case where the player is not waived
                         \Log::info("Player " . $player->id . " was not waived due to 50% chance.");
                     }
@@ -2265,9 +2264,8 @@ class SimulateController extends Controller
                     ];
                 }));
 
-                // Sort players based on the composite score
+                // Calculate composite score and sort players
                 $rankedPlayers = $allPlayersStats->sortByDesc(function ($stat) {
-                    // Composite score for non-rookies
                     $perGameScore = $stat->avg_points_per_game * 0.3 +
                         $stat->avg_rebounds_per_game * 0.2 +
                         $stat->avg_assists_per_game * 0.2 +
@@ -2294,21 +2292,33 @@ class SimulateController extends Controller
                     return ($perGameScore + $totalScore) * $injuryFactor;
                 });
 
-                // Assign roles based on thresholds
-                foreach ($rankedPlayers as $playerStat) {
-                    $score = $playerStat->is_rookie
-                        ? $playerStat->overall_rating // Use rating for rookies
-                        : $playerStat->composite_score; // Use composite score for veterans
+                // Assign roles
+                $roles = [
+                    'star player' => 3,
+                    'starter' => 2,
+                    'role player' => 5,
+                    'bench' => 5,
+                ];
 
+                $roleCounts = [
+                    'star player' => 0,
+                    'starter' => 0,
+                    'role player' => 0,
+                    'bench' => 0,
+                ];
+
+                foreach ($rankedPlayers as $index => $playerStat) {
                     $role = 'bench'; // Default role
-                    if ($score >= 85) {
+
+                    if ($roleCounts['star player'] < $roles['star player']) {
                         $role = 'star player';
-                    } elseif ($score >= 70) {
+                    } elseif ($roleCounts['starter'] < $roles['starter']) {
                         $role = 'starter';
-                    } elseif ($score >= 55) {
+                    } elseif ($roleCounts['role player'] < $roles['role player']) {
                         $role = 'role player';
                     }
 
+                    $roleCounts[$role]++;
                     Player::where('id', $playerStat->player_id)->update(['role' => $role]);
                 }
 
@@ -2322,6 +2332,7 @@ class SimulateController extends Controller
 
         return true;
     }
+
     private function getLatestSeasonId()
     {
         // Fetch the latest season ID based on descending order of IDs
