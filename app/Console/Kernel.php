@@ -17,18 +17,49 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
+        // Tasks that run every minute
         $schedule->call(function () {
             try {
-                // Check if the latest season status is 12
-                app(AwardsController::class)->storeallplayerseasonstats();
-                app(LeadersController::class)->updateAllTimeTopStats();
-                // app(TradeController::class)->autoMultiTeamTrade();
+                // Log and execute storeallplayerseasonstats
+                try {
+                    app(AwardsController::class)->storeallplayerseasonstats();
+                    Log::info('storeallplayerseasonstats executed successfully!');
+                    logger('storeallplayerseasonstats executed successfully at: ' . now());
+                } catch (\Exception $e) {
+                    Log::error('Error in storeallplayerseasonstats: ' . $e->getMessage());
+                    logger('Error in storeallplayerseasonstats: ' . $e->getMessage());
+                }
 
-                Log::info('Scheduler ran successfully!');
+                // Log and execute updateAllTimeTopStats
+                try {
+                    app(LeadersController::class)->updateAllTimeTopStats();
+                    Log::info('updateAllTimeTopStats executed successfully!');
+                    logger('updateAllTimeTopStats executed successfully at: ' . now());
+                } catch (\Exception $e) {
+                    Log::error('Error in updateAllTimeTopStats: ' . $e->getMessage());
+                    logger('Error in updateAllTimeTopStats: ' . $e->getMessage());
+                }
+
+                // try {
+                //     $storeallseasons = app(AwardsController::class)->processAllSeasonPlayerStats();
+                //     if ($storeallseasons) {
+                //         Log::info('processAllSeasonPlayerStats executed successfully!');
+                //         logger('processAllSeasonPlayerStats executed successfully at: ' . now());
+                //     }
+                // } catch (\Exception $e) {
+                //     Log::error('Error in processAllSeasonPlayerStats: ' . $e->getMessage());
+                //     logger('Error in processAllSeasonPlayerStats: ' . $e->getMessage());
+                // }
+                // // Overall task log
+                // Log::info('Every-minute tasks ran successfully!');
+                // logger('All tasks completed successfully at: ' . now());
+
             } catch (\Exception $e) {
-                Log::error('Error running scheduler: ' . $e->getMessage());
+                Log::error('Error running every-minute tasks: ' . $e->getMessage());
+                logger('Error running tasks: ' . $e->getMessage());
             }
-        })->everyMinute(); // You can adjust the frequency to check (every minute in this example)
+        })->everyMinute();
+
     }
 
     /**
@@ -36,9 +67,8 @@ class Kernel extends ConsoleKernel
      */
     protected function commands(): void
     {
-        $this->load(__DIR__.'/Commands');
+        $this->load(__DIR__ . '/Commands');
 
         require base_path('routes/console.php');
     }
 }
-

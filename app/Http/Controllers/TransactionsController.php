@@ -312,29 +312,31 @@ class TransactionsController extends Controller
         $teamsCount = $teamsWithFewMembers->count();
 
         if ($teamsCount === 0) {
-            // Update the last season's status to 12 if there are no incomplete teams
-            DB::table('seasons')
-                ->where('id',  $seasonId)
-                ->update(['status' => 15]);
-
+            // Update the last season's status to 15 if there are no incomplete teams
             // Update player roles based on the last season's stats
-            // $update = $this->updateTeamRolesBasedOnStats();
-            $update = true;
+            $update = ($seasonId == 0) ? $this->updateTeamRolesBasedOnStatsByRating() : true;
             // $update = true;
             if ($update) {
                 // After drafting logic but before DB::commit()
+
                 if ($seasonId == 0) {
                     DB::table('players')
-                        ->where('draft_id', 0)
+                        ->where('draft_id', 1)
                         ->where('is_drafted', 0)
                         ->update([
-                            'draft_id' => 0,
+                            'draft_id' => 1,
                             'team_id' => 0,
                             'contract_years' => 0,
                             'draft_status' => 'Undrafted',
                             'is_rookie' => 1,
                         ]);
                 }
+                else{
+                    DB::table('seasons')
+                    ->where('id',  $seasonId)
+                    ->update(['status' => 15]);
+                }
+
                 return response()->json([
                     'error' => true,
                     'message' => 'All teams have signed 15 players, and roles have been updated based on last season\'s stats.',

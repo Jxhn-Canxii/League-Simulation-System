@@ -52,6 +52,15 @@ return [
     */
 
     'channels' => [
+
+        'stderr' => [
+            'driver' => 'monolog',
+            'handler' => Monolog\Handler\StreamHandler::class,
+            'with' => [
+                'stream' => 'php://stderr',
+            ],
+        ],
+
         'stack' => [
             'driver' => 'stack',
             'channels' => ['single'],

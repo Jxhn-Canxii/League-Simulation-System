@@ -1017,11 +1017,11 @@ class SimulateController extends Controller
                 ->where('status', 1)
                 ->doesntExist();
 
-            $this->updateAllTeamStreaks();
             $this->updateTeamRolesBasedOnStats($gameData->home_id,$gameData->round);
             $this->updateTeamRolesBasedOnStats($gameData->away_id,$gameData->round);
+            $this->updateAllTeamStreaks();
             $this->updateInjuryFreeAgents($gameData->conference_id, 0);
-            $this->updateHeadToHeadResults($gameData->id);
+            // $this->updateHeadToHeadResults($gameData->id);
             if ($allRoundsSimulatedForSeason) {
                 // Update the season's status to 2
                 $season = Seasons::find($currentSeasonId);
@@ -2216,7 +2216,7 @@ class SimulateController extends Controller
     {
         // Check if the round is divisible by 10
         if ($round % 10 !== 0) {
-            return; // Exit the function if the round is not divisible by 10
+            return true; // Exit the function if the round is not divisible by 10
         }
 
         $seasonId = $this->getLatestSeasonId();
