@@ -315,7 +315,7 @@ class TransactionsController extends Controller
         if ($teamsCount === 0) {
             // Update the last season's status to 15 if there are no incomplete teams
             // Update player roles based on the last season's stats
-            $update = ($seasonId == 0) ? $this->updateTeamRolesBasedOnStatsByRating() : true;
+            $update = ($seasonId == 0) ? $this->updateTeamRolesBasedOnStatsByRating() : $this->updateTeamRolesBasedOnStats();
             // $update = true;
             if ($update) {
                 // After drafting logic but before DB::commit()
