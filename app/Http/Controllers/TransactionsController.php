@@ -303,11 +303,12 @@ class TransactionsController extends Controller
             ->get();
 
         // Fetch free agents (players with team_id = 0)
-        $freeAgents = Player::where('team_id', 0)
-            ->where('is_active', 1)
-            ->orderBy("overall_rating", "desc")
-            ->get();
+        // $freeAgents = Player::where('team_id', 0)
+        //     ->where('is_active', 1)
+        //     ->orderBy("overall_rating", "desc")
+        //     ->get();
 
+        $freeAgents = $this->getFreeAgentsByCompositeScore($seasonId);
         $remainingFreeAgents = $freeAgents->count();
         $teamsCount = $teamsWithFewMembers->count();
 
@@ -382,12 +383,18 @@ class TransactionsController extends Controller
                 $team = $teamsWithFewMembers->random();
                 $playersNeeded = 15 - $team->player_count;
 
-                // Update the agent's team and contract years
-                $agent->team_id = $team->id;
-                $agent->contract_years = $this->determineContractYears($agent->role);
-                $agent->save();
+                // Determine contract years based on the agent's role
+                $contractYears = $this->determineContractYears($agent->role);
 
-                // Log the transaction
+                // Update the player's team and contract years using DB
+                DB::table('players')
+                    ->where('id', $agent->id)
+                    ->update([
+                        'team_id' => $team->id,
+                        'contract_years' => $contractYears,
+                    ]);
+
+                // Log the transaction for transfer
                 $fromTeamName = $fromTeamId ? DB::table('teams')->where('id', $fromTeamId)->value('name') : 'Free Agent';
                 $toTeamName = $team->name;
 
@@ -400,26 +407,28 @@ class TransactionsController extends Controller
                     'status' => 'transfer',
                 ]);
 
+                // Log the transaction for signing
                 DB::table('transactions')->insert([
-                  'player_id' => $agent->id,
+                    'player_id' => $agent->id,
                     'season_id' => $currentseasonId,
-                    'details' => 'Signed with ' . $toTeamName.' For contract of '. $agent->contract_years .' years',
+                    'details' => 'Signed with ' . $toTeamName . ' for contract of ' . $contractYears . ' years',
                     'from_team_id' => $fromTeamId,
                     'to_team_id' => $team->id,
                     'status' => 'signed',
                 ]);
 
+                // Special draft logic if seasonId is 0
                 if ($seasonId == 0) {
-                    DB::table('players')->where('id', $agent->id)->update([
-                        'draft_id' => 1,
-                        'draft_order' => 0,
-                        'drafted_team_id' => $team->id,
-                        'is_drafted' => 1,
-                        'draft_status' => 'Special Draft',
-                        'team_id' => $team->id
-                    ]);
+                    DB::table('players')
+                        ->where('id', $agent->id)
+                        ->update([
+                            'draft_id' => 1,
+                            'draft_order' => 0,
+                            'drafted_team_id' => $team->id,
+                            'is_drafted' => 1,
+                            'draft_status' => 'Special Draft',
+                        ]);
                 }
-
 
                 // Reduce the number of players needed for that team
                 $team->player_count++;
@@ -433,6 +442,7 @@ class TransactionsController extends Controller
 
                 $remainingFreeAgents--;
             }
+
 
             // Check for incomplete teams after assignment
             $incompleteTeams = DB::table('teams')
@@ -771,4 +781,42 @@ class TransactionsController extends Controller
         // Handle the case where no seasons are found
         throw new \Exception('No seasons found.');
     }
+    private function getFreeAgentsByCompositeScore($currentSeasonId)
+{
+    $freeAgents = DB::table('players')
+        ->leftJoin('player_season_stats', function ($join) use ($currentSeasonId) {
+            $join->on('players.id', '=', 'player_season_stats.player_id')
+                 ->where('player_season_stats.season_id', '=', $currentSeasonId);
+        })
+        ->selectRaw("
+            players.*,
+            COALESCE((
+                (
+                    player_season_stats.avg_points_per_game * 0.3 +
+                    player_season_stats.avg_rebounds_per_game * 0.2 +
+                    player_season_stats.avg_assists_per_game * 0.2 +
+                    player_season_stats.avg_steals_per_game * 0.1 +
+                    player_season_stats.avg_blocks_per_game * 0.1 -
+                    player_season_stats.avg_turnovers_per_game * 0.1 -
+                    player_season_stats.avg_fouls_per_game * 0.1
+                ) +
+                (
+                    player_season_stats.total_points * 0.2 +
+                    player_season_stats.total_rebounds * 0.2 +
+                    player_season_stats.total_assists * 0.2 +
+                    player_season_stats.total_steals * 0.15 +
+                    player_season_stats.total_blocks * 0.15 -
+                    player_season_stats.total_turnovers * 0.1 -
+                    player_season_stats.total_fouls * 0.1
+                )
+            ) * (1 - (COALESCE(players.injury_prone_percentage, 50) / 100)), players.overall_rating * 1.5) as composite_score
+        ")
+        ->where('players.team_id', 0)
+        ->where('players.is_active', 1)
+        ->orderByDesc('composite_score')
+        ->get();
+
+    return $freeAgents;
+}
+
 }
