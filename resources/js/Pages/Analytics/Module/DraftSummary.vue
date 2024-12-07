@@ -29,6 +29,7 @@
             >
                 <span class="font-bold">{{ item.active_percentage }}% </span>Active
             </div>
+
         </div>
 
     </div>

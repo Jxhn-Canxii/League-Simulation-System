@@ -1021,7 +1021,7 @@ class SimulateController extends Controller
             $this->updateTeamRolesBasedOnStats($gameData->away_id, $gameData->round);
             $this->updateAllTeamStreaks();
             $this->updateInjuryFreeAgents($gameData->conference_id, 0);
-            // $this->updateHeadToHeadResults($gameData->id);
+            $this->updateHeadToHeadResults($gameData->id);
             if ($allRoundsSimulatedForSeason) {
                 // Update the season's status to 2
                 $season = Seasons::find($currentSeasonId);
@@ -2182,7 +2182,6 @@ class SimulateController extends Controller
                         'wins' => $matchup->wins + $teamWins,
                         'losses' => $matchup->losses + $opponentWins,
                         'draws' => $matchup->draws + $draws,
-                        'updated_at' => now(),
                     ]);
             } else {
                 // If matchup does not exist, insert a new record
@@ -2193,8 +2192,6 @@ class SimulateController extends Controller
                         'wins' => $teamWins,
                         'losses' => $opponentWins,
                         'draws' => $draws,
-                        'created_at' => now(),
-                        'updated_at' => now(),
                     ]);
             }
 
