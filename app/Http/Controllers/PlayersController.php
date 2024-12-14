@@ -680,9 +680,9 @@ class PlayersController extends Controller
         $reboundingRating = $attributes['rebounding_rating'];
 
         // Randomize player role
-        $roles = ['star player', 'starter', 'role player', 'bench'];
-        $role = $roles[array_rand($roles)];
-        // $role = 'bench';
+        // $roles = ['star player', 'starter', 'role player', 'bench'];
+        // $role = $roles[array_rand($roles)];
+        $role = 'bench';
         // Modify ratings slightly based on role if needed
         switch ($role) {
             case 'star player':

@@ -408,14 +408,16 @@ class TransactionsController extends Controller
                 ]);
 
                 // Log the transaction for signing
-                DB::table('transactions')->insert([
-                    'player_id' => $agent->id,
-                    'season_id' => $currentseasonId,
-                    'details' => 'Signed with ' . $toTeamName . ' for contract of ' . $contractYears . ' years',
-                    'from_team_id' => $fromTeamId,
-                    'to_team_id' => $team->id,
-                    'status' => 'signed',
-                ]);
+                if($contractYears > 0){
+                    DB::table('transactions')->insert([
+                        'player_id' => $agent->id,
+                        'season_id' => $currentseasonId,
+                        'details' => 'Signed with ' . $toTeamName . ' for contract of ' . $contractYears . ' years',
+                        'from_team_id' => $fromTeamId,
+                        'to_team_id' => $team->id,
+                        'status' => 'signed',
+                    ]);
+                }
 
                 // Special draft logic if seasonId is 0
                 if ($seasonId == 0) {
