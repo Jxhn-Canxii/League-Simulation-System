@@ -93,6 +93,8 @@ class DraftController extends Controller
             $latestSeasonId = DB::table('standings_view')->max('season_id');
             $currentSeasonId = $latestSeasonId + 1; // Current season id for the draft
 
+            $teamCount = DB::table('teams')->count();
+            $draftPlayerCountLimit =  (float) $teamCount * 2;
             // Fetch standings for the latest season, sorted by overall rank
             $draftOrder = DB::table('standings_view')
                 ->select('team_id', 'wins', 'losses', 'overall_rank', 'team_name')
@@ -111,7 +113,7 @@ class DraftController extends Controller
                 ->get();
 
 
-            if (count($availablePlayers) < 160) {
+            if (count($availablePlayers) < $draftPlayerCountLimit) {
                 return response()->json([
                     'error' => true,
                     'message' => 'Rookies not enough for teams!',

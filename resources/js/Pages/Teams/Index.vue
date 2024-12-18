@@ -479,7 +479,7 @@ const handlePagination = (page_num) => {
 };
 const leagueDropdown = async () => {
     try {
-        const response = await axios.get("leagues/dropdown"); // Fetch data from the API endpoint
+        const response = await axios.get(route("leagues.dropdown")); // Fetch data from the API endpoint
         leagues.value = response.data; // Parse JSON response and assign it to the leagues array
     } catch (error) {
         console.error("Error fetching leagues:", error);
@@ -487,7 +487,7 @@ const leagueDropdown = async () => {
 };
 const conferenceDropdown = async (league_id) => {
     try {
-        const response = await axios.post("conferences/leagueconference",{league_id : league_id}); // Fetch data from the API endpoint
+        const response = await axios.post(route("conference.season.dropdown"),{league_id : league_id}); // Fetch data from the API endpoint
         conferences.value = response.data; // Parse JSON response and assign it to the league conference array
     } catch (error) {
         console.error("Error fetching leagues:", error);
