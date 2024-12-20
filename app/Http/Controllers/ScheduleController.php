@@ -260,7 +260,7 @@ class ScheduleController extends Controller
         } catch (\Exception $e) {
             DB::rollBack(); // Rollback all changes on error
             // Log the error for debugging
-            \Log::error('Error creating double round-robin schedule: ' . $e->getMessage());
+
             // Optionally, you can throw the exception again or return a custom error message
             throw $e;
         }
@@ -337,7 +337,7 @@ class ScheduleController extends Controller
                     $allSchedules = array_merge($allSchedules, $scheduleFirstRound);
                 } else {
                     // Handle insufficient teams (e.g., log an error, skip this conference, etc.)
-                    Log::error("Not enough teams for play-ins in conference ID: {$conferenceId}");
+
                 }
             }
         }
@@ -369,7 +369,7 @@ class ScheduleController extends Controller
                     $allSchedules = array_merge($allSchedules, $scheduleFirstRound);
                 } else {
                     // Handle insufficient teams (e.g., log an error, skip this conference, etc.)
-                    Log::error("Not enough teams for play-ins in conference ID: {$conferenceId}");
+
                 }
             }
         } else if ($round == 'play_ins_finals') {
@@ -414,11 +414,10 @@ class ScheduleController extends Controller
 
                     // Output or process the winners and losers as needed
                     // Example:
-                    \Log::info("Winner 7vs8: {$winner7vs8}, Loser 7vs8: {$loser7vs8}");
-                    \Log::info("Winner 9vs10: {$winner9vs10}, Loser 9vs10: {$loser9vs10}");
+
                 } else {
                     // Handle cases where there are no results
-                    \Log::error("Missing results for play-in games in conference ID: {$conferenceId}");
+
                 }
 
 
@@ -524,7 +523,7 @@ class ScheduleController extends Controller
 
         // Ensure there are results before accessing them
         if ($playInRound1Results->isEmpty() || $playInFinalsResults->isEmpty()) {
-            \Log::error("Missing results for play-ins in conference ID: {$conferenceId}");
+
             return [
                 'winner_of_7vs8' => null,
                 'winner_of_9vs10' => null,
