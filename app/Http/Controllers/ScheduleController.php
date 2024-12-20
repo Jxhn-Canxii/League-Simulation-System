@@ -356,10 +356,6 @@ class ScheduleController extends Controller
                     return $team->conference_rank == 9 || $team->conference_rank == 10;
                 })->pluck('team_id')->toArray();
 
-                // Filter to get only the last 2 teams out of the top 10 (based on their overall rank)
-                $playInTeams = $playInTeams->slice(-2)->pluck('team_id')->toArray();
-
-
                 // Ensure there are at least four teams for play-ins
                 if (count($playInTeams) == 2) {
                     // **First Round**: 7th vs 8th seed
