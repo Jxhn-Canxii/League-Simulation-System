@@ -23,6 +23,11 @@
                                     <th
                                         class="px-1 py-1 text-left text-gray-500 uppercase tracking-wider text-nowrap"
                                     >
+                                        #
+                                    </th>
+                                    <th
+                                        class="px-1 py-1 text-left text-gray-500 uppercase tracking-wider text-nowrap"
+                                    >
                                         Team
                                     </th>
                                     <th
@@ -64,6 +69,9 @@
                                             : 'text-bold'
                                     "
                                 >
+                                    <td class="px-1 py-1 whitespace-nowrap text-sm">
+                                        {{ team.conference_rank }}
+                                    </td>
                                     <td class="px-1 py-1 whitespace-nowrap text-sm">
                                         <button
                                             type="button"
@@ -252,6 +260,11 @@
                             <th
                                 class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-nowrap"
                             >
+                                #
+                            </th>
+                            <th
+                                class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-nowrap"
+                            >
                                 Team
                             </th>
                             <th
@@ -290,6 +303,11 @@
                                     : 'text-bold'
                             "
                         >
+                            <td
+                                class="px-2 py-2 whitespace-nowrap text-nowrap text-sm"
+                            >
+                                {{ team.conference_rank }}
+                            </td>
                             <td
                                 class="px-2 py-2 whitespace-nowrap uppercase text-sm"
                             >

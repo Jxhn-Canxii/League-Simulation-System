@@ -72,7 +72,7 @@ class ConferenceController extends Controller
             ->where('season_id', $seasonId)
             ->where('conference_id', $conferenceId)
             ->orderByDesc('wins') // Order by wins in descending order
-            ->orderByDesc('score_difference') // If wins are tied, then order by score_difference in descending order
+            ->orderBy('conference_rank','asc') // If wins are tied, then order by score_difference in descending order
             ->get();
 
         // Return the standings along with the conference name

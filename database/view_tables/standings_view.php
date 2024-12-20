@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW  standings_view AS
+CREATE OR REPLACE VIEW standings_view AS
 WITH team_games AS (
     SELECT
         teams.id AS team_id,
@@ -120,7 +120,7 @@ ranked_team_rankings AS (
         away_ppg,
         score_difference,
         season_id,
-        RANK() OVER (PARTITION BY season_id, conference_id ORDER BY wins DESC, score_difference DESC) AS conference_rank,
+        RANK() OVER (PARTITION BY season_id, conference_id ORDER BY wins DESC, score_difference DESC, home_ppg DESC, away_ppg DESC) AS conference_rank,
         RANK() OVER (PARTITION BY season_id ORDER BY wins DESC, score_difference DESC) AS overall_rank
     FROM
         team_rankings
