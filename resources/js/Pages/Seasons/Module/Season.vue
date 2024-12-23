@@ -140,22 +140,22 @@
                                             </span>
 
                                             <!-- Finals Appearances -->
-                                            <span
+                                            <!-- <span
                                                 v-if="team.finals_appearances > 0"
                                                 class="flex items-center justify-center w-5 h-5 bg-green-300 text-black text-xs rounded-full"
                                                 title="National Finals Appearance"
                                             >
                                                 {{ team.finals_appearances }}
-                                            </span>
+                                            </span> -->
 
                                             <!-- Conference Finals Appearances (Runner-up) -->
-                                            <span
+                                            <!-- <span
                                                 v-if="team.conference_finals_appearances > 0"
                                                 class="flex items-center justify-center w-5 h-5 bg-orange-500 text-black text-xs rounded-full"
                                                 title="Conference Finals Apperance"
                                             >
                                                 {{ team.conference_finals_appearances }}
-                                            </span>
+                                            </span> -->
                                         </div>
 
                                     </td>
@@ -184,7 +184,7 @@
                     </div> -->
                 </div>
 
-                <div class="block md:col-span-2 ml-10 pl-2">
+                <div class="block md:col-span-2 ml-10 pl-10">
                     <GameResults v-if="activeGameId != 0" :key="activeGameId" :game_id="activeGameId" :showBoxScore="false" />
                     <p v-else class="text-red-500 font-bold">No games available!</p>
                     <!-- <SeasonTimeLine :key="topPlayersKey" :isConference="activeConferenceTab" /> -->
