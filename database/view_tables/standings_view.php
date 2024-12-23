@@ -200,7 +200,7 @@ conference_championships AS (
     JOIN
         schedules ON teams.id = schedules.home_id OR teams.id = schedules.away_id
     WHERE
-        schedules.round = 'interconference_semi_finals' AND
+        schedules.round = 'semi_finals' AND
         ((schedules.home_score > schedules.away_score AND schedules.home_id = teams.id) OR
          (schedules.away_score > schedules.home_score AND schedules.away_id = teams.id))
     GROUP BY
