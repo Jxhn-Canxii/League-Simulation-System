@@ -143,7 +143,7 @@
                                             <span
                                                 v-if="team.finals_appearances > 0"
                                                 class="flex items-center justify-center w-5 h-5 bg-green-300 text-black text-xs rounded-full"
-                                                title="Finals Runner Up"
+                                                title="National Finals Appearance"
                                             >
                                                 {{ team.finals_appearances }}
                                             </span>
@@ -152,7 +152,7 @@
                                             <span
                                                 v-if="team.conference_finals_appearances > 0"
                                                 class="flex items-center justify-center w-5 h-5 bg-orange-500 text-black text-xs rounded-full"
-                                                title="Conference Finals Runner Up"
+                                                title="Conference Finals Apperance"
                                             >
                                                 {{ team.conference_finals_appearances }}
                                             </span>
@@ -400,7 +400,7 @@
                                     <span
                                         v-if="team.finals_appearances > 0"
                                         class="flex items-center justify-center w-5 h-5 bg-green-300 text-black text-xs rounded-full"
-                                        title="Finals Runner Up"
+                                        title="National Finals Appearance"
                                     >
                                         {{ team.finals_appearances }}
                                     </span>
@@ -409,7 +409,7 @@
                                     <span
                                         v-if="team.conference_finals_appearances > 0"
                                         class="flex items-center justify-center w-5 h-5 bg-orange-500 text-black text-xs rounded-full"
-                                        title="Conference Finals Runner Up"
+                                        title="Conference Finals Apperance"
                                     >
                                         {{ team.conference_finals_appearances }}
                                     </span>
