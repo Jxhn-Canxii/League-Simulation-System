@@ -184,7 +184,7 @@
                     </div> -->
                 </div>
 
-                <div class="block md:col-span-2">
+                <div class="block md:col-span-2 ml-10 pl-2">
                     <GameResults v-if="activeGameId != 0" :key="activeGameId" :game_id="activeGameId" :showBoxScore="false" />
                     <p v-else class="text-red-500 font-bold">No games available!</p>
                     <!-- <SeasonTimeLine :key="topPlayersKey" :isConference="activeConferenceTab" /> -->
