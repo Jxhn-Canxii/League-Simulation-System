@@ -161,10 +161,10 @@ finals_appearances AS (
     GROUP BY
         teams.id
 ),
-conference_championships AS (
+conference_finals_appearances AS (
     SELECT
         teams.id AS team_id,
-        COUNT(DISTINCT schedules.season_id) AS championships
+        COUNT(DISTINCT schedules.season_id) AS conference_finals_appearance
     FROM
         teams
     JOIN
@@ -190,11 +190,27 @@ championships AS (
          (schedules.away_score > schedules.home_score AND schedules.away_id = teams.id))
     GROUP BY
         teams.id
+),
+conference_championships AS (
+    SELECT
+        teams.id AS team_id,
+        COUNT(DISTINCT schedules.season_id) AS championships
+    FROM
+        teams
+    JOIN
+        schedules ON teams.id = schedules.home_id OR teams.id = schedules.away_id
+    WHERE
+        schedules.round = 'interconference_semi_finals' AND
+        ((schedules.home_score > schedules.away_score AND schedules.home_id = teams.id) OR
+         (schedules.away_score > schedules.home_score AND schedules.away_id = teams.id))
+    GROUP BY
+        teams.id
 )
 SELECT
     standings.*,
     COALESCE(playoff_appearances.playoff_appearances, 0) AS playoff_appearances,
     COALESCE(finals_appearances.finals_appearances, 0) AS finals_appearances,
+    COALESCE(conference_finals_appearances.conference_finals_appearance, 0) AS conference_finals_appearances,
     COALESCE(conference_championships.championships, 0) AS conference_championships,
     COALESCE(championships.championships, 0) AS championships,
     CASE
@@ -222,6 +238,8 @@ LEFT JOIN
     finals_appearances ON standings.team_id = finals_appearances.team_id
 LEFT JOIN
     conference_championships ON standings.team_id = conference_championships.team_id
+LEFT JOIN
+    conference_finals_appearances ON standings.team_id = conference_finals_appearances.team_id
 LEFT JOIN
     championships ON standings.team_id = championships.team_id
 LEFT JOIN

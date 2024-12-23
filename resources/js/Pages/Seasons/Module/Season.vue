@@ -103,29 +103,40 @@
                                     </td>
                                     <td class="px-1 py-1 whitespace-nowrap text-sm">
                                         <div class="flex space-x-1">
-                                            <!-- <span
-                                            v-if="team.conference_1_rank > 0"
-                                            class="flex items-center justify-center w-5 h-5 bg-red-500 text-black text-xs rounded-full"
-                                            title="#1 Conference Rank"
-                                        >
-                                            {{ team.conference_1_rank }}
-                                        </span>
-                                        <span
-                                            v-if="team.overall_1_rank > 0"
-                                            class="flex items-center justify-center w-5 h-5 bg-purple-500 text-black text-xs rounded-full"
-                                            title="#1 Overall Rank"
-                                        >
-                                            {{ team.overall_1_rank }}
-                                        </span> -->
-                                            <!-- <span
-                                                v-if="
-                                                    team.conference_championships >
-                                                    0
-                                                "
+                                            <span
+                                                v-if="team.conference_1_rank > 0"
+                                                class="flex items-center justify-center w-5 h-5 bg-red-500 text-black text-sm rounded-full"
+                                                title="#1 Conference Rank"
+                                            >
+                                                {{ team.conference_1_rank }}
+                                            </span>
+                                            <span
+                                                v-if="team.overall_1_rank > 0"
+                                                class="flex items-center justify-center w-5 h-5 bg-purple-500 text-black text-sm rounded-full"
+                                                title="#1 Overall Rank"
+                                            >
+                                                {{ team.overall_1_rank }}
+                                            </span>
+                                            <span
+                                                v-if="team.conference_championships > 0"
                                                 class="flex items-center justify-center w-5 h-5 bg-yellow-500 text-black text-xs rounded-full"
                                                 title="Conference Championships"
                                             >
                                                 {{ team.conference_championships }}
+                                            </span>
+                                            <span
+                                                v-if="team.conference_finals_appearances > 0"
+                                                class="flex items-center justify-center w-5 h-5 bg-yellow-600 text-black text-xs rounded-full"
+                                                title="Conference Runner Up"
+                                            >
+                                                {{ team.conference_finals_appearances }}
+                                            </span>
+                                            <span
+                                                v-if="team.championships > 0"
+                                                class="flex items-center justify-center w-5 h-5 bg-red-500 text-black text-xs rounded-full"
+                                                title="Championships"
+                                            >
+                                                {{ team.championships }}
                                             </span>
                                             <span
                                                 v-if="team.finals_appearances > 0"
@@ -133,13 +144,6 @@
                                                 title="Finals Appearances"
                                             >
                                                 {{ team.finals_appearances }}
-                                            </span> -->
-                                            <span
-                                                v-if="team.championships > 0"
-                                                class="flex items-center justify-center w-5 h-5 bg-red-500 text-black text-xs rounded-full"
-                                                title="Championships"
-                                            >
-                                                {{ team.championships }}
                                             </span>
                                         </div>
                                     </td>
@@ -344,20 +348,20 @@
                             </td>
                             <td class="px-2 py-2 whitespace-nowrap text-sm">
                                 <div class="flex space-x-1">
-                                    <!-- <span
+                                    <span
                                         v-if="team.conference_1_rank > 0"
-                                        class="flex items-center justify-center w-6 h-6 bg-red-500 text-black text-sm rounded-full"
+                                        class="flex items-center justify-center w-5 h-5 bg-red-500 text-black text-sm rounded-full"
                                         title="#1 Conference Rank"
                                     >
                                         {{ team.conference_1_rank }}
                                     </span>
                                     <span
                                         v-if="team.overall_1_rank > 0"
-                                        class="flex items-center justify-center w-6 h-6 bg-purple-500 text-black text-sm rounded-full"
+                                        class="flex items-center justify-center w-5 h-5 bg-purple-500 text-black text-sm rounded-full"
                                         title="#1 Overall Rank"
                                     >
                                         {{ team.overall_1_rank }}
-                                    </span> -->
+                                    </span>
                                     <span
                                         v-if="team.conference_championships > 0"
                                         class="flex items-center justify-center w-5 h-5 bg-yellow-500 text-black text-xs rounded-full"
@@ -366,11 +370,11 @@
                                         {{ team.conference_championships }}
                                     </span>
                                     <span
-                                        v-if="team.finals_appearances > 0"
-                                        class="flex items-center justify-center w-5 h-5 bg-green-500 text-black text-xs rounded-full"
-                                        title="Finals Appearances"
+                                        v-if="team.conference_finals_appearances > 0"
+                                        class="flex items-center justify-center w-5 h-5 bg-yellow-600 text-black text-xs rounded-full"
+                                        title="Conference Runner Up"
                                     >
-                                        {{ team.finals_appearances }}
+                                        {{ team.conference_finals_appearances }}
                                     </span>
                                     <span
                                         v-if="team.championships > 0"
@@ -378,6 +382,13 @@
                                         title="Championships"
                                     >
                                         {{ team.championships }}
+                                    </span>
+                                    <span
+                                        v-if="team.finals_appearances > 0"
+                                        class="flex items-center justify-center w-5 h-5 bg-green-500 text-black text-xs rounded-full"
+                                        title="Finals Appearances"
+                                    >
+                                        {{ team.finals_appearances }}
                                     </span>
                                 </div>
                             </td>
