@@ -107,7 +107,7 @@
                                             <span
                                                 v-if="team.championships > 0"
                                                 class="flex items-center justify-center w-5 h-5 bg-yellow-600 text-black text-xs rounded-full"
-                                                title="Championships"
+                                                title="National Championships"
                                             >
                                                 {{ team.championships }}
                                             </span>
@@ -364,7 +364,7 @@
                                     <span
                                         v-if="team.championships > 0"
                                         class="flex items-center justify-center w-5 h-5 bg-yellow-600 text-black text-xs rounded-full"
-                                        title="Championships"
+                                        title="National Championships"
                                     >
                                         {{ team.championships }}
                                     </span>
