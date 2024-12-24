@@ -608,12 +608,7 @@
                     </div>
                     <div class="flex justify-center">
                         <sup class="float-center font-bold mt-2 text-red-500">
-                            {{ bestPlayer.draft_status == 'Undrafted' ? 'S'+bestPlayer.draft_id+' '+bestPlayer.draft_status : bestPlayer.draft_status}}
-                            {{
-                                bestPlayer.drafted_team_acro
-                                    ? `(${bestPlayer.drafted_team_acro})`
-                                    : ""
-                            }}
+                            {{ bestPlayer.draft_status == 'Undrafted' ? 'S'+bestPlayer.draft_id+' '+bestPlayer.draft_status : bestPlayer.draft_status + (bestPlayer.drafted_team_acro ? ' ('+bestPlayer.drafted_team_acro+ ')' : '')}}
                         </sup>
                     </div>
                 </div>

@@ -161,7 +161,7 @@
                             {{ index + 1 }}
                         </td>
                         <td class="px-2 py-1 whitespace-nowrap border" :title="'Draft class: '+player.draft_class">
-                            {{ player.draft_status }} {{ player.drafted_team ? '('+player.drafted_team+ ')' : ''}}
+                            {{ player.draft_status == 'Undrafted' ? 'S'+player.draft_id+' '+player.draft_status : player.draft_status + (player.drafted_team ? ' ('+player.drafted_team+ ')' : '')}}
                         </td>
                         <td class="px-2 py-1 whitespace-nowrap border">
                             {{ player.name }}<sup>{{ player.is_rookie ? 'R':'V'}}</sup>
@@ -368,8 +368,8 @@ watch(
 
 onMounted(() => {
     seasonsDropdown();
-    fetchTeamRoster(props.team_id);
     fetchTeamInfo(props.team_id);
+    fetchTeamRoster(props.team_id);
 });
 
 const fetchTeamInfo = async (id) => {

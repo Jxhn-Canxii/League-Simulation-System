@@ -151,7 +151,7 @@
                                 class="hover:bg-gray-100"
                             >
                                 <td class="px-2 py-1 whitespace-nowrap border">
-                                    {{ player.draft_status }} {{ player.drafted_team ? '('+player.drafted_team+ ')' : ''}}
+                                    {{ player.draft_status == 'Undrafted' ? 'S'+player.draft_id+' '+player.draft_status : player.draft_status + (player.drafted_team ? ' ('+player.drafted_team+ ')' : '')}}
                                 </td>
                                 <td class="px-2 py-1 whitespace-nowrap border">
                                     <span>
