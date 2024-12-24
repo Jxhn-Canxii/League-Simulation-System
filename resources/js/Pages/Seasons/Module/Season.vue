@@ -152,7 +152,7 @@
                                             <span
                                                 v-if="team.conference_finals_appearances > 0"
                                                 class="flex items-center justify-center w-5 h-5 bg-orange-500 text-black text-xs rounded-full"
-                                                title="Conference Finals Apperance"
+                                                title="Conference Finals Appearance"
                                             >
                                                 {{ team.conference_finals_appearances }}
                                             </span>
@@ -409,7 +409,7 @@
                                     <span
                                         v-if="team.conference_finals_appearances > 0"
                                         class="flex items-center justify-center w-5 h-5 bg-orange-500 text-black text-xs rounded-full"
-                                        title="Conference Finals Apperance"
+                                        title="Conference Finals Appearance"
                                     >
                                         {{ team.conference_finals_appearances }}
                                     </span>
