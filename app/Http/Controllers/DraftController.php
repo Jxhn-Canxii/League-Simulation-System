@@ -130,7 +130,11 @@ class DraftController extends Controller
                     // Determine the round and pick number
                     $round = 1;
                     $draftStatus = "S{$currentSeasonId} R{$round} P{$pickNumber}";
+
                     $contract = $this->determineContractYears($selectedPlayer->role);
+                    if($pickNumber <= 10){
+                        $contract = rand(3,7);
+                    }
 
                     // Check if the team already has 15 members
                     $teamsWithFewMembers = DB::table('teams')
