@@ -401,6 +401,7 @@ class PlayersController extends Controller
                         'is_rookie' => $player->is_rookie,
                         'contract_years' => $player->contract_years,
                         'retirement_age' => $player->retirement_age,
+                        'draft_id' => $player->draft_id,
                         'drafted_team' => $player->drafted_team,
                         'draft_status' => $player->draft_status,
                         'draft_class' => $player->draft_class,
