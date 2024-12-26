@@ -631,6 +631,10 @@ class ScheduleController extends Controller
             case 'interconference_semi_finals':
                 // Pair the winners of semi-finals for finals
                 $winners = self::getWinnersOfRound('semi_finals', $seasonId, $conferenceId);
+
+                // Shuffle the winners array to randomize the order
+                shuffle($winners);
+
                 $pairings = self::pairTeams($winners, 4);
                 break;
             case 'finals':
