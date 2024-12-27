@@ -251,7 +251,7 @@ class RatingsController extends Controller
                 $injury = DB::table('injured_players_view')
                     ->where('player_id', $player->id)
                     ->where('season_id', $seasonId)
-                    ->where('status', 'active') // Check if the injury is still ongoing
+                    ->where('status', 'Injured') // Check if the injury is still ongoing
                     ->first();
 
                 if ($injury) {
