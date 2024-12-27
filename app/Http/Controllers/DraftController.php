@@ -131,9 +131,10 @@ class DraftController extends Controller
                     $round = 1;
                     $draftStatus = "S{$currentSeasonId} R{$round} P{$pickNumber}";
 
-                    $contract = $this->determineContractYears($selectedPlayer->role);
+                    // $contract = $this->determineContractYears($selectedPlayer->role);
+                    $contract = rand(1,2);
                     if($pickNumber <= 10){
-                        $contract = rand(3,7);
+                        $contract = rand(2,4);
                     }
 
                     // Check if the team already has 15 members
@@ -229,7 +230,8 @@ class DraftController extends Controller
                     // Determine the round and pick number
                     $round = 2;
                     $draftStatus = "S{$currentSeasonId} R{$round} P{$pickNumberTwo}";
-                    $contract = $this->determineContractYears($selectedPlayer->role);
+                    // $contract = $this->determineContractYears($selectedPlayer->role);
+                    $contract = rand(1,2);
 
                     // Check if the team already has 15 members
                     $teamsWithFewMembers = DB::table('teams')
