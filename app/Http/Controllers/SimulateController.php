@@ -2281,11 +2281,6 @@ class SimulateController extends Controller
 
                     $injuryFactor = 1 - ($stat->injury_prone_percentage / 100);
 
-                    // Handle rookies
-                    if ($stat->is_rookie) {
-                        return $stat->overall_rating * 1.5; // Weight rookie's rating higher
-                    }
-
                     return ($perGameScore + $totalScore) * $injuryFactor;
                 });
 

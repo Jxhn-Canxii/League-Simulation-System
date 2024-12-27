@@ -89,7 +89,7 @@ class RatingsController extends Controller
 
                     // Adjust for role: Apply a modifier based on player role
                     $roleModifier = 1;
-                    if ($stat->role === 'star') {
+                    if ($stat->role === 'star player') {
                         $roleModifier = 1.2;  // Star players get a boost
                     } else if ($stat->role === 'starter') {
                         $roleModifier = 1.1;  // Starters get a smaller boost
