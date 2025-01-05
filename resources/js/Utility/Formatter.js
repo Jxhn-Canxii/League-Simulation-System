@@ -311,7 +311,7 @@ export const playerFormatter = (name) => {
     const surName = nameParts[nameParts.length - 1];
 
     // Define a maximum length for the surname
-    const maxnameLength = 13; // You can adjust this value as needed
+    const maxnameLength = 7; // You can adjust this value as needed
 
     // Check if the name is too long
     if (name.length > maxnameLength) {
