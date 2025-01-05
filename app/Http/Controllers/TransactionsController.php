@@ -726,6 +726,7 @@ class TransactionsController extends Controller
             ")
             ->where('players.team_id', 0)  // Ensure the player is a free agent
             ->where('players.is_active', 1)  // Ensure the player is active
+            ->where('players.is_injured', 0)      // Ensure player is not injured
             ->orderByDesc('total_score')  // Order by total score (composite score + MVP bonus)
             ->get();
 

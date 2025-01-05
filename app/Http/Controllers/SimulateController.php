@@ -1917,6 +1917,7 @@ class SimulateController extends Controller
             )
             ->where('players.contract_years', 0)  // Filter for players with no contract
             ->where('players.is_active', 1)      // Ensure player is active
+            ->where('players.is_injured', 0)      // Ensure player is active
             ->leftJoin('teams', 'players.drafted_team_id', '=', 'teams.id')  // Join teams on players.drafted_team_id
             ->orderByRaw("
                 LENGTH(awards) DESC,  // Prioritize players with more awards
