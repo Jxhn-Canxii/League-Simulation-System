@@ -1821,7 +1821,7 @@ class SimulateController extends Controller
                         ]);
 
                         // Try to find a random player with the same role
-                        $bestFreeAgentAvailable = $this->getBestFreeAgent($player->role);
+                        $bestFreeAgentAvailable = $this->getBestFreeAgent();
                         // If no player with the same role is found, fallback to any free agent
                         if (!$bestFreeAgentAvailable) {
                             $bestFreeAgentAvailable = DB::table('players')
@@ -1905,28 +1905,29 @@ class SimulateController extends Controller
             ]);
     }
 
-    private function getBestFreeAgent($role)
+    private function getBestFreeAgent()
     {
-        $freeAgent = $player = Player::select(
-            'players.*',
-            'teams.acronym as drafted_team',
-            DB::raw("(SELECT GROUP_CONCAT(CONCAT(award_name, ' (Season ', season_id, ')') SEPARATOR ', ') FROM season_awards WHERE season_awards.player_id = players.id) as awards"),
-            DB::raw("(SELECT CONCAT('Finals MVP (Season ', seasons.id, ')') FROM seasons WHERE seasons.finals_mvp_id = players.id LIMIT 1) as finals_mvp"),
-            DB::raw("CASE WHEN players.id = (SELECT finals_mvp_id FROM seasons WHERE seasons.finals_mvp_id = players.id) THEN 1 ELSE 0 END as is_finals_mvp"),
-            DB::raw("(SELECT GROUP_CONCAT(seasons.name SEPARATOR ', ') FROM seasons WHERE seasons.finals_mvp_id = players.id) as finals_mvp_seasons")
-        )
-        ->where('players.contract_years', 0)  // Filter for players with no contract
-        ->where('players.is_active', 1)      // Ensure player is active
-        ->leftJoin('teams', 'players.drafted_team_id', '=', 'teams.id')  // Join teams on players.drafted_team_id
-        // ->where('players.role', $role)  // Filter based on the $role (e.g., 'star player', 'starter')
-        ->orderByRaw("
-            LENGTH(awards) DESC,  // Prioritize players with more awards
-            is_finals_mvp DESC,   // Prioritize Finals MVPs
-        ")
-        ->first();  // Get the first player matching the criteria
+        $freeAgent = Player::select(
+                'players.*',
+                'teams.acronym as drafted_team',
+                DB::raw("(SELECT GROUP_CONCAT(CONCAT(award_name, ' (Season ', season_id, ')') SEPARATOR ', ') FROM season_awards WHERE season_awards.player_id = players.id) as awards"),
+                DB::raw("(SELECT CONCAT('Finals MVP (Season ', seasons.id, ')') FROM seasons WHERE seasons.finals_mvp_id = players.id LIMIT 1) as finals_mvp"),
+                DB::raw("IF(EXISTS(SELECT 1 FROM seasons WHERE seasons.finals_mvp_id = players.id), 1, 0) as is_finals_mvp"), // Check if player is finals MVP
+                DB::raw("(SELECT GROUP_CONCAT(seasons.name SEPARATOR ', ') FROM seasons WHERE seasons.finals_mvp_id = players.id) as finals_mvp_seasons")
+            )
+            ->where('players.contract_years', 0)  // Filter for players with no contract
+            ->where('players.is_active', 1)      // Ensure player is active
+            ->leftJoin('teams', 'players.drafted_team_id', '=', 'teams.id')  // Join teams on players.drafted_team_id
+            ->orderByRaw("
+                LENGTH(awards) DESC,  // Prioritize players with more awards
+                is_finals_mvp DESC  // Prioritize Finals MVPs
+            ")
+            ->first();  // Get the first player matching the criteria
 
         return $freeAgent;
     }
+
+
     private function getContractYearsBasedOnRole($role)
     {
         switch ($role) {

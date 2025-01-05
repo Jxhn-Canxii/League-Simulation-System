@@ -31,7 +31,7 @@ class TransactionsController extends Controller
             ->leftJoin('teams as award_team', 'award_team.id', '=', 'sa.team_id') // Join teams for the awards
             ->leftJoin('player_season_stats as ps', function ($join) {
                 $join->on('ps.player_id', '=', 't.player_id')
-                     ->on('ps.season_id', '=', 't.season_id');
+                    ->on('ps.season_id', '=', 't.season_id');
             })
             ->select(
                 't.id',
@@ -92,7 +92,7 @@ class TransactionsController extends Controller
         if ($teamId) {
             $query->where(function ($subQuery) use ($teamId) {
                 $subQuery->where('t.from_team_id', $teamId)
-                         ->orWhere('t.to_team_id', $teamId);
+                    ->orWhere('t.to_team_id', $teamId);
             });
         }
 
@@ -134,7 +134,7 @@ class TransactionsController extends Controller
                 ->where('player_game_stats.player_id',  $playerId)
                 ->where('schedules.round', 'finals')
                 ->whereColumn('seasons.id', 'player_game_stats.season_id')
-                ->whereExists(function ($query) use ( $playerId) {
+                ->whereExists(function ($query) use ($playerId) {
                     $query->select(\DB::raw(1))
                         ->from('schedules as s')
                         ->join('player_game_stats as pg', 's.game_id', '=', 'pg.game_id')
@@ -147,16 +147,16 @@ class TransactionsController extends Controller
                                 $q->whereColumn('s.home_id', 'player_game_stats.team_id')
                                     ->whereColumn('s.home_score', '>', 's.away_score');
                             })
-                            ->orWhere(function ($q) {
-                                $q->whereColumn('s.away_id', 'player_game_stats.team_id')
-                                    ->whereColumn('s.away_score', '>', 's.home_score');
-                            });
+                                ->orWhere(function ($q) {
+                                    $q->whereColumn('s.away_id', 'player_game_stats.team_id')
+                                        ->whereColumn('s.away_score', '>', 's.home_score');
+                                });
                         });
                 })
                 ->groupBy('seasons.id', 'teams.name', 'seasons.name') // Group by season_id, championship team and season name
                 ->get();
 
-                    // Convert the championships to a comma-separated string
+            // Convert the championships to a comma-separated string
             $championshipsFormatted = $championships->map(function ($championship) {
                 return "{$championship->championship_season} Champion ({$championship->championship_team})";
             })->implode(', ');
@@ -331,11 +331,10 @@ class TransactionsController extends Controller
                             'draft_status' => 'Undrafted',
                             'is_rookie' => 1,
                         ]);
-                }
-                else{
+                } else {
                     DB::table('seasons')
-                    ->where('id',  $seasonId)
-                    ->update(['status' => 15]);
+                        ->where('id',  $seasonId)
+                        ->update(['status' => 15]);
                 }
 
                 return response()->json([
@@ -408,7 +407,7 @@ class TransactionsController extends Controller
                 ]);
 
                 // Log the transaction for signing
-                if($contractYears > 0){
+                if ($contractYears > 0) {
                     DB::table('transactions')->insert([
                         'player_id' => $agent->id,
                         'season_id' => $currentseasonId,
@@ -666,17 +665,16 @@ class TransactionsController extends Controller
         $freeAgents = DB::table('players')
             ->leftJoin('player_season_stats', function ($join) use ($currentSeasonId) {
                 $join->on('players.id', '=', 'player_season_stats.player_id')
-                     ->where('player_season_stats.season_id', '=', $currentSeasonId);
+                    ->where('player_season_stats.season_id', '=', $currentSeasonId);
             })
-            // Join with season_awards to get the awards
-            ->leftJoin('season_awards', 'players.id', '=', 'season_awards.player_id')
             // Join with seasons to check for finals MVP
             ->leftJoin('seasons', function ($join) use ($currentSeasonId) {
                 $join->on('seasons.id', '=', DB::raw("{$currentSeasonId}"))
-                     ->whereRaw('seasons.finals_mvp_id = players.id');
+                    ->whereRaw('seasons.finals_mvp_id = players.id');
             })
             ->selectRaw("
                 players.*,
+                -- Calculate composite score (just once)
                 COALESCE((
                     (
                         player_season_stats.avg_points_per_game * 0.3 +
@@ -697,45 +695,41 @@ class TransactionsController extends Controller
                         player_season_stats.total_fouls * 0.1
                     )
                 ) * (1 - (COALESCE(players.injury_prone_percentage, 50) / 100)), players.overall_rating * 1.5) as composite_score,
-                -- Include awards in the composite score
-                COALESCE(season_awards.award_points, 0) as award_points,
-                -- Check for Finals MVP and add bonus to composite score
+
+                -- Add finals MVP bonus
                 CASE WHEN seasons.finals_mvp_id = players.id THEN 50 ELSE 0 END as finals_mvp_bonus,
-                -- Compute total score by summing composite score, award points, and finals MVP bonus
-                (
-                    COALESCE((
-                        (
-                            player_season_stats.avg_points_per_game * 0.3 +
-                            player_season_stats.avg_rebounds_per_game * 0.2 +
-                            player_season_stats.avg_assists_per_game * 0.2 +
-                            player_season_stats.avg_steals_per_game * 0.1 +
-                            player_season_stats.avg_blocks_per_game * 0.1 -
-                            player_season_stats.avg_turnovers_per_game * 0.1 -
-                            player_season_stats.avg_fouls_per_game * 0.1
-                        ) +
-                        (
-                            player_season_stats.total_points * 0.2 +
-                            player_season_stats.total_rebounds * 0.2 +
-                            player_season_stats.total_assists * 0.2 +
-                            player_season_stats.total_steals * 0.15 +
-                            player_season_stats.total_blocks * 0.15 -
-                            player_season_stats.total_turnovers * 0.1 -
-                            player_season_stats.total_fouls * 0.1
-                        )
-                    ) * (1 - (COALESCE(players.injury_prone_percentage, 50) / 100)), players.overall_rating * 1.5)
-                    +
-                    COALESCE(season_awards.award_points, 0)
-                    +
-                    CASE WHEN seasons.finals_mvp_id = players.id THEN 50 ELSE 0 END
-                ) as total_score
+
+                -- Compute total score by summing composite score and finals MVP bonus
+                COALESCE((
+                    (
+                        player_season_stats.avg_points_per_game * 0.3 +
+                        player_season_stats.avg_rebounds_per_game * 0.2 +
+                        player_season_stats.avg_assists_per_game * 0.2 +
+                        player_season_stats.avg_steals_per_game * 0.1 +
+                        player_season_stats.avg_blocks_per_game * 0.1 -
+                        player_season_stats.avg_turnovers_per_game * 0.1 -
+                        player_season_stats.avg_fouls_per_game * 0.1
+                    ) +
+                    (
+                        player_season_stats.total_points * 0.2 +
+                        player_season_stats.total_rebounds * 0.2 +
+                        player_season_stats.total_assists * 0.2 +
+                        player_season_stats.total_steals * 0.15 +
+                        player_season_stats.total_blocks * 0.15 -
+                        player_season_stats.total_turnovers * 0.1 -
+                        player_season_stats.total_fouls * 0.1
+                    )
+                ) * (1 - (COALESCE(players.injury_prone_percentage, 50) / 100)), players.overall_rating * 1.5)
+                +
+                CASE WHEN seasons.finals_mvp_id = players.id THEN 50 ELSE 0 END
+                AS total_score
             ")
-            ->where('players.team_id', 0)
-            ->where('players.is_active', 1)
-            ->orderByDesc('total_score')  // Order by the total of composite score, award points, and finals MVP bonus
+            ->where('players.team_id', 0)  // Ensure the player is a free agent
+            ->where('players.is_active', 1)  // Ensure the player is active
+            ->orderByDesc('total_score')  // Order by total score (composite score + MVP bonus)
             ->get();
 
         return $freeAgents;
     }
-
 
 }

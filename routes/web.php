@@ -181,6 +181,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('transactions/')->group(function(){
         Route::post('assign-team-free-agents', [TransactionsController::class, 'assignplayertorandomteam'])->name('assign.freeagent.teams');
         Route::post('auto-assign-team-free-agents', [TransactionsController::class, 'assignremainingfreeagents'])->name('auto.assign.freeagent.teams');
+        Route::get('override-assign-team-free-agents', [TransactionsController::class, 'assignremainingfreeagents'])->name('override.auto.assign.freeagent.teams');
         Route::post('waive-player', [TransactionsController::class, 'waiveplayer'])->name('players.waive');
         Route::post('extend-contract-player', [TransactionsController::class, 'extendcontract'])->name('players.contract.extend');
         Route::post('player-transactions', [TransactionsController::class, 'gettransactions'])->name('players.transactions');
