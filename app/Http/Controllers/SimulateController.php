@@ -1821,33 +1821,26 @@ class SimulateController extends Controller
                         ]);
 
                         // Try to find a random player with the same role
-                        $randomPlayer = DB::table('players')
-                            ->where('is_active', 1)
-                            ->where('is_injured', 0)   // Make sure the player is not injured
-                            ->where('team_id', 0)       // Ensure the player has no team
-                            ->where('role', $player->role) // Ensure the player has the same role
-                            ->inRandomOrder()
-                            ->first();
-
+                        $bestFreeAgentAvailable = $this->getBestFreeAgent($player->role);
                         // If no player with the same role is found, fallback to any free agent
-                        if (!$randomPlayer) {
-                            $randomPlayer = DB::table('players')
+                        if (!$bestFreeAgentAvailable) {
+                            $bestFreeAgentAvailable = DB::table('players')
                                 ->where('is_active', 1)
                                 ->where('is_injured', 0)
                                 ->where('team_id', 0)
                                 ->inRandomOrder()
                                 ->first();
                         }
-                        if ($randomPlayer) {
+                        if ($bestFreeAgentAvailable) {
                             $freeAgentStandardContract = $this->getContractYearsBasedOnRole($player->role);
                             // Update the new player with the appropriate contract role
-                            DB::table('players')->where('id', $randomPlayer->id)->update([
+                            DB::table('players')->where('id', $$bestFreeAgentAvailable->id)->update([
                                 'team_id' => $player->team_id,
                                 'contract_years' => $freeAgentStandardContract, // Assign a random contract length
                             ]);
 
                             DB::table('transactions')->insert([
-                                'player_id' => $randomPlayer->id,
+                                'player_id' => $$bestFreeAgentAvailable->id,
                                 'season_id' => $seasonId,
                                 'details' => 'Signed as free agent to replace injured player. Contract Years: ' . $freeAgentStandardContract,
                                 'from_team_id' => 0, // From free agent pool
@@ -1912,7 +1905,28 @@ class SimulateController extends Controller
             ]);
     }
 
+    private function getBestFreeAgent($role)
+    {
+        $freeAgent = $player = Player::select(
+            'players.*',
+            'teams.acronym as drafted_team',
+            DB::raw("(SELECT GROUP_CONCAT(CONCAT(award_name, ' (Season ', season_id, ')') SEPARATOR ', ') FROM season_awards WHERE season_awards.player_id = players.id) as awards"),
+            DB::raw("(SELECT CONCAT('Finals MVP (Season ', seasons.id, ')') FROM seasons WHERE seasons.finals_mvp_id = players.id LIMIT 1) as finals_mvp"),
+            DB::raw("CASE WHEN players.id = (SELECT finals_mvp_id FROM seasons WHERE seasons.finals_mvp_id = players.id) THEN 1 ELSE 0 END as is_finals_mvp"),
+            DB::raw("(SELECT GROUP_CONCAT(seasons.name SEPARATOR ', ') FROM seasons WHERE seasons.finals_mvp_id = players.id) as finals_mvp_seasons")
+        )
+        ->where('players.contract_years', 0)  // Filter for players with no contract
+        ->where('players.is_active', 1)      // Ensure player is active
+        ->leftJoin('teams', 'players.drafted_team_id', '=', 'teams.id')  // Join teams on players.drafted_team_id
+        // ->where('players.role', $role)  // Filter based on the $role (e.g., 'star player', 'starter')
+        ->orderByRaw("
+            LENGTH(awards) DESC,  // Prioritize players with more awards
+            is_finals_mvp DESC,   // Prioritize Finals MVPs
+        ")
+        ->first();  // Get the first player matching the criteria
 
+        return $freeAgent;
+    }
     private function getContractYearsBasedOnRole($role)
     {
         switch ($role) {

@@ -662,41 +662,80 @@ class TransactionsController extends Controller
         throw new \Exception('No seasons found.');
     }
     private function getFreeAgentsByCompositeScore($currentSeasonId)
-{
-    $freeAgents = DB::table('players')
-        ->leftJoin('player_season_stats', function ($join) use ($currentSeasonId) {
-            $join->on('players.id', '=', 'player_season_stats.player_id')
-                 ->where('player_season_stats.season_id', '=', $currentSeasonId);
-        })
-        ->selectRaw("
-            players.*,
-            COALESCE((
+    {
+        $freeAgents = DB::table('players')
+            ->leftJoin('player_season_stats', function ($join) use ($currentSeasonId) {
+                $join->on('players.id', '=', 'player_season_stats.player_id')
+                     ->where('player_season_stats.season_id', '=', $currentSeasonId);
+            })
+            // Join with season_awards to get the awards
+            ->leftJoin('season_awards', 'players.id', '=', 'season_awards.player_id')
+            // Join with seasons to check for finals MVP
+            ->leftJoin('seasons', function ($join) use ($currentSeasonId) {
+                $join->on('seasons.id', '=', DB::raw("{$currentSeasonId}"))
+                     ->whereRaw('seasons.finals_mvp_id = players.id');
+            })
+            ->selectRaw("
+                players.*,
+                COALESCE((
+                    (
+                        player_season_stats.avg_points_per_game * 0.3 +
+                        player_season_stats.avg_rebounds_per_game * 0.2 +
+                        player_season_stats.avg_assists_per_game * 0.2 +
+                        player_season_stats.avg_steals_per_game * 0.1 +
+                        player_season_stats.avg_blocks_per_game * 0.1 -
+                        player_season_stats.avg_turnovers_per_game * 0.1 -
+                        player_season_stats.avg_fouls_per_game * 0.1
+                    ) +
+                    (
+                        player_season_stats.total_points * 0.2 +
+                        player_season_stats.total_rebounds * 0.2 +
+                        player_season_stats.total_assists * 0.2 +
+                        player_season_stats.total_steals * 0.15 +
+                        player_season_stats.total_blocks * 0.15 -
+                        player_season_stats.total_turnovers * 0.1 -
+                        player_season_stats.total_fouls * 0.1
+                    )
+                ) * (1 - (COALESCE(players.injury_prone_percentage, 50) / 100)), players.overall_rating * 1.5) as composite_score,
+                -- Include awards in the composite score
+                COALESCE(season_awards.award_points, 0) as award_points,
+                -- Check for Finals MVP and add bonus to composite score
+                CASE WHEN seasons.finals_mvp_id = players.id THEN 50 ELSE 0 END as finals_mvp_bonus,
+                -- Compute total score by summing composite score, award points, and finals MVP bonus
                 (
-                    player_season_stats.avg_points_per_game * 0.3 +
-                    player_season_stats.avg_rebounds_per_game * 0.2 +
-                    player_season_stats.avg_assists_per_game * 0.2 +
-                    player_season_stats.avg_steals_per_game * 0.1 +
-                    player_season_stats.avg_blocks_per_game * 0.1 -
-                    player_season_stats.avg_turnovers_per_game * 0.1 -
-                    player_season_stats.avg_fouls_per_game * 0.1
-                ) +
-                (
-                    player_season_stats.total_points * 0.2 +
-                    player_season_stats.total_rebounds * 0.2 +
-                    player_season_stats.total_assists * 0.2 +
-                    player_season_stats.total_steals * 0.15 +
-                    player_season_stats.total_blocks * 0.15 -
-                    player_season_stats.total_turnovers * 0.1 -
-                    player_season_stats.total_fouls * 0.1
-                )
-            ) * (1 - (COALESCE(players.injury_prone_percentage, 50) / 100)), players.overall_rating * 1.5) as composite_score
-        ")
-        ->where('players.team_id', 0)
-        ->where('players.is_active', 1)
-        ->orderByDesc('composite_score')
-        ->get();
+                    COALESCE((
+                        (
+                            player_season_stats.avg_points_per_game * 0.3 +
+                            player_season_stats.avg_rebounds_per_game * 0.2 +
+                            player_season_stats.avg_assists_per_game * 0.2 +
+                            player_season_stats.avg_steals_per_game * 0.1 +
+                            player_season_stats.avg_blocks_per_game * 0.1 -
+                            player_season_stats.avg_turnovers_per_game * 0.1 -
+                            player_season_stats.avg_fouls_per_game * 0.1
+                        ) +
+                        (
+                            player_season_stats.total_points * 0.2 +
+                            player_season_stats.total_rebounds * 0.2 +
+                            player_season_stats.total_assists * 0.2 +
+                            player_season_stats.total_steals * 0.15 +
+                            player_season_stats.total_blocks * 0.15 -
+                            player_season_stats.total_turnovers * 0.1 -
+                            player_season_stats.total_fouls * 0.1
+                        )
+                    ) * (1 - (COALESCE(players.injury_prone_percentage, 50) / 100)), players.overall_rating * 1.5)
+                    +
+                    COALESCE(season_awards.award_points, 0)
+                    +
+                    CASE WHEN seasons.finals_mvp_id = players.id THEN 50 ELSE 0 END
+                ) as total_score
+            ")
+            ->where('players.team_id', 0)
+            ->where('players.is_active', 1)
+            ->orderByDesc('total_score')  // Order by the total of composite score, award points, and finals MVP bonus
+            ->get();
 
-    return $freeAgents;
-}
+        return $freeAgents;
+    }
+
 
 }

@@ -16,7 +16,6 @@
                     Free Agents List
                 </h3>
                 <input
-                    v-if="false"
                     type="text"
                     v-model="search.search"
                     @input="fetchFreeAgent()"
