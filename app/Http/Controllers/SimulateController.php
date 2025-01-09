@@ -1801,7 +1801,7 @@ class SimulateController extends Controller
                 // Ensure the season is active (status = 1) before proceeding
                 if ($seasonStatus == 1) {
                     // Add 20% chance for the player to be waived
-                    if (rand(1, 100) <= 20) {
+                    if (rand(1, 100) <= 40) {
                         // Insert transaction for waiving the player
                         DB::table('transactions')->insert([
                             'player_id' => $player->id,
@@ -1821,26 +1821,33 @@ class SimulateController extends Controller
                         ]);
 
                         // Try to find a random player with the same role
-                        $bestFreeAgentAvailable = $this->getBestFreeAgent();
+                        $randomPlayer = DB::table('players')
+                            ->where('is_active', 1)
+                            ->where('is_injured', 0)   // Make sure the player is not injured
+                            ->where('team_id', 0)       // Ensure the player has no team
+                            ->where('role', $player->role) // Ensure the player has the same role
+                            ->inRandomOrder()
+                            ->first();
+
                         // If no player with the same role is found, fallback to any free agent
-                        if (!$bestFreeAgentAvailable) {
-                            $bestFreeAgentAvailable = DB::table('players')
+                        if (!$randomPlayer) {
+                            $randomPlayer = DB::table('players')
                                 ->where('is_active', 1)
                                 ->where('is_injured', 0)
                                 ->where('team_id', 0)
                                 ->inRandomOrder()
                                 ->first();
                         }
-                        if ($bestFreeAgentAvailable) {
+                        if ($randomPlayer) {
                             $freeAgentStandardContract = $this->getContractYearsBasedOnRole($player->role);
                             // Update the new player with the appropriate contract role
-                            DB::table('players')->where('id', $$bestFreeAgentAvailable->id)->update([
+                            DB::table('players')->where('id', $randomPlayer->id)->update([
                                 'team_id' => $player->team_id,
                                 'contract_years' => $freeAgentStandardContract, // Assign a random contract length
                             ]);
 
                             DB::table('transactions')->insert([
-                                'player_id' => $$bestFreeAgentAvailable->id,
+                                'player_id' => $randomPlayer->id,
                                 'season_id' => $seasonId,
                                 'details' => 'Signed as free agent to replace injured player. Contract Years: ' . $freeAgentStandardContract,
                                 'from_team_id' => 0, // From free agent pool
@@ -1903,29 +1910,6 @@ class SimulateController extends Controller
             ->update([
                 'is_injured' => 0, // Set is_injured to 0 for players with no injury recovery games left
             ]);
-    }
-
-    private function getBestFreeAgent()
-    {
-        $freeAgent = Player::select(
-                'players.*',
-                'teams.acronym as drafted_team',
-                DB::raw("(SELECT GROUP_CONCAT(CONCAT(award_name, ' (Season ', season_id, ')') SEPARATOR ', ') FROM season_awards WHERE season_awards.player_id = players.id) as awards"),
-                DB::raw("(SELECT CONCAT('Finals MVP (Season ', seasons.id, ')') FROM seasons WHERE seasons.finals_mvp_id = players.id LIMIT 1) as finals_mvp"),
-                DB::raw("IF(EXISTS(SELECT 1 FROM seasons WHERE seasons.finals_mvp_id = players.id), 1, 0) as is_finals_mvp"), // Check if player is finals MVP
-                DB::raw("(SELECT GROUP_CONCAT(seasons.name SEPARATOR ', ') FROM seasons WHERE seasons.finals_mvp_id = players.id) as finals_mvp_seasons")
-            )
-            ->where('players.contract_years', 0)  // Filter for players with no contract
-            ->where('players.is_active', 1)      // Ensure player is active
-            ->where('players.is_injured', 0)      // Ensure player is active
-            ->leftJoin('teams', 'players.drafted_team_id', '=', 'teams.id')  // Join teams on players.drafted_team_id
-            ->orderByRaw("
-                LENGTH(awards) DESC,  // Prioritize players with more awards
-                is_finals_mvp DESC  // Prioritize Finals MVPs
-            ")
-            ->first();  // Get the first player matching the criteria
-
-        return $freeAgent;
     }
 
 
@@ -2296,6 +2280,7 @@ class SimulateController extends Controller
                         $stat->total_fouls * 0.1;
 
                     $injuryFactor = 1 - ($stat->injury_prone_percentage / 100);
+
 
                     return ($perGameScore + $totalScore) * $injuryFactor;
                 });
