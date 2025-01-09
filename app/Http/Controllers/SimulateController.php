@@ -1831,11 +1831,15 @@ class SimulateController extends Controller
                                 'players.overall_rating',
                                 'players.injury_history',
                                 'player_season_stats.player_id',
-                                DB::raw('(player_season_stats.avg_points_per_game * 1 +
-                                                player_season_stats.avg_rebounds_per_game * 0.75 +
-                                                player_season_stats.avg_assists_per_game * 0.75 +
-                                                player_season_stats.avg_steals_per_game * 1.25 +
-                                                player_season_stats.avg_blocks_per_game * 1.25) AS performance_points')
+                                DB::raw('(
+                                    player_season_stats.avg_points_per_game * 1 +
+                                    player_season_stats.avg_rebounds_per_game * 0.75 +
+                                    player_season_stats.avg_assists_per_game * 0.75 +
+                                    player_season_stats.avg_steals_per_game * 1.25 +
+                                    player_season_stats.avg_blocks_per_game * 1.25 -
+                                    player_season_stats.avg_turnovers_per_game * 0.5 -
+                                    player_season_stats.avg_fouls_per_game * 0.3
+                                    ) AS performance_points')
                             )
                             ->orderByDesc('performance_points')              // Order by highest performance points
                             ->orderByDesc('players.overall_rating')         // Secondary sort by overall rating
