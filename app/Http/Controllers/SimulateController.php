@@ -1822,7 +1822,7 @@ class SimulateController extends Controller
 
                         // Try to find a random player with the same role
                         $randomPlayer = DB::table('players')
-                            ->join('player_season_stats', 'players.id', '=', 'player_season_stats.player_id') // Join player stats
+                            ->join('player_season_stats', 'players.id', '=', 'player_season_stats.player_id','left') // Join player stats
                             ->where('players.is_active', 1)                  // Ensure the player is active
                             ->where('players.is_injured', 0)                // Ensure the player is not injured
                             ->where('players.team_id', 0)                   // Ensure the player has no team         // Ensure the player has the same role
