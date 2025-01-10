@@ -114,7 +114,7 @@
         </div>
 
         <!-- Playoff Performance Section -->
-        <div class="playoff-performance mb-6 flex-2">
+        <div class="playoff-performance mb-6 flex-1">
             <h3
                 class="text-md font-semibold text-gray-700 mb-2 flex items-center"
             >
@@ -216,7 +216,6 @@
             </div>
         </div>
 
-        <!-- Awards Section -->
         <div class="awards mb-6 flex-1">
             <h3
                 class="text-md font-semibold text-gray-700 mb-2 flex items-center"
@@ -230,9 +229,9 @@
                     {{
                         main_performance.conference_championships?.length > 0
                             ? "(" +
-                              main_performance.conference_championships
-                                  ?.length +
-                              ")"
+                            main_performance.conference_championships
+                                ?.length +
+                            ")"
                             : ""
                     }}
                 </h4>
@@ -273,10 +272,9 @@
                     </p>
                 </div>
             </div>
-        </div>
-        <div class="awards mb-6 flex-1">
+
             <h3
-                class="text-md font-semibold text-gray-700 mb-2 flex items-center"
+                class="text-md font-semibold text-gray-700 mb-2 mt-4 flex items-center"
             >
                 <i class="fa fa-star text-gray-500 mr-2"></i>
                 Awards
