@@ -1,10 +1,11 @@
 <template>
-    <div class="grid gap-6 mb-8 md:grid-cols-1 xl:grid-cols-1 overflow-auto shadow">
+    <div class="flex overflow-auto shadow">
         <div class="p-6 bg-white rounded-lg shadow-md">
             <div class="flex justify-between">
                 <h2 class="text-lg font-semibold text-gray-800">Player Ratings</h2>
             </div>
             <canvas id="playerRatingsChart"></canvas>
+            <p class="text-center">{{ props.playerRatings.overall_rating }} Overall</p>
         </div>
     </div>
 </template>
@@ -31,10 +32,9 @@ const renderChart = () => {
     props.playerRatings.defense_rating,
     props.playerRatings.passing_rating,
     props.playerRatings.rebounding_rating,
-    props.playerRatings.overall_rating
   ];
 
-  const labels = ['Shooting', 'Defense', 'Passing', 'Rebounding', 'Overall'];
+  const labels = ['Shooting', 'Defense', 'Passing', 'Rebounding'];
 
   if (chartInstance) {
     chartInstance.destroy();
@@ -61,7 +61,7 @@ const renderChart = () => {
             display: true,
           },
           suggestedMin: 0,
-          suggestedMax: 10, // Adjust based on your rating scale
+          suggestedMax: 100, // Adjust based on your rating scale
         },
       },
       plugins: {

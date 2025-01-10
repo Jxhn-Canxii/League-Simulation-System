@@ -3,7 +3,7 @@
     <div class="flex flex-col md:flex-row gap-6">
         <!-- Player Details Section -->
         <div
-            class="player-details mb-6 flex-1"
+            class="player-details mb-6 flex-2"
             v-if="main_performance.player_details"
         >
             <h3
@@ -122,12 +122,12 @@
         </div>
 
         <!-- Playoff Performance Section -->
-        <div class="playoff-performance mb-6 flex-1">
+        <div class="playoff-performance mb-6 flex-2">
             <h3
                 class="text-md font-semibold text-gray-700 mb-2 flex items-center"
             >
                 <i class="fa fa-trophy text-yellow-500 mr-2"></i>
-                Playoff Performance
+                Playoff
             </h3>
             <div v-if="main_performance.playoff_performance">
                 <p>
@@ -156,12 +156,71 @@
                     {{ main_performance.playoff_performance.finals ?? 0 }}
                 </p>
                 <p>
-                    <strong>Finals MVP Count:</strong>
+                    <strong>Finals MVP:</strong>
                     {{ main_performance.mvp_count ?? 0 }}
                 </p>
             </div>
             <div v-else>
                 <p>No playoff performance data available.</p>
+            </div>
+            <h3
+                class="text-md font-semibold text-gray-700 mb-2 mt-4 flex items-center"
+            >
+                <i class="fa fa-chart-line text-purple-500 mr-2"></i>
+                Career Highs
+            </h3>
+            <div v-if="main_performance.career_highs">
+                <p>
+                    <strong>Points:</strong>
+                    {{
+                        main_performance.career_highs.career_high_points ??
+                        "N/A"
+                    }}
+                </p>
+                <p>
+                    <strong>Rebounds:</strong>
+                    {{
+                        main_performance.career_highs.career_high_rebounds ??
+                        "N/A"
+                    }}
+                </p>
+                <p>
+                    <strong>Assists:</strong>
+                    {{
+                        main_performance.career_highs.career_high_assists ??
+                        "N/A"
+                    }}
+                </p>
+                <p>
+                    <strong>Steals:</strong>
+                    {{
+                        main_performance.career_highs.career_high_steals ??
+                        "N/A"
+                    }}
+                </p>
+                <p>
+                    <strong>Blocks:</strong>
+                    {{
+                        main_performance.career_highs.career_high_blocks ??
+                        "N/A"
+                    }}
+                </p>
+                <p>
+                    <strong>Turnovers:</strong>
+                    {{
+                        main_performance.career_highs.career_high_turnovers ??
+                        "N/A"
+                    }}
+                </p>
+                <p>
+                    <strong>Fouls:</strong>
+                    {{
+                        main_performance.career_highs.career_high_fouls ?? "N/A"
+                    }}
+                </p>
+            </div>
+            <div v-else>
+                <p>No career highs data available.</p>
             </div>
         </div>
 
@@ -270,69 +329,12 @@
                 </div>
             </div>
         </div>
-        <!-- Career Highs Section -->
-        <div class="career-highs mb-6 flex-1">
-            
-            <h3
-                class="text-md font-semibold text-gray-700 mb-2 flex items-center"
-            >
-                <i class="fa fa-chart-line text-purple-500 mr-2"></i>
-                Career Highs
-            </h3>
-            <div v-if="main_performance.career_highs">
-                <p>
-                    <strong>Points:</strong>
-                    {{
-                        main_performance.career_highs.career_high_points ??
-                        "N/A"
-                    }}
-                </p>
-                <p>
-                    <strong>Rebounds:</strong>
-                    {{
-                        main_performance.career_highs.career_high_rebounds ??
-                        "N/A"
-                    }}
-                </p>
-                <p>
-                    <strong>Assists:</strong>
-                    {{
-                        main_performance.career_highs.career_high_assists ??
-                        "N/A"
-                    }}
-                </p>
-                <p>
-                    <strong>Steals:</strong>
-                    {{
-                        main_performance.career_highs.career_high_steals ??
-                        "N/A"
-                    }}
-                </p>
-                <p>
-                    <strong>Blocks:</strong>
-                    {{
-                        main_performance.career_highs.career_high_blocks ??
-                        "N/A"
-                    }}
-                </p>
-                <p>
-                    <strong>Turnovers:</strong>
-                    {{
-                        main_performance.career_highs.career_high_turnovers ??
-                        "N/A"
-                    }}
-                </p>
-                <p>
-                    <strong>Fouls:</strong>
-                    {{
-                        main_performance.career_highs.career_high_fouls ?? "N/A"
-                    }}
-                </p>
-            </div>
-            <div v-else>
-                <p>No career highs data available.</p>
-            </div>
+        <div class="career-highs flex-2">
+            <PlayerRadarChart v-if="main_performance.player_details" :key="main_performance.player_details.player_id" :playerRatings="main_performance.player_details" />
         </div>
+    </div>
+    <div class="flex">
+       
     </div>
 </template>
 
@@ -344,6 +346,7 @@ import {
     playerExpStatusClass,
     playerExpStatusText,
 } from "@/Utility/Formatter";
+import PlayerRadarChart from './PlayerRadarChart.vue';
 const props = defineProps({
     player_id: {
         type: Number,
