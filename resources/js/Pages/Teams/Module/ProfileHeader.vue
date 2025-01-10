@@ -19,9 +19,26 @@
             </p>
             <p class="text-nowrap">
                 <strong>Name:</strong>
-                {{ main_performance.player_details.player_name ?? "-" }} ,{{
+                <span>
+                    {{ main_performance.player_details.player_name ?? "-" }} ,{{
                     main_performance.player_details.age ?? "N/A"
-                }}
+                    }}
+                    <sup
+                        :class="
+                            main_performance.player_details.age >=
+                            main_performance.player_details.retirement_age
+                                ? 'p-1 rounded-full text-red-500'
+                                :  'p-1 rounded-full text-yellow-500'
+                        "
+                    >
+                        {{
+                            main_performance.player_details.age >=
+                            main_performance.player_details.retirement_age
+                                ? "R"
+                                : "A"
+                        }}
+                    </sup>
+                </span>
             </p>
             <p>
                 <strong>Country:</strong>
@@ -45,24 +62,6 @@
             <p>
                 <strong>Draft Class:</strong>
                 {{ main_performance.player_details.draft_class ?? "-" }}
-            </p>
-            <p>
-                <strong>Status:</strong>
-                <span
-                    :class="
-                        main_performance.player_details.age >=
-                        main_performance.player_details.retirement_age
-                            ? 'p-1 mx-2 rounded-full bg-red-500'
-                            :  'p-1 mx-2 rounded-full bg-yellow-500'
-                    "
-                >
-                    {{
-                        main_performance.player_details.age >=
-                        main_performance.player_details.retirement_age
-                            ? "Retired"
-                            : "Active"
-                    }}
-                </span>
             </p>
             <p>
                 <strong>Role:</strong>
@@ -273,6 +272,7 @@
         </div>
         <!-- Career Highs Section -->
         <div class="career-highs mb-6 flex-1">
+            
             <h3
                 class="text-md font-semibold text-gray-700 mb-2 flex items-center"
             >
