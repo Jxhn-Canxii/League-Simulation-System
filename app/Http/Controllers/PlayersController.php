@@ -705,7 +705,7 @@ class PlayersController extends Controller
             $injuryPercentage = rand(50, 100);
         }
 
-        $healthRatings = 100 -  $injuryPercentage;
+        $healthRatings = 99 -  $injuryPercentage;
         // Calculate overall rating
         $overallRating = ($shootingRating + $defenseRating + $passingRating + $reboundingRating +  $healthRatings) / 5;
         $player = Player::create([
