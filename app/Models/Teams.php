@@ -14,6 +14,8 @@ class Teams extends Model
         'acronym',
         'league_id',
         'conference_id',
+        'primary_color',
+        'secondary_color'
     ];
     public function league()
     {

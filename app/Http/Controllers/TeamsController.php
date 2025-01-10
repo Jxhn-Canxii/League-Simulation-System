@@ -856,13 +856,38 @@ class TeamsController extends Controller
             'name' => 'required',
             'acronym' => 'required',
             'league_id' => 'required|exists:leagues,id', // Assuming there's a leagues table
-            'conference_id' => 'required|exists:conferences,id' // Assuming there's a conferences table
+            'conference_id' => 'required|exists:conferences,id', // Assuming there's a conferences table
         ]);
 
-        Teams::create($request->all());
+        // Generate random color hex codes for primary and secondary colors
+        $primaryColor = $this->generateRandomColor();
+        $secondaryColor = $this->generateRandomColor($primaryColor); // Ensure it’s different from primary
+
+        // Merge the colors with the request data
+        $data = $request->all();
+        $data['primary_color'] = $primaryColor;
+        $data['secondary_color'] = $secondaryColor;
+
+        // Create the new team with the randomized colors
+        Teams::create($data);
 
         return redirect()->route('teams.index');
     }
+
+    /**
+     * Generate a random hex color.
+     * If a different color is needed, a second parameter is passed to ensure it's not the same.
+     */
+    private function generateRandomColor($excludeColor = null)
+    {
+        do {
+            // Generate a random hex color (e.g., #FF5733)
+            $color = sprintf('%06X', mt_rand(0, 0xFFFFFF));
+        } while ($color === $excludeColor); // Ensure the generated color is not the same as the excluded one
+
+        return $color;
+    }
+
     // Update the specified resource in storage.
     public function update(Request $request)
     {
