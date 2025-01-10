@@ -1,11 +1,11 @@
 <template>
     <div class="flex overflow-auto shadow">
         <div class="p-6 bg-white rounded-lg shadow-md">
-            <div class="flex justify-between">
-                <h2 class="text-lg font-semibold text-gray-800">Player Ratings</h2>
-            </div>
             <canvas id="playerRatingsChart"></canvas>
             <p class="text-center">{{ props.playerRatings.overall_rating }} Overall</p>
+            <p class="text-center first-letter:uppercase font-medium text-gray-500">
+                {{ props.playerRatings.type ?? "-" }}
+            </p>
         </div>
     </div>
 </template>

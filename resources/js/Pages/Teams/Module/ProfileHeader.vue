@@ -73,14 +73,6 @@
                 </span>
             </p>
             <p>
-                <strong>Overall Ratings:</strong>
-                {{ main_performance.player_details.overall_rating ?? "-" }}
-            </p>
-            <p class="first-letter:uppercase">
-                <strong>Archetype:</strong>
-                {{ main_performance.player_details.type ?? "-" }}
-            </p>
-            <p>
                 <strong>Season Exp:</strong>
                 <span
                     class="text-xs"
