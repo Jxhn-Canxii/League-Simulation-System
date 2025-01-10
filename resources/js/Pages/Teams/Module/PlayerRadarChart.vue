@@ -1,7 +1,7 @@
 <template>
     <div class="flex overflow-auto shadow">
         <div class="p-6 bg-white rounded-lg shadow-md">
-            <canvas id="playerRatingsChart"></canvas>
+            <canvas :id="'playerRatingsChart'+props.playerRatings.player_id+chart_id"></canvas>
             <p class="text-center">{{ props.playerRatings.overall_rating }} Overall</p>
             <p class="text-center first-letter:uppercase font-medium text-gray-500">
                 {{ props.playerRatings.type ?? "-" }}
@@ -20,11 +20,11 @@ const props = defineProps({
     required: true
   }
 });
-
+const chart_id = Math.random();
 let chartInstance = null; // Reference to the chart instance
 
 const renderChart = () => {
-  const ctx = document.getElementById('playerRatingsChart').getContext('2d');
+  const ctx = document.getElementById('playerRatingsChart'+props.playerRatings.player_id+chart_id).getContext('2d');
 
   // Ratings data coming from the props
   const ratingsData = [
