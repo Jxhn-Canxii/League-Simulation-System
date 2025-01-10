@@ -226,7 +226,7 @@
             </h3>
             <div v-if="main_performance.conference_championships?.length > 0">
                 <h4 class="text-sm font-semibold text-gray-600 mb-2">
-                    Conf. Championships
+                    Conference
                     {{
                         main_performance.conference_championships?.length > 0
                             ? "(" +
@@ -253,7 +253,7 @@
             </div>
             <div v-if="main_performance.championships?.length > 0">
                 <h4 class="text-sm font-semibold text-gray-600 mb-2">
-                    Championships
+                    Nationals
                     {{
                         main_performance.championships?.length > 0
                             ? "(" + main_performance.championships?.length + ")"
@@ -326,7 +326,7 @@
         </div>
     </div>
     <div class="flex">
-       
+
     </div>
 </template>
 
