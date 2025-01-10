@@ -32,9 +32,10 @@ const renderChart = () => {
     props.playerRatings.defense_rating,
     props.playerRatings.passing_rating,
     props.playerRatings.rebounding_rating,
+    (100 - props.playerRatings.injury_prone_percentage),
   ];
 
-  const labels = ['Shooting', 'Defense', 'Passing', 'Rebounding'];
+  const labels = ['Shooting', 'Defense', 'Passing', 'Rebounding','Health'];
 
   if (chartInstance) {
     chartInstance.destroy();

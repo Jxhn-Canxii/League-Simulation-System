@@ -696,9 +696,6 @@ class PlayersController extends Controller
                 // Add modifications for other roles as necessary
         }
 
-        // Calculate overall rating
-        $overallRating = ($shootingRating + $defenseRating + $passingRating + $reboundingRating) / 4;
-
         // Calculate contract expiration date
         $contractExpiresAt = Carbon::now()->addYears($contractYears);
         $injuryPercentage = 0;
@@ -708,6 +705,9 @@ class PlayersController extends Controller
             $injuryPercentage = rand(50, 100);
         }
 
+        $healthRatings = 100 -  $injuryPercentage;
+        // Calculate overall rating
+        $overallRating = ($shootingRating + $defenseRating + $passingRating + $reboundingRating +  $healthRatings) / 5;
         $player = Player::create([
             'name' => $request->name,
             'address' => $request->address,
@@ -1348,7 +1348,7 @@ class PlayersController extends Controller
             ->join('teams as drafted_teams', 'players.drafted_team_id', '=', 'drafted_teams.id', 'left') // Join teams table to get team details
             ->join('seasons', 'players.draft_id', '=', 'seasons.id', 'left')
             ->where('players.id', $playerId)
-            ->select('players.id as player_id', 'players.name as player_name', 'players.country as country', 'players.address as address', 'players.age as age', 'players.retirement_age as retirement_age', 'teams.name as team_name', 'players.role', 'players.contract_years', 'players.is_rookie', 'players.overall_rating','players.shooting_rating','players.defense_rating','players.passing_rating','players.rebounding_rating', 'players.type', 'players.draft_status as draft_status', 'seasons.name as draft_class', 'drafted_teams.acronym as drafted_team')
+            ->select('players.id as player_id', 'players.name as player_name','players.injury_prone_percentage', 'players.country as country', 'players.address as address', 'players.age as age', 'players.retirement_age as retirement_age', 'teams.name as team_name', 'players.role', 'players.contract_years', 'players.is_rookie', 'players.overall_rating','players.shooting_rating','players.defense_rating','players.passing_rating','players.rebounding_rating', 'players.type', 'players.draft_status as draft_status', 'seasons.name as draft_class', 'drafted_teams.acronym as drafted_team')
             ->first();
 
         if (!$playerDetails) {

@@ -319,7 +319,7 @@
                 </div>
             </div>
         </div>
-        <div class="career-highs flex-2">
+        <div class="career-highs flex-1">
             <PlayerRadarChart v-if="main_performance.player_details" :key="main_performance.player_details.player_id" :playerRatings="main_performance.player_details" />
         </div>
     </div>
