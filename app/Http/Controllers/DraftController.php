@@ -261,7 +261,7 @@ class DraftController extends Controller
                     DB::table('transactions')->insert([
                         'player_id' => $selectedPlayer->id,
                         'season_id' => $currentSeasonId,
-                        'details' => "Drafted by {$team->team_name} in round {$round}, pick {$pickNumber}",
+                        'details' => "Drafted by {$team->team_name} in round {$round}, pick {$pickNumberTwo}",
                         'from_team_id' => 0, // No previous team for drafted players
                         'to_team_id' => $team->team_id,
                         'status' => 'draft',
