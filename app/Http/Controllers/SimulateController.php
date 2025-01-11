@@ -1821,31 +1821,7 @@ class SimulateController extends Controller
                         ]);
 
                         // Try to find a random player with the same role
-                        $randomPlayer = DB::table('players')
-                            ->join('player_season_stats', 'players.id', '=', 'player_season_stats.player_id','left') // Join player stats
-                            ->where('players.is_active', 1)                  // Ensure the player is active
-                            ->where('players.is_injured', 0)                // Ensure the player is not injured
-                            ->where('players.team_id', 0)                   // Ensure the player has no team         // Ensure the player has the same role
-                            ->select(
-                                'players.id',
-                                'players.overall_rating',
-                                'players.injury_history',
-                                'player_season_stats.player_id',
-                                DB::raw('(
-                                    player_season_stats.avg_points_per_game * 1 +
-                                    player_season_stats.avg_rebounds_per_game * 0.75 +
-                                    player_season_stats.avg_assists_per_game * 0.75 +
-                                    player_season_stats.avg_steals_per_game * 1.25 +
-                                    player_season_stats.avg_blocks_per_game * 1.25 -
-                                    player_season_stats.avg_turnovers_per_game * 0.5 -
-                                    player_season_stats.avg_fouls_per_game * 0.3
-                                    ) AS performance_points')
-                            )
-                            ->orderByDesc('performance_points')              // Order by highest performance points
-                            ->orderByDesc('players.overall_rating')         // Secondary sort by overall rating
-                            ->orderByDesc(DB::raw('player_season_stats.total_games_played'))  // Sort by more games played
-                            ->orderBy('players.injury_history')             // Least injury history
-                            ->first();
+                        $randomPlayer = $this->getRandomPlayer();
 
                         if ($randomPlayer) {
                             $freeAgentStandardContract = $this->getContractYearsBasedOnRole($player->role);
@@ -1920,7 +1896,38 @@ class SimulateController extends Controller
                 'is_injured' => 0, // Set is_injured to 0 for players with no injury recovery games left
             ]);
     }
+    private function getRandomPlayer(){
+        $randomPlayer = DB::table('players')
+            ->join('player_season_stats', 'players.id', '=', 'player_season_stats.player_id', 'left') // Join player stats
+            ->where('players.is_active', 1) // Ensure the player is active
+            ->where('players.is_injured', 0) // Ensure the player is not injured
+            ->where('players.team_id', 0) // Ensure the player has no team
+            ->select(
+                'players.id',
+                'players.overall_rating',
+                'players.injury_history',
+                'player_season_stats.player_id',
+                DB::raw('(
+                    player_season_stats.avg_points_per_game * 1 +
+                    player_season_stats.avg_rebounds_per_game * 0.75 +
+                    player_season_stats.avg_assists_per_game * 0.75 +
+                    player_season_stats.avg_steals_per_game * 1.25 +
+                    player_season_stats.avg_blocks_per_game * 1.25 -
+                    player_season_stats.avg_turnovers_per_game * 0.5 -
+                    player_season_stats.avg_fouls_per_game * 0.3
+                ) AS performance_points')
+            )
+            ->orderByDesc('performance_points') // Order by highest performance points
+            ->orderByDesc('players.overall_rating') // Secondary sort by overall rating
+            ->orderByDesc(DB::raw('player_season_stats.total_games_played')) // Sort by more games played
+            ->orderBy('players.injury_history') // Least injury history
+            ->limit(100) // Limit to top 100 based on sorting criteria
+            ->inRandomOrder() // Randomize selection
+            ->first(); // Get a single random player
 
+        return $randomPlayer;
+
+    }
 
     private function getContractYearsBasedOnRole($role)
     {
