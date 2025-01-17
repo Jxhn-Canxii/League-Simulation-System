@@ -376,22 +376,22 @@
                                     </span>
 
                                     <!-- Overall Rank #1 -->
-                                    <span
+                                    <!-- <span
                                         v-if="team.overall_1_rank > 0"
                                         class="flex items-center justify-center w-5 h-5 bg-blue-500 text-black text-sm rounded-full"
                                         title="#1 Overall Rank"
                                     >
                                         {{ team.overall_1_rank }}
-                                    </span>
+                                    </span> -->
 
                                     <!-- Conference Rank #1 -->
-                                    <span
+                                    <!-- <span
                                         v-if="team.conference_1_rank > 0"
                                         class="flex items-center justify-center w-5 h-5 bg-green-500 text-black text-sm rounded-full"
                                         title="#1 Conference Rank"
                                     >
                                         {{ team.conference_1_rank }}
-                                    </span>
+                                    </span> -->
                                 </div>
 
                             </td>

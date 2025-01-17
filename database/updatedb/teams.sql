@@ -27,7 +27,7 @@ SET time_zone = "+00:00";
 -- Table structure for table `teams`
 --
 
-CREATE TABLE `teams` (
+CREATE TABLE `teamx` (
   `id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `acronym` varchar(10) NOT NULL,
@@ -43,7 +43,7 @@ CREATE TABLE `teams` (
 -- Dumping data for table `teams`
 --
 
-INSERT INTO `teams` (`id`, `name`, `acronym`, `primary_color`, `secondary_color`, `league_id`, `conference_id`, `created_at`, `updated_at`) VALUES
+INSERT INTO `teamx` (`id`, `name`, `acronym`, `primary_color`, `secondary_color`, `league_id`, `conference_id`, `created_at`, `updated_at`) VALUES
 (1, 'Lions', 'LIO', '121883', '5F12ED', 1, 1, NULL, NULL),
 (2, 'Tigers', 'TIG', 'B4F3F7', 'FADB59', 1, 1, NULL, NULL),
 (3, 'Bears', 'BEA', 'A3A79F', '5D8D6C', 1, 1, NULL, NULL),

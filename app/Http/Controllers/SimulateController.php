@@ -462,7 +462,7 @@ class SimulateController extends Controller
 
         // Determine the winner
         $winnerId = $homeScore > $awayScore ? $gameData->home_team_id : ($homeScore < $awayScore ? $gameData->away_team_id : null);
-
+        $winnerName = $homeScore > $awayScore ? $gameData->home_team_name : ($homeScore < $awayScore ? $gameData->away_team_name : null);
         // Prepare an array to hold the update data for the seasons table if it's finals
         $seasonUpdateData = [];
         if ($gameData->round === 'semi_finals') {
@@ -471,6 +471,7 @@ class SimulateController extends Controller
         if ($gameData->round === 'finals') {
             // Find the MVP of the winning team
             $this->updateFinalsWinner($gameData, $winnerId, $homeScore, $awayScore);
+            $this->updateChampionsContract($winnerId, $gameData->season_id,$winnerName);
         }
 
         // Update the seasons table if there are updates
@@ -1928,7 +1929,38 @@ class SimulateController extends Controller
         return $randomPlayer;
 
     }
-
+    private function updateChampionsContract($teamId, $seasonId, $teamName) {
+        // Retrieve all active players for the specified team
+        $players = Player::where('is_active', 1)
+                        ->where('team_id', $teamId)
+                        ->where('is_injured', 0)  // Exclude injured players
+                        ->get();
+    
+        foreach ($players as $player) {
+            // Determine the additional contract years based on the player's role
+            $additionalContractYears = 0;
+            if ($player->role == 'star player') {
+                $additionalContractYears = rand(1, 3);  // 1 to 3 years for star players
+            } else {
+                $additionalContractYears = rand(1, 2);  // 1 to 2 years for other players
+            }
+    
+            // Update the player's contract years
+            $player->contract_years += $additionalContractYears;
+            $player->save();
+    
+            // Insert transaction log
+            DB::table('transactions')->insert([
+                'player_id' => $player->id,
+                'season_id' => $seasonId,
+                'details' => 'Re-signed with ' . $teamName . ' for a contract extension(Champions Bonus) of ' . $additionalContractYears . ' years',
+                'from_team_id' => $player->team_id,
+                'to_team_id' => $player->team_id,
+                'status' => 'resigned',
+            ]);
+        }
+    }
+    
     private function getContractYearsBasedOnRole($role)
     {
         switch ($role) {

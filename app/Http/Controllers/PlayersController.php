@@ -654,7 +654,7 @@ class PlayersController extends Controller
             'country' => 'required|string',
         ]);
 
-        $latestSeasonId = DB::table('seasons')->max('id') ?? 1;
+        $latestSeasonId = DB::table('seasons')->max('id');
 
         // Start at 1 if no records are found, otherwise increment the latest season ID
         $currentSeasonId = $latestSeasonId ? (int) $latestSeasonId + 1 : 1;
