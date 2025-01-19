@@ -2387,7 +2387,7 @@ class SimulateController extends Controller
             DB::beginTransaction();
 
             try {
-                // Fetch player stats for the current season
+                // Fetch player stats for the previous season
                 $stats = DB::table('player_season_stats')
                     ->join('players', 'player_season_stats.player_id', '=', 'players.id')
                     ->where('player_season_stats.season_id', $seasonId)
@@ -2400,34 +2400,31 @@ class SimulateController extends Controller
                     ->whereNotIn('id', $stats->pluck('player_id'))
                     ->get();
 
-                // Default stats for rookies
-                $rookieDefaults = [
-                    'avg_points_per_game' => 5,
-                    'avg_rebounds_per_game' => 3,
-                    'avg_assists_per_game' => 2,
-                    'avg_steals_per_game' => 1,
-                    'avg_blocks_per_game' => 1,
-                    'avg_turnovers_per_game' => 2,
-                    'avg_fouls_per_game' => 2,
-                    'total_points' => 0,
-                    'total_rebounds' => 0,
-                    'total_assists' => 0,
-                    'total_steals' => 0,
-                    'total_blocks' => 0,
-                    'total_turnovers' => 0,
-                    'total_fouls' => 0,
-                    'total_games_played' => 0,
-                ];
-
-                // Merge all players with appropriate default stats for rookies
-                $allPlayersStats = $stats->merge($playersWithoutStats->map(function ($player) use ($rookieDefaults) {
-                    return (object) array_merge([
+                // Merge all players
+                $allPlayersStats = $stats->merge($playersWithoutStats->map(function ($player) {
+                    return (object)[
                         'player_id' => $player->id,
                         'role' => 'bench', // Default role
-                        'overall_rating' => $player->overall_rating ?? 50,
+                        'avg_points_per_game' => 0,
+                        'avg_rebounds_per_game' => 0,
+                        'avg_assists_per_game' => 0,
+                        'avg_steals_per_game' => 0,
+                        'avg_blocks_per_game' => 0,
+                        'avg_turnovers_per_game' => 0,
+                        'avg_fouls_per_game' => 0,
+                        'total_points' => 0,
+                        'total_rebounds' => 0,
+                        'total_assists' => 0,
+                        'total_steals' => 0,
+                        'total_blocks' => 0,
+                        'total_turnovers' => 0,
+                        'total_fouls' => 0,
+                        'total_games_played' => 0,
+                        'overall_rating' => $player->overall_rating ?? 50, // Default low rating if missing
+                        'potential_rating' => $player->potential_rating ?? 50, // Use potential for rookies
                         'injury_prone_percentage' => $player->injury_prone_percentage ?? 50,
-                        'is_rookie' => $player->is_rookie ?? 0,
-                    ], $rookieDefaults);
+                        'is_rookie' => $player->is_rookie ?? 0, // Identify rookies
+                    ];
                 }));
 
                 // Calculate composite score and sort players
@@ -2446,14 +2443,15 @@ class SimulateController extends Controller
                         $stat->total_steals * 0.15 +
                         $stat->total_blocks * 0.15 -
                         $stat->total_turnovers * 0.1 -
-                        $stat->total_fouls_per_game * 0.1;
+                        $stat->total_fouls * 0.1;
+
+                    $potentialFactor = $stat->is_rookie 
+                        ? ($stat->potential_rating / 100) * 1.2 // Boost rookies with high potential
+                        : 1;
 
                     $injuryFactor = 1 - ($stat->injury_prone_percentage / 100);
 
-                    // Boost rookies slightly to account for lack of stats
-                    $rookieBoost = $stat->is_rookie ? 1.1 : 1;
-
-                    return ($perGameScore + $totalScore) * $injuryFactor * $rookieBoost;
+                    return ($perGameScore + $totalScore) * $potentialFactor * $injuryFactor;
                 });
 
                 // Assign roles
@@ -2494,8 +2492,9 @@ class SimulateController extends Controller
             }
         }
 
-        return true;
-    }
+    return true;
+}
+
 
     private function getLatestSeasonId()
     {

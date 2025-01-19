@@ -1506,13 +1506,45 @@ class PlayersController extends Controller
             ->distinct('schedules.season_id')
             ->count('schedules.round');
 
+        $overallRankSeasons = \DB::table('player_season_stats')
+            ->join('standings_view', 'player_season_stats.team_id', '=', 'standings_view.team_id')
+            ->join('seasons', 'standings_view.season_id', '=', 'seasons.id')
+            ->join('teams', 'player_season_stats.team_id', '=', 'teams.id')
+            ->where('player_season_stats.player_id', $playerId)
+            ->where('standings_view.overall_rank', 1)
+            ->distinct()
+            ->get([
+                'standings_view.season_id',
+                'seasons.name as season_name',
+                'standings_view.overall_rank',
+                'teams.name as team_name'
+            ]);
+        
+    
+        $conferenceRankSeasons = \DB::table('player_season_stats')
+            ->join('standings_view', 'player_season_stats.team_id', '=', 'standings_view.team_id')
+            ->join('seasons', 'standings_view.season_id', '=', 'seasons.id')
+            ->join('teams', 'player_season_stats.team_id', '=', 'teams.id')
+            ->where('player_season_stats.player_id', $playerId)
+            ->where('standings_view.conference_rank', 1)
+            ->distinct()
+            ->get([
+                'standings_view.season_id',
+                'seasons.name as season_name',
+                'standings_view.conference_rank',
+                'teams.name as team_name'
+            ]);
+        
+
         return response()->json([
             'player_details' => $playerDetails,
             'playoff_performance' => $playoffPerformance,
             'mvp_count' => $mvpCount,
             'mvp_seasons' => $mvpData->pluck('season_name'),
-            'championships' => $championships,
+            'national_championships' => $championships,
             'conference_championships' => $conference_championships,
+            'national_overall_champions' => $overallRankSeasons,
+            'conference_overall_champions' => $conferenceRankSeasons,
             'career_highs' => $careerHighs,
             'season_count' => $seasonCount,
             'awards' => $awardsData,

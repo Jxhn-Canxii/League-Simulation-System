@@ -216,7 +216,7 @@
         </div>
         <div
             class="flex justify-end mb-2 space-x-2"
-            v-if="season_schedules && !season_schedules.is_simulated"
+            v-if="season_schedules && !season_schedules.is_simulated && !loadingSchedules"
         >
             <button
                 @click="simulatePerRound()"
@@ -235,6 +235,9 @@
                 Simulate All Season
             </button>
         </div>
+        <div v-else>
+            <p class="text-end"></p>
+        </div>
         <div
             class="grid grid-cols-1 md:grid-cols-7 gap-6 p-6"
             v-if="season_info.seasons && season_info.seasons[0].type != 1"
@@ -248,7 +251,7 @@
                     class="min-w-full divide-y divide-gray-200"
                     v-if="
                         season_standings &&
-                        season_standings.standings.length > 0
+                        season_standings.standings.length > 0 && !loadingStandings
                     "
                 >
                     <thead class="bg-gray-50">
@@ -398,7 +401,13 @@
                         </tr>
                     </tbody>
                 </table>
-                <div v-else class="text-center font-bold text-red-500">
+                <div  v-if="loadingStandings" class="text-center font-bold text-red-500">
+                    Loading Standings...
+                </div>
+                <div  v-if="
+                        season_standings &&
+                        season_standings.standings.length == 0 && !loadingStandings
+                    " class="text-center font-bold text-red-500">
                     No Standings available
                 </div>
                 <!-- Stats List -->
@@ -446,7 +455,7 @@
                 <div
                     v-if="
                         season_schedules &&
-                        season_schedules.schedules?.length > 0
+                        season_schedules.schedules?.length > 0 && !loadingSchedules
                     "
                     class="grid md:grid-cols-2 sm:col-span-1 gap-6"
                 >
@@ -554,7 +563,13 @@
                         </div>
                     </div>
                 </div>
-                <div v-else>
+                <div v-if="loadingSchedules">
+                    <p class="text-gray-500">Loading Schedules.</p>
+                </div>
+                <div v-if="
+                        season_schedules &&
+                        season_schedules.schedules?.length == 0 && !loadingSchedules
+                    ">
                     <p class="text-gray-500">No schedule available.</p>
                 </div>
             </div>
@@ -662,6 +677,8 @@ const isHide = ref(false);
 const currentTab = ref("info");
 const currentRound = ref(0);
 const topPlayersKey = ref(0); // Key for TopPlayers component
+const loadingStandings = ref(false);
+const loadingSchedules = ref(false);
 const activeConferenceTab = ref(false);
 const activeGameId = ref(0);
 const props = defineProps({
@@ -708,11 +725,14 @@ const fetchSeasonInfo = async () => {
 };
 const fetchConferenceStandings = async (id) => {
     try {
+        season_standings.value = [];
+        loadingStandings.value = true;
         const response = await axios.post(route("conferences.standings"), {
             season_id: props.season_id,
             conference_id: id,
         });
         season_standings.value = response.data;
+        loadingStandings.value = false;
     } catch (error) {
         console.error("Error fetching season standings:", error);
     }
@@ -720,11 +740,14 @@ const fetchConferenceStandings = async (id) => {
 
 const fetchConferenceSchedules = async (id) => {
     try {
+        season_schedules.value = [];
+        loadingSchedules.value = true;
         const response = await axios.post(route("conferences.schedules"), {
             season_id: props.season_id,
             conference_id: id,
         });
         season_schedules.value = response.data;
+        loadingSchedules.value = false;
     } catch (error) {
         console.error("Error fetching season standings:", error);
     }

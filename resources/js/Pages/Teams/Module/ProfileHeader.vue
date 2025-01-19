@@ -223,9 +223,31 @@
                 <i class="fa fa-star text-gray-500 mr-2"></i>
                 Championships
             </h3>
+            <div v-if="main_performance.national_championships?.length > 0">
+                <h4 class="text-sm font-semibold text-gray-600 mb-2">
+                    National Championships
+                    {{
+                        main_performance.national_championships?.length > 0
+                            ? "(" + main_performance.national_championships?.length + ")"
+                            : ""
+                    }}
+                </h4>
+                <div
+                    v-for="(season, index) in main_performance.national_championships"
+                    :key="index"
+                    class="flex items-center mb-2"
+                >
+                    <i class="fa fa-trophy text-yellow-500 mr-2"></i>
+                    <p class="text-xs">
+                        {{ season.season_name }} ({{
+                            season.championship_team
+                        }})
+                    </p>
+                </div>
+            </div>
             <div v-if="main_performance.conference_championships?.length > 0">
                 <h4 class="text-sm font-semibold text-gray-600 mb-2">
-                    Conference
+                    Conference Championships
                     {{
                         main_performance.conference_championships?.length > 0
                             ? "(" +
@@ -250,24 +272,47 @@
                     </p>
                 </div>
             </div>
-            <div v-if="main_performance.championships?.length > 0">
+           
+            <div v-if="main_performance.national_overall_champions?.length > 0">
                 <h4 class="text-sm font-semibold text-gray-600 mb-2">
-                    Nationals
+                    Nationals Rank #1
                     {{
-                        main_performance.championships?.length > 0
-                            ? "(" + main_performance.championships?.length + ")"
+                        main_performance.national_overall_champions?.length > 0
+                            ? "(" + main_performance.national_overall_champions?.length + ")"
                             : ""
                     }}
                 </h4>
                 <div
-                    v-for="(season, index) in main_performance.championships"
+                    v-for="(season, index) in main_performance.national_overall_champions"
                     :key="index"
                     class="flex items-center mb-2"
                 >
                     <i class="fa fa-trophy text-yellow-500 mr-2"></i>
                     <p class="text-xs">
                         {{ season.season_name }} ({{
-                            season.championship_team
+                            season.team_name
+                        }})
+                    </p>
+                </div>
+            </div>
+            <div v-if="main_performance.conference_overall_champions?.length > 0">
+                <h4 class="text-sm font-semibold text-gray-600 mb-2">
+                    Conference Rank #1
+                    {{
+                        main_performance.conference_overall_champions?.length > 0
+                            ? "(" + main_performance.conference_overall_champions?.length + ")"
+                            : ""
+                    }}
+                </h4>
+                <div
+                    v-for="(season, index) in main_performance.conference_overall_champions"
+                    :key="index"
+                    class="flex items-center mb-2"
+                >
+                    <i class="fa fa-trophy text-yellow-500 mr-2"></i>
+                    <p class="text-xs">
+                        {{ season.season_name }} ({{
+                            season.team_name
                         }})
                     </p>
                 </div>
