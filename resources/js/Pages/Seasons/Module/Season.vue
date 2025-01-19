@@ -15,7 +15,7 @@
                             class="min-w-full divide-y divide-gray-200 text-sm"
                             v-if="
                                 season_standings &&
-                                season_standings.standings?.length > 0
+                                season_standings.standings?.length > 0 && !loadingStandings
                             "
                         >
                             <thead class="bg-gray-50 text-xs">
@@ -56,7 +56,7 @@
                                 class="bg-rose-200 divide-y divide-gray-200 text-sm"
                             >
                                 <tr
-                                    v-if="season_standings?.standings?.length > 0"
+                                    v-if="season_standings?.standings?.length > 0 && !loadingStandings"
                                     v-for="(
                                         team, index
                                     ) in season_standings.standings"
@@ -142,7 +142,13 @@
                                 </tr>
                             </tbody>
                         </table>
-                        <div v-else class="text-center font-bold text-red-500">
+                        <div  v-if="loadingStandings" class="text-center font-bold text-red-500">
+                            Loading Standings...
+                        </div>
+                        <div  v-if="
+                                season_standings &&
+                                season_standings.standings.length == 0 && !loadingStandings
+                            " class="text-center font-bold text-red-500">
                             No Standings available
                         </div>
                         <!-- <small class="text-red-500 font-bold" v-if="currentRound"
