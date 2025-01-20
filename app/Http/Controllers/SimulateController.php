@@ -1897,7 +1897,7 @@ class SimulateController extends Controller
                 'is_injured' => 0, // Set is_injured to 0 for players with no injury recovery games left
             ]);
     }
-    private function getRandomPlayer(){
+    private function getRandomPlayerV1(){
         $randomPlayer = DB::table('players')
             ->join('player_season_stats', 'players.id', '=', 'player_season_stats.player_id', 'left') // Join player stats
             ->where('players.is_active', 1) // Ensure the player is active
@@ -1921,7 +1921,7 @@ class SimulateController extends Controller
             ->orderByDesc('performance_points') // Order by highest performance points
             ->orderByDesc('players.overall_rating') // Secondary sort by overall rating
             ->orderByDesc(DB::raw('player_season_stats.total_games_played')) // Sort by more games played
-            ->orderBy('players.injury_history') // Least injury history
+            ->orderBy('players.injury_history','asc') // Least injury history
             ->limit(100) // Limit to top 100 based on sorting criteria
             ->inRandomOrder() // Randomize selection
             ->first(); // Get a single random player
@@ -1929,6 +1929,42 @@ class SimulateController extends Controller
         return $randomPlayer;
 
     }
+    private function getRandomPlayer()
+    {
+        $randomPlayer = DB::table('players')
+            ->join('player_season_stats', 'players.id', '=', 'player_season_stats.player_id', 'left') // Join player stats
+            ->where('players.is_active', 1) // Ensure the player is active
+            ->where('players.is_injured', 0) // Ensure the player is not injured
+            ->where('players.team_id', 0) // Ensure the player has no team
+            ->whereRaw('(SELECT COUNT(DISTINCT team_id) FROM player_season_stats WHERE player_season_stats.player_id = players.id) < 3') // Ensure player has been with less than 3 teams
+            ->select(
+                'players.id',
+                'players.overall_rating',
+                'players.injury_history',
+                'players.age', // Include age for sorting
+                'player_season_stats.player_id',
+                DB::raw('(
+                    player_season_stats.avg_points_per_game * 1 +
+                    player_season_stats.avg_rebounds_per_game * 0.75 +
+                    player_season_stats.avg_assists_per_game * 0.75 +
+                    player_season_stats.avg_steals_per_game * 1.25 +
+                    player_season_stats.avg_blocks_per_game * 1.25 -
+                    player_season_stats.avg_turnovers_per_game * 0.5 -
+                    player_season_stats.avg_fouls_per_game * 0.3
+                ) AS performance_points')
+            )
+            // Order by the requested criteria
+            ->orderByDesc('players.overall_rating') // Highest overall rating first
+            ->orderByDesc(DB::raw('performance_points')) // Then by performance points
+            ->orderBy('players.age') // Younger players first
+            ->orderBy('players.injury_history') // Least injury history first
+            ->limit(100) // Limit to top 100 based on sorting criteria
+            ->inRandomOrder() // Randomize selection from the top 100
+            ->first(); // Get a single random player
+
+        return $randomPlayer;
+    }
+
     private function updateChampionsContract($teamId, $seasonId, $teamName) {
         // Retrieve all active players for the specified team
         $players = Player::where('is_active', 1)
