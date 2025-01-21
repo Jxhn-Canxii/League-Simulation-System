@@ -294,7 +294,16 @@ class PlayersController extends Controller
                     // Return a combined score
                     $combinedScore = ($perGameScore + $totalScore) * $gamesPlayedModifier * $roleModifier * $efficiencyFactor;
 
+                    $seasonsPlayedWithTeam = DB::table('player_season_stats')
+                        ->where('player_id', $player->id)
+                        ->where('team_id', $teamId)
+                        ->count('team_id');
 
+                    $totalSeasonsPlayed = DB::table('player_season_stats')
+                        ->where('player_id', $player->id)
+                        ->distinct('season_id')
+                        ->count('season_id');
+                    
                     // Add player stats to the array
                     $playerStats[] = [
                         'player_id' => $player->id,
@@ -325,6 +334,8 @@ class PlayersController extends Controller
                         'per_game_score' => number_format($perGameScore, 2),
                         'total_score' => number_format($totalScore, 2),
                         'combined_score' => number_format($combinedScore, 2),
+                        'seasons_played_with_team' => $seasonsPlayedWithTeam,
+                        'total_seasons_played' => $totalSeasonsPlayed
                     ];
                 }
             }
@@ -389,6 +400,11 @@ class PlayersController extends Controller
                     ];
                 }
 
+                $total_seasons_played = DB::table('player_season_stats')
+                    ->where('player_id', $playerId)
+                    ->distinct('season_id')
+                    ->count('season_id');
+                
                 // Only include players with games played > 0 if season status is 11
                 if ($seasonStatus != 11 || $stats['games_played'] > 0) {
 
@@ -419,6 +435,8 @@ class PlayersController extends Controller
                         'per_game_score' => number_format(0, 2),
                         'total_score' => number_format(0, 2),
                         'combined_score' => number_format(0, 2),
+                        'seasons_played_with_team' => 0,
+                        'total_seasons_played' => $total_seasons_played,
                     ];
                 }
             }

@@ -31,7 +31,7 @@
         <!-- Players Table -->
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200 text-xs">
-                <thead class="bg-gray-50 text-nowrap">
+                <thead class="bg-gray-50">
                     <tr>
                         <th
                             class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
@@ -51,19 +51,21 @@
                         <th
                             class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
                         >
-                            Age
-                        </th>
-                        <th
-                            class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
-                        >
                             Role
                         </th>
                         <th
-                            class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
-                            title="Contract Years Left"
+                            class="px-2 py-1 text-center font-medium text-gray-500 uppercase text-wrap tracking-wider"
+                            title="Years Played with the Team"
+                        >
+                            Status
+                        </th>
+                        <th
+                            class="px-2 py-1 text-left font-medium text-gray-500 text-wrap uppercase tracking-wider"
+                            title="Remaining Contract Years"
                         >
                             Yrs. Left
                         </th>
+
                         <th
                             class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
                             title="Overall Ratings"
@@ -163,11 +165,8 @@
                         <td class="px-2 py-1 whitespace-nowrap border" :title="'Draft class: '+player.draft_class">
                             {{ player.draft_status == 'Undrafted' ? 'S'+player.draft_id+' '+player.draft_status : player.draft_status + (player.drafted_team ? ' ('+player.drafted_team+ ')' : '')}}
                         </td>
-                        <td class="px-2 py-1 whitespace-nowrap border">
-                            {{ player.name }}<sup>{{ player.is_rookie ? 'R':'V'}}</sup>
-                        </td>
                         <td class="px-2 py-1 whitespace-nowrap border" :title="player.retirement_age">
-                            {{ player.age }}
+                            {{ player.name }}<sup>{{ player.age }}</sup>
                         </td>
                         <td class="px-2 py-1 whitespace-nowrap border">
                             <span
@@ -177,6 +176,36 @@
                                 {{ player.role }}
                             </span>
                         </td>
+                        <td class="px-2 py-1 whitespace-nowrap border">
+                            <!-- If the player is new to the team -->
+                            <span
+                                title="Newly Aquired"
+                                class="inline-flex items-center px-3 py-1 text-xs font-bold leading-none text-blue-800 bg-blue-100 rounded-full"
+                                v-if="player.seasons_played_with_team === 1 && player.contract_years != 0">
+                                <i class="fas fa-user-plus text-yellow-500 mr-1"></i>
+                            </span>
+
+                            <!-- If the player has played more than one season -->
+                            <span  
+                            :title="player.total_seasons_played+' Years with the team'"
+                            v-if="player.seasons_played_with_team > 1 && player.contract_years != 0"  class="inline-flex items-center px-3 py-1 text-xs font-bold leading-none text-blue-800 bg-blue-100 rounded-full">
+                                {{ player.seasons_played_with_team }} yrs 
+                                <sup>{{ player.total_seasons_played > 1 ? 'V' : 'R' }}</sup>
+                            </span>
+                            <span  
+                             :title="player.total_seasons_played+' Years with the team'"
+                            v-if="player.seasons_played_with_team > 0 && player.contract_years == 0"  class="inline-flex items-center px-3 py-1 text-xs font-bold leading-none text-blue-800 bg-blue-100 rounded-full">
+                                {{ player.seasons_played_with_team }} yrs 
+                                <sup>{{ player.total_seasons_played > 1 ? 'V' : 'R' }}</sup>
+                            </span>
+                            <span
+                                title="Less than 3 years left before retirement"
+                                class="inline-flex items-center px-3 py-1 text-xs font-bold leading-none text-red-800 bg-red-100 rounded-full"
+                                v-if="player.age - 1 >= player.retirement_age - 2">
+                                <i class="fas fa-user-times text-red-500 mr-1"></i>
+                            </span>
+                        </td>
+
                         <td class="px-2 py-1 whitespace-nowrap border">
                             {{ player.contract_years ?? '-' }} yrs.
                         </td>
