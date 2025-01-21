@@ -220,6 +220,7 @@ class PlayersController extends Controller
         // Initialize an array to hold player stats
         $playerStats = [];
         $latestSeasonId = DB::table('player_game_stats')->max('season_id');
+        $currentSeasonId = DB::table('seasons')->max('id');
         if (is_null($seasonId) || $seasonId == 0) {
             $seasonId = $latestSeasonId;
         }
@@ -297,12 +298,15 @@ class PlayersController extends Controller
                     $seasonsPlayedWithTeam = DB::table('player_season_stats')
                         ->where('player_id', $player->id)
                         ->where('team_id', $teamId)
+                        ->where('season_id', '<=', $seasonId) // Include only seasons up to the provided season_id
                         ->count('team_id');
 
                     $totalSeasonsPlayed = DB::table('player_season_stats')
                         ->where('player_id', $player->id)
-                        ->distinct('season_id')
+                        ->where('season_id', '<=', $seasonId) // Include only seasons up to the provided season_id
+                        ->distinct('season_id') // Ensure distinct season IDs are counted
                         ->count('season_id');
+
                     
                     // Add player stats to the array
                     $playerStats[] = [
@@ -335,7 +339,8 @@ class PlayersController extends Controller
                         'total_score' => number_format($totalScore, 2),
                         'combined_score' => number_format($combinedScore, 2),
                         'seasons_played_with_team' => $seasonsPlayedWithTeam,
-                        'total_seasons_played' => $totalSeasonsPlayed
+                        'total_seasons_played' => $totalSeasonsPlayed,
+                        'latest_season' => $currentSeasonId,
                     ];
                 }
             }
@@ -400,10 +405,12 @@ class PlayersController extends Controller
                     ];
                 }
 
-                $total_seasons_played = DB::table('player_season_stats')
+                $totalSeasonsPlayed = DB::table('player_season_stats')
                     ->where('player_id', $playerId)
-                    ->distinct('season_id')
-                    ->count('season_id');
+                    ->where('season_id', '<=', $seasonId) // Filter seasons less than or equal to $seasonId
+                    ->groupBy('season_id') // Ensure distinct season_id values
+                    ->count(); // Count the number of distinct seasons
+
                 
                 // Only include players with games played > 0 if season status is 11
                 if ($seasonStatus != 11 || $stats['games_played'] > 0) {
@@ -436,7 +443,8 @@ class PlayersController extends Controller
                         'total_score' => number_format(0, 2),
                         'combined_score' => number_format(0, 2),
                         'seasons_played_with_team' => 0,
-                        'total_seasons_played' => $total_seasons_played,
+                        'total_seasons_played' => $totalSeasonsPlayed,
+                        'latest_season' => $currentSeasonId,
                     ];
                 }
             }

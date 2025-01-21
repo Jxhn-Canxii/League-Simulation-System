@@ -51,13 +51,18 @@
                         <th
                             class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
                         >
+                            Exp
+                        </th>
+                        <th
+                            class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
+                        >
                             Role
                         </th>
                         <th
-                            class="px-2 py-1 text-center font-medium text-gray-500 uppercase text-wrap tracking-wider"
-                            title="Years Played with the Team"
+                            class="px-2 py-1 text-left font-medium text-gray-500 text-wrap uppercase tracking-wider"
+                            title="Remaining Contract Years"
                         >
-                            Status
+                            Yrs. w/ Team
                         </th>
                         <th
                             class="px-2 py-1 text-left font-medium text-gray-500 text-wrap uppercase tracking-wider"
@@ -141,7 +146,7 @@
                         <th
                             class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
                         >
-                            Status
+                            Legend
                         </th>
                         <!-- <th
                             class="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider"
@@ -169,6 +174,9 @@
                             {{ player.name }}<sup>{{ player.age }}</sup>
                         </td>
                         <td class="px-2 py-1 whitespace-nowrap border">
+                            {{ player.total_seasons_played }} yrs.
+                        </td>
+                        <td class="px-2 py-1 whitespace-nowrap border">
                             <span
                                 :class="roleClasses(player.role)"
                                 class="inline-flex items-center capitalize px-2.5 py-0.5 rounded text-xs font-medium"
@@ -178,34 +186,9 @@
                         </td>
                         <td class="px-2 py-1 whitespace-nowrap border">
                             <!-- If the player is new to the team -->
-                            <span
-                                title="Newly Aquired"
-                                class="inline-flex items-center px-3 py-1 text-xs font-bold leading-none text-blue-800 bg-blue-100 rounded-full"
-                                v-if="player.seasons_played_with_team === 1 && player.contract_years != 0">
-                                <i class="fas fa-user-plus text-yellow-500 mr-1"></i>
-                            </span>
-
                             <!-- If the player has played more than one season -->
-                            <span  
-                            :title="player.total_seasons_played+' Years with the team'"
-                            v-if="player.seasons_played_with_team > 1 && player.contract_years != 0"  class="inline-flex items-center px-3 py-1 text-xs font-bold leading-none text-blue-800 bg-blue-100 rounded-full">
-                                {{ player.seasons_played_with_team }} yrs 
-                                <sup>{{ player.total_seasons_played > 1 ? 'V' : 'R' }}</sup>
-                            </span>
-                            <span  
-                             :title="player.total_seasons_played+' Years with the team'"
-                            v-if="player.seasons_played_with_team > 0 && player.contract_years == 0"  class="inline-flex items-center px-3 py-1 text-xs font-bold leading-none text-blue-800 bg-blue-100 rounded-full">
-                                {{ player.seasons_played_with_team }} yrs 
-                                <sup>{{ player.total_seasons_played > 1 ? 'V' : 'R' }}</sup>
-                            </span>
-                            <span
-                                title="Less than 3 years left before retirement"
-                                class="inline-flex items-center px-3 py-1 text-xs font-bold leading-none text-red-800 bg-red-100 rounded-full"
-                                v-if="player.age - 1 >= player.retirement_age - 2">
-                                <i class="fas fa-user-times text-red-500 mr-1"></i>
-                            </span>
+                            {{ player.seasons_played_with_team }} yrs.
                         </td>
-
                         <td class="px-2 py-1 whitespace-nowrap border">
                             {{ player.contract_years ?? '-' }} yrs.
                         </td>
@@ -245,12 +228,33 @@
                         <td class="px-2 py-1 whitespace-nowrap border">
                             {{ player.combined_score }}
                         </td>
-
                         <td class="px-2 py-1 whitespace-nowrap border">
-                            <!-- Display "Retired" if player is not active and retirement age is greater than or equal to their age -->
-                            <span v-if="player.status == 1" class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Active</span>
-                            <span v-if="player.status == 2" class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">Transferred</span>
-                            <span v-if="player.status == 0" class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Retired/Free Agent</span>
+                            <!-- If the player is new to the team -->
+                            <span
+                                title="Newly Aquired"
+                                class="inline-flex items-center px-3 py-1 text-xs font-bold leading-none text-blue-800 bg-blue-100 rounded-full"
+                                v-if="player.seasons_played_with_team === 1">
+                                <i class="fas fa-user-plus text-yellow-500 mr-1"></i>
+                            </span>
+
+                            <!-- If the player has played more than one season -->
+                             <!-- {{ player.latest_season }}
+                             {{ player.age - (player.latest_season - player.draft_id) }} -->
+                            <span
+                                title="Less than 3 years left before retirement"
+                                class="inline-flex items-center px-3 py-1 text-xs font-bold leading-none text-red-800 bg-red-100 rounded-full"
+                                v-if="player.age - player.total_seasons_played >= player.retirement_age - 2">
+                                <i class="fas fa-user-times text-red-500 mr-1"></i>
+                            </span>
+                            <span v-if="player.status == 1" class="inline-flex items-center px-3 py-1 text-xs font-bold leading-none text-green-800 bg-green-100 rounded-full" title="Active">
+                                <i class="fas fa-check-circle"></i>
+                            </span>
+                            <span v-if="player.status == 2" class="inline-flex items-center px-3 py-1 text-xs font-bold leading-none text-gray-800 bg-gray-100 rounded-full" title="Transferred">
+                                <i class="fas fa-exchange-alt"></i>
+                            </span>
+                            <span v-if="player.status == 0 && (player.latest_season  - player.draft_id != 0)" class="inline-flex items-center px-3 py-1 text-xs font-bold leading-none text-red-800 bg-red-100 rounded-full" title="Retired">
+                                <i class="fas fa-user-slash"></i>
+                            </span>
                         </td>
                         <!-- <td class="px-2 py-1 whitespace-nowrap border">
                             <button
@@ -271,7 +275,7 @@
                         v-else
                         class="hover:bg-gray-100"
                     >
-                        <td class="px-2 py-1 whitespace-nowrap border text-center font-bold text-red-500" colspan="19">***No Players Found***</td>
+                        <td class="px-2 py-1 whitespace-nowrap border text-center font-bold text-red-500" colspan="20">***No Players Found***</td>
                     </tr>
                 </tbody>
             </table>
