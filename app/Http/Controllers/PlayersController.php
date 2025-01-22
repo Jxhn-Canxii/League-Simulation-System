@@ -298,12 +298,12 @@ class PlayersController extends Controller
                     $seasonsPlayedWithTeam = DB::table('player_season_stats')
                         ->where('player_id', $player->id)
                         ->where('team_id', $teamId)
-                        ->where('season_id', '<=', $seasonId) // Include only seasons up to the provided season_id
+                        ->where('season_id', '<=', $currentSeasonId) // Include only seasons up to the provided season_id
                         ->count('team_id');
 
                     $totalSeasonsPlayed = DB::table('player_season_stats')
                         ->where('player_id', $player->id)
-                        ->where('season_id', '<=', $seasonId) // Include only seasons up to the provided season_id
+                        ->where('season_id', '<=', $currentSeasonId) // Include only seasons up to the provided season_id
                         ->distinct('season_id') // Ensure distinct season IDs are counted
                         ->count('season_id');
 
@@ -1805,92 +1805,227 @@ class PlayersController extends Controller
         ]);
     }
 
-    public function gettop20playersalltime()
+    public function getTop20PlayersAllTime()
     {
-        $top20Players = DB::table('top_20_players_all_time')->get();
-        return response()->json($top20Players);
+        $top20PlayersAllTime = DB::table('player_season_stats')
+            ->join('players', 'player_season_stats.player_id', '=', 'players.id')
+            ->join('teams', 'players.team_id', '=', 'teams.id')
+            ->leftJoin('season_awards', 'player_season_stats.player_id', '=', 'season_awards.player_id')
+            ->select(
+                'player_season_stats.player_id',
+                'players.is_active',
+                'players.name as player_name',
+                'teams.name as current_team_name',
+                DB::raw('SUM(player_season_stats.total_points) as total_points'),
+                DB::raw('SUM(player_season_stats.total_rebounds) as total_rebounds'),
+                DB::raw('SUM(player_season_stats.total_assists) as total_assists'),
+                DB::raw('SUM(player_season_stats.total_steals) as total_steals'),
+                DB::raw('SUM(player_season_stats.total_blocks) as total_blocks'),
+                DB::raw('SUM(player_season_stats.total_turnovers) as total_turnovers'),
+                DB::raw('SUM(player_season_stats.total_fouls) as total_fouls'),
+                DB::raw('(SUM(player_season_stats.total_points) * 0.4 +
+                        SUM(player_season_stats.total_rebounds) * 0.2 +
+                        SUM(player_season_stats.total_assists) * 0.2 +
+                        SUM(player_season_stats.total_steals) * 0.1 +
+                        SUM(player_season_stats.total_blocks) * 0.1 -
+                        SUM(player_season_stats.total_turnovers) * 0.1 -
+                        SUM(player_season_stats.total_fouls) * 0.1) as statistical_points'),
+                DB::raw('(SELECT GROUP_CONCAT(DISTINCT season_awards.award_name SEPARATOR ", ") 
+                          FROM season_awards 
+                          WHERE season_awards.player_id = player_season_stats.player_id) as award_names'),
+                DB::raw('(SELECT COUNT(*) 
+                          FROM seasons 
+                          WHERE seasons.finals_winner_id = player_season_stats.team_id) as championships_won'),
+                DB::raw('(SELECT COUNT(*) 
+                          FROM seasons 
+                          WHERE seasons.finals_mvp_id = player_season_stats.player_id) as finals_mvp'),
+                DB::raw('(SELECT COUNT(DISTINCT team_id) 
+                          FROM player_season_stats 
+                          WHERE player_season_stats.player_id = players.id) as distinct_teams_count'),
+                DB::raw('(SELECT GROUP_CONCAT(DISTINCT seasons.finals_winner_id SEPARATOR ", ") 
+                          FROM seasons 
+                          WHERE seasons.finals_winner_id IN 
+                              (SELECT DISTINCT team_id 
+                               FROM player_season_stats 
+                               WHERE player_season_stats.player_id = players.id)) as won_championships')
+            )
+            ->groupBy(
+                'player_season_stats.player_id',
+                'players.id',
+                'player_season_stats.team_id',
+                'players.is_active',
+                'players.name',
+                'teams.name'
+            )
+            ->orderByRaw('
+                (SUM(player_season_stats.total_points) * 0.4 +
+                 SUM(player_season_stats.total_rebounds) * 0.2 +
+                 SUM(player_season_stats.total_assists) * 0.2 +
+                 SUM(player_season_stats.total_steals) * 0.1 +
+                 SUM(player_season_stats.total_blocks) * 0.1 -
+                 SUM(player_season_stats.total_turnovers) * 0.1 -
+                 SUM(player_season_stats.total_fouls) * 0.1) + 
+                 (SELECT COUNT(*) 
+                  FROM seasons 
+                  WHERE seasons.finals_winner_id = player_season_stats.team_id) DESC
+            ')
+            ->limit(20)
+            ->get();
+    
+        return response()->json($top20PlayersAllTime);
     }
-    public function gettop10playersbyteam(Request $request)
+    
+    public function getTop10PlayersByTeam(Request $request)
     {
-        $top10PlayersByTeam = DB::table('top_10_players_by_team_all_time')->where('team_id', $request->team_id)->get();
+        $request->validate([
+            'team_id' => 'required|exists:teams,id',
+            'season_id' => 'nullable|integer',
+        ]);
+    
+        $teamId = $request->team_id;
+    
+        // Get the latest season ID if not provided
+        $seasonId = $request->season_id ?? DB::table('player_season_stats')->max('season_id');
+    
+        $top10PlayersByTeam = DB::table('player_season_stats')
+            ->join('players', 'player_season_stats.player_id', '=', 'players.id')
+            ->join('teams', 'players.team_id', '=', 'teams.id')
+            ->leftJoin('season_awards', 'player_season_stats.player_id', '=', 'season_awards.player_id')
+            ->select(
+                'player_season_stats.player_id',
+                'players.is_active',
+                'players.name as player_name', // Specify the table
+                'teams.name as current_team_name', // Specify the table
+                DB::raw('SUM(player_season_stats.total_points) as total_points'),
+                DB::raw('SUM(player_season_stats.total_rebounds) as total_rebounds'),
+                DB::raw('SUM(player_season_stats.total_assists) as total_assists'),
+                DB::raw('SUM(player_season_stats.total_steals) as total_steals'),
+                DB::raw('SUM(player_season_stats.total_blocks) as total_blocks'),
+                DB::raw('SUM(player_season_stats.total_turnovers) as total_turnovers'),
+                DB::raw('SUM(player_season_stats.total_fouls) as total_fouls'),
+                DB::raw('(SUM(player_season_stats.total_points) * 0.4 +
+                        SUM(player_season_stats.total_rebounds) * 0.2 +
+                        SUM(player_season_stats.total_assists) * 0.2 +
+                        SUM(player_season_stats.total_steals) * 0.1 +
+                        SUM(player_season_stats.total_blocks) * 0.1 -
+                        SUM(player_season_stats.total_turnovers) * 0.1 -
+                        SUM(player_season_stats.total_fouls) * 0.1) as statistical_points'),
+                DB::raw('(SELECT GROUP_CONCAT(season_awards.award_name SEPARATOR ", ") 
+                          FROM season_awards 
+                          WHERE season_awards.player_id = player_season_stats.player_id) as award_names'),
+                DB::raw('(SELECT COUNT(*) 
+                          FROM seasons 
+                          WHERE seasons.finals_winner_id = player_season_stats.team_id 
+                          AND player_season_stats.season_id <= seasons.id) as championships_won'),
+                DB::raw('(SELECT COUNT(*) 
+                        FROM seasons 
+                        WHERE seasons.finals_mvp_id = player_season_stats.player_id 
+                        AND player_season_stats.season_id <= seasons.id) as finals_mvp')
+            )
+            ->where('player_season_stats.team_id', $teamId)
+            ->where('player_season_stats.season_id', '<=', $seasonId)
+            ->groupBy(
+                'player_season_stats.player_id',
+                'player_season_stats.team_id',
+                'player_season_stats.season_id',
+                'players.is_active',
+                'players.name',
+                'teams.name'
+            )
+            ->orderByRaw('
+                (SUM(player_season_stats.total_points) * 0.4 +
+                SUM(player_season_stats.total_rebounds) * 0.2 +
+                SUM(player_season_stats.total_assists) * 0.2 +
+                SUM(player_season_stats.total_steals) * 0.1 +
+                SUM(player_season_stats.total_blocks) * 0.1 -
+                SUM(player_season_stats.total_turnovers) * 0.1 -
+                SUM(player_season_stats.total_fouls) * 0.1) + 
+                (SELECT COUNT(*) 
+                 FROM seasons 
+                 WHERE seasons.finals_winner_id = player_season_stats.team_id 
+                 AND player_season_stats.season_id <= seasons.id) DESC
+            ')
+            ->limit(10)
+            ->get();
+    
         return response()->json($top10PlayersByTeam);
     }
+    
+    public function getplayertransactions(Request $request)
+    {
+        // Retrieve the player_id from the request
+        $player_id = $request->input('player_id'); // or $request->player_id if it's passed as a query parameter
 
-public function getplayertransactions(Request $request)
-{
-    // Retrieve the player_id from the request
-    $player_id = $request->input('player_id'); // or $request->player_id if it's passed as a query parameter
+        // Check if player_id is provided
+        if (!$player_id) {
+            return response()->json(['error' => 'Player ID is required'], 400);
+        }
 
-    // Check if player_id is provided
-    if (!$player_id) {
-        return response()->json(['error' => 'Player ID is required'], 400);
+        // Retrieve transactions for the given player_id with player details (name, role)
+        // and team details (from_team and to_team)
+        $transactions = DB::table('transactions')
+        // Join with the players table to get player's name
+        ->join('players', 'transactions.player_id', '=', 'players.id')
+        // Join with the teams table to get the "from" team details
+        ->join('teams as from_team', 'transactions.from_team_id', '=', 'from_team.id', 'left')
+        // Join with the teams table to get the "to" team details
+        ->join('teams as to_team', 'transactions.to_team_id', '=', 'to_team.id', 'left')
+        // Join with the player_season_stats table to get the player's role for the specific season
+        ->join('player_season_stats', function ($join) use ($player_id) {
+            $join->on('transactions.player_id', '=', 'player_season_stats.player_id')
+                ->on('transactions.season_id', '=', 'player_season_stats.season_id');
+        })
+        ->where('transactions.player_id', $player_id)
+        ->select(
+            'transactions.id',
+            'transactions.season_id',
+            'transactions.details',
+            'transactions.from_team_id',
+            'from_team.name as from_team_name',   // Get the name of the "from" team
+            'transactions.to_team_id',
+            'to_team.name as to_team_name',       // Get the name of the "to" team
+            'transactions.status',
+            'players.name',   // Player's name
+            'player_season_stats.role'   // Player's role from player_season_stats table
+        )
+        ->orderByDesc('transactions.id')
+        ->get();
+
+        // Check if transactions are found
+        if ($transactions->isEmpty()) {
+            return response()->json(['message' => 'No transactions found for this player.'], 404);
+        }
+
+        // Return the transactions with player and team details as JSON response
+        return response()->json([
+            'data' => $transactions,
+        ]);
     }
 
-    // Retrieve transactions for the given player_id with player details (name, role)
-    // and team details (from_team and to_team)
-    $transactions = DB::table('transactions')
-    // Join with the players table to get player's name
-    ->join('players', 'transactions.player_id', '=', 'players.id')
-    // Join with the teams table to get the "from" team details
-    ->join('teams as from_team', 'transactions.from_team_id', '=', 'from_team.id', 'left')
-    // Join with the teams table to get the "to" team details
-    ->join('teams as to_team', 'transactions.to_team_id', '=', 'to_team.id', 'left')
-    // Join with the player_season_stats table to get the player's role for the specific season
-    ->join('player_season_stats', function ($join) use ($player_id) {
-        $join->on('transactions.player_id', '=', 'player_season_stats.player_id')
-             ->on('transactions.season_id', '=', 'player_season_stats.season_id');
-    })
-    ->where('transactions.player_id', $player_id)
-    ->select(
-        'transactions.id',
-        'transactions.season_id',
-        'transactions.details',
-        'transactions.from_team_id',
-        'from_team.name as from_team_name',   // Get the name of the "from" team
-        'transactions.to_team_id',
-        'to_team.name as to_team_name',       // Get the name of the "to" team
-        'transactions.status',
-        'players.name',   // Player's name
-        'player_season_stats.role'   // Player's role from player_season_stats table
-    )
-    ->orderByDesc('transactions.id')
-    ->get();
+    public function getplayerinjuryhistory(Request $request)
+    {
+        // Retrieve the player_id from the request
+        $player_id = $request->input('player_id');
 
-    // Check if transactions are found
-    if ($transactions->isEmpty()) {
-        return response()->json(['message' => 'No transactions found for this player.'], 404);
+        // Check if player_id is provided
+        if (!$player_id) {
+            return response()->json(['error' => 'Player ID is required'], 400);
+        }
+
+        // Query the injured_players_view for the player's injury history
+        $injuryHistory = DB::table('injured_players_view')
+                            ->where('player_id', $player_id)
+                            ->orderByDesc('game_id')
+                            ->get();  // Retrieve the data from the view
+
+        // Check if injury history is found
+        if ($injuryHistory->isEmpty()) {
+            return response()->json(['message' => 'No injury history found for this player.'], 404);
+        }
+
+        // Return the injury history as a JSON response
+        return response()->json([
+            'data' => $injuryHistory
+        ]);
     }
-
-    // Return the transactions with player and team details as JSON response
-    return response()->json([
-        'data' => $transactions,
-    ]);
-}
-
-public function getplayerinjuryhistory(Request $request)
-{
-    // Retrieve the player_id from the request
-    $player_id = $request->input('player_id');
-
-    // Check if player_id is provided
-    if (!$player_id) {
-        return response()->json(['error' => 'Player ID is required'], 400);
-    }
-
-    // Query the injured_players_view for the player's injury history
-    $injuryHistory = DB::table('injured_players_view')
-                        ->where('player_id', $player_id)
-                        ->orderByDesc('game_id')
-                        ->get();  // Retrieve the data from the view
-
-    // Check if injury history is found
-    if ($injuryHistory->isEmpty()) {
-        return response()->json(['message' => 'No injury history found for this player.'], 404);
-    }
-
-    // Return the injury history as a JSON response
-    return response()->json([
-        'data' => $injuryHistory
-    ]);
-}
 }

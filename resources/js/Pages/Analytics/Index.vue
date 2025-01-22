@@ -70,7 +70,7 @@
 
             <!-- <Suspense>
                 <template #default>
-                    <SeasonLeaders />
+                    <Top20Players />
                 </template>
                 <template #fallback>
                     <div class="text-center py-10 text-gray-500">Loading Season Leaders...</div>

@@ -80,9 +80,7 @@
                                                 ' Playoff Appearance:' +
                                                 team.playoff_appearances
                                             "
-                                            @click.prevent="
-                                                isTeamModalOpen = team.team_id
-                                            "
+                                            @click.prevent="viewSeasons(team.id)"
                                         >
                                             <b
                                                 >{{ team.team_name }}
@@ -147,7 +145,7 @@
                         </div>
                         <div  v-if="
                                 season_standings &&
-                                season_standings.standings.length == 0 && !loadingStandings
+                                season_standings.standings?.length == 0 && !loadingStandings
                             " class="text-center font-bold text-red-500">
                             No Standings available
                         </div>
@@ -257,7 +255,7 @@
                     class="min-w-full divide-y divide-gray-200"
                     v-if="
                         season_standings &&
-                        season_standings.standings.length > 0 && !loadingStandings
+                        season_standings.standings?.length > 0 && !loadingStandings
                     "
                 >
                     <thead class="bg-gray-50">
@@ -326,7 +324,7 @@
                                         team.playoff_appearances
                                     "
                                     @click.prevent="
-                                        isTeamModalOpen = team.team_id
+                                        viewSeasons(team.team_id);
                                     "
                                 >
                                     <b>{{ team.team_name }}</b>
@@ -412,7 +410,7 @@
                 </div>
                 <div  v-if="
                         season_standings &&
-                        season_standings.standings.length == 0 && !loadingStandings
+                        season_standings.standings?.length == 0 && !loadingStandings
                     " class="text-center font-bold text-red-500">
                     No Standings available
                 </div>
@@ -635,14 +633,24 @@
             </button>
         </div>
         <div class="mt-4">
-            <TeamInfo v-if="currentTab === 'info'" :team_id="isTeamModalOpen" />
+            <TeamInfo 
+                v-if="currentTab === 'info'" 
+                :key="teamId"
+                :team_id="teamId" />
             <TeamHistory
                 v-if="currentTab === 'history'"
-                :team_id="isTeamModalOpen"
+                :key="teamId"
+                :team_id="teamId"
             />
             <TeamRoster
                 v-if="currentTab === 'roster'"
-                :team_id="isTeamModalOpen"
+                :key="teamId"
+                :team_id="teamId"
+            />
+            <Top10Player
+                v-if="currentTab === 'legend'"
+                :key="teamId"
+                :team_id="teamId"
             />
         </div>
     </Modal>
@@ -670,6 +678,7 @@ import { roundNameFormatter } from "@/Utility/Formatter";
 import TeamHistory from "@/Pages/Teams/Module/TeamHistory.vue";
 import TeamInfo from "@/Pages/Teams/Module/TeamInfo.vue";
 import TeamRoster from "@/Pages/Teams/Module/TeamRoster.vue";
+import Top10Player from "@/Pages/Teams/Module/Top10Player.vue";
 import GameResults from "@/Pages/Seasons/Module/GameResults.vue";
 import SeasonTimeLine from "@/Pages/Analytics/Module/SeasonTimeLine.vue";
 
@@ -686,6 +695,7 @@ const topPlayersKey = ref(0); // Key for TopPlayers component
 const loadingStandings = ref(false);
 const loadingSchedules = ref(false);
 const activeConferenceTab = ref(false);
+const teamId = ref(0);
 const activeGameId = ref(0);
 const props = defineProps({
     season_id: {
@@ -696,6 +706,10 @@ const props = defineProps({
 const form = useForm({
     seasons_id: 0,
 });
+const viewSeasons = (id) => {
+    teamId.value = id;
+    isTeamModalOpen.value = true;
+}
 const fetchConferenceData = async (id) => {
     try {
         console.log("loaded");

@@ -1,8 +1,20 @@
 <template>
+    <!-- Top 10 players module -->
     <div
-        class="bg-white inline-block min-w-full overflow-hidden rounded shadow p-2"
+        class="bg-white inline-block min-w-full overflow-hidden rounded p-4"
     >
-        <h3 class="text-md font-semibold text-gray-800">
+        <h2 class="text-xl font-semibold text-gray-800" v-if="team_info.teams">
+            {{ team_info.teams.team_name ?? "-" }} ({{ team_info.teams.acronym ?? "-" }})
+        </h2>
+        <span
+            v-if="team_info.teams"
+            class="inline-flex items-center px-2.5 py-0.5 bg-green-300 text-green-600 rounded text-xs font-medium"
+        >
+            {{ team_info.teams.conference_name ?? "-" }}
+        </span>
+        <!-- Divider -->
+        <hr class="my-4 border-t border-gray-200" />
+        <h3 class="text-md font-semibold text-gray-800 mb-6">
             Top 10 Players All-time
         </h3>
 
@@ -44,6 +56,11 @@
                     <th
                         class="border-b-2 border-gray-200 bg-gray-100 py-2 px-2 text-left font-semibold uppercase text-gray-600"
                     >
+                        Awards
+                    </th>
+                    <th
+                        class="border-b-2 border-gray-200 bg-gray-100 py-2 px-2 text-left font-semibold uppercase text-gray-600"
+                    >
                         Total Points
                     </th>
                     <th
@@ -66,10 +83,15 @@
                     >
                         Total Steals
                     </th>
-                    <th
+                    <!-- <th
                         class="border-b-2 border-gray-200 bg-gray-100 py-2 px-2 text-left font-semibold uppercase text-gray-600"
                     >
                         Total Turnovers
+                    </th> -->
+                    <th
+                        class="border-b-2 border-gray-200 bg-gray-100 py-2 px-2 text-left font-semibold uppercase text-gray-600"
+                    >
+                        Statistical Points
                     </th>
                 </tr>
             </thead>
@@ -91,9 +113,9 @@
                     >
                         <!-- Display "Retired" if player is not active and retirement age is greater than or equal to their age -->
                         <span
-                            v-if="!player.active_status"
+                            v-if="!player.is_active"
                             class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800"
-                            >Free Agent/Retired</span
+                            >Retired</span
                         >
 
                         <!-- Display "Active" if player is active and retirement age is less than their age -->
@@ -107,7 +129,7 @@
                         class="border-b border-gray-200 bg-white px-2 py-2 text-ellipsis overflow-hidden"
                     >
                         <p class="text-gray-900 whitespace-nowrap truncate">
-                            {{ player.team_name ?? "-" }}
+                            {{ player.current_team_name ?? "-" }}
                         </p>
                     </td>
                     <!-- <td
@@ -121,7 +143,7 @@
                         class="border-b border-gray-200 bg-white px-2 py-2 text-ellipsis overflow-hidden"
                     >
                         <p class="text-gray-900 whitespace-nowrap truncate">
-                            {{ player.finals_mvp_count }}
+                            {{ player.finals_mvp }}
                         </p>
                     </td>
                     <td
@@ -129,6 +151,13 @@
                     >
                         <p class="text-gray-900 whitespace-nowrap truncate">
                             {{ player.championships_won }}
+                        </p>
+                    </td>
+                    <td
+                        class="border-b border-gray-200 bg-white text-wrap px-2 py-2"
+                    >
+                        <p class="text-gray-900">
+                            {{ player.award_names }}
                         </p>
                     </td>
                     <td
@@ -166,11 +195,18 @@
                             {{ player.total_steals }}
                         </p>
                     </td>
-                    <td
+                    <!-- <td
                         class="border-b border-gray-200 bg-white px-2 py-2 text-ellipsis overflow-hidden"
                     >
                         <p class="text-gray-900 whitespace-nowrap truncate">
                             {{ player.total_turnovers }}
+                        </p>
+                    </td> -->
+                    <td
+                        class="border-b border-gray-200 bg-white px-2 py-2 text-ellipsis overflow-hidden"
+                    >
+                        <p class="text-gray-900 whitespace-nowrap truncate">
+                            {{ player.statistical_points }}
                         </p>
                     </td>
                 </tr>
@@ -204,6 +240,17 @@ const props = defineProps({
     team_id: Number,
 });
 const players = ref([]);
+const team_info = ref([]);
+const fetchTeamInfo = async (id) => {
+    try {
+        const response = await axios.post(route("teams.info"), {
+            team_id: props.team_id,
+        });
+        team_info.value = response.data;
+    } catch (error) {
+        console.error("Error fetching team info:", error);
+    }
+};
 const fetchTopPlayers = async () => {
     try {
         const response = await axios.post(
@@ -211,6 +258,7 @@ const fetchTopPlayers = async () => {
             {team_id: props.team_id,}
         );
         players.value = response.data;
+        console.log('loaded top 10 module');
     } catch (error) {
         console.error("Error fetching filtered players:", error);
     }
@@ -223,6 +271,7 @@ const handlePagination = (page_num) => {
 
 onMounted(() => {
     fetchTopPlayers();
+    fetchTeamInfo();
 });
 </script>
 
