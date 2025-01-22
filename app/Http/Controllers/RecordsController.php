@@ -130,23 +130,50 @@ class RecordsController extends Controller
 
     public function topscorerteams(Request $request)
     {
-        // Extracting per_page and current_page from request
+        // Extracting per_page, current_page, and sort_by from request
         $perPage = $request->input('per_page', 10); // Default per page to 10 if not provided
         $page = $request->input('page_num', 1); // Default page to 1 if not provided
+        $sortBy = $request->input('sort_by', 'total_points'); // Default sort by total points if not provided
+
+        // Valid sort fields to prevent SQL injection
+        $validSortFields = [
+            'total_points',
+            'total_rebounds',
+            'total_assists',
+            'total_steals',
+            'total_blocks',
+            'total_turnovers',
+            'total_fouls',
+        ];
+
+        // Ensure sort_by is valid
+        if (!in_array($sortBy, $validSortFields)) {
+            $sortBy = 'total_points';
+        }
 
         // Calculating the offset to skip records
         $offset = ($page - 1) * $perPage;
 
-        // Query to fetch all entries from schedule_view and sum up scores for each team
-        $scoreAlltime = DB::table('schedule_view')
-            ->select('teams.name','teams.primary_color','teams.secondary_color', 'conferences.name as conference', DB::raw('SUM(home_score + away_score) as total_score'))
-            ->leftJoin('teams', function ($join) {
-                $join->on('schedule_view.home_id', '=', 'teams.id')
-                    ->orOn('schedule_view.away_id', '=', 'teams.id');
-            })
+        // Query to fetch teams and aggregate player stats per team
+        $scoreAlltime = DB::table('player_season_stats')
+            ->select(
+                'teams.name',
+                'teams.primary_color',
+                'teams.secondary_color',
+                'conferences.name as conference',
+                DB::raw('SUM(player_season_stats.total_points) as total_points'),
+                DB::raw('SUM(player_season_stats.total_rebounds) as total_rebounds'),
+                DB::raw('SUM(player_season_stats.total_assists) as total_assists'),
+                DB::raw('SUM(player_season_stats.total_steals) as total_steals'),
+                DB::raw('SUM(player_season_stats.total_blocks) as total_blocks'),
+                DB::raw('SUM(player_season_stats.total_turnovers) as total_turnovers'),
+                DB::raw('SUM(player_season_stats.total_fouls) as total_fouls')
+            )
+            ->leftJoin('players', 'player_season_stats.player_id', '=', 'players.id')
+            ->leftJoin('teams', 'player_season_stats.team_id', '=', 'teams.id')
             ->leftJoin('conferences', 'teams.conference_id', '=', 'conferences.id')
-            ->groupBy('teams.name', 'teams.primary_color', 'teams.secondary_color', 'conferences.name')
-            ->orderBy('total_score', 'desc') // Sort by total score in descending order
+            ->groupBy('teams.id', 'teams.name', 'teams.primary_color', 'teams.secondary_color', 'conferences.name')
+            ->orderBy($sortBy, 'desc') // Sort dynamically based on the requested stat
             ->skip($offset)
             ->take($perPage)
             ->get();
@@ -168,28 +195,43 @@ class RecordsController extends Controller
         return response()->json($response);
     }
 
-    public function topscorerplayers(Request $request)
+    public function statsleaders(Request $request)
     {
-        // Extracting per_page and current_page from request with default values
-        $perPage = $request->input('itemsperpage', 10); // Default per page to 10 if not provided
-        $page = $request->input('page_num', 1); // Default page to 1 if not provided
+        // Extract parameters from request with default values
+        $perPage = max(1, (int) $request->input('itemsperpage', 10)); // Default items per page to 10
+        $page = max(1, (int) $request->input('page_num', 1)); // Default page number to 1
+        $sortBy = $request->input('sort_by', 'total_points'); // Default sort column to 'total_points'
 
-        // Ensure perPage is a positive integer
-        $perPage = max(1, (int) $perPage);
+        // Ensure valid sort column
+        $validSortColumns = [
+            'total_points',
+            'total_rebounds',
+            'total_assists',
+            'total_steals',
+            'total_blocks',
+            'total_turnovers',
+            'total_fouls'
+        ];
+        if (!in_array($sortBy, $validSortColumns)) {
+            return response()->json([
+                'error' => 'Invalid sort_by parameter. Valid options are: ' . implode(', ', $validSortColumns)
+            ], 400);
+        }
 
-        // Ensure page is a positive integer
-        $page = max(1, (int) $page);
-
-        // Calculate the offset for pagination
+        // Calculate offset for pagination
         $offset = ($page - 1) * $perPage;
 
-        // Query to fetch all entries from player_game_stats and sum up scores for each player
-        $scoreAlltime = DB::table('player_game_stats')
-            ->select('players.name as player_name', 'teams.name as team_name', DB::raw('SUM(player_game_stats.points) as total_score'))
-            ->leftJoin('players', 'player_game_stats.player_id', '=', 'players.id')
-            ->leftJoin('teams', 'players.team_id', '=', 'teams.id')
+        // Query to fetch statistics from player_season_stats
+        $scoreAlltime = DB::table('player_season_stats')
+            ->select(
+                'players.name as player_name',
+                'teams.name as team_name',
+                DB::raw("SUM(player_season_stats.$sortBy) as total_stat") // Use dynamic sort column
+            )
+            ->leftJoin('players', 'player_season_stats.player_id', '=', 'players.id')
+            ->leftJoin('teams', 'player_season_stats.team_id', '=', 'teams.id')
             ->groupBy('players.name', 'teams.name')
-            ->orderBy('total_score', 'desc') // Sort by total score in descending order
+            ->orderBy('total_stat', 'desc') // Sort by selected stat in descending order
             ->skip($offset)
             ->take($perPage)
             ->get()
@@ -199,31 +241,14 @@ class RecordsController extends Controller
                 return $item;
             });
 
-        // Count total unique players with scores
-        $totalCount = DB::table('players')
+        // Count total unique players with stats
+        $totalCount = DB::table('player_season_stats')
+            ->select('player_id')
+            ->distinct()
             ->count();
 
         // Calculate total pages
         $totalPages = ceil($totalCount / $perPage);
-
-        // Ensure the current page does not exceed total pages
-        $page = min($page, $totalPages);
-
-        // Re-run the query to ensure correct results on the last page
-        $scoreAlltime = DB::table('player_game_stats')
-            ->select('players.name as player_name', 'teams.name as team_name', DB::raw('SUM(player_game_stats.points) as total_score'))
-            ->leftJoin('players', 'player_game_stats.player_id', '=', 'players.id')
-            ->leftJoin('teams', 'players.team_id', '=', 'teams.id')
-            ->groupBy('players.name', 'teams.name')
-            ->orderBy('total_score', 'desc') // Sort by total score in descending order
-            ->skip($offset)
-            ->take($perPage)
-            ->get()
-            ->map(function ($item, $index) use ($offset) {
-                // Add rank to each item
-                $item->rank = $offset + $index + 1;
-                return $item;
-            });
 
         // Create the response array
         $response = [
@@ -231,10 +256,12 @@ class RecordsController extends Controller
             'current_page' => $page,
             'total_pages' => $totalPages,
             'total' => $totalCount,
+            'sort_by' => $sortBy,
         ];
 
         return response()->json($response);
     }
+
     public function winningestteams(Request $request)
     {
         // Extracting per_page and current_page from request

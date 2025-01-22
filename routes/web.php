@@ -51,7 +51,7 @@ Route::middleware('auth')->group(function () {
         Route::post('winningest-teams', [RecordsController::class, 'winningestteams'])->name('records.team.winningest');
         Route::post('rivals-per-team', [RecordsController::class, 'get_rivalries'])->name('records.rivalries');
         Route::post('playoff-appearances', [RecordsController::class, 'playoff_appearances'])->name('records.playoff.appearances');
-        Route::post('top-scorer-players', [RecordsController::class, 'topscorerplayers'])->name('records.player.topscorer');
+        Route::post('stats-leaders', [RecordsController::class, 'statsleaders'])->name('records.player.stats.leaders');
 
     });
 
