@@ -1,7 +1,7 @@
 <template>
     <!-- Top 10 players module -->
     <div
-        class="bg-white inline-block min-w-full overflow-hidden rounded p-4"
+        class=" inline-block min-w-full overflow-hidden rounded p-4"
     >
         <h2 class="text-xl font-semibold text-gray-800" v-if="team_info.teams">
             {{ team_info.teams.team_name ?? "-" }} ({{ team_info.teams.acronym ?? "-" }})
@@ -100,16 +100,17 @@
                     v-for="player in players"
                     :key="player.id"
                     class="text-gray-700"
+                    :class="team_info.teams.id != player.team_id ? 'bg-red-50' : 'bg-green-50'"
                 >
                     <td
-                        class="border-b border-gray-200 bg-white px-2 py-2 text-ellipsis overflow-hidden"
+                        class="border-b border-gray-200  px-2 py-2 text-ellipsis overflow-hidden"
                     >
                         <p class="text-gray-900 whitespace-nowrap truncate">
                             {{ player.player_name }}
                         </p>
                     </td>
                     <td
-                        class="border-b border-gray-200 bg-white px-2 py-2 text-ellipsis overflow-hidden text-nowrap"
+                        class="border-b border-gray-200  px-2 py-2 text-ellipsis overflow-hidden text-nowrap"
                     >
                         <!-- Display "Retired" if player is not active and retirement age is greater than or equal to their age -->
                         <span
@@ -126,92 +127,92 @@
                         >
                     </td>
                     <td
-                        class="border-b border-gray-200 bg-white px-2 py-2 text-ellipsis overflow-hidden"
+                        class="border-b border-gray-200  px-2 py-2 text-ellipsis overflow-hidden"
                     >
                         <p class="text-gray-900 whitespace-nowrap truncate">
                             {{ player.current_team_name ?? "-" }}
                         </p>
                     </td>
                     <!-- <td
-                        class="border-b border-gray-200 bg-white px-2 py-2 text-ellipsis overflow-hidden"
+                        class="border-b border-gray-200  px-2 py-2 text-ellipsis overflow-hidden"
                     >
                         <p class="text-gray-900 whitespace-normal break-words">
                             {{ player.teams_played ?? "-" }}
                         </p>
                     </td> -->
                     <td
-                        class="border-b border-gray-200 bg-white px-2 py-2 text-ellipsis overflow-hidden"
+                        class="border-b border-gray-200  px-2 py-2 text-ellipsis overflow-hidden"
                     >
                         <p class="text-gray-900 whitespace-nowrap truncate">
-                            {{ player.finals_mvp }}
+                            {{ player.finals_mvp_count }}
                         </p>
                     </td>
                     <td
-                        class="border-b border-gray-200 bg-white px-2 py-2 text-ellipsis overflow-hidden"
+                        class="border-b border-gray-200  px-2 py-2 text-ellipsis overflow-hidden"
                     >
                         <p class="text-gray-900 whitespace-nowrap truncate">
                             {{ player.championships_won }}
                         </p>
                     </td>
                     <td
-                        class="border-b border-gray-200 bg-white text-wrap px-2 py-2"
+                        class="border-b border-gray-200  text-wrap px-2 py-2"
                     >
                         <p class="text-gray-900">
-                            {{ player.award_names }}
+                            {{ player.all_awards }}
                         </p>
                     </td>
                     <td
-                        class="border-b border-gray-200 bg-white px-2 py-2 text-ellipsis overflow-hidden"
+                        class="border-b border-gray-200  px-2 py-2 text-ellipsis overflow-hidden"
                     >
                         <p class="text-gray-900 whitespace-nowrap truncate">
                             {{ player.total_points }}
                         </p>
                     </td>
                     <td
-                        class="border-b border-gray-200 bg-white px-2 py-2 text-ellipsis overflow-hidden"
+                        class="border-b border-gray-200  px-2 py-2 text-ellipsis overflow-hidden"
                     >
                         <p class="text-gray-900 whitespace-nowrap truncate">
                             {{ player.total_assists }}
                         </p>
                     </td>
                     <td
-                        class="border-b border-gray-200 bg-white px-2 py-2 text-ellipsis overflow-hidden"
+                        class="border-b border-gray-200  px-2 py-2 text-ellipsis overflow-hidden"
                     >
                         <p class="text-gray-900 whitespace-nowrap truncate">
                             {{ player.total_rebounds }}
                         </p>
                     </td>
                     <td
-                        class="border-b border-gray-200 bg-white px-2 py-2 text-ellipsis overflow-hidden"
+                        class="border-b border-gray-200  px-2 py-2 text-ellipsis overflow-hidden"
                     >
                         <p class="text-gray-900 whitespace-nowrap truncate">
                             {{ player.total_blocks }}
                         </p>
                     </td>
                     <td
-                        class="border-b border-gray-200 bg-white px-2 py-2 text-ellipsis overflow-hidden"
+                        class="border-b border-gray-200  px-2 py-2 text-ellipsis overflow-hidden"
                     >
                         <p class="text-gray-900 whitespace-nowrap truncate">
                             {{ player.total_steals }}
                         </p>
                     </td>
                     <!-- <td
-                        class="border-b border-gray-200 bg-white px-2 py-2 text-ellipsis overflow-hidden"
+                        class="border-b border-gray-200  px-2 py-2 text-ellipsis overflow-hidden"
                     >
                         <p class="text-gray-900 whitespace-nowrap truncate">
                             {{ player.total_turnovers }}
                         </p>
                     </td> -->
                     <td
-                        class="border-b border-gray-200 bg-white px-2 py-2 text-ellipsis overflow-hidden"
+                        class="border-b border-gray-200  px-2 py-2 text-ellipsis overflow-hidden"
                     >
                         <p class="text-gray-900 whitespace-nowrap truncate">
-                            {{ player.statistical_points }}
+                            {{ player.base_statistical_points }}
                         </p>
                     </td>
                 </tr>
                 <!-- <tr v-if="!players.data.length">
-                    <td colspan="6" class="border-b text-center font-bold text-lg border-gray-200 bg-white px-3 py-3">
+                    <td colspan="6" class="border-b text-center font-bold text-lg border-gray-200  px-3 py-3">
                         <p class="text-red-500 whitespace-no-wrap">No Data Found!</p>
                     </td>
                 </tr> -->

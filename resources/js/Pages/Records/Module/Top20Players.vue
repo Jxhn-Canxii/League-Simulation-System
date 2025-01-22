@@ -1,10 +1,12 @@
 <template>
-    <!-- Top 10 players module -->
+    <!-- Top 20 players module -->
     <div
         class="bg-white inline-block min-w-full overflow-hidden rounded p-4"
     >
+        <!-- Divider -->
+        <hr class="my-4 border-t border-gray-200" />
         <h3 class="text-md font-semibold text-gray-800 mb-6">
-            Top 20 Players of All-time
+            Top 20 Players All-time
         </h3>
 
         <table class="w-full text-xs">
@@ -132,7 +134,7 @@
                         class="border-b border-gray-200 bg-white px-2 py-2 text-ellipsis overflow-hidden"
                     >
                         <p class="text-gray-900 whitespace-nowrap truncate">
-                            {{ player.finals_mvp }}
+                            {{ player.finals_mvp_count }}
                         </p>
                     </td>
                     <td
@@ -146,7 +148,7 @@
                         class="border-b border-gray-200 bg-white text-wrap px-2 py-2"
                     >
                         <p class="text-gray-900">
-                            {{ player.award_names }}
+                            {{ player.all_awards }}
                         </p>
                     </td>
                     <td
@@ -195,7 +197,7 @@
                         class="border-b border-gray-200 bg-white px-2 py-2 text-ellipsis overflow-hidden"
                     >
                         <p class="text-gray-900 whitespace-nowrap truncate">
-                            {{ player.statistical_points }}
+                            {{ player.statistical_points }}  {{ player.season_id }}
                         </p>
                     </td>
                 </tr>
@@ -229,6 +231,7 @@ const props = defineProps({
     team_id: Number,
 });
 const players = ref([]);
+
 const fetchTopPlayers = async () => {
     try {
         const response = await axios.get(
