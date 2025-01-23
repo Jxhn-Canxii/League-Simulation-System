@@ -48,11 +48,11 @@
                     >
                         MVP
                     </th>
-                    <th
+                    <!-- <th
                         class="border-b-2 border-gray-200 bg-gray-100 py-2 px-2 text-left font-semibold uppercase text-gray-600"
                     >
                         Championships
-                    </th>
+                    </th> -->
                     <th
                         class="border-b-2 border-gray-200 bg-gray-100 py-2 px-2 text-left font-semibold uppercase text-gray-600"
                     >
@@ -98,9 +98,9 @@
             <tbody>
                 <tr
                     v-for="player in players"
-                    :key="player.id"
+                    :key="player.player_id"
                     class="text-gray-700"
-                    :class="team_info.teams.id != player.team_id ? 'bg-red-50' : 'bg-green-50'"
+                    :class="team_info.teams.id != player.current_team_id ? 'bg-red-50' : 'bg-green-50'"
                 >
                     <td
                         class="border-b border-gray-200  px-2 py-2 text-ellipsis overflow-hidden"
@@ -147,13 +147,13 @@
                             {{ player.finals_mvp_count }}
                         </p>
                     </td>
-                    <td
+                    <!-- <td
                         class="border-b border-gray-200  px-2 py-2 text-ellipsis overflow-hidden"
                     >
                         <p class="text-gray-900 whitespace-nowrap truncate">
                             {{ player.championships_won }}
                         </p>
-                    </td>
+                    </td> -->
                     <td
                         class="border-b border-gray-200  text-wrap px-2 py-2"
                     >
@@ -271,8 +271,8 @@ const handlePagination = (page_num) => {
 };
 
 onMounted(() => {
-    fetchTopPlayers();
     fetchTeamInfo();
+    fetchTopPlayers();
 });
 </script>
 

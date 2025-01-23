@@ -42,11 +42,11 @@
         <div class="overflow-auto">
             <table class="w-full table-auto border-collapse">
                 <thead>
-                    <tr class="bg-gray-100 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
-                        <th class="py-2 px-3 border-b">Rank</th>
-                        <th class="py-2 px-3 border-b">Player</th>
-                        <th class="py-2 px-3 border-b">Team</th>
-                        <th class="py-2 px-3 border-b">Score</th>
+                    <tr lass="border-b bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                        <th class="border-b-2 border-gray-200 bg-gray-100 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">Rank</th>
+                        <th class="border-b-2 border-gray-200 bg-gray-100 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">Player</th>
+                        <th class="border-b-2 border-gray-200 bg-gray-100 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">Team</th>
+                        <th class="border-b-2 border-gray-200 bg-gray-100 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">Score</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -56,10 +56,10 @@
                         :key="player.id"
                         class="text-gray-700"
                     >
-                        <td class="border-b px-3 py-2 text-sm text-gray-900">{{ player.rank }}</td>
-                        <td class="border-b px-3 py-2 text-sm text-gray-900 uppercase">{{ player.player_name }}</td>
-                        <td class="border-b px-3 py-2 text-sm text-gray-900 uppercase">{{ player.team_name ?? '-' }}</td>
-                        <td class="border-b px-3 py-2 text-sm text-gray-900">
+                        <td class="border-b border-gray-200 bg-white text-center px-3 py-3 text-sm">{{ player.rank }}</td>
+                        <td class="border-b border-gray-200 bg-white text-center px-3 py-3 text-sm">{{ player.player_name }}</td>
+                        <td class="border-b border-gray-200 bg-white text-center px-3 py-3 text-sm">{{ player.team_name ?? '-' }}</td>
+                        <td class="border-b border-gray-200 bg-white text-center px-3 py-3 text-sm">
                             {{ moneyFormatter(player.total_stat) }}
                         </td>
                     </tr>

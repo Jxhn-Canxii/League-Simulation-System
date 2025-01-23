@@ -222,24 +222,25 @@ class RecordsController extends Controller
         $offset = ($page - 1) * $perPage;
 
         // Query to fetch statistics from player_season_stats
-        $scoreAlltime = DB::table('player_season_stats')
+        $statsAlltime = DB::table('player_season_stats')
             ->select(
+                'players.id as player_id',
                 'players.name as player_name',
-                'teams.name as team_name',
-                DB::raw("SUM(player_season_stats.$sortBy) as total_stat") // Use dynamic sort column
+                DB::raw("SUM(player_season_stats.$sortBy) as total_stat") // Aggregate the chosen stat for each player
             )
-            ->leftJoin('players', 'player_season_stats.player_id', '=', 'players.id')
-            ->leftJoin('teams', 'player_season_stats.team_id', '=', 'teams.id')
-            ->groupBy('players.name', 'teams.name')
-            ->orderBy('total_stat', 'desc') // Sort by selected stat in descending order
-            ->skip($offset)
-            ->take($perPage)
+            ->leftJoin('players', 'player_season_stats.player_id', '=', 'players.id') // Join players
+            ->groupBy('players.id', 'players.name')                                  // Group by player_id and player_name
+            ->orderBy('total_stat', 'desc')                                          // Order by total_stat in descending order
+            ->skip($offset)                                                          // Offset for pagination
+            ->take($perPage)                                                         // Limit results per page
             ->get()
             ->map(function ($item, $index) use ($offset) {
-                // Add rank to each item
+                // Add rank to each item based on the pagination offset
                 $item->rank = $offset + $index + 1;
                 return $item;
             });
+
+    
 
         // Count total unique players with stats
         $totalCount = DB::table('player_season_stats')
@@ -252,7 +253,7 @@ class RecordsController extends Controller
 
         // Create the response array
         $response = [
-            'data' => $scoreAlltime,
+            'data' => $statsAlltime,
             'current_page' => $page,
             'total_pages' => $totalPages,
             'total' => $totalCount,

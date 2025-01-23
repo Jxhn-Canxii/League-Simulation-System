@@ -80,7 +80,9 @@
                                                 ' Playoff Appearance:' +
                                                 team.playoff_appearances
                                             "
-                                            @click.prevent="viewSeasons(team.id)"
+                                            @click.prevent="
+                                                viewSeasons(team.team_id);
+                                            "
                                         >
                                             <b
                                                 >{{ team.team_name }}
