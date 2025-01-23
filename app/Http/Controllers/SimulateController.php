@@ -1632,16 +1632,16 @@ class SimulateController extends Controller
                 // Define initial minute ranges based on role priority
                 switch ($rolePriority[$player['role']] ?? 5) {
                     case 1: // Star player
-                        $assignedMinutesForRole = rand(30, 35); // Star players get the most minutes
+                        $assignedMinutesForRole = rand(5, 35); // Star players get the most minutes
                         break;
                     case 2: // Starter
-                        $assignedMinutesForRole = rand(25, 30); // Starters get slightly fewer minutes
+                        $assignedMinutesForRole = rand(5, 30); // Starters get slightly fewer minutes
                         break;
                     case 3: // Role player
-                        $assignedMinutesForRole = rand(15, 20); // Role players get fewer minutes
+                        $assignedMinutesForRole = rand(0, 30); // Role players get fewer minutes
                         break;
                     case 4: // Bench
-                        $assignedMinutesForRole = rand(5, 10);  // Bench players get the least minutes
+                        $assignedMinutesForRole = rand(0, 25);  // Bench players get the least minutes
                         break;
                     default:
                         $assignedMinutesForRole = 0;
@@ -2413,15 +2413,15 @@ class SimulateController extends Controller
     {
         // Check if the round is divisible by 5
         if ($round % 5 !== 0) {
-            return true; // Exit the function if the round is not divisible by 10
+            return true; // Exit the function if the round is not divisible by 5
         }
-
+    
         $seasonId = $this->getLatestSeasonId();
         $teams = DB::table('teams')->pluck('id');
-
+    
         foreach ($teams as $teamId) {
             DB::beginTransaction();
-
+    
             try {
                 // Fetch player stats for the previous season
                 $stats = DB::table('player_season_stats')
@@ -2429,13 +2429,13 @@ class SimulateController extends Controller
                     ->where('player_season_stats.season_id', $seasonId)
                     ->where('players.team_id', $teamId)
                     ->get();
-
+    
                 // Fetch rookies or players with no stats
                 $playersWithoutStats = DB::table('players')
                     ->where('team_id', $teamId)
                     ->whereNotIn('id', $stats->pluck('player_id'))
                     ->get();
-
+    
                 // Merge all players
                 $allPlayersStats = $stats->merge($playersWithoutStats->map(function ($player) {
                     return (object)[
@@ -2448,6 +2448,7 @@ class SimulateController extends Controller
                         'avg_blocks_per_game' => 0,
                         'avg_turnovers_per_game' => 0,
                         'avg_fouls_per_game' => 0,
+                        'avg_minutes_per_game' => 1, // Default to 1 to avoid division by zero
                         'total_points' => 0,
                         'total_rebounds' => 0,
                         'total_assists' => 0,
@@ -2462,9 +2463,17 @@ class SimulateController extends Controller
                         'is_rookie' => $player->is_rookie ?? 0, // Identify rookies
                     ];
                 }));
-
-                // Calculate composite score and sort players
+    
+                // Calculate composite score considering efficiency per avg_minutes_per_game
                 $rankedPlayers = $allPlayersStats->sortByDesc(function ($stat) {
+                    $efficiencyPerMinute = ($stat->avg_points_per_game * 0.4 +
+                        $stat->avg_rebounds_per_game * 0.2 +
+                        $stat->avg_assists_per_game * 0.2 +
+                        $stat->avg_steals_per_game * 0.1 +
+                        $stat->avg_blocks_per_game * 0.1 -
+                        $stat->avg_turnovers_per_game * 0.1 -
+                        $stat->avg_fouls_per_game * 0.1) / $stat->avg_minutes_per_game;
+    
                     $perGameScore = $stat->avg_points_per_game * 0.3 +
                         $stat->avg_rebounds_per_game * 0.2 +
                         $stat->avg_assists_per_game * 0.2 +
@@ -2472,7 +2481,7 @@ class SimulateController extends Controller
                         $stat->avg_blocks_per_game * 0.1 -
                         $stat->avg_turnovers_per_game * 0.1 -
                         $stat->avg_fouls_per_game * 0.1;
-
+    
                     $totalScore = $stat->total_points * 0.2 +
                         $stat->total_rebounds * 0.2 +
                         $stat->total_assists * 0.2 +
@@ -2480,16 +2489,12 @@ class SimulateController extends Controller
                         $stat->total_blocks * 0.15 -
                         $stat->total_turnovers * 0.1 -
                         $stat->total_fouls * 0.1;
-
-                    $potentialFactor = $stat->is_rookie 
-                        ? ($stat->potential_rating / 100) * 1.2 // Boost rookies with high potential
-                        : 1;
-
+    
                     $injuryFactor = 1 - ($stat->injury_prone_percentage / 100);
-
-                    return ($perGameScore + $totalScore) * $potentialFactor * $injuryFactor;
+    
+                    return ($efficiencyPerMinute + $perGameScore + $totalScore) * $injuryFactor;
                 });
-
+    
                 // Assign roles
                 $roles = [
                     'star player' => 3,
@@ -2497,17 +2502,17 @@ class SimulateController extends Controller
                     'role player' => 5,
                     'bench' => 5,
                 ];
-
+    
                 $roleCounts = [
                     'star player' => 0,
                     'starter' => 0,
                     'role player' => 0,
                     'bench' => 0,
                 ];
-
+    
                 foreach ($rankedPlayers as $index => $playerStat) {
                     $role = 'bench'; // Default role
-
+    
                     if ($roleCounts['star player'] < $roles['star player']) {
                         $role = 'star player';
                     } elseif ($roleCounts['starter'] < $roles['starter']) {
@@ -2515,11 +2520,11 @@ class SimulateController extends Controller
                     } elseif ($roleCounts['role player'] < $roles['role player']) {
                         $role = 'role player';
                     }
-
+    
                     $roleCounts[$role]++;
                     Player::where('id', $playerStat->player_id)->update(['role' => $role]);
                 }
-
+    
                 DB::commit();
             } catch (\Exception $e) {
                 DB::rollBack();
@@ -2527,11 +2532,10 @@ class SimulateController extends Controller
                 return false;
             }
         }
-
-    return true;
-}
-
-
+    
+        return true;
+    }
+    
     private function getLatestSeasonId()
     {
         // Fetch the latest season ID based on descending order of IDs
