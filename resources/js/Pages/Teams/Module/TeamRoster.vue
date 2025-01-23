@@ -243,7 +243,7 @@
                             <span
                                 title="Less than 3 years left before retirement"
                                 class="inline-flex items-center px-3 py-1 text-xs font-bold leading-none text-red-800 bg-red-100 rounded-full"
-                                v-if="player.age - player.total_seasons_played >= player.retirement_age - 2">
+                                v-if="player.age >= player.retirement_age - 1">
                                 <i class="fas fa-user-times text-red-500 mr-1"></i>
                             </span>
                             <span v-if="player.status == 1" class="inline-flex items-center px-3 py-1 text-xs font-bold leading-none text-green-800 bg-green-100 rounded-full" title="Active">
