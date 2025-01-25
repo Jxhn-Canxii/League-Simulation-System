@@ -26,7 +26,12 @@ SELECT
     MAX(ps.total_turnovers) AS total_turnovers,
     MAX(ps.total_fouls) AS total_fouls,
     MAX(ps.created_at) AS stats_created_at,
-    MAX(ps.updated_at) AS stats_updated_at
+    MAX(ps.updated_at) AS stats_updated_at,
+    -- Subquery to get awards for the player with season name and season ID
+    (SELECT GROUP_CONCAT(CONCAT(sa.award_name, ' (', season.name, ')') ORDER BY season.name)
+     FROM season_awards sa
+     JOIN seasons season ON sa.season_id = season.id
+     WHERE sa.player_id = p.id) AS awards_won
 FROM `seasons` s
 LEFT JOIN `players` p ON s.finals_mvp_id = p.id  -- Join MVP player
 LEFT JOIN `player_season_stats` ps ON ps.player_id = p.id  -- Get player stats

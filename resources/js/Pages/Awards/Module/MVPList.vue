@@ -1,6 +1,6 @@
 <template>
     <div class="grid gap-6 mb-8 md:grid-cols-1 xl:grid-cols-3 overflow-auto p-2">
-        <div v-for="player in data" :key="player.player_id" class="relative max-w-xs bg-white rounded-lg shadow-lg overflow-hidden" @click="toggleStats(player.player_id)">
+        <div v-for="player in data" :key="player.player_id" class="relative max-w-xs bg-white rounded-lg shadow-lg overflow-hidden" @click="toggleView(player.player_id)">
             
             <!-- Player Image (Avatar) -->
             <div class="flex flex-col items-center p-4">
@@ -21,7 +21,14 @@
                     </p>
                 </div>
             </div> 
-            
+            <div class="flex justify-center items-center">
+                <div class="text-white text-sm px-3 py-1 inline-flex justify-center text-center rounded-full transition">
+                    <p class="cursor-pointer bg-gray-600 text-white rounded-full px-2 py-1">
+                        {{ player.player_role }}
+                    </p>
+                </div>
+            </div>
+         
             <!-- Finals MVP Team (comma separated) -->
             <div class="p-4 text-center">
                 <p class="text-gray-600">Finals MVP Teams:</p>
@@ -30,10 +37,11 @@
                 </p>
             </div>
             
-            <!-- Stats Overlay on Click -->
-            <div v-show="player.showStats" class="absolute inset-0 bg-black bg-opacity-50 flex justify-center items-center opacity-100 transition-opacity duration-300 ease-in-out">
+            <!-- Overlay for Stats or Awards or None -->
+            <div v-show="player.viewMode !== 'none'" class="absolute inset-0 bg-black bg-opacity-50 flex justify-center items-center opacity-100 transition-opacity duration-300 ease-in-out">
                 <div class="text-white text-center px-6 py-4">
-                    <ul class="list-none">
+                    <!-- Stats View -->
+                    <ul v-if="player.viewMode === 'stats'" class="list-none">
                         <li class="flex items-center mb-4">
                             <i class="fa fa-gamepad mr-2"></i>
                             <span>Total Games: {{ player.total_games }}</span>
@@ -58,6 +66,18 @@
                             <i class="fa fa-shield-alt mr-2"></i>
                             <span>Avg Blocks: {{ player.avg_blocks_per_game }}</span>
                         </li>
+                        <!-- <li v-for="award in player.awards_won" :key="award" class="flex items-center mb-4">
+                            <i class="fa fa-trophy mr-2"></i>
+                            <span>{{ award }}</span>
+                        </li> -->
+                    </ul>
+                    
+                    <!-- Awards View -->
+                    <ul v-if="player.viewMode === 'awards'" class="list-none">
+                        <li class="flex items-center mb-4">
+                            <i class="fa fa-trophy mr-2"></i>
+                            <span>{{ player.awards_won }}</span>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -66,26 +86,38 @@
 </template>
 
 <script setup>
-import { onMounted, ref, computed } from 'vue';
+import { onMounted, ref } from 'vue';
 import axios from 'axios';
 
 const data = ref([]); // Store MVP player data
 
+// Fetch MVP data and add 'viewMode' and 'awards_won' property to each player object
 const fetchMVPLists = async () => {
     try {
         const response = await axios.get(route("awards.mvp.status"));
-        // Add 'showStats' property to each player object for toggle functionality
-        data.value = response.data.map(player => ({ ...player, showStats: false }));
+        const players = response.data.map(player => ({
+            ...player,
+            showStats: false,
+            viewMode: 'none',  // Track view mode (none, stats, awards)
+            awards_won: player.awards_won || [] // Assuming awards_won is part of the response
+        }));
+        data.value = players;
     } catch (error) {
         console.error("Error fetching MVP data:", error);
     }
 };
 
-// Toggle stats visibility
-const toggleStats = (playerId) => {
+// Toggle the view mode between 'none', 'stats', and 'awards'
+const toggleView = (playerId) => {
     const player = data.value.find(p => p.player_id === playerId);
     if (player) {
-        player.showStats = !player.showStats; // Toggle the visibility
+        if (player.viewMode === 'none') {
+            player.viewMode = 'stats';  // First click: show stats
+        } else if (player.viewMode === 'stats') {
+            player.viewMode = 'awards';  // Second click: show awards
+        } else if (player.viewMode === 'awards') {
+            player.viewMode = 'none';  // Third click: hide overlay
+        }
     }
 };
 
@@ -96,7 +128,11 @@ onMounted(() => {
 
 <style scoped>
 /* Ensures the overlay covers the entire card */
-.stats-overlay {
+.relative {
+    position: relative;
+}
+
+.viewMode-overlay {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -108,21 +144,21 @@ onMounted(() => {
 }
 
 /* The list items inside the stats overlay */
-.stats-overlay ul {
+.viewMode-overlay ul {
     padding: 0;
 }
 
-.stats-overlay li {
+.viewMode-overlay li {
     display: flex;
     align-items: center;
     margin-bottom: 1rem;
 }
 
-.stats-overlay li i {
+.viewMode-overlay li i {
     margin-right: 10px; /* Space between icon and text */
 }
 
-.stats-overlay li span {
+.viewMode-overlay li span {
     display: inline-block;
     text-align: left;
 }
