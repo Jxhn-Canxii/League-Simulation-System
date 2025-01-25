@@ -977,47 +977,42 @@ class AwardsController extends Controller
     }
     public function getFinalsMVPList()
     {
-        // Fetch the list of MVPs along with their stats and team details
-        $mvpList = DB::select("
-            SELECT
-                s.id AS season_id,
-                s.name AS season_name,
-                p.id AS player_id,
-                p.name AS player_name,
-                p.role AS player_role,
-                GROUP_CONCAT(DISTINCT CONCAT(t1.name, ' (', s.name, ')')) AS current_team_names, 
-                GROUP_CONCAT(DISTINCT CONCAT(t2.name, ' (', s.name, ')')) AS mvp_winning_team_names,
-                ps.total_games,
-                ps.total_games_played,
-                ps.avg_minutes_per_game,
-                ps.avg_points_per_game,
-                ps.avg_rebounds_per_game,
-                ps.avg_assists_per_game,
-                ps.avg_steals_per_game,
-                ps.avg_blocks_per_game,
-                ps.avg_turnovers_per_game,
-                ps.avg_fouls_per_game,
-                ps.total_points,
-                ps.total_rebounds,
-                ps.total_assists,
-                ps.total_steals,
-                ps.total_blocks,
-                ps.total_turnovers,
-                ps.total_fouls,
-                ps.created_at AS stats_created_at,
-                ps.updated_at AS stats_updated_at
-            FROM `seasons` s
-            LEFT JOIN `players` p ON s.finals_mvp_id = p.id
-            LEFT JOIN `player_season_stats` ps ON ps.player_id = p.id
-            LEFT JOIN `teams` t1 ON p.team_id = t1.id
-            LEFT JOIN `teams` t2 ON s.finals_winner_id = t2.id
-            WHERE s.finals_mvp_id IS NOT NULL
-            GROUP BY s.id, s.name, p.id
-            ORDER BY ps.updated_at DESC;
-        ");
+        // Fetch data from the view table directly
+        $mvpList = DB::table('finals_mvp_with_stats')  // Assuming this is the name of the view
+                    ->select(
+                        'player_id',
+                        'player_name',
+                        'player_role',
+                        'current_team_names',
+                        'mvp_winning_team_names',
+                        'total_games',
+                        'total_games_played',
+                        'avg_minutes_per_game',
+                        'avg_points_per_game',
+                        'avg_rebounds_per_game',
+                        'avg_assists_per_game',
+                        'avg_steals_per_game',
+                        'avg_blocks_per_game',
+                        'avg_turnovers_per_game',
+                        'avg_fouls_per_game',
+                        'total_points',
+                        'total_rebounds',
+                        'total_assists',
+                        'total_steals',
+                        'total_blocks',
+                        'total_turnovers',
+                        'total_fouls',
+                        'stats_created_at',
+                        'stats_updated_at'
+                    )
+                    ->where('player_id','!=',null)
+                    ->orderByDesc('stats_created_at')  // Ensure it's ordered by most recent stats
+                    ->get();
+    
         // Return the data as a JSON response
         return response()->json($mvpList);
     }
+    
     private function totalRegularSeasonGames($seasonId, $teamId)
     {
         $gamesPlayedCount = DB::table('schedules')
