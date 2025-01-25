@@ -2,6 +2,7 @@ CREATE OR REPLACE VIEW finals_mvp_with_stats AS
 SELECT
     p.id AS player_id,
     p.name AS player_name,
+    p.is_active AS is_active,
     p.role AS player_role,
     -- Concatenate all current team names with MVP season name
     GROUP_CONCAT(DISTINCT CONCAT(t1.name, ' (', s.name, ')') ORDER BY s.name) AS current_team_names, 
@@ -38,5 +39,5 @@ LEFT JOIN `player_season_stats` ps ON ps.player_id = p.id  -- Get player stats
 LEFT JOIN `teams` t1 ON p.team_id = t1.id  -- Player's current team
 LEFT JOIN `teams` t2 ON s.finals_winner_id = t2.id  -- MVP-winning team
 WHERE s.finals_mvp_id IS NOT NULL  -- Only include seasons with an MVP
-GROUP BY p.id, p.name, p.role  -- Group by player to merge duplicate rows
+GROUP BY p.id, p.name, p.role, p.is_active   -- Group by player to merge duplicate rows
 ORDER BY player_name;  -- You can change this to any other field if necessary

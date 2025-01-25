@@ -986,6 +986,7 @@ class AwardsController extends Controller
                         'current_team_names',
                         'mvp_winning_team_names',
                         'awards_won',
+                        'is_active',
                         'total_games',
                         'total_games_played',
                         'avg_minutes_per_game',

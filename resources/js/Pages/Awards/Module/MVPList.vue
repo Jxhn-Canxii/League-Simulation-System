@@ -23,7 +23,7 @@
             </div> 
             <div class="flex justify-center items-center">
                 <div class="text-white text-sm px-3 py-1 inline-flex justify-center text-center rounded-full transition">
-                    <p class="cursor-pointer bg-gray-600 text-white rounded-full px-2 py-1">
+                    <p :class="player.is_active ? 'bg-green-500' : ''" class="cursor-pointer bg-gray-600 text-white rounded-full px-2 py-1">
                         {{ player.player_role }}
                     </p>
                 </div>
@@ -74,7 +74,7 @@
                     
                     <!-- Awards View -->
                     <ul v-if="player.viewMode === 'awards'" class="list-none">
-                        <li class="flex items-center mb-4">
+                        <li v-if="player.awards_won.length > 0" class="flex items-center mb-4">
                             <i class="fa fa-trophy mr-2"></i>
                             <span>{{ player.awards_won }}</span>
                         </li>
