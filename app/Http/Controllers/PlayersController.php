@@ -696,7 +696,6 @@ class PlayersController extends Controller
 
         // Generate random attributes
         $age = mt_rand(18, 25);
-        $retirementAge = rand($age + 1, 45); // Retirement age should be greater than current age
         $contractYears = rand(1, 5); // Random contract years between 1 and 5
 
         // Get random archetype and attributes
@@ -734,6 +733,15 @@ class PlayersController extends Controller
         $healthRatings = 99 -  $injuryPercentage;
         // Calculate overall rating
         $overallRating = ($shootingRating + $defenseRating + $passingRating + $reboundingRating +  $healthRatings) / 5;
+        $retirementAge = rand($age + 1, 45); // Retirement age should be greater than current age
+
+                // Determine retirement age based on health ratings
+        $minRetirementAge = max($age + 1, 35); // Ensure retirement age is always greater than current age and at least 35
+        $maxRetirementAge = 45 - (int)((99 - $healthRatings) / 5); // Scale max age based on health (lower health = earlier max age)
+        $maxRetirementAge = max($minRetirementAge, $maxRetirementAge); // Ensure maxAge is not less than minAge
+
+        $retirementAge = rand($minRetirementAge, $maxRetirementAge); // Randomize within the range
+        
         $player = Player::create([
             'name' => $request->name,
             'address' => $request->address,

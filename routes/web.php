@@ -52,7 +52,6 @@ Route::middleware('auth')->group(function () {
         Route::post('rivals-per-team', [RecordsController::class, 'get_rivalries'])->name('records.rivalries');
         Route::post('playoff-appearances', [RecordsController::class, 'playoff_appearances'])->name('records.playoff.appearances');
         Route::post('stats-leaders', [RecordsController::class, 'statsleaders'])->name('records.player.stats.leaders');
-
     });
 
     Route::prefix('teams/')->group(function(){
@@ -197,6 +196,7 @@ Route::middleware('auth')->group(function () {
         Route::post('player-awards-filter', [AwardsController::class, 'filterawardsperseason'])->name('player.awards.filter');
         Route::post('player-season-awards', [AwardsController::class, 'getseasonawards'])->name('player.season.awards');
         Route::get('awarding/{season_id}', [AwardsController::class, 'storeseasonawardsauto'])->name('awarding.per.season');
+        Route::get('awards-mvp-status', [AwardsController::class, 'getFinalsMVPList'])->name('awards.mvp.status');
     });
 
     Route::prefix('users/')->group(function(){

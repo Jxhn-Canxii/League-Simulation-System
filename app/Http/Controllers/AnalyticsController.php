@@ -337,6 +337,7 @@ class AnalyticsController extends Controller
         // Return the result as JSON
         return response()->json($statistics);
     }
+
     private function getLatestSeasonId()
     {
         // Fetch the latest season ID based on descending order of IDs
