@@ -395,7 +395,7 @@
                     :class="['px-4 py-2', currentTab === 'legend' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700']"
                     @click="currentTab = 'legend'"
                 >
-                    Top 10 Players
+                    Top 15 Players
                 </button>
                 </div>
                 <div class="mt-4">

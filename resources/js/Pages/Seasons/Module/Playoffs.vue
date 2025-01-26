@@ -375,7 +375,7 @@
                 ]"
                 @click="currentTab = 'legend'"
             >
-                Top 10 Player
+                Top 15 Player
             </button>
         </div>
         <div class="mt-4">
