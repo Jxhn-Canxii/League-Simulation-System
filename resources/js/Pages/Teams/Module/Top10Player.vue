@@ -15,7 +15,7 @@
         <!-- Divider -->
         <hr class="my-4 border-t border-gray-200" />
         <h3 class="text-md font-semibold text-gray-800 mb-6">
-            Top 10 Players All-time
+            Top 15 Players All-time
         </h3>
 
         <table class="w-full text-xs">
@@ -23,6 +23,11 @@
                 <tr
                     class="border-b bg-gray-50 text-left text-nowrap text-xs font-semibold uppercase tracking-wide text-gray-500"
                 >
+                    <th
+                        class="border-b-2 border-gray-200 bg-gray-100 py-2 px-2 text-left font-semibold uppercase text-gray-600"
+                    >
+                        Rank
+                    </th>
                     <th
                         class="border-b-2 border-gray-200 bg-gray-100 py-2 px-2 text-left font-semibold uppercase text-gray-600"
                     >
@@ -97,11 +102,19 @@
             </thead>
             <tbody>
                 <tr
-                    v-for="player in players"
+                    v-for="(player,ii) in players"
+                    v-if="players.length > 0"
                     :key="player.player_id"
                     class="text-gray-700"
                     :class="team_info.teams.id != player.current_team_id ? 'bg-red-50' : 'bg-green-50'"
                 >
+                    <td
+                        class="border-b border-gray-200  px-2 py-2 text-ellipsis overflow-hidden"
+                    >
+                        <p class="text-gray-900 whitespace-nowrap truncate">
+                            {{ ii + 1 }}
+                        </p>
+                    </td>
                     <td
                         class="border-b border-gray-200  px-2 py-2 text-ellipsis overflow-hidden"
                     >
@@ -129,8 +142,11 @@
                     <td
                         class="border-b border-gray-200  px-2 py-2 text-ellipsis overflow-hidden"
                     >
-                        <p class="text-gray-900 whitespace-nowrap truncate">
-                            {{ player.current_team_name ?? "-" }}
+                        <p class="text-gray-900 whitespace-nowrap truncate" v-if="player.is_active">
+                            {{ player.current_team_name ?? "Free Agent" }}
+                        </p>
+                        <p class="text-gray-900 whitespace-nowrap truncate" v-else>
+                            -
                         </p>
                     </td>
                     <!-- <td
@@ -211,11 +227,11 @@
                         </p>
                     </td>
                 </tr>
-                <!-- <tr v-if="!players.data.length">
+                <tr v-else>
                     <td colspan="6" class="border-b text-center font-bold text-lg border-gray-200  px-3 py-3">
                         <p class="text-red-500 whitespace-no-wrap">No Data Found!</p>
                     </td>
-                </tr> -->
+                </tr>
             </tbody>
         </table>
 

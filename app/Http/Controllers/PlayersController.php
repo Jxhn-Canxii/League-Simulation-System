@@ -1893,7 +1893,7 @@ class PlayersController extends Controller
         // Fetch total stats for players for the given team across all seasons and also current team name
         $playerStatsForTeam = DB::table('player_season_stats')
             ->join('players', 'player_season_stats.player_id', '=', 'players.id')
-            ->join('teams as current_team', 'players.team_id', '=', 'current_team.id') // Get the current team name
+            ->join('teams as current_team', 'players.team_id', '=', 'current_team.id','left') // Get the current team name
             ->join('teams as tenure_team', 'player_season_stats.team_id', '=', 'tenure_team.id') // Get the team the player played for in the season
             ->select(
                 'player_season_stats.player_id',
@@ -1940,7 +1940,7 @@ class PlayersController extends Controller
                 SUM(player_season_stats.total_turnovers) * 0.1 -
                 SUM(player_season_stats.total_fouls) * 0.1
             '))
-            ->limit(10)
+            ->limit(15)
             ->get();
     
         foreach ($playerStatsForTeam as $player) {
@@ -1961,6 +1961,7 @@ class PlayersController extends Controller
                 ->where('finals_mvp_id', $player->player_id)
                 ->count();
     
+                
             // Add the additional stats to the player object
             $player->all_awards = $awards->all_awards ?? null;
             $player->best_overall_player_points = $awards->best_overall_player_points ?? 0;
