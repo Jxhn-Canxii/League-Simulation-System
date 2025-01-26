@@ -1473,7 +1473,7 @@ class SimulateController extends Controller
         ]);
     }
 
-    private function distributeMinutes1($playersArray, $totalMinutes)
+    private function distributeMinutesV1($playersArray, $totalMinutes)
     {
         // Define role-based priorities and their minute allocation limits
         $rolePriority = [
@@ -1632,10 +1632,10 @@ class SimulateController extends Controller
                 // Define initial minute ranges based on role priority
                 switch ($rolePriority[$player['role']] ?? 5) {
                     case 1: // Star player
-                        $assignedMinutesForRole = rand(5, 35); // Star players get the most minutes
+                        $assignedMinutesForRole = rand(5, 48); // Star players get the most minutes
                         break;
                     case 2: // Starter
-                        $assignedMinutesForRole = rand(5, 30); // Starters get slightly fewer minutes
+                        $assignedMinutesForRole = rand(5, 45); // Starters get slightly fewer minutes
                         break;
                     case 3: // Role player
                         $assignedMinutesForRole = rand(0, 30); // Role players get fewer minutes
@@ -1696,79 +1696,7 @@ class SimulateController extends Controller
 
         return $minutes;
     }
-    private function distributeMinutes3($playersArray, $totalMinutes, $gameId)
-    {
-        // Fetch each player's performance from the `player_season_stats` table
-        foreach ($playersArray as &$player) {
-            $playerStats = DB::table('player_season_stats')
-                ->where('player_id', $player['id'])
-                ->orderByDesc('created_at')
-                ->first();
-
-            if ($playerStats) {
-                // Compute performance using a weighted formula
-                $player['performance'] = (
-                    (2 * $playerStats->avg_points_per_game) + // Points weight = 2
-                    (1.5 * $playerStats->avg_rebounds_per_game) + // Rebounds weight = 1.5
-                    (1.5 * $playerStats->avg_assists_per_game) + // Assists weight = 1.5
-                    (3 * $playerStats->avg_steals_per_game) + // Steals weight = 3
-                    (3 * $playerStats->avg_blocks_per_game) - // Blocks weight = 3
-                    (2 * $playerStats->avg_turnovers_per_game) - // Turnovers weight = -2
-                    (1 * $playerStats->avg_fouls_per_game) // Fouls weight = -1
-                );
-            } else {
-                $player['performance'] = 0; // Default to 0 if no stats are available
-            }
-        }
-
-        // Sort players by performance (higher performance = higher priority)
-        $sortedPlayers = collect($playersArray)->sortByDesc('performance')->values();
-
-        $minutes = [];
-        $assignedMinutes = 0;
-
-        // Allocate minutes proportionally based on performance
-        foreach ($sortedPlayers as $player) {
-            if (rand(1, 100) <= $player['injury_prone_percentage']) {
-                // Player is injured and should get zero minutes
-                $minutes[$player['id']] = 0;
-            } else {
-                // Assign initial minutes proportional to performance
-                $performanceWeight = $player['performance']; // Higher performance = more minutes
-                $minutes[$player['id']] = $performanceWeight;
-                $assignedMinutes += $performanceWeight;
-
-                // Track and update fatigue for each player
-                $this->fatigueRate($player, $minutes[$player['id']], $gameId);
-            }
-        }
-
-        // Calculate remaining minutes to match the target
-        $remainingMinutes = $totalMinutes - $assignedMinutes;
-
-        // Scale the assigned minutes to fit the total minutes
-        if ($assignedMinutes > 0) {
-            foreach ($minutes as $playerId => &$minute) {
-                $minute = ($minute / $assignedMinutes) * $totalMinutes;
-            }
-        }
-
-        // Ensure total minutes match the target (adjust for rounding errors)
-        $totalAssignedMinutes = array_sum($minutes);
-
-        if (round($totalAssignedMinutes) !== $totalMinutes) {
-            $difference = $totalMinutes - round($totalAssignedMinutes);
-
-            // Adjust the minutes for players proportionally to their current allocation
-            foreach ($minutes as $playerId => &$minute) {
-                $adjustment = ($minute / $totalAssignedMinutes) * $difference;
-                $minute += $adjustment;
-            }
-        }
-
-        return array_map('round', $minutes); // Round the minutes to integers for consistency
-    }
-
+    
     private function fatigueRate($player, $minutes, $gameId)
     {
         try {

@@ -23,7 +23,7 @@
             </div> 
             <div class="flex justify-center items-center">
                 <div class="text-white text-sm px-3 py-1 inline-flex justify-center text-center rounded-full transition">
-                    <p :class="player.is_active ? 'bg-green-500' : ''" class="cursor-pointer bg-gray-600 text-white rounded-full px-2 py-1">
+                    <p :class="player.is_active ? 'bg-green-500' : 'bg-gray-600'" class="cursor-pointer  text-white rounded-full px-2 py-1">
                         {{ player.player_role }}
                     </p>
                 </div>
