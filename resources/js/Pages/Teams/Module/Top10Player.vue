@@ -228,7 +228,7 @@
                     </td>
                 </tr>
                 <tr v-else>
-                    <td colspan="6" class="border-b text-center font-bold text-lg border-gray-200  px-3 py-3">
+                    <td colspan="12" class="border-b text-center font-bold text-lg border-gray-200  px-3 py-3">
                         <p class="text-red-500 whitespace-no-wrap">No Data Found!</p>
                     </td>
                 </tr>
