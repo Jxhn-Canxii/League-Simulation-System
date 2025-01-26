@@ -226,10 +226,12 @@ class RecordsController extends Controller
             ->select(
                 'players.id as player_id',
                 'players.name as player_name',
+                'teams.name as team_name',
                 DB::raw("SUM(player_season_stats.$sortBy) as total_stat") // Aggregate the chosen stat for each player
             )
             ->leftJoin('players', 'player_season_stats.player_id', '=', 'players.id') // Join players
-            ->groupBy('players.id', 'players.name')                                  // Group by player_id and player_name
+            ->leftJoin('teams', 'teams.id', '=', 'players.team_id') // Join players
+            ->groupBy('players.id', 'players.name','teams.name')                                  // Group by player_id and player_name
             ->orderBy('total_stat', 'desc')                                          // Order by total_stat in descending order
             ->skip($offset)                                                          // Offset for pagination
             ->take($perPage)                                                         // Limit results per page
