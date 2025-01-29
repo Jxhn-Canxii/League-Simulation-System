@@ -138,6 +138,9 @@
                             gameDetails?.head_to_head_record.away_team_wins ?? 0
                         }}
                     </p>
+                    <div class="timer">
+                        <p class="text-xs text-gray-300">{{ formatTime(time) }} seconds</p>
+                    </div>
                 </div>
             </div>
 
@@ -836,8 +839,38 @@ const bestPlayer = ref(null);
 const statLeaders = ref([]);
 const injuredPlayers =ref([]);
 // Fetch the box score data
+const time = ref(0); // Timer in seconds
+const interval = ref(null); // Stores interval ID
+const gameFinished = ref(false); // Flag for game completion
+
+// Start the timer
+const startTimer = () => {
+  if (interval.value) return; // Prevent multiple intervals running
+
+  interval.value = setInterval(() => {
+    time.value++;
+  }, 1000);
+}
+
+// Stop the timer
+const stopTimer = () => {
+  if (interval.value) {
+    clearInterval(interval.value);
+    interval.value = null; // Reset interval
+  }
+}
+
+// Format time to mm:ss
+const  formatTime  = (seconds) => {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+}
+
 const fetchBoxScore = async () => {
     try {
+        gameFinished.value = false; // Reset the game status
+        startTimer(); // Start the timer
         gameDetails.value = false;
         const response = await axios.post(route("game.boxscore"), {
             game_id: props.game_id,
@@ -850,6 +883,9 @@ const fetchBoxScore = async () => {
         bestPlayer.value = data.best_player;
         statLeaders.value = data.stat_leaders;
         injuredPlayers.value = data.injury;
+
+        gameFinished.value = true;
+        stopTimer(); // Stop the timer when the game finishes
     } catch (error) {
         console.error("Error fetching box score:", error);
     }
