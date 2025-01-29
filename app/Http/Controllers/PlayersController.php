@@ -445,7 +445,7 @@ class PlayersController extends Controller
                         'per_game_score' => number_format(0, 2),
                         'total_score' => number_format(0, 2),
                         'combined_score' => number_format(0, 2),
-                        'seasons_played_with_team' => $seasonsPlayedWithTeam + 1,
+                        'seasons_played_with_team' => $seasonsPlayedWithTeam,
                         'total_seasons_played' => $totalSeasonsPlayed,
                         'latest_season' => $currentSeasonId,
                     ];
