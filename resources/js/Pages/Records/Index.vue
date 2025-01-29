@@ -7,11 +7,11 @@
         </template>
 
         <div class="inline-block min-w-full overflow-hidden p-2 rounded">
-            <div class="grid grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Championships />
                 <PlayerScoringRankings />
             </div>
-            <div class="grid grid-cols-2 gap-6 mt-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                 <TeamWinningRankings />
                 <TeamScoringRankings />
             </div>

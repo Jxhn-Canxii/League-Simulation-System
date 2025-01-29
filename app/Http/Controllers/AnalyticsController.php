@@ -325,14 +325,7 @@ class AnalyticsController extends Controller
     public function getDraftPlayerStatistics()
     {
         // Query the draft_player_statistics view using raw SQL
-        $statistics = DB::select('
-            SELECT draft_id,
-                total_players,
-                active_players_with_team,
-                inactive_players,
-                active_percentage
-            FROM draft_player_statistics
-        ');
+        $statistics = DB::table('draft_player_statistics')->get();
 
         // Return the result as JSON
         return response()->json($statistics);

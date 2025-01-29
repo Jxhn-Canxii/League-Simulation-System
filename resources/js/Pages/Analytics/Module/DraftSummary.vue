@@ -16,18 +16,37 @@
             </div>
 
             <!-- Show Active Players by Default -->
-            <div class="text-sm text-gray-400 mt-4 text-nowrap text-left" v-if="item.active_players_with_team > 0">
-                <span class="font-bold">Active: </span>{{ item.active_players_with_team }}
+            <div class="text-3xl block font-semibold mt-7 text-black">
+                <div class="flex items-center text-sm text-green-700 mb-2">
+                    <i class="fas fa-users me-2"></i>
+                    <span>{{ item.active_players_with_team }}</span>
+                </div>
+                <!-- Total Active Players -->
+                <div class="flex items-center text-sm text-blue-700 mb-2">
+                    <i class="fas fa-user-check me-2"></i>
+                    <span>{{ item.active_players }}</span>
+                </div>
+                <!-- Total Retired Players -->
+                <div class="flex items-center text-sm text-red-700 mb-2">
+                    <i class="fas fa-user-times me-2"></i>
+                    <span>{{ item.total_players - item.active_players }}</span>
+                </div>
             </div>
-            <div class="text-sm text-red-400 text-nowrap text-left" v-if="item.active_players_with_team > 0">
-                <span class="font-bold">Retired: </span>{{ item.inactive_players }}
-            </div>
+           
             <!-- Full Data on Hover -->
             <div
-                class="absolute inset-0 bg-black bg-opacity-80 text-white p-6 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                class="absolute inset-0 bg-black bg-opacity-80 space-y-3 text-white p-4 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                 v-if="item.active_players_with_team > 0"
             >
-                <span class="font-bold">{{ item.active_percentage }}% </span>Active
+                <div class="text-sm font-bold">Percentage</div>
+                <div class="flex items-center text-sm" title="Active Players with Team">
+                    <i class="fas fa-users me-2"></i>
+                    <span>{{ item.active_percentage_with_team }}%</span>
+                </div>
+                <div class="flex items-center text-sm">
+                    <i class="fas fa-user-check me-2"></i>
+                    <span>{{ item.active_percentage }}%</span>
+                </div>
             </div>
 
         </div>
