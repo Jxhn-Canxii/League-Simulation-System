@@ -407,10 +407,13 @@ class PlayersController extends Controller
 
                 $totalSeasonsPlayed = DB::table('player_season_stats')
                     ->where('player_id', $playerId)
-                    ->where('season_id', '<=', $seasonId) // Filter seasons less than or equal to $seasonId
-                    ->groupBy('season_id') // Ensure distinct season_id values
+                    ->distinct('season_id') // Ensure distinct season_id values
                     ->count(); // Count the number of distinct seasons
 
+                $seasonsPlayedWithTeam = DB::table('player_season_stats')
+                    ->where('player_id', $player->id)
+                    ->where('team_id', $teamId)
+                    ->count('team_id');
                 
                 // Only include players with games played > 0 if season status is 11
                 if ($seasonStatus != 11 || $stats['games_played'] > 0) {
@@ -442,7 +445,7 @@ class PlayersController extends Controller
                         'per_game_score' => number_format(0, 2),
                         'total_score' => number_format(0, 2),
                         'combined_score' => number_format(0, 2),
-                        'seasons_played_with_team' => 0,
+                        'seasons_played_with_team' => $seasonsPlayedWithTeam,
                         'total_seasons_played' => $totalSeasonsPlayed,
                         'latest_season' => $currentSeasonId,
                     ];
@@ -1961,7 +1964,7 @@ class PlayersController extends Controller
                 ->where('finals_mvp_id', $player->player_id)
                 ->count();
     
-                
+             
             // Add the additional stats to the player object
             $player->all_awards = $awards->all_awards ?? null;
             $player->best_overall_player_points = $awards->best_overall_player_points ?? 0;
