@@ -298,12 +298,12 @@ class PlayersController extends Controller
                     $seasonsPlayedWithTeam = DB::table('player_season_stats')
                         ->where('player_id', $player->id)
                         ->where('team_id', $teamId)
-                        ->where('season_id', '<=', $currentSeasonId) // Include only seasons up to the provided season_id
+                        ->where('season_id', '<=', $seasonId) // Include only seasons up to the provided season_id
                         ->count('team_id');
 
                     $totalSeasonsPlayed = DB::table('player_season_stats')
                         ->where('player_id', $player->id)
-                        ->where('season_id', '<=', $currentSeasonId) // Include only seasons up to the provided season_id
+                        ->where('season_id', '<=', $seasonId) // Include only seasons up to the provided season_id
                         ->distinct('season_id') // Ensure distinct season IDs are counted
                         ->count('season_id');
 
@@ -446,7 +446,7 @@ class PlayersController extends Controller
                         'total_score' => number_format(0, 2),
                         'combined_score' => number_format(0, 2),
                         'seasons_played_with_team' => $seasonsPlayedWithTeam + 1,
-                        'total_seasons_played' => $totalSeasonsPlayed,
+                        'total_seasons_played' => $totalSeasonsPlayed + 1,
                         'latest_season' => $currentSeasonId,
                     ];
                 }
