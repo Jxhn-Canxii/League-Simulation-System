@@ -40,8 +40,18 @@
                         <th
                             class="border-b-2 border-gray-200 bg-gray-100 py-2 px-2 text-left font-semibold uppercase text-gray-600"
                         >
-                            MVP
+                            Finals MVP
                         </th>
+                        <!-- <th
+                            class="border-b-2 border-gray-200 bg-gray-100 py-2 px-2 text-left font-semibold uppercase text-gray-600"
+                        >
+                            Regular Season MVP
+                        </th>
+                        <th
+                            class="border-b-2 border-gray-200 bg-gray-100 py-2 px-2 text-left font-semibold uppercase text-gray-600"
+                        >
+                            Defensive Player
+                        </th> -->
                         <!-- <th
                             class="border-b-2 border-gray-200 bg-gray-100 py-2 px-2 text-left font-semibold uppercase text-gray-600"
                         >
@@ -151,6 +161,20 @@
                                 {{ player.finals_mvp_count }}
                             </p>
                         </td>
+                        <!-- <td
+                            class="border-b border-gray-200  px-2 py-2 text-ellipsis overflow-hidden"
+                        >
+                            <p class="text-gray-900 whitespace-nowrap truncate">
+                                {{ player.best_overall_player_count }}
+                            </p>
+                        </td>
+                        <td
+                            class="border-b border-gray-200  px-2 py-2 text-ellipsis overflow-hidden"
+                        >
+                            <p class="text-gray-900 whitespace-nowrap truncate">
+                                {{ player.best_defensive_player_count }}
+                            </p>
+                        </td> -->
                         <!-- <td
                             class="border-b border-gray-200  px-2 py-2 text-ellipsis overflow-hidden"
                         >
