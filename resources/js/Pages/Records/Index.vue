@@ -17,7 +17,7 @@
             </div>
             <div class="grid grid-cols-1 gap-6 mt-4">
                 <!-- <Top20Players /> -->
-                <PlayerPlayoffAppearance />
+                <!-- <PlayerPlayoffAppearance /> -->
             </div>
             <div class="grid grid-cols-1 gap-6 mt-4">
                 <Last12Games />
