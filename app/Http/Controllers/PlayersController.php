@@ -1820,54 +1820,24 @@ class PlayersController extends Controller
     {
         // Combine stats for players by player_id
         $top20PlayersAllTime = DB::table('player_season_stats')
-            ->join('players', 'player_season_stats.player_id', '=', 'players.id')
-            ->join('teams', 'players.team_id', '=', 'teams.id')
-            ->leftJoin('season_awards', 'player_season_stats.player_id', '=', 'season_awards.player_id')
-            ->select(
-                'player_season_stats.player_id',
-                'players.is_active',
-                'players.team_id as team_id',
-                'players.name as player_name',
-                'teams.name as current_team_name',
-                DB::raw('SUM(player_season_stats.total_points) as total_points'),
-                DB::raw('SUM(player_season_stats.total_rebounds) as total_rebounds'),
-                DB::raw('SUM(player_season_stats.total_assists) as total_assists'),
-                DB::raw('SUM(player_season_stats.total_steals) as total_steals'),
-                DB::raw('SUM(player_season_stats.total_blocks) as total_blocks'),
-                DB::raw('SUM(player_season_stats.total_turnovers) as total_turnovers'),
-                DB::raw('SUM(player_season_stats.total_fouls) as total_fouls'),
-                DB::raw('(
-                    SUM(player_season_stats.total_points) * 0.4 +
-                    SUM(player_season_stats.total_rebounds) * 0.2 +
-                    SUM(player_season_stats.total_assists) * 0.2 +
-                    SUM(player_season_stats.total_steals) * 0.1 +
-                    SUM(player_season_stats.total_blocks) * 0.1 -
-                    SUM(player_season_stats.total_turnovers) * 0.1 -
-                    SUM(player_season_stats.total_fouls) * 0.1
-                ) as base_statistical_points'),
-                DB::raw('COUNT(CASE WHEN season_awards.award_name = "Best Overall Player" THEN 1 END) * 7 as best_overall_player_points'),
-                DB::raw('COUNT(CASE WHEN season_awards.award_name = "Best Defensive Player" THEN 1 END) * 5 as best_defensive_player_points'),
-                DB::raw('(SELECT COUNT(*) FROM seasons WHERE seasons.finals_mvp_id = player_season_stats.player_id) * 10 as finals_mvp_points'),
-                DB::raw('COUNT(CASE WHEN season_awards.award_name = "Best Overall Player" THEN 1 END) as best_overall_player_count'),
-                DB::raw('COUNT(CASE WHEN season_awards.award_name = "Best Defensive Player" THEN 1 END) as best_defensive_player_count'),
-                DB::raw('(SELECT COUNT(*) 
-                          FROM seasons 
-                          WHERE seasons.finals_winner_id = player_season_stats.team_id) as championships_won'),
-                DB::raw('(SELECT COUNT(*) 
-                          FROM seasons 
-                          WHERE seasons.finals_mvp_id = player_season_stats.player_id) as finals_mvp_count'),
-                DB::raw('GROUP_CONCAT(DISTINCT CONCAT(season_awards.award_name, " (Season ", season_awards.season_id, ")") SEPARATOR ", ") as all_awards')
-
-            )
-            ->groupBy(
-                'player_season_stats.player_id',
-                'player_season_stats.team_id',
-                'players.team_id',
-                'players.is_active',
-                'players.name',
-                'teams.name'
-            )
-            ->orderByDesc(DB::raw('(
+        ->join('players', 'player_season_stats.player_id', '=', 'players.id')
+        ->join('teams as current_team', 'players.team_id', '=', 'current_team.id','left') // Get the current team name
+        ->select(
+            'player_season_stats.player_id',
+            'players.id as player_id',
+            'players.name as player_name',
+            'players.is_active as is_active',
+            'current_team.id as current_team_id', // Current team of the player
+            'current_team.name as current_team_name', // Current team of the player
+            DB::raw('SUM(player_season_stats.total_points) as total_points'),
+            DB::raw('SUM(player_season_stats.total_rebounds) as total_rebounds'),
+            DB::raw('SUM(player_season_stats.total_assists) as total_assists'),
+            DB::raw('SUM(player_season_stats.total_steals) as total_steals'),
+            DB::raw('SUM(player_season_stats.total_blocks) as total_blocks'),
+            DB::raw('SUM(player_season_stats.total_turnovers) as total_turnovers'),
+            DB::raw('SUM(player_season_stats.total_fouls) as total_fouls'),
+            DB::raw('COUNT(player_season_stats.season_id) as seasons_played'),
+            DB::raw('(
                 SUM(player_season_stats.total_points) * 0.4 +
                 SUM(player_season_stats.total_rebounds) * 0.2 +
                 SUM(player_season_stats.total_assists) * 0.2 +
@@ -1875,13 +1845,55 @@ class PlayersController extends Controller
                 SUM(player_season_stats.total_blocks) * 0.1 -
                 SUM(player_season_stats.total_turnovers) * 0.1 -
                 SUM(player_season_stats.total_fouls) * 0.1
-            ) +
-            (COUNT(CASE WHEN season_awards.award_name = "Best Overall Player" THEN 1 END) * 7) + 
-            (COUNT(CASE WHEN season_awards.award_name = "Best Defensive Player" THEN 1 END) * 5) +
-            (SELECT COUNT(*) FROM seasons WHERE seasons.finals_mvp_id = player_season_stats.player_id) * 10'))
-            ->limit(20)
-            ->get();
-    
+            ) as base_statistical_points')
+        )
+        ->groupBy(
+            'player_season_stats.player_id',
+            'players.id',
+            'players.name',
+            'players.is_active',
+            'current_team.name',
+            'current_team.id',
+        )
+        ->orderByDesc(DB::raw('
+            SUM(player_season_stats.total_points) * 0.4 +
+            SUM(player_season_stats.total_rebounds) * 0.2 +
+            SUM(player_season_stats.total_assists) * 0.2 +
+            SUM(player_season_stats.total_steals) * 0.1 +
+            SUM(player_season_stats.total_blocks) * 0.1 -
+            SUM(player_season_stats.total_turnovers) * 0.1 -
+            SUM(player_season_stats.total_fouls) * 0.1
+        '))
+        ->limit(20)
+        ->get();
+
+        foreach ($top20PlayersAllTime as $player) {
+            // Fetch individual awards for this player
+            $awards = DB::table('season_awards')
+                ->where('player_id', $player->player_id)
+                ->select(
+                    DB::raw('GROUP_CONCAT(DISTINCT CONCAT(award_name, " (Season ", season_id, ")") SEPARATOR ", ") as all_awards'),
+                    DB::raw('COUNT(CASE WHEN award_name = "Best Overall Player" THEN 1 END) * 7 as best_overall_player_points'),
+                    DB::raw('COUNT(CASE WHEN award_name = "Best Defensive Player" THEN 1 END) * 5 as best_defensive_player_points'),
+                    DB::raw('COUNT(CASE WHEN award_name = "Best Overall Player" THEN 1 END) as best_overall_player_count'),
+                    DB::raw('COUNT(CASE WHEN award_name = "Best Defensive Player" THEN 1 END) as best_defensive_player_count')
+                )
+                ->first();
+
+            // Fetch championships won and finals MVP count for this player
+            $finalsMVPCount = DB::table('seasons')
+                ->where('finals_mvp_id', $player->player_id)
+                ->count();
+
+            
+            // Add the additional stats to the player object
+            $player->all_awards = $awards->all_awards ?? null;
+            $player->best_overall_player_points = $awards->best_overall_player_points ?? 0;
+            $player->best_defensive_player_points = $awards->best_defensive_player_points ?? 0;
+            $player->best_overall_player_count = $awards->best_overall_player_count ?? 0;
+            $player->best_defensive_player_count = $awards->best_defensive_player_count ?? 0;
+            $player->finals_mvp_count = $finalsMVPCount ?? 0;
+        }
         return response()->json($top20PlayersAllTime);
     }
     

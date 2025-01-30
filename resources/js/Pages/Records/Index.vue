@@ -16,7 +16,7 @@
                 <TeamScoringRankings />
             </div>
             <div class="grid grid-cols-1 gap-6 mt-4">
-                <!-- <Top20Players /> -->
+                <Top20Players />
                 <!-- <PlayerPlayoffAppearance /> -->
             </div>
             <div class="grid grid-cols-1 gap-6 mt-4">
