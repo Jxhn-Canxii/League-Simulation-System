@@ -142,7 +142,7 @@
                         <p class="text-xs text-gray-300">{{ formatTime(time) }} seconds</p>
                     </div> -->
                 </div>
-                <div class="flex flex-col p-2 m-1 bg-slate-800 rounded text-white">
+                <div class="flex flex-col p-2 m-1 bg-slate-800 rounded text-white"  v-if="!props.showBoxScore">
                     <small class="text-xs text-nowrap text-gray-500">{{ seasonLeaders.message }}</small>
                     <small class="text-xs text-nowrap font-bold" :title="seasonLeaders.draft_status">{{ seasonLeaders.player_name }} ({{ seasonLeaders.stat_value }} {{ seasonLeaders.stat_type }})</small>
                     <small class="text-xs text-nowrap text-gray-500">{{ seasonLeaders.team_name }}</small>
