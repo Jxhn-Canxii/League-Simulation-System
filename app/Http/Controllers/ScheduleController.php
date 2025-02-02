@@ -97,7 +97,7 @@ class ScheduleController extends Controller
                 return $conferenceTeams->shuffle();
             });
 
-            $doubleRound = false;
+            $doubleRound = true;
             // Generate matches for each conference
             foreach ($teamsByConference as $conferenceId => $conferenceTeams) {
                 $roundCounter = 0; // Initialize round counter

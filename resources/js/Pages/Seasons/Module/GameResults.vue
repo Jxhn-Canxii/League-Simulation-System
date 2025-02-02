@@ -817,7 +817,7 @@ import { ref, computed, onMounted } from "vue";
 import axios from "axios";
 import { roundNameFormatter, roleBadgeClass, playerFormatter } from "@/Utility/Formatter";
 import Modal from "@/Components/Modal.vue";
-
+import Swal from "sweetalert2";
 import TeamRoster from "@/Pages/Teams/Module/TeamRoster.vue";
 import PlayerPerformance from "@/Pages/Teams/Module/PlayerPerformance.vue";
 
@@ -838,6 +838,7 @@ const playerStats = ref({ home: [], away: [] });
 const bestPlayer = ref(null);
 const statLeaders = ref([]);
 const injuredPlayers =ref([]);
+const seasonLeaders = ref([]);
 // Fetch the box score data
 const time = ref(0); // Timer in seconds
 const interval = ref(null); // Stores interval ID
@@ -883,6 +884,17 @@ const fetchBoxScore = async () => {
         bestPlayer.value = data.best_player;
         statLeaders.value = data.stat_leaders;
         injuredPlayers.value = data.injury;
+        seasonLeaders.value = data.league_leaders;
+
+        Swal.fire({
+            title: 'Season Leader',
+            text: seasonLeaders.message,
+            icon: 'info',
+            showConfirmButton: false, // No confirm button
+            timer: 5000, // Auto-close after 5 seconds
+            timerProgressBar: true, // Show progress bar for timer
+            position: 'bottom-right', // Position the alert at the bottom-right
+        });
 
         gameFinished.value = true;
         stopTimer(); // Stop the timer when the game finishes

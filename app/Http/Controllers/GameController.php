@@ -161,6 +161,7 @@ class GameController extends Controller
             'blocks' => $playerStats->sortByDesc('blocks')->first(),
         ];
 
+        $randomSeasonStatsLeaders = $this->getStatsLeaders($game->season_id);
         // Determine the winning team
         $winningTeamId = $game->home_score > $game->away_score ? $game->home_id : $game->away_id;
 
@@ -277,6 +278,7 @@ class GameController extends Controller
             'game_id' => $game->game_id,
             'round' => $game->round,
             'injury' => $injury,
+            'league_leaders' => $randomSeasonStatsLeaders,
             'home_team' => [
                 'team_id' => $game->home_id, // Use the correct field from your query
                 'name' => $game->home_team_name,
@@ -308,7 +310,123 @@ class GameController extends Controller
         return response()->json([
             'box_score' => $boxScore,
         ]);
+    }private function getStatsLeaders($seasonId) {
+        // List of possible stat types to randomize
+        $statTypes = [
+            'avg_points_per_game' => 'points',
+            'avg_rebounds_per_game' => 'rebounds',
+            'avg_assists_per_game' => 'assists',
+            'avg_steals_per_game' => 'steals',
+            'avg_blocks_per_game' => 'blocks',
+            'avg_turnovers_per_game' => 'turnovers',
+            'avg_fouls_per_game' => 'fouls'
+        ];
+    
+        // Randomly pick a stat type
+        $randomStatKey = array_rand($statTypes);
+        $statType = $statTypes[$randomStatKey]; // Get the readable stat name (e.g., 'points', 'steals')
+        
+        // Step 1: Retrieve the overall leader with the highest stat for the season
+        $overallLeader = DB::table('player_season_stats')
+            ->select(
+                'player_season_stats.id',
+                'player_season_stats.player_id',
+                'player_season_stats.team_id',
+                'player_season_stats.season_id',
+                'player_season_stats.role',
+                'player_season_stats.total_games',
+                'player_season_stats.total_games_played',
+                'player_season_stats.avg_minutes_per_game',
+                'player_season_stats.avg_points_per_game',
+                'player_season_stats.avg_rebounds_per_game',
+                'player_season_stats.avg_assists_per_game',
+                'player_season_stats.avg_steals_per_game',
+                'player_season_stats.avg_blocks_per_game',
+                'player_season_stats.avg_turnovers_per_game',
+                'player_season_stats.avg_fouls_per_game',
+                'player_season_stats.total_points',
+                'player_season_stats.total_rebounds',
+                'player_season_stats.total_assists',
+                'player_season_stats.total_steals',
+                'player_season_stats.total_blocks',
+                'player_season_stats.total_turnovers',
+                'player_season_stats.total_fouls',
+                'players.is_rookie',
+                'players.draft_status',
+                'players.name as player_name', // Fetch player name
+                'teams.name as team_name' // Fetch team name
+            )
+            ->join('players', 'player_season_stats.player_id', '=', 'players.id')
+            ->join('teams', 'player_season_stats.team_id', '=', 'teams.id')
+            ->where('player_season_stats.season_id', $seasonId)
+            ->limit(1)
+            ->first();
+    
+        // Step 2: Retrieve the rookie leader with the highest stat for the season
+        $rookieLeader = DB::table('player_season_stats')
+            ->select(
+                'player_season_stats.id',
+                'player_season_stats.player_id',
+                'player_season_stats.team_id',
+                'player_season_stats.season_id',
+                'player_season_stats.role',
+                'player_season_stats.total_games',
+                'player_season_stats.total_games_played',
+                'player_season_stats.avg_minutes_per_game',
+                'player_season_stats.avg_points_per_game',
+                'player_season_stats.avg_rebounds_per_game',
+                'player_season_stats.avg_assists_per_game',
+                'player_season_stats.avg_steals_per_game',
+                'player_season_stats.avg_blocks_per_game',
+                'player_season_stats.avg_turnovers_per_game',
+                'player_season_stats.avg_fouls_per_game',
+                'player_season_stats.total_points',
+                'player_season_stats.total_rebounds',
+                'player_season_stats.total_assists',
+                'player_season_stats.total_steals',
+                'player_season_stats.total_blocks',
+                'player_season_stats.total_turnovers',
+                'player_season_stats.total_fouls',
+                'players.is_rookie',
+                'players.draft_status',
+                'players.name as player_name',
+                'teams.name as team_name'
+            )
+            ->join('players', 'player_season_stats.player_id', '=', 'players.id')
+            ->join('teams', 'player_season_stats.team_id', '=', 'teams.id')
+            ->where('players.is_rookie', true)
+            ->where('player_season_stats.season_id', $seasonId)
+            ->limit(1)
+            ->first();
+    
+        // Step 3: Randomly choose one leader from either rookie or overall
+        $leaders = collect([$overallLeader, $rookieLeader]);
+    
+        // Randomly select the leader
+        $selectedLeader = $leaders->random();
+    
+        // Step 4: Fetch the selected stat value dynamically
+        $statValue = $selectedLeader ? $selectedLeader->{$randomStatKey} : 0;
+    
+        // Build the message
+        $message =  ($selectedLeader->is_rookie ? "Rookie" : "Overall") ." Season Leaders in " . ucfirst($statType) . " ({$statValue} " . substr($statType, 0, 2) . "pg) " .  
+                   ": " . $selectedLeader->player_name . " (" . $selectedLeader->team_name . ")";
+    
+        // Prepare the response data
+        $responseData =  [
+            'player_name' => $selectedLeader->player_name,
+            'team_name' => $selectedLeader->team_name,
+            'draft_status' => $selectedLeader->draft_status,
+            'stat_type' => $statType,
+            'stat_value' => $statValue,
+            'message' => $message,
+        ];
+    
+        // Step 5: Return the data as a JSON response
+        return $responseData;
     }
+    
+    
     private function getIngameInjury($gameId) {
         return DB::table('injured_players_view')
             ->where('game_id', $gameId)

@@ -11,7 +11,7 @@
         <div class="flex justify-end space-x-2">
             <button
                 v-if="!isHide"
-                @click.prevent="addMultiplePlayers(250)"
+                @click.prevent="addMultiplePlayers(400)"
                 class="px-2 py-2 bg-green-500 rounded font-bold text-md float-end text-white shadow"
             >
                 <i class="fa fa-user"></i> Add Rookie Player From Api
