@@ -710,19 +710,19 @@ class PlayersController extends Controller
         $reboundingRating = $attributes['rebounding_rating'];
 
         // Randomize player role
-        $roles = ['star player', 'starter', 'role player', 'bench'];
-        $role = $roles[array_rand($roles)];
+        // $roles = ['star player', 'starter', 'role player', 'bench'];
+        // $role = $roles[array_rand($roles)];
         // $role = 'bench';
         // Modify ratings slightly based on role if needed
-        switch ($role) {
-            case 'star player':
-                $shootingRating = min($shootingRating + rand(0, 10), 99);
-                $defenseRating = min($defenseRating + rand(0, 10), 99);
-                $passingRating = min($passingRating + rand(0, 10), 99);
-                $reboundingRating = min($reboundingRating + rand(0, 10), 99);
-                break;
-                // Add modifications for other roles as necessary
-        }
+        // switch ($role) {
+        //     case 'star player':
+        //         $shootingRating = min($shootingRating + rand(0, 10), 99);
+        //         $defenseRating = min($defenseRating + rand(0, 10), 99);
+        //         $passingRating = min($passingRating + rand(0, 10), 99);
+        //         $reboundingRating = min($reboundingRating + rand(0, 10), 99);
+        //         break;
+        //         // Add modifications for other roles as necessary
+        // }
 
         // Calculate contract expiration date
         $contractExpiresAt = Carbon::now()->addYears($contractYears);
@@ -736,6 +736,18 @@ class PlayersController extends Controller
         $healthRatings = 99 -  $injuryPercentage;
         // Calculate overall rating
         $overallRating = ($shootingRating + $defenseRating + $passingRating + $reboundingRating +  $healthRatings) / 5;
+        
+        // Assign role based on the overall rating
+        if ($overallRating >= 90) {
+            $role = 'star player';
+        } elseif ($overallRating >= 75) {
+            $role = 'starter';
+        } elseif ($overallRating >= 60) {
+            $role = 'role player';
+        } else {
+            $role = 'bench';
+        }
+        
         $retirementAge = rand($age + 1, 45); // Retirement age should be greater than current age
 
                 // Determine retirement age based on health ratings
