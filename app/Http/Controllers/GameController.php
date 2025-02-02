@@ -409,8 +409,7 @@ class GameController extends Controller
         $statValue = $selectedLeader ? $selectedLeader->{$randomStatKey} : 0;
     
         // Build the message
-        $message =  ($selectedLeader->is_rookie ? "Rookie" : "Overall") ." Season Leaders in " . ucfirst($statType) . " ({$statValue} " . substr($statType, 0, 2) . "pg) " .  
-                   ": " . $selectedLeader->player_name . " (" . $selectedLeader->team_name . ")";
+        $message =  ($selectedLeader->is_rookie ? "Rookie" : "Overall") ." Season Leaders in " . ucfirst($statType);
     
         // Prepare the response data
         $responseData =  [

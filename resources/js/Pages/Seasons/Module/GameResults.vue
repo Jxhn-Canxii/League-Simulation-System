@@ -138,9 +138,14 @@
                             gameDetails?.head_to_head_record.away_team_wins ?? 0
                         }}
                     </p>
-                    <div class="timer">
+                    <!-- <div class="timer">
                         <p class="text-xs text-gray-300">{{ formatTime(time) }} seconds</p>
-                    </div>
+                    </div> -->
+                </div>
+                <div class="flex flex-col">
+                    <small class="text-xs text-nowrap">{{ seasonLeaders.message }}</small>
+                    <small :title="seasonLeaders.draft_status">{{ seasonLeaders.player_name }} ({{ seasonLeaders.stat_value }} {{ seasonLeaders.stat_type }})</small>
+                    <small>{{ seasonLeaders.team_name }}</small>
                 </div>
             </div>
 
@@ -885,17 +890,6 @@ const fetchBoxScore = async () => {
         statLeaders.value = data.stat_leaders;
         injuredPlayers.value = data.injury;
         seasonLeaders.value = data.league_leaders;
-
-        Swal.fire({
-            title: 'Season Leader',
-            text: seasonLeaders.message,
-            icon: 'info',
-            showConfirmButton: false, // No confirm button
-            timer: 5000, // Auto-close after 5 seconds
-            timerProgressBar: true, // Show progress bar for timer
-            position: 'bottom-right', // Position the alert at the bottom-right
-        });
-
         gameFinished.value = true;
         stopTimer(); // Stop the timer when the game finishes
     } catch (error) {
