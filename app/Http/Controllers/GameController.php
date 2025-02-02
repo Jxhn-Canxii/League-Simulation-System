@@ -314,12 +314,12 @@ class GameController extends Controller
     private function getStatsLeaders($seasonId) {
         // List of possible stat types to randomize (both averages and totals)
         $statTypes = [
-            'avg_points_per_game' => 'points',
-            'avg_rebounds_per_game' => 'rebounds',
-            'avg_assists_per_game' => 'assists',
-            'avg_steals_per_game' => 'steals',
-            'avg_blocks_per_game' => 'blocks',
-            'avg_turnovers_per_game' => 'turnovers',
+            'avg_points_per_game' => 'points per game',
+            'avg_rebounds_per_game' => 'rebounds per game',
+            'avg_assists_per_game' => 'assists per game',
+            'avg_steals_per_game' => 'steals per game',
+            'avg_blocks_per_game' => 'blocks per game',
+            'avg_turnovers_per_game' => 'turnovers per game',
             'avg_fouls_per_game' => 'fouls',
             'total_points' => 'total points',
             'total_rebounds' => 'total rebounds',

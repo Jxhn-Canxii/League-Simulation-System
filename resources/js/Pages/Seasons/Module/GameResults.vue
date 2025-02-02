@@ -106,7 +106,7 @@
             </div>
 
             <div class="flex-1 text-center mb-2 lg:mb-0 text-white">
-                <div class="bg-gray-800 p-2 rounded-lg">
+                <div class="bg-gray-800 p-2 rounded-lg m-1">
                     <p class="text-xs font-semibold text-yellow-500">
                         Liga Dos
                         {{
@@ -142,10 +142,10 @@
                         <p class="text-xs text-gray-300">{{ formatTime(time) }} seconds</p>
                     </div> -->
                 </div>
-                <div class="flex flex-col">
-                    <small class="text-xs text-nowrap">{{ seasonLeaders.message }}</small>
-                    <small :title="seasonLeaders.draft_status">{{ seasonLeaders.player_name }} ({{ seasonLeaders.stat_value }} {{ seasonLeaders.stat_type }})</small>
-                    <small>{{ seasonLeaders.team_name }}</small>
+                <div class="flex flex-col p-2 m-1 bg-slate-800 rounded text-white">
+                    <small class="text-xs text-nowrap text-gray-500">{{ seasonLeaders.message }}</small>
+                    <small class="text-xs text-nowrap font-bold" :title="seasonLeaders.draft_status">{{ seasonLeaders.player_name }} ({{ seasonLeaders.stat_value }} {{ seasonLeaders.stat_type }})</small>
+                    <small class="text-xs text-nowrap text-gray-500">{{ seasonLeaders.team_name }}</small>
                 </div>
             </div>
 
@@ -504,8 +504,8 @@
         <!-- Best Player of the Game -->
         <div class="flex bg-white">
             <!-- Best Player Section: 1/4 Width -->
-            <div class="w-1/2 p-4">
-                <h3 class="text-lg font-semibold mb-2">Player of the Game</h3>
+            <div class="w-1/2 p-2">
+                <h3 class="text-lg font-semibold mb-1">Player of the Game</h3>
                 <div
                     v-if="bestPlayer"
                     class="bg-white shadow-lg p-4 rounded-lg text-black"
@@ -615,14 +615,14 @@
                        </p>
                     </div>
                     <div class="flex justify-center">
-                        <sup class="float-center font-bold mt-2 text-red-500">
+                        <sup class="float-center font-bold mt-0 text-red-500">
                             {{ bestPlayer.draft_status == 'Undrafted' ? 'S'+bestPlayer.draft_id+' '+bestPlayer.draft_status : bestPlayer.draft_status + (bestPlayer.drafted_team_acro ? ' ('+bestPlayer.drafted_team_acro+ ')' : '')}}
                         </sup>
                     </div>
                 </div>
             </div>
             <!-- Stat Leaders Section: 3/4 Width -->
-            <div class="w-1/2 p-4 bg-white">
+            <div class="w-1/2 p-2 bg-white">
                 <h3 class="text-lg font-semibold mb-2">Stat Leaders</h3>
                 <div class="min-w-full shadow-lg border-gray-300 p-4">
                     <ul class="space-y-4">
