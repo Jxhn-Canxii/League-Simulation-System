@@ -310,8 +310,9 @@ class GameController extends Controller
         return response()->json([
             'box_score' => $boxScore,
         ]);
-    }private function getStatsLeaders($seasonId) {
-        // List of possible stat types to randomize
+    }
+    private function getStatsLeaders($seasonId) {
+        // List of possible stat types to randomize (both averages and totals)
         $statTypes = [
             'avg_points_per_game' => 'points',
             'avg_rebounds_per_game' => 'rebounds',
@@ -319,13 +320,20 @@ class GameController extends Controller
             'avg_steals_per_game' => 'steals',
             'avg_blocks_per_game' => 'blocks',
             'avg_turnovers_per_game' => 'turnovers',
-            'avg_fouls_per_game' => 'fouls'
+            'avg_fouls_per_game' => 'fouls',
+            'total_points' => 'total points',
+            'total_rebounds' => 'total rebounds',
+            'total_assists' => 'total assists',
+            'total_steals' => 'total steals',
+            'total_blocks' => 'total blocks',
+            'total_turnovers' => 'total turnovers',
+            'total_fouls' => 'total fouls'
         ];
     
-        // Randomly pick a stat type
+        // Randomly pick a stat type (this now includes total stats as well)
         $randomStatKey = array_rand($statTypes);
         $statType = $statTypes[$randomStatKey]; // Get the readable stat name (e.g., 'points', 'steals')
-        
+    
         // Step 1: Retrieve the overall leader with the highest stat for the season
         $overallLeader = DB::table('player_season_stats')
             ->select(
@@ -344,21 +352,22 @@ class GameController extends Controller
                 'player_season_stats.avg_blocks_per_game',
                 'player_season_stats.avg_turnovers_per_game',
                 'player_season_stats.avg_fouls_per_game',
-                'player_season_stats.total_points',
-                'player_season_stats.total_rebounds',
-                'player_season_stats.total_assists',
-                'player_season_stats.total_steals',
-                'player_season_stats.total_blocks',
-                'player_season_stats.total_turnovers',
-                'player_season_stats.total_fouls',
+                'player_season_stats.total_points',       // Add total stats here
+                'player_season_stats.total_rebounds',     // Add total stats here
+                'player_season_stats.total_assists',      // Add total stats here
+                'player_season_stats.total_steals',       // Add total stats here
+                'player_season_stats.total_blocks',       // Add total stats here
+                'player_season_stats.total_turnovers',    // Add total stats here
+                'player_season_stats.total_fouls',        // Add total stats here
                 'players.is_rookie',
                 'players.draft_status',
-                'players.name as player_name', // Fetch player name
-                'teams.name as team_name' // Fetch team name
+                'players.name as player_name',
+                'teams.name as team_name'
             )
             ->join('players', 'player_season_stats.player_id', '=', 'players.id')
             ->join('teams', 'player_season_stats.team_id', '=', 'teams.id')
             ->where('player_season_stats.season_id', $seasonId)
+            ->orderByDesc($randomStatKey) // Order by the randomized stat key (which could be a total or avg stat)
             ->limit(1)
             ->first();
     
@@ -380,13 +389,13 @@ class GameController extends Controller
                 'player_season_stats.avg_blocks_per_game',
                 'player_season_stats.avg_turnovers_per_game',
                 'player_season_stats.avg_fouls_per_game',
-                'player_season_stats.total_points',
-                'player_season_stats.total_rebounds',
-                'player_season_stats.total_assists',
-                'player_season_stats.total_steals',
-                'player_season_stats.total_blocks',
-                'player_season_stats.total_turnovers',
-                'player_season_stats.total_fouls',
+                'player_season_stats.total_points',       // Add total stats here
+                'player_season_stats.total_rebounds',     // Add total stats here
+                'player_season_stats.total_assists',      // Add total stats here
+                'player_season_stats.total_steals',       // Add total stats here
+                'player_season_stats.total_blocks',       // Add total stats here
+                'player_season_stats.total_turnovers',    // Add total stats here
+                'player_season_stats.total_fouls',        // Add total stats here
                 'players.is_rookie',
                 'players.draft_status',
                 'players.name as player_name',
@@ -396,23 +405,28 @@ class GameController extends Controller
             ->join('teams', 'player_season_stats.team_id', '=', 'teams.id')
             ->where('players.is_rookie', true)
             ->where('player_season_stats.season_id', $seasonId)
+            ->orderByDesc($randomStatKey) // Order by the randomized stat key (which could be a total or avg stat)
             ->limit(1)
             ->first();
     
-        // Step 3: Randomly choose one leader from either rookie or overall
-        $leaders = collect([$overallLeader, $rookieLeader]);
+        // Step 3: Handle case where either leader could be null
+        $leaders = collect([$overallLeader, $rookieLeader])->filter(); // Filter out nulls
+        
+        if ($leaders->isEmpty()) {
+            return null; // No valid leaders found
+        }
     
         // Randomly select the leader
         $selectedLeader = $leaders->random();
     
         // Step 4: Fetch the selected stat value dynamically
         $statValue = $selectedLeader ? $selectedLeader->{$randomStatKey} : 0;
-    
+        
         // Build the message
-        $message =  ($selectedLeader->is_rookie ? "Rookie" : "Overall") ." Season Leaders in " . ucfirst($statType);
+        $message =  ($selectedLeader->is_rookie ? "Rookie" : "Overall") . " Season Leaders in " . ucfirst($statType);
     
         // Prepare the response data
-        $responseData =  [
+        $responseData = [
             'player_name' => $selectedLeader->player_name,
             'team_name' => $selectedLeader->team_name,
             'draft_status' => $selectedLeader->draft_status,
@@ -421,10 +435,8 @@ class GameController extends Controller
             'message' => $message,
         ];
     
-        // Step 5: Return the data as a JSON response
         return $responseData;
     }
-    
     
     private function getIngameInjury($gameId) {
         return DB::table('injured_players_view')
