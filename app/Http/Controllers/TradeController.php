@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+ini_set('max_execution_time', 600); // 300 seconds = 5 minutes
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -99,24 +101,53 @@ class TradeController extends Controller
 
         return response()->json(['message' => 'Trade rejected successfully.']);
     }
-
-    public function generateTradeProposals()
+    private function logTrade($teamId, $opponentId, $playerId, $message)
     {
-        $teams = DB::table('teams')->pluck('id');
-        $tradeProposals = [];
-    
-        foreach ($teams as $teamId) {
-            $underperformingPlayers = $this->findUnderperformingPlayers($teamId);
-    
-            foreach ($underperformingPlayers as $underperformingPlayer) {
-                $potentialTradePartner = $this->findTradePartner($underperformingPlayer);
-    
-                if ($potentialTradePartner) {
-                    $tradeProposals[] = [
-                        'team_from_id' => $teamId,
-                        'team_to_id' => $potentialTradePartner->team_id,
-                        'player_from_id' => $underperformingPlayer->player_id,
-                        'player_to_id' => $potentialTradePartner->player_id,
+        $latestSeasonId = DB::table('player_season_stats')->max('season_id');
+
+        DB::table('trade_logs')->insert([
+            'season_id' => $latestSeasonId,
+            'team_from_id' => $teamId,
+            'team_to_id' => $opponentId,
+            'player_id' => $playerId,
+            'role' => DB::table('players')->find($playerId)->role,
+            'player_name' => DB::table('players')->find($playerId)->name,
+            'trade_reason' => $message,
+            'created_at' => now(),
+            'updated_at' => now()
+        ]);
+    }
+    private function findTradePartner($player)
+    {
+        $latestSeasonId = DB::table('player_season_stats')->max('season_id');
+
+        // Step 1: Find teams that need this player's role
+        $needyTeams = DB::table('teams')
+            ->where('id', '<>', $player->team_id) // Exclude current team
+            ->pluck('id');
+
+        $potentialTrades = [];
+
+        foreach ($needyTeams as $teamId) {
+            // Step 2: Find players on the other team who could be traded
+            $tradeCandidates = DB::table('players')
+                ->join('player_season_stats', 'players.id', '=', 'player_season_stats.player_id')
+                ->where('players.team_id', $teamId)
+                ->where('player_season_stats.season_id', $latestSeasonId)
+                ->select('players.*', 'player_season_stats.*')
+                ->get();
+
+            foreach ($tradeCandidates as $candidate) {
+                // Step 3: Check if the trade is balanced (score-wise)
+                $playerScore = $this->calculatePerformanceScore($player);
+                $candidateScore = $this->calculatePerformanceScore($candidate);
+
+                if ($candidateScore >= $playerScore * 0.8) { // Allow slightly unbalanced trades
+                    $potentialTrades[] = [
+                        'team_from_id' => $player->team_id,
+                        'team_to_id' => $candidate->team_id,
+                        'player_from_id' => $player->player_id,
+                        'player_to_id' => $candidate->player_id,
                         'status' => 'pending',
                         'created_at' => now(),
                         'updated_at' => now()
@@ -124,14 +155,85 @@ class TradeController extends Controller
                 }
             }
         }
-    
+
+        return $potentialTrades;
+    }
+    public function generateMultiTeamTrade()
+    {
+        $teams = DB::table('teams')->pluck('id');
+        $tradeProposals = [];
+
+        foreach ($teams as $teamId) {
+            $underperformingPlayers = $this->findUnderperformingPlayers($teamId);
+
+            foreach ($underperformingPlayers as $underperformingPlayer) {
+                $potentialTradePartners = $this->findTradePartner($underperformingPlayer);
+
+                if (count($potentialTradePartners) >= 2) { // Ensure multi-team trade
+                    $tradeProposals[] = [
+                        'team_from_id' => $teamId,
+                        'team_to_id' => $potentialTradePartners[0]['team_to_id'],
+                        'player_from_id' => $underperformingPlayer->player_id,
+                        'player_to_id' => $potentialTradePartners[0]['player_to_id'],
+                        'status' => 'pending',
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ];
+
+                    // Include a third team
+                    $tradeProposals[] = [
+                        'team_from_id' => $potentialTradePartners[1]['team_to_id'],
+                        'team_to_id' => $teamId,
+                        'player_from_id' => $potentialTradePartners[1]['player_to_id'],
+                        'player_to_id' => $underperformingPlayer->player_id,
+                        'status' => 'pending',
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ];
+                }
+            }
+        }
+
         if (!empty($tradeProposals)) {
             DB::table('trade_proposals')->insert($tradeProposals);
         }
-    
-        return response()->json(['message' => 'Trade proposals generated successfully.']);
+
+        return response()->json(['message' => 'Multi-team trade proposals generated successfully.']);
     }
-    
+    private function findUnderperformingPlayers($teamId)
+    {
+        $latestSeasonId = DB::table('player_season_stats')->max('season_id');
+        $previousSeasonId = $latestSeasonId - 1; // Assuming seasons are sequential
+
+        // Get the latest season stats for players on the team, joining with players table
+        $latestStats = DB::table('player_season_stats')
+            ->join('players', 'player_season_stats.player_id', '=', 'players.id')
+            ->where('players.team_id', $teamId) // Filter by team_id from players table
+            ->where('player_season_stats.season_id', $latestSeasonId)
+            ->select('player_season_stats.*', 'players.team_id', 'players.role', 'players.name as player_name') // Select relevant fields
+            ->get();
+
+        $underperformingPlayers = [];
+
+        foreach ($latestStats as $playerStats) {
+            // Get the previous season stats for comparison
+            $previousStats = DB::table('player_season_stats')
+                ->where('player_id', $playerStats->player_id)
+                ->where('season_id', $previousSeasonId)
+                ->first();
+
+            // Calculate performance scores
+            $latestScore = $this->calculatePerformanceScore($playerStats);
+            $previousScore = $previousStats ? $this->calculatePerformanceScore($previousStats) : 0;
+
+            // Compare performance (adjust the threshold based on your criteria)
+            if ($latestScore < $previousScore) {
+                $underperformingPlayers[] = $playerStats;
+            }
+        }
+
+        return $underperformingPlayers;
+    }
     private function calculatePerformanceScore($stats)
     {
         // Example of performance score calculation. Modify the weight based on your preference.
@@ -145,86 +247,4 @@ class TradeController extends Controller
             $stats->avg_fouls_per_game * 0.1
         );
     }
-    
-    private function findUnderperformingPlayers($teamId)
-    {
-        $latestSeasonId = DB::table('player_season_stats')->max('season_id');
-        $previousSeasonId = $latestSeasonId - 1; // Assuming seasons are sequential
-    
-        // Get the latest season stats for players on the team, joining with players table
-        $latestStats = DB::table('player_season_stats')
-            ->join('players', 'player_season_stats.player_id', '=', 'players.id')
-            ->where('players.team_id', $teamId) // Filter by team_id from players table
-            ->where('player_season_stats.season_id', $latestSeasonId)
-            ->select('player_season_stats.*', 'players.team_id', 'players.role', 'players.name as player_name') // Select relevant fields
-            ->get();
-    
-        $underperformingPlayers = [];
-    
-        foreach ($latestStats as $playerStats) {
-            // Get the previous season stats for comparison
-            $previousStats = DB::table('player_season_stats')
-                ->where('player_id', $playerStats->player_id)
-                ->where('season_id', $previousSeasonId)
-                ->first();
-    
-            // Calculate performance scores
-            $latestScore = $this->calculatePerformanceScore($playerStats);
-            $previousScore = $previousStats ? $this->calculatePerformanceScore($previousStats) : 0;
-    
-            // Compare performance (adjust the threshold based on your criteria)
-            if ($latestScore < $previousScore) {
-                $underperformingPlayers[] = $playerStats;
-            }
-        }
-    
-        return $underperformingPlayers;
-    }
-    
-    
-    private function findTradePartner($player)
-    {
-        $latestSeasonId = DB::table('player_season_stats')->max('season_id');
-        $previousSeasonId = $latestSeasonId - 1; // Assuming seasons are sequential
-    
-        // Get the player's latest and previous season stats
-        $latestStats = DB::table('player_season_stats')
-            ->where('player_id', $player->player_id)
-            ->where('season_id', $latestSeasonId)
-            ->first();
-    
-        $previousStats = DB::table('player_season_stats')
-            ->where('player_id', $player->player_id)
-            ->where('season_id', $previousSeasonId)
-            ->first();
-    
-        // Calculate performance scores
-        $latestScore = $this->calculatePerformanceScore($latestStats);
-        $previousScore = $previousStats ? $this->calculatePerformanceScore($previousStats) : 0;
-    
-        // Find trade partner with a similar role but better performance and team_id > 0
-        $potentialTradePartner = DB::table('player_season_stats')
-            ->join('players', 'player_season_stats.player_id', '=', 'players.id') // Join players table to access team_id
-            ->where('player_season_stats.role', $player->role)
-            ->where('player_season_stats.season_id', $latestSeasonId)
-            ->where('player_season_stats.team_id', '<>', $player->team_id) // Ensure team_id is different
-            ->where('players.team_id', '>', 0) // Ensure team_id is greater than 0
-            ->select('player_season_stats.*', 'players.team_id', 'players.role', 'players.name as player_name') // Select relevant fields
-            ->get();
-    
-        // Find the trade partner with the highest performance score
-        $bestTradePartner = null;
-        $highestScore = -INF;
-    
-        foreach ($potentialTradePartner as $candidate) {
-            $candidateScore = $this->calculatePerformanceScore($candidate);
-            if ($candidateScore > $highestScore) {
-                $highestScore = $candidateScore;
-                $bestTradePartner = $candidate;
-            }
-        }
-    
-        return $bestTradePartner;
-    }
-    
 }

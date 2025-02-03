@@ -151,7 +151,8 @@ const categorizeProposalsByRole = () => {
     proposalsByCategory.value["bench"] = [];
 
     proposals.value.forEach(proposal => {
-        const role = proposal.player_from_role.toLowerCase();
+        const role = proposal.player_to_role.toLowerCase();
+        console.log(proposal.player_to_name);
         if (proposalsByCategory.value[role]) {
             proposalsByCategory.value[role].push(proposal);
         }
