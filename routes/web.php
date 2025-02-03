@@ -17,6 +17,7 @@ use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\SimulateController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\LeadersController;
+use App\Http\Controllers\TradeController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -197,6 +198,14 @@ Route::middleware('auth')->group(function () {
         Route::post('player-season-awards', [AwardsController::class, 'getseasonawards'])->name('player.season.awards');
         Route::get('awarding/{season_id}', [AwardsController::class, 'storeseasonawardsauto'])->name('awarding.per.season');
         Route::get('awards-mvp-status', [AwardsController::class, 'getFinalsMVPList'])->name('awards.mvp.status');
+    });
+
+    Route::prefix('trades/')->group(function(){
+        Route::get('', [TradeController::class, 'getTradeProposals'])->name('trade.list');
+        Route::post('', [TradeController::class, 'endTradeWindow'])->name('trade.end');
+        Route::post('', [TradeController::class, 'generateTradeProposals'])->name('trade.generate');
+        Route::post('', [TradeController::class, 'approveTrade'])->name('trade.approve');
+        Route::post('', [TradeController::class, 'rejectTrade'])->name('trade.reject');
     });
 
     Route::prefix('users/')->group(function(){

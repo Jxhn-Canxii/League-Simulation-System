@@ -2,181 +2,150 @@
 
 namespace App\Http\Controllers;
 
-ini_set('max_execution_time', 600); // 300 seconds = 5 minutes
-
 use Illuminate\Http\Request;
-use App\Models\Seasons;
-use App\Models\Player;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class TradeController extends Controller
 {
-    public function index()
+    public function getTradeProposals()
     {
-        return Inertia::render('Analytics/Index', [
-            'status' => session('status'),
-        ]);
-    }
-    public function getTradeLogs(Request $request)
-    {
-        $logs = \DB::table('trade_logs')
-            ->join('teams as team_from', 'trade_logs.team_from_id', '=', 'team_from.id')
-            ->join('teams as team_to', 'trade_logs.team_to_id', '=', 'team_to.id')
+        $proposals = DB::table('trade_proposals')
+            ->join('teams as team_from', 'trade_proposals.team_from_id', '=', 'team_from.id')
+            ->join('teams as team_to', 'trade_proposals.team_to_id', '=', 'team_to.id')
+            ->join('players as player_from', 'trade_proposals.player_from_id', '=', 'player_from.id')
+            ->join('players as player_to', 'trade_proposals.player_to_id', '=', 'player_to.id')
             ->select(
-                'trade_logs.id',
-                'trade_logs.player_name',
-                'trade_logs.role',
+                'trade_proposals.id',
+                'player_from.name as player_from_name',
+                'player_to.name as player_to_name',
                 'team_from.name as from_team',
                 'team_to.name as to_team',
-                'trade_logs.trade_reason',
-                'trade_logs.created_at'
+                'trade_proposals.status',
+                'trade_proposals.created_at'
             )
-            ->orderBy('trade_logs.created_at', 'desc')
+            ->where('trade_proposals.status', 'pending')
+            ->orderBy('trade_proposals.created_at', 'desc')
             ->get();
 
-        return response()->json(['trade_logs' => $logs]);
+        return response()->json(['trade_proposals' => $proposals]);
     }
 
-    private function calculatePlayerScore($playerStats) {
-        return $playerStats->avg_points_per_game * 1.0 +
-               $playerStats->avg_rebounds_per_game * 1.2 +
-               $playerStats->avg_assists_per_game * 1.5 +
-               $playerStats->avg_steals_per_game * 2.0 +
-               $playerStats->avg_blocks_per_game * 2.0 -
-               $playerStats->avg_turnovers_per_game * 1.5;
-    }
-    public function executeTrade($playerFromTeam1, $playerFromTeam2) {
-        \DB::transaction(function () use ($playerFromTeam1, $playerFromTeam2) {
-            \DB::table('players')
-                ->where('id', $playerFromTeam1->id)
-                ->update(['team_id' => $playerFromTeam2->team_id]);
+    public function insertTradeProposal(Request $request)
+    {
+        $validated = $request->validate([
+            'team_from_id' => 'required|exists:teams,id',
+            'team_to_id' => 'required|exists:teams,id',
+            'player_from_id' => 'required|exists:players,id',
+            'player_to_id' => 'required|exists:players,id'
+        ]);
 
-            \DB::table('players')
-                ->where('id', $playerFromTeam2->id)
-                ->update(['team_id' => $playerFromTeam1->team_id]);
+        DB::table('trade_proposals')->insert([
+            'team_from_id' => $validated['team_from_id'],
+            'team_to_id' => $validated['team_to_id'],
+            'player_from_id' => $validated['player_from_id'],
+            'player_to_id' => $validated['player_to_id'],
+            'status' => 'pending',
+            'created_at' => now(),
+            'updated_at' => now()
+        ]);
+
+        return response()->json(['message' => 'Trade proposal inserted successfully.']);
+    }
+
+    public function approveTrade($proposalId)
+    {
+        $proposal = DB::table('trade_proposals')->find($proposalId);
+        
+        if (!$proposal || $proposal->status !== 'pending') {
+            return response()->json(['error' => 'Trade proposal not found or already processed.'], 400);
+        }
+
+        DB::transaction(function () use ($proposal) {
+            DB::table('players')
+                ->where('id', $proposal->player_from_id)
+                ->update(['team_id' => $proposal->team_to_id]);
+            
+            DB::table('players')
+                ->where('id', $proposal->player_to_id)
+                ->update(['team_id' => $proposal->team_from_id]);
+            
+            DB::table('trade_proposals')
+                ->where('id', $proposal->id)
+                ->update(['status' => 'approved', 'updated_at' => now()]);
+            
+            $this->logTrade($proposal->team_from_id, $proposal->team_to_id, $proposal->player_from_id, 'Trade approved');
+            $this->logTrade($proposal->team_to_id, $proposal->team_from_id, $proposal->player_to_id, 'Trade approved');
         });
 
-        return [
-            'team1_received' => $playerFromTeam2->name,
-            'team2_received' => $playerFromTeam1->name,
-        ];
+        return response()->json(['message' => 'Trade approved successfully.']);
     }
-    public function autoMultiTeamTrade() {
-        $roles = ['star player', 'starter', 'role player', 'bench'];
 
-        foreach ($roles as $role) {
-            // Find participants for multi-team trade
-            $tradeParticipants = $this->findMultiTeamTradeParticipants($role);
+    public function rejectTrade($proposalId)
+    {
+        $proposal = DB::table('trade_proposals')->find($proposalId);
+        
+        if (!$proposal || $proposal->status !== 'pending') {
+            return response()->json(['error' => 'Trade proposal not found or already processed.'], 400);
+        }
 
-            if ($tradeParticipants) {
-                // Generate a random number between 1 and 100
-                $tradeChance = rand(1, 100);
+        DB::table('trade_proposals')
+            ->where('id', $proposalId)
+            ->update(['status' => 'rejected', 'updated_at' => now()]);
 
-                // Only proceed with trade if the chance is between 20 and 30 (inclusive)
-                if ($tradeChance >= 20 && $tradeChance <= 30) {
-                    // Execute multi-team trade
-                    $result = $this->executeMultiTeamTrade($tradeParticipants);
+        return response()->json(['message' => 'Trade rejected successfully.']);
+    }
 
-                    \Log::info('Multi-team trade result:', [
-                        'role' => $role,
-                        'teams' => array_keys($tradeParticipants),
-                        'players' => array_column($tradeParticipants, 'name'),
-                        'trade_chance' => $tradeChance, // Log the chance for transparency
-                        'trade_executed' => true,
-                    ]);
-                } else {
-                    // Log that trade was skipped due to low chance
-                    \Log::info('Trade skipped due to low chance:', [
-                        'role' => $role,
-                        'teams' => array_keys($tradeParticipants),
-                        'players' => array_column($tradeParticipants, 'name'),
-                        'trade_chance' => $tradeChance, // Log the chance for transparency
-                        'trade_executed' => false,
-                    ]);
+    public function generateTradeProposals()
+    {
+        $teams = DB::table('teams')->pluck('id');
+        $tradeProposals = [];
+
+        foreach ($teams as $teamId) {
+            $underperformingPlayer = $this->findUnderperformingPlayers($teamId);
+            if ($underperformingPlayer) {
+                $potentialTradePartner = $this->findTradePartner($underperformingPlayer);
+                if ($potentialTradePartner) {
+                    $tradeProposals[] = [
+                        'team_from_id' => $teamId,
+                        'team_to_id' => $potentialTradePartner->team_id,
+                        'player_from_id' => $underperformingPlayer->id,
+                        'player_to_id' => $potentialTradePartner->id,
+                        'status' => 'pending',
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ];
                 }
             }
         }
 
-        return response()->json(['message' => 'All multi-team trades completed.']);
-    }
-
-
-    private function executeMultiTeamTrade($tradeParticipants)
-    {
-        $playerIds = array_keys($tradeParticipants); // Extract player IDs
-        $teamIds = array_values(array_column($tradeParticipants, 'team_id'));
-
-        \DB::transaction(function () use ($playerIds, $teamIds) {
-            $numTeams = count($teamIds);
-            for ($i = 0; $i < $numTeams; $i++) {
-                $currentTeam = $teamIds[$i];
-                $nextTeam = $teamIds[($i + 1) % $numTeams]; // Circular: last team trades to first
-
-                \DB::table('players')
-                    ->where('id', $playerIds[$i])
-                    ->update(['team_id' => $nextTeam]);
-
-                // Log the trade
-                $this->logTrade($currentTeam, $nextTeam, $playerIds[$i], 'Multi-team trade executed');
-            }
-        });
-
-        return response()->json(['message' => 'Multi-team trade executed successfully.']);
-    }
-
-    private function findMultiTeamTradeParticipants($role) {
-        $teams = \DB::table('teams')->pluck('id'); // Fetch all team IDs
-        $tradeCandidates = [];
-
-        foreach ($teams as $teamId) {
-            $underperformingPlayer = $this->findUnderperformingPlayers($teamId, $role);
-            if ($underperformingPlayer) {
-                $tradeCandidates[$teamId] = $underperformingPlayer;
-            }
+        if (!empty($tradeProposals)) {
+            DB::table('trade_proposals')->insert($tradeProposals);
         }
 
-        // Return only teams with trade candidates, and ensure at least two teams
-        return count($tradeCandidates) >= 2 ? $tradeCandidates : null; // Minimum 2 teams
+        return response()->json(['message' => 'Trade proposals generated successfully.']);
     }
 
+    private function findUnderperformingPlayers($teamId)
+    {
+        $latestSeasonId = DB::table('player_season_stats')->max('season_id');
 
-    private function latestSeasonId() {
-        $latestSeasonId = \DB::table('seasons')
-        ->orderBy('id', 'desc')
-        ->value('id'); // Fetch the ID of the latest season
-
-        return $latestSeasonId;
-    }
-    private function findUnderperformingPlayers($teamId, $role) {
-        $latestSeasonId = $this->latestSeasonId();
-
-        return \DB::table('players')
-            ->join('player_season_stats', 'players.id', '=', 'player_season_stats.player_id')
-            ->where('players.team_id', $teamId)
-            ->where('players.role', $role)
-            ->where('player_season_stats.season_id', $latestSeasonId) // Filter for the latest season
-            ->select('players.id', 'players.name', 'players.role', 'player_season_stats.*')
-            ->orderByRaw('
-                (avg_points_per_game * 1.0 + avg_rebounds_per_game * 1.2 + avg_assists_per_game * 1.5 +
-                 avg_steals_per_game * 2.0 + avg_blocks_per_game * 2.0 - avg_turnovers_per_game * 1.5)
-            ASC') // Sort by lowest performance score
+        return DB::table('player_season_stats')
+            ->where('team_id', $teamId)
+            ->where('season_id', $latestSeasonId)
+            ->orderBy('avg_points_per_game', 'asc')
             ->first();
     }
-    public function logTrade($teamFromId, $teamToId, $playerId, $reason = null)
+
+    private function findTradePartner($player)
     {
-        $player = \DB::table('players')->find($playerId);
-
-        \DB::table('trade_logs')->insert([
-            'team_from_id' => $teamFromId,
-            'team_to_id' => $teamToId,
-            'player_id' => $playerId,
-            'player_name' => $player->name,
-            'role' => $player->role,
-            'trade_reason' => $reason,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        $latestSeasonId = DB::table('player_season_stats')->max('season_id');
+        
+        return DB::table('player_season_stats')
+            ->where('role', $player->role)
+            ->where('season_id', $latestSeasonId)
+            ->where('team_id', '<>', $player->team_id)
+            ->orderBy('avg_points_per_game', 'desc')
+            ->first();
     }
-
 }

@@ -287,7 +287,7 @@ class DraftController extends Controller
 
             DB::table('seasons')
                 ->where('id', $latestSeasonId)
-                ->update(['status' => 14]);
+                ->update(['status' => config('timeline.draft')]);
 
             DB::commit();
 

@@ -334,7 +334,7 @@ class TransactionsController extends Controller
                 } else {
                     DB::table('seasons')
                         ->where('id',  $seasonId)
-                        ->update(['status' => 15]);
+                        ->update(['status' => config('timeline.player_signings')]);
                 }
 
                 return response()->json([

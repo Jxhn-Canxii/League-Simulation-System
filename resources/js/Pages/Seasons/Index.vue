@@ -53,7 +53,7 @@
                 <div
                     class="flex overflow-hidden justify-end gap-5 p-2"
                     v-if="
-                        seasons.is_new_season == 4 || seasons.is_new_season == 6
+                        seasons.is_new_season == 4 || seasons.is_new_season == 7
                     "
                 >
                     <button
@@ -70,7 +70,24 @@
                 <div
                     class="flex overflow-hidden justify-end gap-5 p-2"
                     v-if="
-                        seasons.is_new_season == 5 || seasons.is_new_season == 6
+                        seasons.is_new_season == 5
+                    "
+                >
+                    <button
+                        @click.prevent="isTradeModalOpen = true"
+                        v-bind:class="{
+                            'opacity-25': isTradeModalOpen,
+                        }"
+                        v-bind:disabled="isTradeModalOpen"
+                        class="px-2 py-2 bg-orange-500 rounded font-bold text-md float-end text-white shadow"
+                    >
+                        <i class="fa fa-sync"></i> Trade Season
+                    </button>
+                </div>
+                <div
+                    class="flex overflow-hidden justify-end gap-5 p-2"
+                    v-if="
+                        seasons.is_new_season == 6 || seasons.is_new_season == 7
                     "
                 >
                     <button
@@ -512,6 +529,21 @@
                     />
                 </div>
             </Modal>
+            <Modal :show="isTradeModalOpen" :maxWidth="'fullscreen'">
+                <button
+                    class="flex float-end bg-gray-100 p-3"
+                    @click.prevent="
+                        isTradeModalOpen = false
+                    "
+                >
+                    <i class="fa fa-times text-black-600"></i>
+                </button>
+                <div class="mt-4 p-3 block">
+                    <Trade
+                        @newSeason="handleNewSeason"
+                    />
+                </div>
+            </Modal>
         </AuthenticatedLayout>
     </div>
 </template>
@@ -526,15 +558,13 @@ import { ref, onMounted } from "vue";
 import Swal from "sweetalert2";
 import axios from "axios";
 
-import Seasons from "@/Pages/Seasons/Module/Season.vue";
-import Playoffs from "@/Pages/Seasons/Module/Playoffs.vue";
+import Trade from "@/Pages/Seasons/Module/Trade.vue";
 import FreeAgents from "@/Pages/Seasons/Module/FreeAgents.vue";
 import Awards from "./Module/Awards.vue";
-import SeasonAwards from "./Module/SeasonAwards.vue";
 import Draft from "./Module/Draft.vue";
 
 const isAddModalOpen = ref(false);
-const isViewModalOpen = ref(false);
+const isTradeModalOpen = ref(false);
 const isPlayerSigningModalOpen = ref(false);
 const isDraftModalOpen = ref(false);
 const isPlayerAwardsModalOpen = ref(false);

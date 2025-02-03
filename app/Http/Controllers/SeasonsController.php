@@ -104,7 +104,7 @@ class SeasonsController extends Controller
 
         // Return 4 if there are no seasons
         if ($totalSeasons == 0) {
-            return 6;
+            return 7;
         }
 
         // Get the last season status
@@ -121,10 +121,13 @@ class SeasonsController extends Controller
             return 3; //player rookie drafting update to 11
         }
         elseif ($lastSeasonStatus == 14) {
-            return 4; //player signings update to 12
+            return 4; //player trading
         }
         elseif ($lastSeasonStatus == 15) {
-            return 5; // new season
+            return 5; // player signing
+        }
+        elseif ($lastSeasonStatus == 16) {
+            return 6; // new season
         }
         // Optionally, you can return a default value if no status matches
         return null;

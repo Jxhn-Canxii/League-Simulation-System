@@ -755,7 +755,7 @@ class AwardsController extends Controller
         }
 
         // Update season status
-        DB::table('seasons')->where('id', $latestSeasonId)->update(['status' => 12]);
+        DB::table('seasons')->where('id', $latestSeasonId)->update(['status' => config('timeline.awards')]);
 
         // Fetch awards along with player, team names, and team_id for the latest season
         $awards = DB::table('season_awards')
