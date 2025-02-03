@@ -121,10 +121,10 @@ class SeasonsController extends Controller
             return 3; //player rookie drafting update to 11
         }
         elseif ($lastSeasonStatus == 14) {
-            return 4; //player trading
+            return 4; //player signing
         }
         elseif ($lastSeasonStatus == 15) {
-            return 5; // player signing
+            return 5; // player trade
         }
         elseif ($lastSeasonStatus == 16) {
             return 6; // new season

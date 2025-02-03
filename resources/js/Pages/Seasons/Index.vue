@@ -53,24 +53,7 @@
                 <div
                     class="flex overflow-hidden justify-end gap-5 p-2"
                     v-if="
-                        seasons.is_new_season == 4 || seasons.is_new_season == 7
-                    "
-                >
-                    <button
-                        @click.prevent="isPlayerSigningModalOpen = true"
-                        v-bind:class="{
-                            'opacity-25': isPlayerSigningModalOpen,
-                        }"
-                        v-bind:disabled="isPlayerSigningModalOpen"
-                        class="px-2 py-2 bg-red-500 rounded font-bold text-md float-end text-white shadow"
-                    >
-                        <i class="fa fa-users"></i> Player Signings
-                    </button>
-                </div>
-                <div
-                    class="flex overflow-hidden justify-end gap-5 p-2"
-                    v-if="
-                        seasons.is_new_season == 5
+                        seasons.is_new_season == 4
                     "
                 >
                     <button
@@ -82,6 +65,23 @@
                         class="px-2 py-2 bg-orange-500 rounded font-bold text-md float-end text-white shadow"
                     >
                         <i class="fa fa-sync"></i> Trade Season
+                    </button>
+                </div>
+                <div
+                    class="flex overflow-hidden justify-end gap-5 p-2"
+                    v-if="
+                        seasons.is_new_season == 5 || seasons.is_new_season == 7
+                    "
+                >
+                    <button
+                        @click.prevent="isPlayerSigningModalOpen = true"
+                        v-bind:class="{
+                            'opacity-25': isPlayerSigningModalOpen,
+                        }"
+                        v-bind:disabled="isPlayerSigningModalOpen"
+                        class="px-2 py-2 bg-red-500 rounded font-bold text-md float-end text-white shadow"
+                    >
+                        <i class="fa fa-users"></i> Player Signings
                     </button>
                 </div>
                 <div
