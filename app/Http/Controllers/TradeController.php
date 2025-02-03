@@ -126,26 +126,80 @@ class TradeController extends Controller
         return response()->json(['message' => 'Trade proposals generated successfully.']);
     }
 
+    private function calculatePerformanceScore($stats)
+    {
+        // Example of performance score calculation. Modify the weight based on your preference.
+        return (
+            $stats->avg_points_per_game * 0.4 +
+            $stats->avg_rebounds_per_game * 0.2 +
+            $stats->avg_assists_per_game * 0.2 +
+            $stats->avg_steals_per_game * 0.1 +
+            $stats->avg_blocks_per_game * 0.1 -
+            $stats->avg_turnovers_per_game * 0.1 -
+            $stats->avg_fouls_per_game * 0.1
+        );
+    }
+    
     private function findUnderperformingPlayers($teamId)
     {
         $latestSeasonId = DB::table('player_season_stats')->max('season_id');
-
-        return DB::table('player_season_stats')
+        $previousSeasonId = $latestSeasonId - 1; // Assuming seasons are sequential
+    
+        // Get the latest season stats for players on the team
+        $latestStats = DB::table('player_season_stats')
             ->where('team_id', $teamId)
             ->where('season_id', $latestSeasonId)
-            ->orderBy('avg_points_per_game', 'asc')
-            ->first();
+            ->get();
+    
+        $underperformingPlayers = [];
+    
+        foreach ($latestStats as $playerStats) {
+            // Get the previous season stats for comparison
+            $previousStats = DB::table('player_season_stats')
+                ->where('player_id', $playerStats->player_id)
+                ->where('season_id', $previousSeasonId)
+                ->first();
+    
+            // Calculate performance scores
+            $latestScore = $this->calculatePerformanceScore($playerStats);
+            $previousScore = $previousStats ? $this->calculatePerformanceScore($previousStats) : 0;
+    
+            // Compare performance (adjust the threshold based on your criteria)
+            if ($latestScore < $previousScore) {
+                $underperformingPlayers[] = $playerStats;
+            }
+        }
+    
+        return $underperformingPlayers;
     }
-
+    
     private function findTradePartner($player)
     {
         $latestSeasonId = DB::table('player_season_stats')->max('season_id');
-        
+        $previousSeasonId = $latestSeasonId - 1; // Assuming seasons are sequential
+    
+        // Get the player's latest and previous season stats
+        $latestStats = DB::table('player_season_stats')
+            ->where('player_id', $player->id)
+            ->where('season_id', $latestSeasonId)
+            ->first();
+    
+        $previousStats = DB::table('player_season_stats')
+            ->where('player_id', $player->id)
+            ->where('season_id', $previousSeasonId)
+            ->first();
+    
+        // Calculate performance scores
+        $latestScore = $this->calculatePerformanceScore($latestStats);
+        $previousScore = $previousStats ? $this->calculatePerformanceScore($previousStats) : 0;
+    
+        // Find trade partner with a similar role but better performance
         return DB::table('player_season_stats')
             ->where('role', $player->role)
             ->where('season_id', $latestSeasonId)
             ->where('team_id', '<>', $player->team_id)
-            ->orderBy('avg_points_per_game', 'desc')
+            ->orderByRaw('(' . $this->calculatePerformanceScore('player_season_stats') . ') DESC')
             ->first();
     }
+    
 }
