@@ -201,11 +201,11 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::prefix('trades/')->group(function(){
-        Route::get('', [TradeController::class, 'getTradeProposals'])->name('trade.list');
-        Route::post('', [TradeController::class, 'endTradeWindow'])->name('trade.end');
-        Route::post('', [TradeController::class, 'generateTradeProposals'])->name('trade.generate');
-        Route::post('', [TradeController::class, 'approveTrade'])->name('trade.approve');
-        Route::post('', [TradeController::class, 'rejectTrade'])->name('trade.reject');
+        Route::get('trade-list', [TradeController::class, 'getTradeProposals'])->name('trade.list');
+        Route::post('trade-end', [TradeController::class, 'endTradeWindow'])->name('trade.end');
+        Route::get('trade-generate', [TradeController::class, 'generateTradeProposals'])->name('trade.generate');
+        Route::post('trade-approve', [TradeController::class, 'approveTrade'])->name('trade.approve');
+        Route::post('trade-generate', [TradeController::class, 'rejectTrade'])->name('trade.reject');
     });
 
     Route::prefix('users/')->group(function(){
