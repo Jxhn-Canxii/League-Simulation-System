@@ -3,25 +3,23 @@
         <h2 class="text-xl font-semibold text-gray-800">Trade Proposal</h2>
 
         <!-- Show 'Generate Proposal' button if proposals are empty -->
-        <div v-if="proposals.length === 0" class="flex justify-center items-center p-4 mt-4 bg-white shadow-md rounded-lg">
+        <div v-if="proposals.length === 0 && current_season > 1" class="flex justify-center items-center p-4 mt-4 bg-white shadow-md rounded-lg">
             <button 
                 @click="generateTradeProposal" 
                 class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
                 Generate Proposal
             </button>
         </div>
-
+        <div v-if="current_season == 1 || proposals.length > 0" class="text-right mb-4 mt-4">
+            <button 
+                @click="endTrade" 
+                class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
+                End Trade
+            </button>
+        </div>
         <!-- Display list of proposals -->
-        <div v-else>
+        <div v-if="proposals.length > 0  && current_season > 2" >
             <!-- Show 'End Trade' button if there are proposals -->
-            <div class="text-right mb-4">
-                <button 
-                    @click="endTrade" 
-                    class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
-                    End Trade
-                </button>
-            </div>
-
             <!-- Tabs for categorizing proposals by role -->
             <div class="flex mb-4 space-x-4">
                 <button 
@@ -109,6 +107,7 @@ const emits = defineEmits(["newSeason"]);
 const showPlayerProfileModal = ref(false);
 const selectedPlayer = ref(null);
 const proposals = ref([]);
+const current_season = ref(null);
 const selectedCategory = ref("star player"); // Default category
 const categories = ref(["star player", "starter", "role player", "bench"]); // Categories for roles
 const proposalsByCategory = ref({
@@ -136,6 +135,7 @@ const fetchTradeCandidates = async () => {
     try {
         const response = await axios.get(route("trade.list")); // Update with your API endpoint
         proposals.value = response.data.trade_proposals;
+        current_season.value = response.data.current_season;
         categorizeProposalsByRole();
     } catch (error) {
         console.error("Error fetching available proposals:", error);
