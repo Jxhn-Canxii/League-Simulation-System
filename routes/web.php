@@ -203,7 +203,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('trades/')->group(function(){
         Route::get('trade-list', [TradeController::class, 'getTradeProposals'])->name('trade.list');
         Route::post('trade-end', [TradeController::class, 'endTradeWindow'])->name('trade.end');
-        Route::get('trade-generate', [TradeController::class, 'generateMultiTeamTrade'])->name('trade.generate');
+        Route::get('trade-generate', [TradeController::class, 'generateTradeProposals'])->name('trade.generate');
         Route::post('trade-approve', [TradeController::class, 'approveTrade'])->name('trade.approve');
         Route::post('trade-generate', [TradeController::class, 'rejectTrade'])->name('trade.reject');
     });

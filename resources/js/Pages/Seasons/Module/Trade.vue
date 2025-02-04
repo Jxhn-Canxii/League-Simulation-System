@@ -192,7 +192,7 @@ const endTrade = async () => {
 // Approve trade proposal
 const approveProposal = async (proposalId) => {
     try {
-        const response = await axios.post(route("trade.approve", { proposalId }));
+        const response = await axios.post(route("trade.approve"),{ proposal_id: proposalId });
         if (response) {
             await Swal.fire({
                 title: 'Success!',
@@ -215,7 +215,7 @@ const approveProposal = async (proposalId) => {
 // Reject trade proposal
 const rejectProposal = async (proposalId) => {
     try {
-        const response = await axios.post(route("trade.reject", { proposalId }));
+        const response = await axios.post(route("trade.reject"),{ proposal_id: proposalId });
         if (response) {
             await Swal.fire({
                 title: 'Success!',

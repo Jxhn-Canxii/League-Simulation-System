@@ -162,8 +162,7 @@ class SimulateController extends Controller
                 ];
             } else {
                 $performanceFactor = rand(80, 120) / 100; // Randomize within 80% to 120%
-                $pointsPerMinute = 0.5 + ($player->shooting_rating / 200);
-                $points = round($pointsPerMinute * $minutes * $performanceFactor);
+                $points = $this->pointsMaker($performanceFactor,$player,$minutes);
 
                 $points = rand(0, $points);
 
@@ -247,8 +246,7 @@ class SimulateController extends Controller
                 ];
             } else {
                 $performanceFactor = rand(80, 120) / 100; // Randomize within 80% to 120%
-                $pointsPerMinute = 0.5 + ($player->shooting_rating / 200);
-                $points = round($pointsPerMinute * $minutes * $performanceFactor);
+                $points = $this->pointsMaker($performanceFactor,$player,$minutes);
 
                 $points = rand(0, $points);
 
@@ -631,8 +629,7 @@ class SimulateController extends Controller
                     ];
                 } else {
                     $performanceFactor = rand(100, 120) / 100; // Randomize within 80% to 120%
-                    $pointsPerMinute = 0.5 + ($player->shooting_rating / 200);
-                    $points = round($pointsPerMinute * $minutes * $performanceFactor);
+                    $points = $this->pointsMaker($performanceFactor,$player,$minutes);
 
                     $points = rand(0, $points);
 
@@ -710,10 +707,7 @@ class SimulateController extends Controller
                     ];
                 } else {
                     $performanceFactor = rand(100, 120) / 100; // Randomize within 80% to 120%
-                    $pointsPerMinute = 0.5 + ($player->shooting_rating / 200);
-                    $points = round($pointsPerMinute * $minutes * $performanceFactor);
-
-                    $points = rand(0, $points);
+                    $points = $this->pointsMaker($performanceFactor,$player,$minutes);
 
                     $reboundPerMinute = 0.3 + ($player->rebounding_rating / 300);
                     $rebounds = round($reboundPerMinute * $minutes * $performanceFactor);
@@ -1869,6 +1863,32 @@ class SimulateController extends Controller
         }
     }
     
+    private function pointsMaker($performanceFactor,$player,$minutes){
+        // Calculate the base points per minute
+        $pointsPerMinute = 0.5 + ($player->shooting_rating / 200);
+
+        // Calculate total points for the game
+        $points = round($pointsPerMinute * $minutes * $performanceFactor);
+
+        // Introduce a rare chance to exceed 60 points
+        if ($points >= 60) {
+            // Rare occurrence for points above 60
+            if (rand(1, 100) > 90) { // 10% chance for high scores over 60
+                // Adjusting for a rare chance of exceeding 60 points
+                $points = min($points, 150); // Still cap at 150
+            } else {
+                // Reduce the points to a more typical high score
+                $points = min($points, 59);
+            }
+        } else {
+            // Ensure points under 60 can still vary as usual
+            $points = min($points, 60); // Cap at 60 if necessary
+        }
+
+        return $points;
+        // Now, $points will never exceed 150 and 60 points will be rare
+
+    }
     private function getContractYearsBasedOnRole($role)
     {
         switch ($role) {
