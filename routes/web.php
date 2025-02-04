@@ -206,6 +206,8 @@ Route::middleware('auth')->group(function () {
         Route::get('trade-generate', [TradeController::class, 'generateTradeProposals'])->name('trade.generate');
         Route::post('trade-approve', [TradeController::class, 'approveTrade'])->name('trade.approve');
         Route::post('trade-generate', [TradeController::class, 'rejectTrade'])->name('trade.reject');
+        Route::get('trade-auto-decide', [TradeController::class, 'automatedTradeDecision'])->name('trade.decision.automated');
+        
     });
 
     Route::prefix('users/')->group(function(){

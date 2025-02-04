@@ -12,6 +12,11 @@
         </div>
         <div v-if="current_season == 1 || proposals.length > 0" class="text-right mb-4 mt-4">
             <button 
+                @click="autoTrade" 
+                class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
+                Let AI Decide
+            </button>
+            <button 
                 @click="endTrade" 
                 class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
                 End Trade
@@ -184,6 +189,47 @@ const endTrade = async () => {
         await Swal.fire({
             title: 'Error!',
             text: error.response.data.message,
+            icon: 'error',
+        });
+    }
+};
+const autoTrade = async () => {
+    try {
+        const response = await axios.post(route("trade.decision.automated"));
+        
+        if (response && response.data && response.data.decisions) {
+            const decisions = response.data.decisions;
+
+            let decisionMessages = '<ul>';  // Start an unordered list
+
+            decisions.forEach(decision => {
+                decisionMessages += `
+                    <li>
+                        <strong>Proposal ID:</strong> ${decision.proposal_id}<br>
+                        <strong>Status:</strong> ${decision.status}<br>
+                        <strong>Reason:</strong> ${decision.reason}
+                    </li><br>
+                `;
+            });
+
+            decisionMessages += '</ul>';  // Close the unordered list
+
+            // Show a success Swal with HTML content
+            await Swal.fire({
+                title: 'Trade Decisions',
+                html: decisionMessages,  // Display decisions as HTML
+                icon: 'info',
+                confirmButtonText: 'OK'
+            });
+
+            fetchTradeCandidates();
+            emits("newSeason", Math.random());
+        }
+    } catch (error) {
+        console.error("Error deciding trade:", error);
+        await Swal.fire({
+            title: 'Error!',
+            text: error.response ? error.response.data.message : 'An error occurred.',
             icon: 'error',
         });
     }
