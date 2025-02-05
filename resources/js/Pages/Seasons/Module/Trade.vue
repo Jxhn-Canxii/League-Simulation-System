@@ -195,7 +195,7 @@ const endTrade = async () => {
 };
 const autoTrade = async () => {
     try {
-        const response = await axios.post(route("trade.decision.automated"));
+        const response = await axios.get(route("trade.decision.automated"));
         
         if (response && response.data && response.data.decisions) {
             const decisions = response.data.decisions;
