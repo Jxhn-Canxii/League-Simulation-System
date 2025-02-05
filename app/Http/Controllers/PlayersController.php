@@ -27,6 +27,12 @@ class PlayersController extends Controller
             'status' => session('status'),
         ]);
     }
+    public function experience()
+    {
+        return Inertia::render('Experience/Index', [
+            'status' => session('status'),
+        ]);
+    }
     public function listplayersV1(Request $request)
     {
         $request->validate([

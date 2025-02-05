@@ -31,25 +31,23 @@
                     </template>
                 </Suspense>
 
-                <Suspense>
+                <!-- <Suspense>
                     <template #default>
                         <ScoringShares />
                     </template>
                     <template #fallback>
                         <div class="text-center py-10 text-gray-500">Loading Scoring Shares...</div>
                     </template>
+                </Suspense> -->
+                <Suspense>
+                    <template #default>
+                        <WinShares />
+                    </template>
+                    <template #fallback>
+                        <div class="text-center py-10 text-gray-500">Loading Win Shares...</div>
+                    </template>
                 </Suspense>
             </div>
-
-            <Suspense>
-                <template #default>
-                    <WinShares />
-                </template>
-                <template #fallback>
-                    <div class="text-center py-10 text-gray-500">Loading Win Shares...</div>
-                </template>
-            </Suspense>
-
             <Suspense>
                 <template #default>
                     <AllTimeGameRecords />

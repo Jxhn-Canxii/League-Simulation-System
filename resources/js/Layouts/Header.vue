@@ -18,13 +18,14 @@
             <!-- History Dropdown -->
             <div class="relative">
                 <button @click.prevent="toggleDropdown('history')" class="text-xs text-gray-300 flex items-center space-x-1 px-2 py-1 rounded-md hover:bg-rose-600 hover:text-white">
-                    <span>History</span>
+                    <span>Records</span>
                     <i class="fa fa-caret-down text-sm"></i>
                 </button>
                 <div v-if="showHistoryDropdown" class="absolute bg-stone-900 border-2 border-rose-600 text-gray-300 rounded-md mt-1 p-2 space-y-1">
                     <nav-link :href="route('records.index')" :active="route().current('records.index')" class="text-xs px-2 py-1 hover:bg-rose-600 hover:text-white">Records</nav-link>
                     <nav-link :href="route('leaders.index')" :active="route().current('leaders.index')" class="text-xs px-2 py-1 hover:bg-rose-600 hover:text-white">Leaders</nav-link>
                     <nav-link :href="route('awards.index')" :active="route().current('awards.index')" class="text-xs px-2 py-1 hover:bg-rose-600 hover:text-white">Awards</nav-link>
+                    <nav-link :href="route('analytics.index')" :active="route().current('experience.index')" class="text-xs px-2 py-1 hover:bg-rose-600 hover:text-white">Analytics</nav-link>
                 </div>
             </div>
 
@@ -37,6 +38,7 @@
                 <div v-if="showPlayersDropdown" class="absolute bg-stone-900 border-2 border-rose-600 text-gray-300 rounded-md mt-1 p-2 space-y-1">
                     <nav-link :href="route('players.index')" :active="route().current('players.index')" class="text-xs px-2 py-1 hover:bg-rose-600 hover:text-white">Players</nav-link>
                     <nav-link :href="route('freeagents.index')" :active="route().current('freeagents.index')" class="text-xs px-2 py-1 hover:bg-rose-600 hover:text-white">Free Agents</nav-link>
+                    <nav-link :href="route('freeagents.index')" :active="route().current('experience.index')" class="text-xs px-2 py-1 hover:bg-rose-600 hover:text-white">Playoff Records</nav-link>
                 </div>
             </div>
 
@@ -51,18 +53,6 @@
                     <nav-link :href="route('leagues.index')" :active="route().current('leagues.index')" class="text-xs px-2 py-1 hover:bg-rose-600 hover:text-white">Leagues</nav-link>
                 </div>
             </div>
-
-            <!-- Analytics Dropdown -->
-            <div class="relative">
-                <button @click.prevent="toggleDropdown('analytics')" class="text-xs text-gray-300 flex items-center space-x-1 px-2 py-1 rounded-md hover:bg-rose-600 hover:text-white">
-                    <span>Analytics</span>
-                    <i class="fa fa-caret-down text-sm"></i>
-                </button>
-                <div v-if="showAnalyticsDropdown" class="absolute bg-stone-900 border-2 border-rose-600 text-gray-300 rounded-md mt-1 p-2 space-y-1">
-                    <nav-link :href="route('analytics.index')" :active="route().current('analytics.index')" class="text-xs px-2 py-1 hover:bg-rose-600 hover:text-white">Analytics</nav-link>
-                </div>
-            </div>
-
             <!-- Seasons Dropdown -->
             <div class="relative">
                 <button @click.prevent="toggleDropdown('seasons')" class="text-xs text-gray-300 flex items-center space-x-1 px-2 py-1 rounded-md hover:bg-rose-600 hover:text-white">
