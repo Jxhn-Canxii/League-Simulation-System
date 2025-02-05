@@ -53,6 +53,7 @@ Route::middleware('auth')->group(function () {
         Route::post('rivals-per-team', [RecordsController::class, 'get_rivalries'])->name('records.rivalries');
         Route::post('playoff-appearances', [RecordsController::class, 'playoff_appearances'])->name('records.playoff.appearances');
         Route::post('stats-leaders', [RecordsController::class, 'statsleaders'])->name('records.player.stats.leaders');
+        Route::get('override-playoff/{season_id}', [RecordsController::class, 'updatePlayerPlayoffAppearances'])->name('records.player.stats.override');
     });
 
     Route::prefix('teams/')->group(function(){

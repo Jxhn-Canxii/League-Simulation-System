@@ -441,6 +441,7 @@ class SimulateController extends Controller
             );
 
             $storeStats->storeplayerseasonstats($stats['team_id'], $stats['player_id']);
+            $this->updatePlayerPlayoffAppearance($stats['player_id'], $gameData);
         }
 
         // Calculate scores based on player stats
@@ -2164,122 +2165,73 @@ class SimulateController extends Controller
         }
     }
 
-    private function updateTeamRolesBasedOnStatsV1($teamId, $round)
+    private function updatePlayerPlayoffAppearance($playerId, $gameData)
     {
-        // Check if the round is divisible by 10
-        if ($round % 10 !== 0) {
-            return true; // Exit the function if the round is not divisible by 10
+        if (!$playerId || !$gameData) {
+            return;
         }
 
-        $seasonId = $this->getLatestSeasonId();
-        $teams = DB::table('teams')->pluck('id');
+        $gameId = $gameData->game_id;
+        $seasonId = $gameData->season_id;
+        $round = $gameData->round;
+        $homeTeamId = $gameData->home_team_id;
+        $awayTeamId = $gameData->away_team_id;
+        $winningTeamId = ($gameData->home_score > $gameData->away_score) ? $homeTeamId : $awayTeamId;
 
-        foreach ($teams as $teamId) {
-            DB::beginTransaction();
+        // Get the player's team for this game
+        $playerTeamId = DB::table('player_game_stats')
+            ->where('player_id', $playerId)
+            ->where('game_id', $gameId)
+            ->value('team_id');
 
-            try {
-                // Fetch player stats for the previous season
-                $stats = DB::table('player_season_stats')
-                    ->join('players', 'player_season_stats.player_id', '=', 'players.id')
-                    ->where('player_season_stats.season_id', $seasonId)
-                    ->where('players.team_id', $teamId)
-                    ->get();
+        // Check if the player has a record in the appearances table
+        $exists = DB::table('player_playoff_appearances')
+            ->where('player_id', $playerId)
+            ->exists();
 
-                // Fetch rookies or players with no stats
-                $playersWithoutStats = DB::table('players')
-                    ->where('team_id', $teamId)
-                    ->whereNotIn('id', $stats->pluck('player_id'))
-                    ->get();
+        // Define appearance columns based on round
+        $roundColumn = $this->getRoundColumn($round);
 
-                // Merge all players
-                $allPlayersStats = $stats->merge($playersWithoutStats->map(function ($player) {
-                    return (object)[
-                        'player_id' => $player->id,
-                        'role' => 'bench', // Default role
-                        'avg_points_per_game' => 0,
-                        'avg_rebounds_per_game' => 0,
-                        'avg_assists_per_game' => 0,
-                        'avg_steals_per_game' => 0,
-                        'avg_blocks_per_game' => 0,
-                        'avg_turnovers_per_game' => 0,
-                        'avg_fouls_per_game' => 0,
-                        'total_points' => 0,
-                        'total_rebounds' => 0,
-                        'total_assists' => 0,
-                        'total_steals' => 0,
-                        'total_blocks' => 0,
-                        'total_turnovers' => 0,
-                        'total_fouls' => 0,
-                        'total_games_played' => 0,
-                        'overall_rating' => $player->overall_rating ?? 50, // Default low rating if missing
-                        'injury_prone_percentage' => $player->injury_prone_percentage ?? 50,
-                        'is_rookie' => $player->is_rookie ?? 0, // Identify rookies
-                    ];
-                }));
-
-                // Calculate composite score and sort players
-                $rankedPlayers = $allPlayersStats->sortByDesc(function ($stat) {
-                    $perGameScore = $stat->avg_points_per_game * 0.3 +
-                        $stat->avg_rebounds_per_game * 0.2 +
-                        $stat->avg_assists_per_game * 0.2 +
-                        $stat->avg_steals_per_game * 0.1 +
-                        $stat->avg_blocks_per_game * 0.1 -
-                        $stat->avg_turnovers_per_game * 0.1 -
-                        $stat->avg_fouls_per_game * 0.1;
-
-                    $totalScore = $stat->total_points * 0.2 +
-                        $stat->total_rebounds * 0.2 +
-                        $stat->total_assists * 0.2 +
-                        $stat->total_steals * 0.15 +
-                        $stat->total_blocks * 0.15 -
-                        $stat->total_turnovers * 0.1 -
-                        $stat->total_fouls * 0.1;
-
-                    $injuryFactor = 1 - ($stat->injury_prone_percentage / 100);
-
-
-                    return ($perGameScore + $totalScore) * $injuryFactor;
-                });
-
-                // Assign roles
-                $roles = [
-                    'star player' => 3,
-                    'starter' => 2,
-                    'role player' => 5,
-                    'bench' => 5,
-                ];
-
-                $roleCounts = [
-                    'star player' => 0,
-                    'starter' => 0,
-                    'role player' => 0,
-                    'bench' => 0,
-                ];
-
-                foreach ($rankedPlayers as $index => $playerStat) {
-                    $role = 'bench'; // Default role
-
-                    if ($roleCounts['star player'] < $roles['star player']) {
-                        $role = 'star player';
-                    } elseif ($roleCounts['starter'] < $roles['starter']) {
-                        $role = 'starter';
-                    } elseif ($roleCounts['role player'] < $roles['role player']) {
-                        $role = 'role player';
-                    }
-
-                    $roleCounts[$role]++;
-                    Player::where('id', $playerStat->player_id)->update(['role' => $role]);
-                }
-
-                DB::commit();
-            } catch (\Exception $e) {
-                DB::rollBack();
-                \Log::error('Error assigning role for team ' . $teamId . ': ' . $e->getMessage());
-                return false;
-            }
+        if ($exists) {
+            // Update existing record: increment appearances
+            DB::table('player_playoff_appearances')
+                ->where('player_id', $playerId)
+                ->update([
+                    'total_playoff_appearances' => DB::raw('total_playoff_appearances + 1'),
+                    $roundColumn => DB::raw("$roundColumn + 1"),
+                    'seasons_played_in_playoffs' => DB::raw("seasons_played_in_playoffs + IF(NOT FIND_IN_SET($seasonId, seasons_played_in_playoffs), 1, 0)"),
+                    'total_seasons_played' => DB::raw("total_seasons_played + IF(NOT FIND_IN_SET($seasonId, total_seasons_played), 1, 0)"),
+                    'championships_won' => DB::raw("championships_won + IF($playerTeamId = $winningTeamId AND '$round' = 'finals', 1, 0)")
+                ]);
+        } else {
+            // Insert new record
+            DB::table('player_playoff_appearances')->insert([
+                'player_id' => $playerId,
+                'total_playoff_appearances' => 1,
+                $roundColumn => 1,
+                'seasons_played_in_playoffs' => 1,
+                'total_seasons_played' => 1,
+                'championships_won' => ($playerTeamId == $winningTeamId && $round == 'finals') ? 1 : 0
+            ]);
         }
+    }
 
-        return true;
+    // Helper function to get the round column based on the round name
+    private function getRoundColumn($round)
+    {
+        $roundMapping = [
+            'play_ins_elims_round_1' => 'play_ins_elims_round_1_appearances',
+            'play_ins_elims_round_2' => 'play_ins_elims_round_2_appearances',
+            'play_ins_finals' => 'play_ins_finals_appearances',
+            'round_of_32' => 'round_of_32_appearances',
+            'round_of_16' => 'round_of_16_appearances',
+            'quarter_finals' => 'quarter_finals_appearances',
+            'semi_finals' => 'semi_finals_appearances',
+            'interconference_semi_finals' => 'interconference_semi_finals_appearances',
+            'finals' => 'finals_appearances',
+        ];
+
+        return $roundMapping[$round] ?? null; // Return the column name based on the round
     }
     private function updateTeamRolesBasedOnStats($teamId, $round)
     {

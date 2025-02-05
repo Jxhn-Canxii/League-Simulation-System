@@ -53,11 +53,11 @@
                     >
                         Current Team
                     </th>
-                    <th
+                    <!-- <th
                         class="border-b-2 border-gray-200 bg-gray-100 py-2 px-2 text-left font-semibold uppercase text-gray-600"
                     >
                         Teams Played
-                    </th>
+                    </th> -->
                     <th
                         class="border-b-2 border-gray-200 bg-gray-100 py-2 px-2 text-left font-semibold uppercase text-gray-600"
                     >
@@ -81,7 +81,7 @@
                     <th
                         class="border-b-2 border-gray-200 bg-gray-100 py-2 px-2 text-left font-semibold uppercase text-gray-600"
                     >
-                        Seasons Played
+                        Seasons Played (Playoffs)
                     </th>
                 </tr>
             </thead>
@@ -122,13 +122,13 @@
                             {{ player.current_team_name ?? "-" }}
                         </p>
                     </td>
-                    <td
+                    <!-- <td
                         class="border-b border-gray-200 bg-white px-2 py-2 text-ellipsis overflow-hidden"
                     >
                         <p class="text-gray-900 whitespace-normal break-words">
                             {{ player.teams_played_for_in_playoffs ?? "-" }}
                         </p>
-                    </td>
+                    </td> -->
                     <td
                         class="border-b border-gray-200 bg-white px-2 py-2 text-ellipsis overflow-hidden"
                     >

@@ -1775,50 +1775,52 @@ class PlayersController extends Controller
         $page = $request->input('page_num', 1);
         $offset = ($page - 1) * $perPage;
 
-        // Base query to get filtered players from the view
-        $query = DB::table('player_playoff_appearances')
+        // Base query to get filtered players from the player_playoff_appearances table
+        $query = DB::table('player_playoff_appearances as ppa')
+            ->join('players as p', 'ppa.player_id', '=', 'p.id')  // Join with players table to get player names
+            ->join('teams as t', 'p.team_id', '=', 't.id','left')  // Join with teams table to get current team names
             ->select(
-                'player_id',
-                'player_name',
-                'current_team_name',
-                'round_of_32_appearances',
-                'round_of_16_appearances',
-                'quarter_finals_appearances',
-                'semi_finals_appearances',
-                'interconference_semi_finals_appearances',
-                'finals_appearances',
-                'total_playoff_appearances',
-                'seasons_played_in_playoffs',
-                'total_seasons_played',
-                'teams_played_for_in_playoffs',
-                'active_status',
-                'championships_won'
+                'ppa.player_id',
+                'p.is_active AS active_status',
+                'p.name as player_name',
+                't.name as current_team_name',
+                'ppa.round_of_32_appearances',
+                'ppa.round_of_16_appearances',
+                'ppa.quarter_finals_appearances',
+                'ppa.semi_finals_appearances',
+                'ppa.interconference_semi_finals_appearances',
+                'ppa.finals_appearances',
+                'ppa.total_playoff_appearances',
+                'ppa.seasons_played_in_playoffs',
+                'ppa.total_seasons_played',
+                'ppa.championships_won'
             );
 
         // Apply sorting
         switch ($sortColumn) {
             case 'playoff_appearances':
-                $query->orderBy('total_playoff_appearances', $sortOrder);
+                $query->orderBy('ppa.total_playoff_appearances', $sortOrder);
                 break;
             case 'big_four':
-                $query->orderBy('interconference_semi_finals_appearances', $sortOrder);
+                $query->orderBy('ppa.interconference_semi_finals_appearances', $sortOrder);
                 break;
             case 'finals_appearances':
-                $query->orderBy('finals_appearances', $sortOrder);
+                $query->orderBy('ppa.finals_appearances', $sortOrder);
                 break;
             case 'seasons_played':
-                $query->orderBy('total_seasons_played', $sortOrder);
+                $query->orderBy('ppa.total_seasons_played', $sortOrder);
                 break;
             case 'championships_won':
-                $query->orderBy('championships_won', $sortOrder);
+                $query->orderBy('ppa.championships_won', $sortOrder);
                 break;
             default:
                 // Default sorting if invalid sort column
-                $query->orderBy('player_name', 'asc');
+                $query->orderBy('p.name', 'asc');
         }
 
         // Fetch total number of records
-        $total = DB::table('players')
+        $total = DB::table('player_playoff_appearances as ppa')
+            ->join('players as p', 'ppa.player_id', '=', 'p.id')
             ->count();
 
         // Fetch paginated results
@@ -1833,6 +1835,7 @@ class PlayersController extends Controller
             'last_page' => ceil($total / $perPage),
         ]);
     }
+
 
     public function getTop20PlayersAllTime()
     {

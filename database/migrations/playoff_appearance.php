@@ -1,0 +1,16 @@
+CREATE TABLE player_playoff_appearances (
+    player_id INT PRIMARY KEY,
+    play_ins_elims_round_1_appearances INT DEFAULT 0,
+    play_ins_elims_round_2_appearances INT DEFAULT 0,
+    play_ins_finals_appearances INT DEFAULT 0,
+    round_of_32_appearances INT DEFAULT 0,
+    round_of_16_appearances INT DEFAULT 0,
+    quarter_finals_appearances INT DEFAULT 0,
+    semi_finals_appearances INT DEFAULT 0,
+    interconference_semi_finals_appearances INT DEFAULT 0,
+    finals_appearances INT DEFAULT 0,
+    total_playoff_appearances INT DEFAULT 0,
+    seasons_played_in_playoffs INT DEFAULT 0,
+    total_seasons_played INT DEFAULT 0,
+    championships_won INT DEFAULT 0,
+);

@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW player_playoff_appearances AS
+CREATE OR REPLACE VIEW player_playoff_appearances_view AS
 SELECT
     p.id AS player_id,
     p.name AS player_name,
