@@ -31,6 +31,7 @@ class TradeController extends Controller
                 'team_to.name as to_team'
             )
             ->where('trade_proposals.status', 'pending')
+            ->where('trade_proposals.season_id', $latestSeasonId)
             ->orderBy('trade_proposals.created_at', 'desc')
             ->get();
     
@@ -236,6 +237,7 @@ class TradeController extends Controller
     
     public function generateTradeProposals()
     {
+        $latestSeasonId = DB::table('player_season_stats')->max('season_id') + 1;
         $teams = DB::table('teams')->pluck('id');
         $tradeProposals = [];
         $tradeablePlayers = [];
@@ -281,6 +283,7 @@ class TradeController extends Controller
             if (!empty($tradePartners)) {
                 foreach ($tradePartners as $tradePlayer) {
                     $tradeProposals[] = [
+                        'season_id' => $latestSeasonId,
                         'team_from_id' => $bestPlayer['team_id'],
                         'team_to_id' => $tradePlayer['team_id'],
                         'player_from_id' => $bestPlayer['player_id'],
