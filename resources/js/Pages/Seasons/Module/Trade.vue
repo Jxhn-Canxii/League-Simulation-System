@@ -13,7 +13,7 @@
         <div v-if="current_season == 1 || proposals.length > 0" class="text-right mb-4 mt-4">
             <button 
                 @click="autoTrade" 
-                class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
+                class="px-4 py-2 bg-green-500 mr-4 text-white rounded hover:bg-red-600">
                 Let AI Decide
             </button>
             <button 
@@ -64,7 +64,7 @@
                             </div>
                         </div>
                         <p class="text-gray-500 text-sm">{{ new Date(proposal.created_at).toLocaleString() }}</p>
-                        <div class="mt-2 flex justify-end space-x-4">
+                        <!-- <div class="mt-2 flex justify-end space-x-4">
                             <button 
                                 @click="approveProposal(proposal.id)" 
                                 class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
@@ -75,7 +75,7 @@
                                 class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
                                 Reject
                             </button>
-                        </div>
+                        </div> -->
                     </div>
                 </div>
             </div>
