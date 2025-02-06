@@ -445,6 +445,7 @@ class TradeController extends Controller
         $latestStats = DB::table('player_season_stats')
             ->join('players', 'player_season_stats.player_id', '=', 'players.id')
             ->where('players.team_id', $teamId)
+            ->where('players.contract_years','<=', 2)
             ->where('player_season_stats.season_id', $latestSeasonId)
             ->select(
                 'players.id as player_id',
@@ -491,8 +492,9 @@ class TradeController extends Controller
             ->join('player_season_stats', 'players.id', '=', 'player_season_stats.player_id')
             ->join('standings_view', 'players.team_id', '=', 'standings_view.team_id')
             ->where('standings_view.season_id', $latestSeasonId)
-            ->where('standings_view.overall_rank', '>', 75) // Teams ranked below 75
+            ->where('standings_view.overall_rank', '>', 60) // Teams ranked below 75
             ->where('player_season_stats.season_id', $latestSeasonId)
+            ->where('players.role', 'star player')
             ->select(
                 'players.id as player_id',
                 'players.team_id',
