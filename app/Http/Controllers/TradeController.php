@@ -8,7 +8,7 @@ use Inertia\Inertia;
 
 class TradeController extends Controller
 {
-    public function getTradeProposals()
+    public function getPendingTradeProposals()
     {
         $latestSeasonId = DB::table('player_season_stats')->max('season_id') + 1;
     
@@ -40,6 +40,38 @@ class TradeController extends Controller
             'current_season' => $latestSeasonId
         ]);
     }
+    public function getApprovedTradeProposals()
+    {
+        $latestSeasonId = DB::table('player_season_stats')->max('season_id') + 1;
+    
+        $proposals = DB::table('trade_proposals')
+            ->leftJoin('teams as team_from', 'trade_proposals.team_from_id', '=', 'team_from.id')
+            ->leftJoin('teams as team_to', 'trade_proposals.team_to_id', '=', 'team_to.id')
+            ->leftJoin('players as player_from', 'trade_proposals.player_from_id', '=', 'player_from.id')
+            ->leftJoin('players as player_to', 'trade_proposals.player_to_id', '=', 'player_to.id')
+            ->select(
+                'trade_proposals.id',
+                'trade_proposals.status',
+                'trade_proposals.created_at',
+                'player_from.name as player_from_name',
+                'player_from.role as player_from_role',
+                'player_from.id as player_from_id',
+                'player_to.name as player_to_name',
+                'player_to.role as player_to_role',
+                'player_to.id as player_to_id',
+                'team_from.name as from_team',
+                'team_to.name as to_team'
+            )
+            ->where('trade_proposals.status', 'approved')
+            ->where('trade_proposals.season_id', $latestSeasonId)
+            ->orderBy('trade_proposals.created_at', 'desc')
+            ->get();
+    
+        return response()->json([
+            'trade_proposals' => $proposals,
+            'current_season' => $latestSeasonId
+        ]);
+    }
     public function automatedTradeDecision()
     {
         $latestSeasonId = DB::table('seasons')->max('id') + 1;
@@ -54,40 +86,27 @@ class TradeController extends Controller
     
         foreach ($proposals as $proposal) {
             try {
-                // Check if the player has already been involved in another pending trade for the same season
-                // $duplicateTrade = DB::table('trade_proposals')
-                //     ->where('season_id', $latestSeasonId)
-                //     ->where(function($query) use ($proposal) {
-                //         $query->where('player_from_id', $proposal->player_from_id)
-                //               ->orWhere('player_to_id', $proposal->player_from_id)
-                //               ->orWhere('player_from_id', $proposal->player_to_id)
-                //               ->orWhere('player_to_id', $proposal->player_to_id);
-                //     })
-                //     ->where('status', 'pending')
-                //     ->exists();
+                // Step 1: Check if either player is already involved in an approved trade for the current season
+                $playerFromInApprovedTrade = DB::table('trade_proposals')
+                    ->where('season_id', $latestSeasonId)
+                    ->where('status', 'approved')
+                    ->where(function($query) use ($proposal) {
+                        $query->where('player_from_id', $proposal->player_from_id)
+                              ->orWhere('player_to_id', $proposal->player_from_id);
+                    })
+                    ->exists();
     
-                // if ($duplicateTrade) {
-                //     // Reject the trade if a player is involved in a duplicate trade
-                //     DB::table('trade_proposals')
-                //         ->where('id', $proposal->id)
-                //         ->update(['status' => 'rejected', 'updated_at' => now()]);
+                $playerToInApprovedTrade = DB::table('trade_proposals')
+                    ->where('season_id', $latestSeasonId)
+                    ->where('status', 'approved')
+                    ->where(function($query) use ($proposal) {
+                        $query->where('player_from_id', $proposal->player_to_id)
+                              ->orWhere('player_to_id', $proposal->player_to_id);
+                    })
+                    ->exists();
     
-                //     $decisions[] = [
-                //         'proposal_id' => $proposal->id,
-                //         'status' => 'rejected',
-                //         'reason' => 'Player involved in multiple pending trades.'
-                //     ];
-                //     continue; // Skip the rest of the logic for this proposal
-                // }
-    
-                $playerFromScore = $this->calculatePerformanceScore($this->getPlayerStats($proposal->player_from_id));
-                $playerToScore = $this->calculatePerformanceScore($this->getPlayerStats($proposal->player_to_id));
-    
-                // Example decision logic:
-                $scoreDifference = abs($playerFromScore - $playerToScore);
-    
-                if (rand(1, 100) <= 30) { //30% chance of trade rejection
-                    // Reject the trade if the score difference is too large
+                // Step 2: Reject the trade if either player is already involved in an approved trade
+                if ($playerFromInApprovedTrade || $playerToInApprovedTrade) {
                     DB::table('trade_proposals')
                         ->where('id', $proposal->id)
                         ->update(['status' => 'rejected', 'updated_at' => now()]);
@@ -95,40 +114,121 @@ class TradeController extends Controller
                     $decisions[] = [
                         'proposal_id' => $proposal->id,
                         'status' => 'rejected',
-                        'reason' => 'Trade score imbalance.'
+                        'reason' => 'Player already involved in an approved trade this season.'
                     ];
-                } else {
-                    // Approve the trade if the score difference is within acceptable limits
-                    DB::table('trade_proposals')
-                        ->where('id', $proposal->id)
-                        ->update(['status' => 'approved', 'updated_at' => now()]);
+                    continue; // Skip the rest of the logic for this proposal
+                }
     
-                    $decisions[] = [
-                        'proposal_id' => $proposal->id,
-                        'status' => 'approved',
-                        'reason' => 'Trade balance accepted.'
-                    ];
+                // Step 3: Check if the player has any trade transactions for the current season
+                $playerFromTradeHistory = DB::table('trade_proposals')
+                    ->where('season_id', $latestSeasonId)
+                    ->where(function($query) use ($proposal) {
+                        $query->where('player_from_id', $proposal->player_from_id)
+                              ->orWhere('player_to_id', $proposal->player_from_id);
+                    })
+                    ->exists();
     
-                    // Perform the actual trade (same as approveTrade logic)
-                    DB::transaction(function () use ($proposal) {
-                        DB::table('players')
-                            ->where('id', $proposal->player_from_id)
-                            ->update(['team_id' => $proposal->team_to_id]);
+                $playerToTradeHistory = DB::table('trade_proposals')
+                    ->where('season_id', $latestSeasonId)
+                    ->where(function($query) use ($proposal) {
+                        $query->where('player_from_id', $proposal->player_to_id)
+                              ->orWhere('player_to_id', $proposal->player_to_id);
+                    })
+                    ->exists();
     
-                        DB::table('players')
-                            ->where('id', $proposal->player_to_id)
-                            ->update(['team_id' => $proposal->team_from_id]);
+                // Step 4: Calculate performance scores
+                $playerFromScore = $this->calculatePerformanceScore($this->getPlayerStats($proposal->player_from_id));
+                $playerToScore = $this->calculatePerformanceScore($this->getPlayerStats($proposal->player_to_id));
     
+                // Example decision logic:
+                $scoreDifference = abs($playerFromScore - $playerToScore);
+    
+                // If neither player has trade history, apply a 60% chance of approval
+                if (!$playerFromTradeHistory && !$playerToTradeHistory) {
+                    if (rand(1, 100) <= 60) { // 60% chance of trade approval
                         DB::table('trade_proposals')
                             ->where('id', $proposal->id)
                             ->update(['status' => 'approved', 'updated_at' => now()]);
     
-                        $this->logTrade($proposal->team_to_id, $proposal->team_from_id, $proposal->player_to_id, $proposal->player_from_id);
-                        $this->logTrade($proposal->team_from_id, $proposal->team_to_id, $proposal->player_from_id, $proposal->player_to_id);
-                    });
+                        $decisions[] = [
+                            'proposal_id' => $proposal->id,
+                            'status' => 'approved',
+                            'reason' => 'Trade approved with 60% chance for players with no trade history.'
+                        ];
+    
+                        // Perform the actual trade
+                        DB::transaction(function () use ($proposal) {
+                            DB::table('players')
+                                ->where('id', $proposal->player_from_id)
+                                ->update(['team_id' => $proposal->team_to_id]);
+    
+                            DB::table('players')
+                                ->where('id', $proposal->player_to_id)
+                                ->update(['team_id' => $proposal->team_from_id]);
+    
+                            DB::table('trade_proposals')
+                                ->where('id', $proposal->id)
+                                ->update(['status' => 'approved', 'updated_at' => now()]);
+    
+                            $this->logTrade($proposal->team_to_id, $proposal->team_from_id, $proposal->player_to_id, $proposal->player_from_id);
+                            $this->logTrade($proposal->team_from_id, $proposal->team_to_id, $proposal->player_from_id, $proposal->player_to_id);
+                        });
+                    } else {
+                        // Reject the trade if the random chance fails
+                        DB::table('trade_proposals')
+                            ->where('id', $proposal->id)
+                            ->update(['status' => 'rejected', 'updated_at' => now()]);
+    
+                        $decisions[] = [
+                            'proposal_id' => $proposal->id,
+                            'status' => 'rejected',
+                            'reason' => 'Trade rejected due to 60% chance for players with no trade history.'
+                        ];
+                    }
+                } else {
+                    // Apply the regular decision logic (30% rejection chance)
+                    if (rand(1, 100) <= 30) { // 30% chance of trade rejection
+                        DB::table('trade_proposals')
+                            ->where('id', $proposal->id)
+                            ->update(['status' => 'rejected', 'updated_at' => now()]);
+    
+                        $decisions[] = [
+                            'proposal_id' => $proposal->id,
+                            'status' => 'rejected',
+                            'reason' => 'Trade score imbalance.'
+                        ];
+                    } else {
+                        // Approve the trade if the score difference is within acceptable limits
+                        DB::table('trade_proposals')
+                            ->where('id', $proposal->id)
+                            ->update(['status' => 'approved', 'updated_at' => now()]);
+    
+                        $decisions[] = [
+                            'proposal_id' => $proposal->id,
+                            'status' => 'approved',
+                            'reason' => 'Trade balance accepted.'
+                        ];
+    
+                        // Perform the actual trade
+                        DB::transaction(function () use ($proposal) {
+                            DB::table('players')
+                                ->where('id', $proposal->player_from_id)
+                                ->update(['team_id' => $proposal->team_to_id]);
+    
+                            DB::table('players')
+                                ->where('id', $proposal->player_to_id)
+                                ->update(['team_id' => $proposal->team_from_id]);
+    
+                            DB::table('trade_proposals')
+                                ->where('id', $proposal->id)
+                                ->update(['status' => 'approved', 'updated_at' => now()]);
+    
+                            $this->logTrade($proposal->team_to_id, $proposal->team_from_id, $proposal->player_to_id, $proposal->player_from_id);
+                            $this->logTrade($proposal->team_from_id, $proposal->team_to_id, $proposal->player_from_id, $proposal->player_to_id);
+                        });
+                    }
                 }
             } catch (\Exception $e) {
-                
                 // Add a decision indicating the error to the response
                 $decisions[] = [
                     'proposal_id' => $proposal->id,
@@ -143,8 +243,6 @@ class TradeController extends Controller
         ]);
     }
     
-    
-
     public function endTradeWindow(){
         $latestSeasonId = DB::table('seasons')->max('id');
 
@@ -244,14 +342,13 @@ class TradeController extends Controller
         return response()->json(['message' => 'Trade logged successfully.']);
     }
     
-    
-    
     public function generateTradeProposals()
     {
         $latestSeasonId = DB::table('seasons')->max('id') + 1;
         $teams = DB::table('teams')->pluck('id');
         $tradeProposals = [];
         $tradeablePlayers = [];
+        $usedPlayers = [];  // Keep track of players already used in trades for this season
     
         // Step 1: Collect all tradeable players and calculate their scores
         foreach ($teams as $teamId) {
@@ -278,11 +375,18 @@ class TradeController extends Controller
             $tradePartners = [];
             $remainingScore = $bestPlayer['composite_score'];
     
+            // Mark this player as used for this season
+            $usedPlayers[] = $bestPlayer['player_id'];
+    
             foreach ($tradeablePlayers as $key => $player) {
-                if ($player['team_id'] !== $bestPlayer['team_id']) { // Ensure cross-team trade
+                // Ensure cross-team trade and player hasn't been used in another trade this season
+                if ($player['team_id'] !== $bestPlayer['team_id'] && !in_array($player['player_id'], $usedPlayers)) {
                     $tradePartners[] = $player;
                     $remainingScore -= $player['composite_score'];
                     unset($tradeablePlayers[$key]); // Remove traded player
+    
+                    // Mark the player as used for this season
+                    $usedPlayers[] = $player['player_id'];
     
                     if (abs($remainingScore) <= 10) { // Allow slight imbalance (10-point threshold)
                         break;
@@ -317,7 +421,6 @@ class TradeController extends Controller
             'trades' => $tradeProposals
         ]);
     }
-    
     
     
     private function calculatePerformanceScore($player)

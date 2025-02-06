@@ -85,6 +85,68 @@
                 <p class="text-center text-gray-500">No trade proposals available for this category.</p>
             </div>
         </div>
+        <div v-if="approved.length > 0  && current_season > 2" >
+            <!-- Show 'End Trade' button if there are proposals -->
+            <!-- Tabs for categorizing proposals by role -->
+            <div class="flex mb-4 space-x-4">
+                <button 
+                    v-for="(category, index) in categories" 
+                    :key="index" 
+                    @click="selectCategory(category)" 
+                    :class="['px-4 py-2 rounded', selectedCategory === category ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800']">
+                    {{ category }}
+                </button>
+            </div>
+
+            <!-- Display proposals by selected category -->
+            <div v-if="proposalsByCategory[selectedCategory].length > 0">
+                <div class="grid grid-cols-2 gap-4">
+                    <div v-for="(proposal, index) in proposalsByCategory[selectedCategory]" :key="proposal.id" class="border p-4 rounded-lg bg-white shadow-md">
+                        <div class="mt-4 flex justify-between items-center">
+                            <div class="flex-1 p-4 bg-gray-50 rounded-lg shadow-md">
+                                <h4 class="text-center font-semibold text-lg">{{ proposal.player_from_name }}</h4>
+                                <p class="text-center text-gray-500">{{ proposal.from_team }} to {{ proposal.to_team }}</p>
+                                <p class="text-center text-gray-500">{{ proposal.player_from_role }}</p>
+                                <div class="flex justify-center items-center mt-2">
+                                    <a href="#" @click.prevent="showProfile(proposal.player_from_id)" class="text-blue-500 underline">View Profile</a>
+                                </div>
+                            </div>
+
+                            <div class="mx-4 flex items-center">
+                                <span class="text-gray-600 font-semibold">→</span>
+                            </div>
+
+                            <div class="flex-1 p-4 bg-gray-50 rounded-lg shadow-md">
+                                <h4 class="text-center font-semibold text-lg">{{ proposal.player_to_name }}</h4>
+                                <p class="text-center text-gray-500">{{ proposal.to_team }} to {{ proposal.from_team }}</p>
+                                <p class="text-center text-gray-500">{{ proposal.player_to_role }}</p>
+                                <div class="flex justify-center items-center mt-2">
+                                    <a href="#" @click.prevent="showProfile(proposal.player_to_id)" class="text-blue-500 underline">View Profile</a>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-gray-500 text-sm">Approved</p>
+                        <!-- <div class="mt-2 flex justify-end space-x-4">
+                            <button 
+                                @click="approveProposal(proposal.id)" 
+                                class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                                Approve
+                            </button>
+                            <button 
+                                @click="rejectProposal(proposal.id)" 
+                                class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
+                                Reject
+                            </button>
+                        </div> -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Show if no proposals available for the selected category -->
+            <div v-else>
+                <p class="text-center text-gray-500">No trade proposals available for this category.</p>
+            </div>
+        </div>
     </div>
 
     <!-- Modal for Player Profile -->
@@ -112,6 +174,7 @@ const emits = defineEmits(["newSeason"]);
 const showPlayerProfileModal = ref(false);
 const selectedPlayer = ref(null);
 const proposals = ref([]);
+const approved = ref([]);
 const current_season = ref(null);
 const selectedCategory = ref("star player"); // Default category
 const categories = ref(["star player", "starter", "role player", "bench"]); // Categories for roles
@@ -123,7 +186,7 @@ const proposalsByCategory = ref({
 });
 
 onMounted(async () => {
-    await fetchTradeCandidates();
+    await fetchPendingTradeProposals();
 });
 
 const selectCategory = (category) => {
@@ -136,9 +199,9 @@ const showProfile = (playerId) => {
 };
 
 // Fetch trade candidates
-const fetchTradeCandidates = async () => {
+const fetchPendingTradeProposals = async () => {
     try {
-        const response = await axios.get(route("trade.list")); // Update with your API endpoint
+        const response = await axios.get(route("trade.list.pending")); // Update with your API endpoint
         proposals.value = response.data.trade_proposals;
         current_season.value = response.data.current_season;
         categorizeProposalsByRole();
@@ -146,7 +209,17 @@ const fetchTradeCandidates = async () => {
         console.error("Error fetching available proposals:", error);
     }
 };
-
+const fetchApprovedTradeProposals = async () => {
+    try {
+        const response = await axios.get(route("trade.list.approved")); // Update with your API endpoint
+        approved.value = response.data.trade_proposals;
+        current_season.value = response.data.current_season;
+        proposals.value = []; //clear pending proposals
+        categorizeApprovedProposalsByRole();
+    } catch (error) {
+        console.error("Error fetching available proposals:", error);
+    }
+};
 // Categorize proposals by role
 const categorizeProposalsByRole = () => {
     // Clear current categorization
@@ -163,11 +236,25 @@ const categorizeProposalsByRole = () => {
         }
     });
 };
+const categorizeApprovedProposalsByRole = () => {
+    // Clear current categorization
+    proposalsByCategory.value["star player"] = [];
+    proposalsByCategory.value["starter"] = [];
+    proposalsByCategory.value["role player"] = [];
+    proposalsByCategory.value["bench"] = [];
 
+    approved.value.forEach(proposal => {
+        const role = proposal.player_to_role.toLowerCase();
+        console.log(proposal.player_to_name);
+        if (proposalsByCategory.value[role]) {
+            proposalsByCategory.value[role].push(proposal);
+        }
+    });
+};
 // Handle pagination (if needed)
 const handlePagination = (page_num) => {
     search.value.page_num = page_num;
-    fetchTradeCandidates();
+    fetchPendingTradeProposals();
 };
 
 // End trade function (currently not used here)
@@ -181,7 +268,7 @@ const endTrade = async () => {
                 icon: 'success',
                 confirmButtonText: 'OK'
             });
-            fetchTradeCandidates();
+            fetchPendingTradeProposals();
             emits("newSeason", Math.random());
         }
     } catch (error) {
@@ -194,39 +281,33 @@ const endTrade = async () => {
     }
 };
 const autoTrade = async () => {
+    // Show the "Processing" Swal when the function is called
+    const processingSwal = Swal.fire({
+        title: 'Processing...',
+        text: 'Please wait while the AI decides the trade proposals.',
+        icon: 'info',
+        showConfirmButton: false,
+        willOpen: () => {
+            Swal.showLoading();
+        }
+    });
     try {
         const response = await axios.get(route("trade.decision.automated"));
         
         if (response && response.data && response.data.decisions) {
-            const decisions = response.data.decisions;
-
-            let decisionMessages = '<ul>';  // Start an unordered list
-
-            decisions.forEach(decision => {
-                decisionMessages += `
-                    <li>
-                        <strong>Proposal ID:</strong> ${decision.proposal_id}<br>
-                        <strong>Status:</strong> ${decision.status}<br>
-                        <strong>Reason:</strong> ${decision.reason}
-                    </li><br>
-                `;
-            });
-
-            decisionMessages += '</ul>';  // Close the unordered list
-
-            // Show a success Swal with HTML content
-            await Swal.fire({
-                title: 'Trade Decisions',
-                html: decisionMessages,  // Display decisions as HTML
-                icon: 'info',
-                confirmButtonText: 'OK'
-            });
-
-            fetchTradeCandidates();
+            fetchApprovedTradeProposals();
             emits("newSeason", Math.random());
         }
+
+        // Close the processing Swal once the response is processed
+        processingSwal.close();
     } catch (error) {
         console.error("Error deciding trade:", error);
+
+        // Close the processing Swal when error occurs
+        processingSwal.close();
+
+        // Show error Swal with the response error message
         await Swal.fire({
             title: 'Error!',
             text: error.response ? error.response.data.message : 'An error occurred.',
@@ -234,6 +315,7 @@ const autoTrade = async () => {
         });
     }
 };
+
 
 // Approve trade proposal
 const approveProposal = async (proposalId) => {
@@ -246,7 +328,7 @@ const approveProposal = async (proposalId) => {
                 icon: 'success',
                 confirmButtonText: 'OK'
             });
-            fetchTradeCandidates(); // Refresh proposals list
+            fetchPendingTradeProposals(); // Refresh proposals list
         }
     } catch (error) {
         console.error("Error approving proposal:", error);
@@ -269,7 +351,7 @@ const rejectProposal = async (proposalId) => {
                 icon: 'success',
                 confirmButtonText: 'OK'
             });
-            fetchTradeCandidates(); // Refresh proposals list
+            fetchPendingTradeProposals(); // Refresh proposals list
         }
     } catch (error) {
         console.error("Error rejecting proposal:", error);
@@ -308,7 +390,7 @@ const generateTradeProposal = async () => {
                 icon: 'success',
                 confirmButtonText: 'OK'
             });
-            fetchTradeCandidates(); // Refresh proposals list
+            fetchPendingTradeProposals(); // Refresh proposals list
         }
     } catch (error) {
         console.error("Error generating trade proposal:", error);
