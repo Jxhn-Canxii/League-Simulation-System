@@ -86,7 +86,7 @@ class TradeController extends Controller
                 // Example decision logic:
                 $scoreDifference = abs($playerFromScore - $playerToScore);
     
-                if (rand(1, 100) <= 80) { //80% chance of trade rejection
+                if (rand(1, 100) <= 30) { //30% chance of trade rejection
                     // Reject the trade if the score difference is too large
                     DB::table('trade_proposals')
                         ->where('id', $proposal->id)
