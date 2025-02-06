@@ -540,7 +540,7 @@
                 </button>
                 <div class="mt-4 p-3 block">
                     <Trade
-                        @newSeason="handleNewSeason"
+                        @newSeason="handleTradeSeason"
                     />
                 </div>
             </Modal>
@@ -604,6 +604,13 @@ const fetchSeasons = async (page = 1) => {
 };
 const handlePagination = (page_num) => {
     search_seasons.value.page_num = page_num ?? 1;
+    fetchSeasons();
+};
+
+const handleTradeSeason = (newSeason) => {
+    if (newSeason) {
+        isTradeModalOpen.value = false;
+    }
     fetchSeasons();
 };
 const handleNewSeason = (newSeason) => {

@@ -3,16 +3,17 @@
         <h2 class="text-xl font-semibold text-gray-800">Trade Proposal</h2>
 
         <!-- Show 'Generate Proposal' button if proposals are empty -->
-        <div v-if="proposals.length === 0 && current_season > 1" class="flex justify-center items-center p-4 gap-3 mt-4 bg-white shadow-md rounded-lg">
+        <div v-if="proposals.length === 0 && current_season > 1" class="flex text-2xl bg-gray-200 font-bold justify-center items-center p-4 mb-4 gap-3 mt-4 border-b">
             <button 
-                @click="generateTradeProposal" 
+                @click="generateTradeProposal"
+                v-if="approved.length === 0"
                 class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
                 Generate Proposal
             </button>
             <button 
                 @click="endTrade" 
                 class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
-                End Trade
+                End Trade Season
             </button>
         </div>
         <div v-if="current_season == 1 || proposals.length > 0" class="text-right mb-4 mt-4">
