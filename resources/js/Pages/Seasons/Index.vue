@@ -608,9 +608,9 @@ const handlePagination = (page_num) => {
 };
 
 const handleTradeSeason = (newSeason) => {
-    if (newSeason) {
-        isTradeModalOpen.value = false;
-    }
+    // if (newSeason) {
+    //     isTradeModalOpen.value = false;
+    // }
     fetchSeasons();
 };
 const handleNewSeason = (newSeason) => {
