@@ -72,7 +72,7 @@ class TransactionsController extends Controller
                 DB::raw("MAX(CASE WHEN t.status = 'retired' THEN 1 ELSE 0 END) AS is_retired"),  // Check if the player has any 'retired' status
                 's.finals_winner_name'  // Add finals_winner_name from the seasons table
             )
-            ->whereNotIn('t.status', ['draft', 'released']); // Filter out 'draft' and 'released' transactions
+            ->whereNotIn('t.status', ['draft', 'released','trade']); // Filter out 'draft' and 'released' transactions
 
         // Apply filters for 'normal' or 'notable' transaction type based on the CASE logic
         if ($type) {

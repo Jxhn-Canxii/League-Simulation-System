@@ -55,30 +55,30 @@ class TradeController extends Controller
         foreach ($proposals as $proposal) {
             try {
                 // Check if the player has already been involved in another pending trade for the same season
-                $duplicateTrade = DB::table('trade_proposals')
-                    ->where('season_id', $latestSeasonId)
-                    ->where(function($query) use ($proposal) {
-                        $query->where('player_from_id', $proposal->player_from_id)
-                              ->orWhere('player_to_id', $proposal->player_from_id)
-                              ->orWhere('player_from_id', $proposal->player_to_id)
-                              ->orWhere('player_to_id', $proposal->player_to_id);
-                    })
-                    ->where('status', 'pending')
-                    ->exists();
+                // $duplicateTrade = DB::table('trade_proposals')
+                //     ->where('season_id', $latestSeasonId)
+                //     ->where(function($query) use ($proposal) {
+                //         $query->where('player_from_id', $proposal->player_from_id)
+                //               ->orWhere('player_to_id', $proposal->player_from_id)
+                //               ->orWhere('player_from_id', $proposal->player_to_id)
+                //               ->orWhere('player_to_id', $proposal->player_to_id);
+                //     })
+                //     ->where('status', 'pending')
+                //     ->exists();
     
-                if ($duplicateTrade) {
-                    // Reject the trade if a player is involved in a duplicate trade
-                    DB::table('trade_proposals')
-                        ->where('id', $proposal->id)
-                        ->update(['status' => 'rejected', 'updated_at' => now()]);
+                // if ($duplicateTrade) {
+                //     // Reject the trade if a player is involved in a duplicate trade
+                //     DB::table('trade_proposals')
+                //         ->where('id', $proposal->id)
+                //         ->update(['status' => 'rejected', 'updated_at' => now()]);
     
-                    $decisions[] = [
-                        'proposal_id' => $proposal->id,
-                        'status' => 'rejected',
-                        'reason' => 'Player involved in multiple pending trades.'
-                    ];
-                    continue; // Skip the rest of the logic for this proposal
-                }
+                //     $decisions[] = [
+                //         'proposal_id' => $proposal->id,
+                //         'status' => 'rejected',
+                //         'reason' => 'Player involved in multiple pending trades.'
+                //     ];
+                //     continue; // Skip the rest of the logic for this proposal
+                // }
     
                 $playerFromScore = $this->calculatePerformanceScore($this->getPlayerStats($proposal->player_from_id));
                 $playerToScore = $this->calculatePerformanceScore($this->getPlayerStats($proposal->player_to_id));
@@ -128,10 +128,7 @@ class TradeController extends Controller
                     });
                 }
             } catch (\Exception $e) {
-                // Handle any exceptions that occur during the trade decision process
-                // Log the error message (optional, depending on your logging system)
-                Log::error("Error processing trade proposal ID {$proposal->id}: " . $e->getMessage());
-    
+                
                 // Add a decision indicating the error to the response
                 $decisions[] = [
                     'proposal_id' => $proposal->id,
