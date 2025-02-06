@@ -494,7 +494,7 @@ class TradeController extends Controller
             ->where('standings_view.season_id', $latestSeasonId)
             ->where('standings_view.overall_rank', '>', 60) // Teams ranked below 75
             ->where('player_season_stats.season_id', $latestSeasonId)
-            ->where('players.role', 'star player')
+            ->whereIn('players.role', ['star player', 'starter'])  // Use whereIn to filter by both 'star player' and 'starter'
             ->select(
                 'players.id as player_id',
                 'players.team_id',
