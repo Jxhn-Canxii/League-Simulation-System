@@ -3,38 +3,42 @@
         <!-- Tab Navigation -->
         <div class="flex space-x-4">
             <button
-                class="text-sm font-medium text-gray-600 border-b-2 border-transparent hover:border-blue-600"
-                :class="{ 'border-blue-600': activeTab === 'profile', 'text-blue-600': activeTab === 'profile' }"
-                @click="activeTab = 'profile'"
+                 class="text-sm font-medium text-gray-600 border-b-2 hover:border-blue-600"
+                :class="activeTab === 'profile' ? 'border-blue-600 text-blue-600' : 'border-transparent'"
+                @click="setActiveTab('profile')"
             >
-                Player Profile
+                <i class="fas fa-user"></i> Player Profile
             </button>
             <button
-                class="text-sm font-medium text-gray-600 border-b-2 border-transparent hover:border-blue-600"
-                :class="{ 'border-blue-600': activeTab === 'transactions', 'text-blue-600': activeTab === 'transactions' }"
-                @click="activeTab = 'transactions'"
+                class="text-sm font-medium text-gray-600 border-b-2 hover:border-blue-600"
+                :class="activeTab === 'stats' ? 'border-blue-600 text-blue-600' : 'border-transparent'"
+                @click="setActiveTab('stats')"
             >
-                Player Transactions
+                <i class="fas fa-chart-bar"></i> Season Stats
             </button>
             <button
-                class="text-sm font-medium text-gray-600 border-b-2 border-transparent hover:border-blue-600"
-                :class="{ 'border-blue-600': activeTab === 'injury', 'text-blue-600': activeTab === 'injury' }"
-                @click="activeTab = 'injury'"
+                 class="text-sm font-medium text-gray-600 border-b-2 hover:border-blue-600"
+                :class="activeTab === 'transactions' ? 'border-blue-600 text-blue-600' : 'border-transparent'"
+                @click="setActiveTab('transactions')"
             >
-                Injury History
+                <i class="fas fa-exchange-alt"></i> Player Transactions
+            </button>
+            <button
+                class="text-sm font-medium text-gray-600 border-b-2 hover:border-blue-600"
+                :class="activeTab === 'injury' ? 'border-blue-600 text-blue-600' : 'border-transparent'"
+                @click="setActiveTab('injury')"
+            >
+                <i class="fas fa-medkit"></i> Injury History
             </button>
         </div>
-
-
         <!-- Divider -->
         <hr class="my-4 border-t border-gray-200" />
 
         <!-- Tab Content -->
         <div v-if="activeTab === 'profile'">
             <ProfileHeader v-if="playoff_logs" :key="player_id" :player_id="player_id" />
-
-            <hr class="my-4 border-t border-gray-200" />
-
+        </div>
+        <div v-if="activeTab === 'stats'">
             <h2 class="text-sm font-semibold text-gray-800">
                 Regular Season Logs {{ season_logs.player_stats?.length  > 0 ? '('+season_logs.player_stats?.length+')' : '' }}
             </h2>
@@ -200,7 +204,6 @@
                 </table>
             </div>
         </div>
-
         <div v-if="activeTab === 'transactions'">
             <h2 class="text-sm font-semibold text-gray-800 mt-4">
                 Player Transactions
@@ -345,7 +348,9 @@ onMounted(() => {
     fetchPlayerTransactions();
     fetchPlayerInjuryHistory();
 });
-
+const setActiveTab = (tab) => {
+    activeTab.value = tab;
+}
 const fetchPlayerPlayoffPerformance = async () => {
     try {
         const response = await axios.post(route("players.playoff.performance"), {

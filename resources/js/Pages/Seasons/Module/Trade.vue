@@ -188,6 +188,7 @@ const proposalsByCategory = ref({
 
 onMounted(async () => {
     await fetchPendingTradeProposals();
+    await fetchApprovedTradeProposals();
 });
 
 const selectCategory = (category) => {
